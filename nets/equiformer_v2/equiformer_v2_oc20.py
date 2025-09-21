@@ -489,12 +489,9 @@ class EquiformerV2_OC20(BaseModel):
             # if we are using the same embedding modules
             # make sure we use the same embedding settings as the backbone
             assert (
-                self.share_atom_edge_embedding_hessian
-                == self.share_atom_edge_embedding
+                self.share_atom_edge_embedding_hessian == self.share_atom_edge_embedding
             )
-            assert (
-                self.use_atom_edge_embedding_hessian == self.use_atom_edge_embedding
-            )
+            assert self.use_atom_edge_embedding_hessian == self.use_atom_edge_embedding
             self.source_embedding_hessian = self.source_embedding
             self.target_embedding_hessian = self.target_embedding
         else:
@@ -524,9 +521,7 @@ class EquiformerV2_OC20(BaseModel):
         # TODO: rescale_factor=_AVG_DEGREE
         # changed because we changed cutoff
 
-        self.reinit_edge_degree_embedding_hessian = (
-            reinit_edge_degree_embedding_hessian
-        )
+        self.reinit_edge_degree_embedding_hessian = reinit_edge_degree_embedding_hessian
         # only used if reinit_edge_degree_embedding_hessian is True
         # Edge-degree embedding for initializing node features
         self.edge_degree_embedding_hessian = EdgeDegreeEmbedding(
@@ -788,7 +783,7 @@ class EquiformerV2_OC20(BaseModel):
         if hasattr(data, "edge_index") and (data.edge_index is not None):
             # it only matters if we are doing hessian prediction
             # if we pass otf_graph=True we want to do autograd (no hessian prediction)
-            if (otf_graph is None):
+            if otf_graph is None:
                 assert torch.allclose(edge_index, data.edge_index), (
                     "To fix this: model.otf_graph=False"
                 )

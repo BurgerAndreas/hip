@@ -256,9 +256,7 @@ if __name__ == "__main__":
         for initialization in [True, False]:
             print()
             print("=" * 100)
-            print(
-                f"Testing with initialization: {initialization}"
-            )
+            print(f"Testing with initialization: {initialization}")
             print("=" * 100)
 
             config_path = os.path.join(project_root, "configs/equiformer_v2.yaml")

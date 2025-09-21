@@ -99,7 +99,6 @@ def _blockdiagonal_N_3_N_3_loop(N, edge_index, messages):
     return hessian
 
 
-
 # support function that can be moved to dataloader
 def _get_flat_indexadd_message_indices(N, edge_index):
     # Vectorized construction of 1D indices for i->j and j->i contributions
@@ -160,6 +159,7 @@ def _add_node_diagonal_2d_loop(hessian, l012_node_features, N):
         ].T
     return hessian
 
+
 # support function that can be moved to dataloader
 def _get_node_diagonal_1d_indexadd_indices(N, device):
     # Vectorized build of diagonal indices for direct and transpose contributions
@@ -190,6 +190,7 @@ def _add_node_diagonal_1d_indexadd(hessianflat, l012_node_features, data):
     hessianflat.index_add_(0, diag_ij, l012_node_features_flat)
     hessianflat.index_add_(0, diag_ji, l012_node_features_flat[node_transpose_idx])
     return hessianflat
+
 
 ##############################################################################################################
 

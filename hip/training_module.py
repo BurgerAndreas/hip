@@ -269,7 +269,6 @@ class PotentialModule(LightningModule):
             print("! Training without eigenvalue loss")
         self.log("train-do_eigen_loss", self.do_eigen_loss, rank_zero_only=True)
 
-
     def set_wandb_run_id(self, run_id: str) -> None:
         """Set the WandB run ID for checkpoint continuation."""
         self.wandb_run_id = run_id
@@ -866,8 +865,11 @@ class PotentialModule(LightningModule):
             info_prefix[f"{prefix}-{k}"] = v
 
         info_prefix[f"{prefix}-totloss"] = (
-            info["Loss Hessian"] + info["Loss E"] + info["Loss F"] 
-            + eval_info["MAE Eigvals"] + (-1 * eval_info["Cosine Sim v1"] / 20)
+            info["Loss Hessian"]
+            + info["Loss E"]
+            + info["Loss F"]
+            + eval_info["MAE Eigvals"]
+            + (-1 * eval_info["Cosine Sim v1"] / 20)
         )
 
         del info
