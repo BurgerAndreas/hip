@@ -59,7 +59,6 @@ from .input_block import EdgeDegreeEmbedding
 from .hessian_pred_utils import (
     add_extra_props_for_hessian,
     predict_hessian_1d_fast,
-    predict_hessian_blockdiagonal_robust,
 )
 
 # Statistics of IS2RE 100K
@@ -190,7 +189,6 @@ class EquiformerV2_OC20(BaseModel):
         # added for hessian prediction
         hessian_alpha_drop=0.0,
         num_layers_hessian=0,
-        hessian_build_method="1d",  # blockdiagonal, 1d
         share_atom_edge_embedding_hessian=False,
         # if to also use atom type embedding or just relative distances for edge features
         # in edge_distance
@@ -623,15 +621,7 @@ class EquiformerV2_OC20(BaseModel):
             out_features=1,
             lmax=2,
         )
-        self.hessian_build_method = hessian_build_method
-        if self.hessian_build_method == "1d":
-            self._get_hessian_from_features = predict_hessian_1d_fast
-        elif self.hessian_build_method == "blockdiagonal":
-            self._get_hessian_from_features = predict_hessian_blockdiagonal_robust
-        else:
-            raise ValueError(
-                f"Invalid hessian build method: {self.hessian_build_method}"
-            )
+        self._get_hessian_from_features = predict_hessian_1d_fast
 
         self.apply(self._init_weights)
         self.apply(self._uniform_init_rad_func_linear_weights)
@@ -997,7 +987,7 @@ class EquiformerV2_OC20(BaseModel):
             l012_edge_features_3x3 = irreps_to_cartesian_matrix(
                 l012_edge_features
             )  # (E, 3, 3)
-            # sym_message: torch.Tensor = l012_edge_features
+            # messages: torch.Tensor = l012_edge_features
 
             if add_props:
                 data = add_extra_props_for_hessian(data, offset_indices=True)

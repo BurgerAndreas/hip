@@ -7,7 +7,6 @@ from nets.equiformer_v2.hessian_pred_utils import (
 )
 from nets.equiformer_v2.equiformer_v2_oc20 import EquiformerV2_OC20
 
-from ocpmodels.common.utils import conditional_grad
 from ocpmodels.common.utils import (
     compute_neighbors,
     conditional_grad,

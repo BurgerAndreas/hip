@@ -257,7 +257,7 @@ if __name__ == "__main__":
             print()
             print("=" * 100)
             print(
-                f"Testing with initialization: {initialization}, hessian_build_method: {_hessian_build_method}"
+                f"Testing with initialization: {initialization}"
             )
             print("=" * 100)
 
@@ -267,7 +267,7 @@ if __name__ == "__main__":
             model_config = config["model"]
             model_config["do_hessian"] = True
             model_config["otf_graph"] = False
-            model_config["hessian_build_method"] = _hessian_build_method
+            # model_config["hessian_build_method"] = _hessian_build_method
             model = EquiformerV2_OC20(**model_config)
 
             checkpoint_path = os.path.join(project_root, "ckpt/eqv2.ckpt")

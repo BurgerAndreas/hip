@@ -26,7 +26,6 @@ model:
   cutoff_hessian: 100.0
   # graph
   otf_graph: false
-  hessian_build_method: "1d"
 
   hessian_no_attn_weights: True # build Hessian off-diagonal elements from raw messages without attention weights
   attn_wo_sigmoid: False # do not apply sigmoid to attention weights
