@@ -23,7 +23,8 @@ runs_relaxation/
 **/Transition1x/
 !**/*.csv
 
-_*
+_docs
+_docs/*
 plots/
 plots_*/
 

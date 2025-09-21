@@ -56,8 +56,7 @@ command:
   - optimizer.lr=${optimizer.lr}
   - optimizer.weight_decay=${optimizer.weight_decay}
   - optimizer.amsgrad=${optimizer.amsgrad}
-  - optimizer.beta1=${optimizer.beta1}
-  - optimizer.beta2=${optimizer.beta2}
+  - optimizer.betas=[${optimizer.beta1}, ${optimizer.beta2}]
   - training.hessian_loss_weight=${training.hessian_loss_weight}
   - training.energy_loss_weight=${training.energy_loss_weight}
   - training.force_loss_weight=${training.force_loss_weight}

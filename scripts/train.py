@@ -22,6 +22,7 @@ try:
         LearningRateMonitor,
     )
     from pytorch_lightning.loggers import WandbLogger
+    import pytorch_lightning as pl
 except ImportError:
     from lightning.callbacks import (
         TQDMProgressBar,
@@ -30,8 +31,8 @@ except ImportError:
         LearningRateMonitor,
     )
     from lightning.loggers import WandbLogger
-
-from hip.training_module_eigen import EigenPotentialModule, MyPLTrainer
+    import lightning as pl
+    
 from hip.training_module import PotentialModule
 from hip.path_config import CHECKPOINT_PATH_EQUIFORMER_HORM
 from hip.logging_utils import name_from_config, find_latest_checkpoint
@@ -208,8 +209,7 @@ def setup_training(cfg: DictConfig):
         cfg.pltrainer.strategy = "ddp_find_unused_parameters_true"
 
     print("Initializing trainer")
-    # trainer = pl.Trainer(
-    trainer = MyPLTrainer(
+    trainer = pl.Trainer(
         devices=cfg.pltrainer.devices,
         num_nodes=cfg.pltrainer.num_nodes,
         accelerator=cfg.pltrainer.accelerator,
