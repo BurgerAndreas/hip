@@ -14,11 +14,8 @@ project: "hip"
 
 
 model:
-  do_hessian: true
-  # expressivity
   hessian_alpha_drop: 0.0
   num_layers_hessian: 1
-  num_gaussians_distance_hessian: 600
   # if to also use atom type embedding or just relative distances for edge features
   # in edge_distance 
   use_atom_edge_embedding_hessian: True

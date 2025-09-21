@@ -36,6 +36,10 @@ parameters:
     distribution: log_uniform_values
     min: 1.0
     max: 50.0
+  model.max_radius:
+    values: [6, 12]
+  model.cutoff_hessian:
+    values: [6, 12, 100]
   # training.eigen_loss.alpha:
   #   distribution: uniform
   #   min: 0.0
@@ -58,6 +62,8 @@ command:
   - training.energy_loss_weight=${training.energy_loss_weight}
   - training.force_loss_weight=${training.force_loss_weight}
   # - training.eigen_loss.alpha=${training.eigen_loss.alpha}
+  - model.max_radius=${model.max_radius}
+  - model.cutoff_hessian=${model.cutoff_hessian}
   - training.bz=64
   - training.bz_val=64
   - ${args}
