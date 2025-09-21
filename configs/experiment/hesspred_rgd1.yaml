@@ -1,0 +1,12 @@
+# @package _global_
+
+# Fit on the larger training dataset (TS1x), test on TS1x
+
+training:
+  trn_path: "RGD1-hesspred.lmdb"
+  val_path: "ts1x-val-hesspred.lmdb"
+
+  # already preprocessed dataset, don't need to do hessian graph transform
+  do_hessiangraphtransform: false
+
+experiment_name: "hesspred_rgd1"

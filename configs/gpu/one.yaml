@@ -1,0 +1,9 @@
+# @package _global_
+
+# Single GPU configuration
+
+pltrainer:
+  devices: 1
+  num_nodes: 1
+  accelerator: "gpu"
+  strategy: "auto"

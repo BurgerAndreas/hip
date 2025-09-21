@@ -1,0 +1,10 @@
+# @package _global_
+
+# Four GPU configuration
+
+pltrainer:
+  devices: 4
+  num_nodes: 1
+  accelerator: "gpu"
+  # auto, ddp, ddp_find_unused_parameters_true
+  strategy: "ddp"

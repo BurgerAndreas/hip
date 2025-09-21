@@ -1,0 +1,18 @@
+# @package _global_
+
+model:
+  alpha_drop:               0.0         # [0.0, 0.1]
+  drop_path_rate:           0.0         # [0.0, 0.05]
+  proj_drop:                0.0
+
+training:
+  # train_hessian_only: true
+  hessian_loss_type: "mae"
+  eigen_loss:
+    loss_name: "eigenspectrum"
+    loss_type: "eigen" # eigen=luca or wa
+    k: 8
+    alpha: 1.0
+    dist: "mae"
+
+# ckpt_model_path: horm

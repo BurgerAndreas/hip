@@ -1,0 +1,124 @@
+defaults:
+  - ./equiformer_v2
+  - _self_
+  - lr: cosine
+  # - trgt: hessian
+  - preset: mae
+  - experiment: hesspred_alldata
+  - gpu: one
+
+# Model configuration
+model_type: "EquiformerV2"
+version: "0.1"
+project: "hip"
+
+
+model:
+  do_hessian: true
+  # expressivity
+  hessian_alpha_drop: 0.0
+  num_layers_hessian: 1
+  num_gaussians_distance_hessian: 600
+  # if to also use atom type embedding or just relative distances for edge features
+  # in edge_distance 
+  use_atom_edge_embedding_hessian: True
+  # if the same embedding is used in every transformer block
+  share_atom_edge_embedding_hessian: False
+  reuse_source_target_embedding_hessian: True
+  reinit_edge_degree_embedding_hessian: False # add edge degree embedding to node features
+  cutoff_hessian: 100.0
+  # graph
+  otf_graph: false
+  hessian_build_method: "1d"
+
+  hessian_no_attn_weights: True # build Hessian off-diagonal elements from raw messages without attention weights
+  attn_wo_sigmoid: False # do not apply sigmoid to attention weights
+
+
+# Optimizer configuration
+optimizer:
+  optimizer: "AdamW"
+  lr: 3e-4  # paper says 3e-4, code uses 5e-4
+  betas: [0.9, 0.999] # [0.9, 0.95], [0.8, 0.95]
+  weight_decay: 0 # 0.01, 1e-5
+  amsgrad: true
+
+# Training configuration  
+training:
+  bz: 128
+  bz_val: 128
+  num_workers: 2 # 48
+  clip_grad: true
+  use_clip_gradnorm_queue: true
+  gradient_clip_val: 0.1
+  gradient_clip_algorithm: "norm"
+
+  # horm used: loss = floss * 100 + eloss * 4 + hessian_loss * 4
+  hessian_loss_weight: 1.0
+  energy_loss_weight: 1.0
+  force_loss_weight: 25.0
+  hessian_loss_type: "mae"
+  # mask_hessian: false
+
+  follow_batch: ["diag_ij", "edge_index", "message_idx_ij"]
+
+  eigen_loss:
+    loss_name: "eigenspectrum"
+    loss_type: "eigen" # eigen or wa
+    k: null
+    alpha: null
+    dof_filter_fn: null
+    dist: "mae" # frosq or mae recommended
+
+  # already preprocessed dataset, don't need to do hessian graph transform
+  do_hessiangraphtransform: false
+
+
+  train_hessian_only: false
+
+  # Checkpoint loading options
+  load_weights_only: false  # If true, only load model weights, ignore training state (epoch, optimizer, etc.)
+
+  max_train_samples: null
+  max_val_samples: null
+  drop_last: true # otherwise we run into shape issues
+
+# Pytorch Lightning Trainer configuration
+pltrainer:
+  max_epochs: 10000
+  gradient_clip_val: 0.1
+  accumulate_grad_batches: 1
+  limit_train_batches: 1600
+  limit_val_batches: 200 # 50844 samples / 64 bz = 794.4375 batches
+  log_every_n_steps: 1
+  check_val_every_n_epoch: 4  # Run validation every N epochs (default: 1)
+  # val_check_interval: 0.5    # Alternative: Run validation every N steps or fraction of epoch
+  # overfit_batches: 2
+
+early_stopping:
+  monitor: "val-totloss"
+  patience: 1000
+  mode: "min"
+  verbose: true
+
+use_wandb: true
+
+ckpt_model_path: horm
+
+# Checkpoint that contains model weights and optimizerstate , lr state, etc. 
+ckpt_trainer_path: null
+
+ckpt_resume_auto: true
+
+ckpt_do_save: true
+
+slurm_job_id: null
+
+# variables we can access in our code
+job_name: 'results'
+# job_name: ${hydra:job.name}
+config_name: ${hydra:job.config_name}
+# Stores the command line arguments overrides
+override_dirname: ${hydra:job.override_dirname}
+# Changes the current working directory to the output directory for each job
+# hydra.job.chdir: False
