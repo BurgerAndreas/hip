@@ -13,26 +13,52 @@ parameters:
     distribution: log_uniform_values
     min: 1e-6
     max: 1e-2
-  training.eigen_loss.alpha:
-    distribution: uniform
-    min: 0.0
-    max: 1.0
-  training.bz:
-    values: [64, 96, 128]
-  pltrainer.devices:
-    value: 1
+  optimizer.amsgrad:
+    distribution: categorical
+    value: [true, false]
+  optimizer.beta1:
+    distribution: log_uniform_values
+    min: 0.8
+    max: 0.999
+  optimizer.beta2:
+    distribution: log_uniform_values
+    min: 0.8
+    max: 0.999
+  training.hessian_loss_weight:
+    distribution: log_uniform_values
+    min: 1.0
+    max: 50.0
+  # training.energy_loss_weight:
+  #   distribution: log_uniform_values
+  #   min: 1.0
+  #   max: 50.0
+  training.force_loss_weight:
+    distribution: log_uniform_values
+    min: 1.0
+    max: 50.0
+  # training.eigen_loss.alpha:
+  #   distribution: uniform
+  #   min: 0.0
+  #   max: 1.0
+  # training.bz:
+  #   values: [64, 96, 128]
+  # pltrainer.devices:
+  #   value: 1
 command:
   - ${env}
   - uv
   - run
   - ${program}
-  - ckpt_model_path=null
-  - +ckpt_trainer_path=null
-  - use_wandb=true
-  - pltrainer.devices=${pltrainer.devices}
   - optimizer.lr=${optimizer.lr}
   - optimizer.weight_decay=${optimizer.weight_decay}
-  - training.eigen_loss.alpha=${training.eigen_loss.alpha}
-  - training.bz=${training.bz}
+  - optimizer.amsgrad=${optimizer.amsgrad}
+  - optimizer.beta1=${optimizer.beta1}
+  - optimizer.beta2=${optimizer.beta2}
+  - training.hessian_loss_weight=${training.hessian_loss_weight}
+  - training.energy_loss_weight=${training.energy_loss_weight}
+  - training.force_loss_weight=${training.force_loss_weight}
+  # - training.eigen_loss.alpha=${training.eigen_loss.alpha}
+  - training.bz=64
+  - training.bz_val=64
   - ${args}
 

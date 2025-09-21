@@ -263,6 +263,23 @@ uv run scripts/zero_point_energy_at_dft_reactant_product.py --thresh gau_tight -
 # uv run scripts/test_hessian_prediction.py
 ```
 
+### Hyperparameter search
+
+Create the sweep and note the SWEEP_ID:
+```bash
+source .venv/bin/activate
+wandb sweep sweeps/hessian_uv.yaml
+```
+
+Start the background relaunch loop (on the login node or screen/tmux):
+```bash
+export SWEEP_ID=<YOUR_SWEEP_ID>
+bash scripts/launch_sweep_loop.sh
+
+# stop later
+pkill -f scripts/launch_sweep_loop.sh
+```
+
 ### Sella: work in progress
 ```bash
 uv pip install -U "jax[cuda12]"==0.6.2
