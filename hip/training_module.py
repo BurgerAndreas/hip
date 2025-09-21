@@ -37,7 +37,7 @@ from torchmetrics import (
 from nets.equiformer_v2.equiformer_v2_oc20 import EquiformerV2_OC20
 from ocpmodels.hessian_graph_transform import (
     HessianGraphTransform,
-    create_hessian_collate_fn,
+    # create_hessian_collate_fn,
     HessianDataLoader,
 )
 
@@ -48,12 +48,12 @@ import yaml
 from hip.path_config import find_project_root, fix_dataset_path
 from nets.prediction_utils import compute_extra_props
 from hip.loss_functions import (
-    compute_loss_blockdiagonal_hessian,
+    # compute_loss_blockdiagonal_hessian,
     get_hessian_loss_fn,
     get_eigval_eigvec_metrics,
-    BatchHessianLoss,
-    L1HessianLoss,
-    L2HessianLoss,
+    # BatchHessianLoss,
+    # L1HessianLoss,
+    # L2HessianLoss,
 )
 
 LR_SCHEDULER = {
@@ -854,18 +854,23 @@ class PotentialModule(LightningModule):
         # compute training loss on eval set
         loss, info = self.compute_loss(batch)
         detached_loss = loss.detach()
-        info["totloss"] = detached_loss.item()
+        info["trainloss"] = detached_loss.item()
 
         info_prefix = {}
         for k, v in info.items():
             info_prefix[f"{prefix}-{k}"] = v
-        del info
 
         # compute eval metrics on eval set
         eval_info = self.compute_eval_loss(batch, prefix=prefix)
         for k, v in eval_info.items():
             info_prefix[f"{prefix}-{k}"] = v
 
+        info_prefix[f"{prefix}-totloss"] = (
+            info["Loss Hessian"] + info["Loss E"] + info["Loss F"] 
+            + eval_info["MAE Eigvals"] + (-1 * eval_info["Cosine Sim v1"] / 20)
+        )
+
+        del info
         if torch.cuda.is_available():
             torch.cuda.empty_cache()
         return info_prefix

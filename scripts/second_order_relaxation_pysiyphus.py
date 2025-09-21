@@ -448,9 +448,11 @@ def _run_opt_safely(
     else:
         os.makedirs(os.path.dirname(log_path), exist_ok=True)
         print(f"Saving log to {log_path}")
-        with open(log_path, "a") as _log_fh, contextlib.redirect_stdout(
-            _log_fh
-        ), contextlib.redirect_stderr(_log_fh):
+        with (
+            open(log_path, "a") as _log_fh,
+            contextlib.redirect_stdout(_log_fh),
+            contextlib.redirect_stderr(_log_fh),
+        ):
             return _try_to_run(opt)
 
 

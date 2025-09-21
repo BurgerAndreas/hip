@@ -4,7 +4,7 @@
 #SBATCH --time=71:00:00
 #SBATCH --gres=gpu:h100:2
 #SBATCH --mem=128GB
-#SBATCH --job-name=traingad
+#SBATCH --job-name=hiph100
 # Jobs must write their output to your scratch or project directory (home is read-only on compute nodes).
 #SBATCH --output=/project/aip-aspuru/aburger/hip/outslurm/slurm-%j.txt 
 #SBATCH --error=/project/aip-aspuru/aburger/hip/outslurm/slurm-%j.txt
