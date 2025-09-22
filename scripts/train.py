@@ -49,6 +49,8 @@ def setup_training(cfg: DictConfig):
 
     if cfg.optimizer.beta1 is not None and cfg.optimizer.beta2 is not None:
         cfg.optimizer.betas = [cfg.optimizer.beta1, cfg.optimizer.beta2]
+    del cfg.optimizer.beta1
+    del cfg.optimizer.beta2
 
     # Add SLURM job ID to config if it exists in environment
     if "SLURM_JOB_ID" in os.environ:

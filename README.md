@@ -269,7 +269,6 @@ Create the sweep and note the SWEEP_ID:
 ```bash
 source .venv/bin/activate
 wandb sweep sweeps/hessian_uv.yaml
-
 # sbatch scripts/sweep_init.sh
 ```
 
