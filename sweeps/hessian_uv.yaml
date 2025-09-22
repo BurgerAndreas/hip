@@ -15,7 +15,7 @@ parameters:
     max: 1e-2
   optimizer.amsgrad:
     distribution: categorical
-    value: [true, false]
+    values: [true, false]
   optimizer.beta1:
     distribution: log_uniform_values
     min: 0.8
