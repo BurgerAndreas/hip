@@ -17,11 +17,13 @@ source ${PYTHONBIN}/activate
 
 # Ensure WANDB is available via uv if not globally installed
 export WANDB_PROJECT=hip
+WANDB_ENTITY=andreas-burger
 
 echo $(date): Job $SLURM_JOB_ID starting sweep agent for one suggestion
 
 # One suggestion per allocation to respect 3-day walltime
-uvx --from wandb wandb agent --count 1 "$SWEEP_ID"
+# uv --from wandb 
+wandb agent --count 1 "$SWEEP_ID"
 
 echo $(date): Job $SLURM_JOB_ID finished
 

@@ -21,8 +21,9 @@ export WANDB_PROJECT=hip
 echo $(date): Job $SLURM_JOB_ID starting sweep agent for one suggestion
 
 # One suggestion per allocation to respect 3-day walltime
-# uvx --from wandb wandb agent --count 1 "$SWEEP_ID"
-uvx --from wandb wandb sweep sweeps/hessian_uv.yaml
+# wandb agent --count 1 "$SWEEP_ID"
+# uv --from wandb 
+wandb sweep sweeps/hessian_uv.yaml
 
 
 echo $(date): Job $SLURM_JOB_ID finished
