@@ -66,18 +66,16 @@ command:
   - uv
   - run
   - ${program}
-  - optimizer.lr=${optimizer.lr}
-  - optimizer.weight_decay=${optimizer.weight_decay}
-  - optimizer.amsgrad=${optimizer.amsgrad}
-  - optimizer.betas=[${optimizer.beta1}, ${optimizer.beta2}]
-  # - training.energy_loss_weight=${training.energy_loss_weight}
-  - training.force_loss_weight=${training.force_loss_weight}
-  - training.hessian_loss_weight=${training.hessian_loss_weight}
-  # - training.eigen_loss.alpha=${training.eigen_loss.alpha}
-  - model.max_radius=${model.max_radius}
-  - model.cutoff_hessian=${model.cutoff_hessian}
+  # - optimizer.lr=${optimizer.lr}
+  # - optimizer.weight_decay=${optimizer.weight_decay}
+  # - optimizer.amsgrad=${optimizer.amsgrad}
+  # - optimizer.betas=[${optimizer.beta1}, ${optimizer.beta2}]
+  # - training.force_loss_weight=${training.force_loss_weight}
+  # - training.hessian_loss_weight=${training.hessian_loss_weight}
+  # - model.max_radius=${model.max_radius}
+  # - model.cutoff_hessian=${model.cutoff_hessian}
   - training.bz=64
   - training.bz_val=64
   # - ${args}
-  # - ${args_no_hyphens}
+  - ${args_no_hyphens}
 

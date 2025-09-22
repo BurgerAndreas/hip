@@ -22,7 +22,6 @@ echo $(date): Job $SLURM_JOB_ID starting sweep agent for one suggestion
 
 # One suggestion per allocation to respect 3-day walltime
 # wandb agent --count 1 "$SWEEP_ID"
-# uv --from wandb 
 wandb sweep sweeps/hessian_uv.yaml
 
 

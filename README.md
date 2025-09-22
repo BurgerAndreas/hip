@@ -278,7 +278,6 @@ Start the background relaunch loop (on the login node or screen/tmux):
 export SWEEP_ID=<YOUR_SWEEP_ID>
 bash scripts/launch_sweep_loop.sh
 # nohup bash scripts/launch_sweep_loop.sh > logs/launch_sweep_loop.out 2>&1 < /dev/null &
-# echo $!  # save this PID if you want to kill it later
 
 # stop later
 pkill -f scripts/launch_sweep_loop.sh
