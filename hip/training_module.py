@@ -332,6 +332,8 @@ class PotentialModule(LightningModule):
 
         optimizer_config = self.optimizer_config
         optim_type = optimizer_config.pop("optimizer", "AdamW")
+        optimizer_config.pop("beta1", None)
+        optimizer_config.pop("beta2", None)
 
         # if weight_decay and filter_bias_and_bn:
         #     skip = {}
