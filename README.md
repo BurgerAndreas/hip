@@ -269,15 +269,21 @@ Create the sweep and note the SWEEP_ID:
 ```bash
 source .venv/bin/activate
 wandb sweep sweeps/hessian_uv.yaml
+
+# sbatch scripts/sweep_init.sh
 ```
 
 Start the background relaunch loop (on the login node or screen/tmux):
 ```bash
 export SWEEP_ID=<YOUR_SWEEP_ID>
 bash scripts/launch_sweep_loop.sh
+# nohup bash scripts/launch_sweep_loop.sh > logs/launch_sweep_loop.out 2>&1 < /dev/null &
+# echo $!  # save this PID if you want to kill it later
 
 # stop later
 pkill -f scripts/launch_sweep_loop.sh
+# pgrep -af 'launch_sweep_loop.sh'   # find it
+# kill
 ```
 
 ### Sella: work in progress

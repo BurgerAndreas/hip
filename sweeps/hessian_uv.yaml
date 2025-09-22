@@ -78,5 +78,6 @@ command:
   - model.cutoff_hessian=${model.cutoff_hessian}
   - training.bz=64
   - training.bz_val=64
-  - ${args}
+  # - ${args}
+  # - ${args_no_hyphens}
 
