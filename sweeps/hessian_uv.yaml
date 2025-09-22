@@ -57,9 +57,9 @@ command:
   - optimizer.weight_decay=${optimizer.weight_decay}
   - optimizer.amsgrad=${optimizer.amsgrad}
   - optimizer.betas=[${optimizer.beta1}, ${optimizer.beta2}]
-  - training.hessian_loss_weight=${training.hessian_loss_weight}
-  - training.energy_loss_weight=${training.energy_loss_weight}
+  # - training.energy_loss_weight=${training.energy_loss_weight}
   - training.force_loss_weight=${training.force_loss_weight}
+  - training.hessian_loss_weight=${training.hessian_loss_weight}
   # - training.eigen_loss.alpha=${training.eigen_loss.alpha}
   - model.max_radius=${model.max_radius}
   - model.cutoff_hessian=${model.cutoff_hessian}
