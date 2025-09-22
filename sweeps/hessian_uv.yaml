@@ -24,12 +24,12 @@ parameters:
     distribution: log_uniform_values
     min: 0.8
     max: 0.999
-  training.gradient_clip_algorithm:
+  pltrainer.gradient_clip_algorithm:
     values:
       - norm
       - value
     distribution: categorical
-  training.gradient_clip_val:
+  pltrainer.gradient_clip_val:
     distribution: log_uniform_values
     min: 0.1
     max: 10
