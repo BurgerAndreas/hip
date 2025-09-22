@@ -17,11 +17,11 @@ parameters:
     distribution: categorical
     values: [true, false]
   optimizer.beta1:
-    distribution: log_uniform
+    distribution: log_uniform_values
     min: 0.8
-    max: 0.999
+    max: 0.99
   optimizer.beta2:
-    distribution: log_uniform
+    distribution: log_uniform_values
     min: 0.8
     max: 0.999
   training.gradient_clip_algorithm:
@@ -30,7 +30,7 @@ parameters:
       - value
     distribution: categorical
   training.gradient_clip_val:
-    distribution: log_uniform
+    distribution: log_uniform_values
     min: 0.1
     max: 10
   training.hessian_loss_weight:
