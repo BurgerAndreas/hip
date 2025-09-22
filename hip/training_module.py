@@ -43,7 +43,7 @@ from ocpmodels.hessian_graph_transform import (
 
 from hip.ff_lmdb import LmdbDataset
 from hip.utils import average_over_batch_metrics, pretty_print
-import hip.horm.utils as diff_utils
+import hip.utils as diff_utils
 import yaml
 from hip.path_config import find_project_root, fix_dataset_path
 from nets.prediction_utils import compute_extra_props
