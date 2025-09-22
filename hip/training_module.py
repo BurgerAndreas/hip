@@ -249,8 +249,8 @@ class PotentialModule(LightningModule):
         else:
             self.do_eigen_loss = False
         
-        # save for checkpointing
-        self.save_hyperparameters()
+        # Save arguments to hparams attribute for checkpointing
+        self.save_hyperparameters(logger=False) 
 
     def set_wandb_run_id(self, run_id: str) -> None:
         """Set the WandB run ID for checkpoint continuation."""
