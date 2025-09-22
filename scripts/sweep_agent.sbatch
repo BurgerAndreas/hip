@@ -12,8 +12,8 @@
 set -euo pipefail
 
 # Activate environment
-source ${PYTHONBIN}/activate
 source .env
+source ${PYTHONBIN}/activate
 
 # Ensure WANDB is available via uv if not globally installed
 export WANDB_PROJECT=hip

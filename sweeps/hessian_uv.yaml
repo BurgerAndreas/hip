@@ -6,40 +6,53 @@ metric:
   goal: minimize
 parameters:
   optimizer.lr:
-    distribution: log_uniform_values
-    min: 1e-5
-    max: 3e-4
+    distribution: uniform
+    min: 0.00015
+    max: 0.0006
   optimizer.weight_decay:
-    distribution: log_uniform_values
-    min: 1e-6
-    max: 1e-2
+    distribution: uniform
+    min: 0.000005
+    max: 0.00002
   optimizer.amsgrad:
     distribution: categorical
     values: [true, false]
   optimizer.beta1:
-    distribution: log_uniform_values
+    distribution: log_uniform
     min: 0.8
     max: 0.999
   optimizer.beta2:
-    distribution: log_uniform_values
+    distribution: log_uniform
     min: 0.8
     max: 0.999
+  training.gradient_clip_algorithm:
+    values:
+      - norm
+      - value
+    distribution: categorical
+  training.gradient_clip_val:
+    distribution: log_uniform
+    min: 0.1
+    max: 10
   training.hessian_loss_weight:
-    distribution: log_uniform_values
-    min: 1.0
-    max: 50.0
+    distribution: int_uniform
+    min: 5
+    max: 20
   # training.energy_loss_weight:
   #   distribution: log_uniform_values
   #   min: 1.0
   #   max: 50.0
   training.force_loss_weight:
-    distribution: log_uniform_values
-    min: 1.0
-    max: 50.0
+    distribution: int_uniform
+    min: 13
+    max: 50
   model.max_radius:
-    values: [6, 12]
+    distribution: int_uniform
+    min: 6
+    max: 24
   model.cutoff_hessian:
-    values: [6, 12, 100]
+    distribution: int_uniform
+    min: 50
+    max: 200
   # training.eigen_loss.alpha:
   #   distribution: uniform
   #   min: 0.0

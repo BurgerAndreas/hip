@@ -254,10 +254,6 @@ class PotentialModule(LightningModule):
                 f"Invalid Hessian loss type: {self.model_config['hessian_loss_type']}"
             )
 
-        # Validation metrics
-        self.MSE = torch.nn.MSELoss()
-        self.MAE = torch.nn.L1Loss()
-
         self.loss_fn_eigen = get_hessian_loss_fn(**training_config["eigen_loss"])
 
         _alpha = self.training_config["eigen_loss"]["alpha"]
