@@ -273,7 +273,7 @@ wandb sweep sweeps/hessian_uv.yaml
 # sbatch scripts/sweep_init.sh
 ```
 
-Start the background relaunch loop (on the login node or screen/tmux):
+Start the background relaunch loop (4 runs every 72 hours):
 ```bash
 export SWEEP_ID=<YOUR_SWEEP_ID>
 nohup bash scripts/launch_sweep_loop.sh > logs/launch_sweep_loop.out 2>&1 < /dev/null &

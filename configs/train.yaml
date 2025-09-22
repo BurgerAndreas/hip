@@ -36,6 +36,8 @@ optimizer:
   optimizer: "adamw" # adamw or muon, but muon has only ~20 2d params 
   lr: 3e-4  # paper says 3e-4, code uses 5e-4
   betas: [0.8, 0.95] # [0.9, 0.999], [0.9, 0.95], [0.8, 0.95]
+  beta1: null
+  beta2: null
   weight_decay: 1e-5 # 0.01, 1e-5
   amsgrad: false # true
 

@@ -39,6 +39,25 @@ from hip.logging_utils import name_from_config, find_latest_checkpoint
 
 
 def setup_training(cfg: DictConfig):
+    ###########################################
+    # Fix config
+    ###########################################
+
+    # muon requires ddp to be initialized
+    if cfg.optimizer.optimizer.lower() == "muon":
+        cfg.pltrainer.strategy = "ddp_find_unused_parameters_true"
+
+    if cfg.optimizer.beta1 is not None and cfg.optimizer.beta2 is not None:
+        cfg.optimizer.betas = [cfg.optimizer.beta1, cfg.optimizer.beta2]
+
+    # Add SLURM job ID to config if it exists in environment
+    if "SLURM_JOB_ID" in os.environ:
+        cfg.slurm_job_id = os.environ["SLURM_JOB_ID"]
+    print(f"SLURM job ID: {cfg.slurm_job_id}")
+
+    ###########################################
+    # Model checkpoint loading
+    ###########################################
     run_name = name_from_config(cfg)
 
     # from the HORM paper:
@@ -48,16 +67,8 @@ def setup_training(cfg: DictConfig):
     # with open("configs/equiformer_v2.yaml", "r") as f:
     #     model_config = yaml.safe_load(f)
     model_config = cfg.model
-    # print("Model config:\n", yaml.dump(model_config))
-
     optimizer_config = dict(cfg.optimizer)
     training_config = dict(cfg.training)
-
-    # Add SLURM job ID to config if it exists in environment
-    if "SLURM_JOB_ID" in os.environ:
-        cfg.slurm_job_id = os.environ["SLURM_JOB_ID"]
-        training_config["trn_slurm_job_id"] = cfg.slurm_job_id
-    print(f"SLURM job ID: {cfg.slurm_job_id}")
 
     ###########################################
     # Model checkpoint loading
@@ -203,10 +214,6 @@ def setup_training(cfg: DictConfig):
         config=cfg_dict,
         **wandb_kwargs,
     )
-
-    # muon requires ddp to be initialized
-    if cfg.optimizer.optimizer.lower() == "muon":
-        cfg.pltrainer.strategy = "ddp_find_unused_parameters_true"
 
     print("Initializing trainer")
     trainer = pl.Trainer(
