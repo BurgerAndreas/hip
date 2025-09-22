@@ -47,9 +47,6 @@ training:
   bz_val: 128
   num_workers: 2 # 48
   clip_grad: true
-  use_clip_gradnorm_queue: true
-  gradient_clip_val: 0.1
-  gradient_clip_algorithm: "norm"
 
   # horm used: loss = floss * 100 + eloss * 4 + hessian_loss * 4
   hessian_loss_weight: 10.0
@@ -84,6 +81,7 @@ training:
 pltrainer:
   max_epochs: 10000
   gradient_clip_val: 0.1
+  gradient_clip_algorithm: "norm"
   accumulate_grad_batches: 1
   limit_train_batches: 1600
   limit_val_batches: 200 # 50844 samples / 64 bz = 794.4375 batches

@@ -150,7 +150,10 @@ class PotentialModule(LightningModule):
             "hessian_node_proj",
         ]
 
+        training_config = self.fix_paths(training_config)
         self.model_config = model_config
+        self.optimizer_config = optimizer_config
+        self.training_config = training_config
 
         if self.model_config["name"] == "EquiformerV2":
             root_dir = find_project_root()
@@ -164,10 +167,12 @@ class PotentialModule(LightningModule):
             model_config = config["model"]
             model_config.update(self.model_config)
             self.potential = EquiformerV2_OC20(**model_config)
+            self.pos_require_grad = False
         elif self.model_config["name"] == "AlphaNet":
             from alphanet.models.alphanet import AlphaNet
 
             self.potential = AlphaNet(AlphaConfig(model_config)).float()
+            self.pos_require_grad = True
         elif (
             self.model_config["name"] == "LEFTNet"
             or self.model_config["name"] == "LEFTNet-df"
@@ -175,6 +180,7 @@ class PotentialModule(LightningModule):
             from leftnet.potential import Potential
             from leftnet.model import LEFTNet
 
+            self.pos_require_grad = True
             leftnet_config = dict(
                 pos_require_grad=True,
                 cutoff=10.0,
@@ -212,21 +218,7 @@ class PotentialModule(LightningModule):
             print(
                 "Please Check your model name (choose from 'EquiformerV2', 'AlphaNet', 'LEFTNet', 'LEFTNet-df')"
             )
-        training_config = self.fix_paths(training_config)
-        self.optimizer_config = optimizer_config
-        self.training_config = training_config
-        self.pos_require_grad = True
 
-        self.clip_grad = training_config["clip_grad"]
-        if self.training_config.get("use_clip_gradnorm_queue", True):
-            self.gradnorm_queue = diff_utils.Queue()
-            self.gradnorm_queue.add(3000)
-        self.save_hyperparameters()
-
-        self.loss_fn = nn.L1Loss()
-        self.MAEEval = MeanAbsoluteError()
-        self.MAPEEval = MeanAbsolutePercentageError()
-        self.cosineEval = CosineSimilarity(reduction="mean")
         self.val_step_outputs = []
 
         self.wandb_run_id = None
@@ -237,12 +229,8 @@ class PotentialModule(LightningModule):
         # Allow non-strict checkpoint loading for transfer learning
         self.strict_loading = False
 
-        # Only needed to predict forces from energy of Hessian from forces
-        self.pos_require_grad = False
-
         # energy and force loss
         self.loss_fn = nn.L1Loss()
-
         # Hessian loss
         if self.training_config["hessian_loss_type"] == "mse":
             self.loss_fn_hessian = torch.nn.MSELoss()
@@ -253,17 +241,16 @@ class PotentialModule(LightningModule):
             raise ValueError(
                 f"Invalid Hessian loss type: {self.model_config['hessian_loss_type']}"
             )
-
         self.loss_fn_eigen = get_hessian_loss_fn(**training_config["eigen_loss"])
 
         _alpha = self.training_config["eigen_loss"]["alpha"]
         if isinstance(_alpha, Iterable) or (isinstance(_alpha, float) and _alpha > 0.0):
             self.do_eigen_loss = True
-            print("! Training with eigenvalue loss")
         else:
             self.do_eigen_loss = False
-            print("! Training without eigenvalue loss")
-        self.log("train-do_eigen_loss", self.do_eigen_loss, rank_zero_only=True)
+        
+        # save for checkpointing
+        self.save_hyperparameters()
 
     def set_wandb_run_id(self, run_id: str) -> None:
         """Set the WandB run ID for checkpoint continuation."""
@@ -750,7 +737,7 @@ class PotentialModule(LightningModule):
     def compute_loss(self, batch):
         loss = 0.0
         info = {}
-        batch.pos.requires_grad_()
+        # batch.pos.requires_grad_()
         batch = compute_extra_props(batch, pos_require_grad=self.pos_require_grad)
 
         hat_ae, hat_forces, outputs = self.potential.forward(
@@ -949,68 +936,7 @@ class PotentialModule(LightningModule):
         # a special entry for the total p-norm of the gradients viewed as a single vector
         norms = pl_grad_norm(module=self.potential, norm_type=2)
         self.grad_norm_history.append(norms["grad_2.0_norm_total"])  # float
-        if (self.global_step % 100 == 0) and self.global_step > 10:
+        if (self.global_step % 100 == 0) and self.global_step > 350:
             norms["grad_2.0_norm_std"] = np.std(self.grad_norm_history)
         self.log_dict(norms)
         # super().on_before_optimizer_step(optimizer)
-
-    def configure_gradient_clipping(
-        self,
-        optimizer,
-        gradient_clip_val=None,
-        gradient_clip_algorithm=None,
-    ):
-        # Clips gradient norm to max_norm
-        self.clip_gradients(
-            optimizer,
-            gradient_clip_val=self.training_config["gradient_clip_val"],
-            gradient_clip_algorithm=self.training_config["gradient_clip_algorithm"],
-        )
-        # torch.nn.utils.clip_grad_norm_(self.parameters(), clip_value=self.training_config["gradient_clip_val"])
-        # torch.nn.utils.clip_grad_value_(self.parameters(), clip_value=self.training_config["gradient_clip_val"])
-
-    # was in HORM, not used
-    def _configure_gradient_clipping(
-        self,
-        optimizer,
-        gradient_clip_val=None,
-        gradient_clip_algorithm=None,
-    ):
-        if not self.clip_grad:
-            return
-
-        if self.training_config["use_clip_gradnorm_queue"]:
-            # Allow gradient norm to be 150% + 1.5 * stdev of the recent history.
-            max_grad_norm = (
-                2 * self.gradnorm_queue.mean() + 3 * self.gradnorm_queue.std()
-            )
-
-            # Get current grad_norm
-            params = [p for g in optimizer.param_groups for p in g["params"]]
-            grad_norm = diff_utils.get_grad_norm(params)
-
-            # update the queue
-            if float(grad_norm) > max_grad_norm:
-                self.gradnorm_queue.add(float(max_grad_norm))
-            else:
-                self.gradnorm_queue.add(float(grad_norm))
-        else:
-            max_grad_norm = self.training_config["gradient_clip_val"]
-
-        # Lightning will handle the gradient clipping
-        self.clip_gradients(
-            optimizer,
-            gradient_clip_val=max_grad_norm,
-            gradient_clip_algorithm=self.training_config["gradient_clip_algorithm"],
-        )
-
-        try:
-            wandb.log({"grad_norm": grad_norm, "max_grad_norm": max_grad_norm})
-        except:
-            pass
-
-        if float(grad_norm) > max_grad_norm:
-            print(
-                f"Clipped gradient with value {grad_norm:.1f} "
-                f"while allowed {max_grad_norm:.1f}"
-            )

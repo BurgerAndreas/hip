@@ -229,6 +229,7 @@ def setup_training(cfg: DictConfig):
         default_root_dir=ckpt_output_path,
         logger=wandb_logger,
         gradient_clip_val=cfg.pltrainer.gradient_clip_val,
+        gradient_clip_algorithm=cfg.pltrainer.gradient_clip_algorithm,
         accumulate_grad_batches=cfg.pltrainer.accumulate_grad_batches,
         limit_train_batches=cfg.pltrainer.limit_train_batches,
         limit_val_batches=cfg.pltrainer.limit_val_batches,
