@@ -42,6 +42,7 @@ logs_hormtssearch
 
 *.whl
 *env
+uv.lock
 
 # sub repos
 Data/Transition1x

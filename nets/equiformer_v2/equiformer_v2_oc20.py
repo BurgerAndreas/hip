@@ -445,7 +445,6 @@ class EquiformerV2_OC20(BaseModel):
         # Add extra head for Hessian prediction
         ################################################################
 
-        self.do_hessian = do_hessian
         self.cutoff_hessian = cutoff_hessian
         self.hessian_module_list = []
         # if to also use atom type embedding or just relative distances for edge features

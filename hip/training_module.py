@@ -869,12 +869,12 @@ class PotentialModule(LightningModule):
             + info["Loss E"]
             + info["Loss F"]
             + eval_info["MAE Eigvals"]
-            + (-1 * eval_info["Cosine Sim v1"] / 20)
+            + (-1 * eval_info["Abs Cosine Sim v1"] / 20)
         )
 
-        del info
-        if torch.cuda.is_available():
-            torch.cuda.empty_cache()
+        # del info
+        # if torch.cuda.is_available():
+        #     torch.cuda.empty_cache()
         return info_prefix
 
     def validation_step(self, batch, batch_idx, *args):
@@ -888,8 +888,13 @@ class PotentialModule(LightningModule):
 
     def on_validation_epoch_end(self):
         val_epoch_metrics = average_over_batch_metrics(self.val_step_outputs)
-        if self.trainer.is_global_zero:
-            pretty_print(self.current_epoch, val_epoch_metrics, prefix="val")
+        # if self.trainer.is_global_zero:
+        #     # tqdm.write(f"Val epoch {self.current_epoch} completed")
+        #     pretty_print(
+        #         self.current_epoch,
+        #         {"val-totloss": val_epoch_metrics["val-totloss"]},
+        #         prefix="\nVal"
+        #     )
 
         val_epoch_metrics.update({"epoch": self.current_epoch})
         for k, v in val_epoch_metrics.items():
@@ -900,6 +905,7 @@ class PotentialModule(LightningModule):
                 time.time() - self.val_start_time,
                 prog_bar=False,
                 rank_zero_only=True,
+                sync_dist=True,
             )
 
         self.val_step_outputs.clear()
@@ -913,7 +919,10 @@ class PotentialModule(LightningModule):
         if hasattr(self, "epoch_start_time"):
             epoch_duration = time.time() - self.epoch_start_time
             self.log(
-                "train-epoch_duration_seconds", epoch_duration, rank_zero_only=True
+                "train-epoch_duration_seconds",
+                epoch_duration,
+                rank_zero_only=True,
+                sync_dist=True,
             )
             # if self.trainer.is_global_zero:
             #     print(f"Epoch {self.current_epoch} completed in {epoch_duration:.2f} seconds")
@@ -927,7 +936,11 @@ class PotentialModule(LightningModule):
         """Log the starting epoch to Weights & Biases."""
         # Route through Lightning logger so it reaches WandB and respects rank_zero_only
         self.log(
-            "start_epoch", int(self.current_epoch), rank_zero_only=True, prog_bar=False
+            "start_epoch",
+            int(self.current_epoch),
+            rank_zero_only=True,
+            prog_bar=False,
+            sync_dist=True,
         )
         super().on_train_start()
 

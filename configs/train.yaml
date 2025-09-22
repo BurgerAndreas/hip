@@ -11,7 +11,7 @@ defaults:
 model_type: "EquiformerV2"
 version: "0.1"
 project: "hip"
-
+potential_module_class: "PotentialModule"
 
 model:
   hessian_alpha_drop: 0.0
