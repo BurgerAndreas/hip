@@ -4,7 +4,7 @@ defaults:
   - lr: cosine
   # - trgt: hessian
   - preset: mae
-  - experiment: hesspred_alldata
+  - experiment: t1x
   - gpu: one
 
 # Model configuration
@@ -23,6 +23,8 @@ model:
   share_atom_edge_embedding_hessian: False
   reuse_source_target_embedding_hessian: True
   reinit_edge_degree_embedding_hessian: False # add edge degree embedding to node features
+  max_radius: 5.0
+  max_neighbors: 32
   cutoff_hessian: 100.0
   # graph
   otf_graph: false

@@ -1,8 +1,8 @@
 # @package _global_
 
 training:
-  trn_path: "data/sample_100-hesspred.lmdb"
-  val_path: "data/sample_100-hesspred.lmdb"
+  trn_path: "data/sample_100.lmdb"
+  val_path: "data/sample_100.lmdb"
   bz: 3
   bz_val: 3
   num_workers: 2  
@@ -24,4 +24,4 @@ ckpt_resume_auto: false
 ckpt_do_save: false
 ckpt_trainer_path: null
 
-experiment_name: "hesspred_debug"
+experiment_name: "debug"

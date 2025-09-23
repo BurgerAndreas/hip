@@ -4,7 +4,7 @@
 #SBATCH --time=71:00:00
 #SBATCH --gres=gpu:l40s:1
 #SBATCH --mem=128GB
-#SBATCH --cpus-per-task=8
+#SBATCH --cpus-per-task=4
 #SBATCH --job-name=hip-sweep
 #SBATCH --output=/project/aip-aspuru/aburger/hip/outslurm/sweep-%j.txt
 #SBATCH --error=/project/aip-aspuru/aburger/hip/outslurm/sweep-%j.txt

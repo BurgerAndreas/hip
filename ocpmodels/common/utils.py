@@ -858,9 +858,14 @@ def compute_neighbors(data, edge_index):
     ones = edge_index[1].new_ones(1).expand_as(edge_index[1])
     num_neighbors = segment_coo(ones, edge_index[1], dim_size=data.natoms.sum())
 
+    if len(data.natoms.shape) == 0:
+        natoms = data.natoms.unsqueeze(0)
+    else:
+        natoms = data.natoms
+
     # Get number of neighbors per image
     image_indptr = torch.zeros(
-        data.natoms.shape[0] + 1, device=data.pos.device, dtype=torch.long
+        natoms.shape[0] + 1, device=data.pos.device, dtype=torch.long
     )
     image_indptr[1:] = torch.cumsum(data.natoms, dim=0)
     neighbors = segment_csr(num_neighbors, image_indptr)

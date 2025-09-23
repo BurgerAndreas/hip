@@ -45,14 +45,14 @@ parameters:
     distribution: int_uniform
     min: 13
     max: 50
-  model.max_radius:
-    distribution: int_uniform
-    min: 6
-    max: 24
-  model.cutoff_hessian:
-    distribution: int_uniform
-    min: 50
-    max: 200
+  # model.max_radius:
+  #   distribution: int_uniform
+  #   min: 5
+  #   max: 24
+  # model.cutoff_hessian:
+  #   distribution: int_uniform
+  #   min: 5
+  #   max: 100
   # training.eigen_loss.alpha:
   #   distribution: uniform
   #   min: 0.0
@@ -69,6 +69,8 @@ command:
   # fixed
   - training.bz=64
   - training.bz_val=64
+  # - model.max_radius=6
+  # - model.cutoff_hessian=100
   # our args
   - ${args_no_hyphens}
 

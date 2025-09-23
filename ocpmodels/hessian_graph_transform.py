@@ -53,13 +53,11 @@ class HessianGraphTransform(BaseTransform):
     Extremely slow. For training it is highly recommended to preprocess the dataset and compute this once.
     """
 
-    def __init__(
-        self, cutoff=None, cutoff_hessian=100, max_neighbors=None, use_pbc=None
-    ):
+    def __init__(self, cutoff=5.0, cutoff_hessian=100, max_neighbors=32, use_pbc=False):
         """
         Args:
             cutoff: cutoff radius for the graph
-            max_neighbors: maximum number of neighbors for the graph
+            max_neighbors: maximum number of neighbors for the graph. None means 32.
             use_pbc: whether to use periodic boundary conditions
         """
         super().__init__()
@@ -87,16 +85,12 @@ class HessianGraphTransform(BaseTransform):
             cell_offsets,
             cell_offset_distances,
             neighbors,
-        ) = generate_fullyconnected_graph_nopbc(data, cutoff=self.cutoff)
-        # used by HORM
-        # ) = self.generate_graph(data) # used by EquiformerV2
-
-        # Careful!
-        # By default, PyG increments attributes by the number of nodes
-        # whenever their attribute names contain the substring index (for historical reasons),
-        # which comes in handy for attributes such as edge_index or node_index.
-        # However, note that this may lead to unexpected behavior for attributes
-        # whose names contain the substring index but should not be incremented.
+        ) = generate_graph(
+            data,
+            cutoff=self.cutoff,
+            max_neighbors=self.max_neighbors,
+            use_pbc=self.use_pbc,
+        )
 
         # Store graph information in data object
         data.edge_index = edge_index  # transpose to match the batching order
@@ -117,9 +111,12 @@ class HessianGraphTransform(BaseTransform):
             cell_offsets_hessian,
             cell_offset_distances_hessian,
             neighbors_hessian,
-        ) = generate_fullyconnected_graph_nopbc(data, cutoff=self.cutoff)
-        # used by HORM
-        # ) = self.generate_graph(data) # used by EquiformerV2
+        ) = generate_graph(
+            data,
+            cutoff=self.cutoff_hessian,
+            max_neighbors=self.max_neighbors,
+            use_pbc=self.use_pbc,
+        )
 
         # Store hessian graph information in data object
         data.edge_index_hessian = edge_index_hessian
@@ -137,15 +134,21 @@ class HessianGraphTransform(BaseTransform):
         # Precompute edge message indices for offdiagonal entries in the hessian
         N = data.natoms.sum().item()  # Number of atoms
         indices_ij, indices_ji = _get_flat_indexadd_message_indices(
-            N, edge_index_hessian
+            N=N, edge_index=edge_index_hessian
         )
         # Store indices in data object
+        # Careful!
+        # By default, PyG increments attributes by the number of nodes
+        # whenever their attribute names contain the substring index (for historical reasons),
+        # which comes in handy for attributes such as edge_index or node_index.
+        # This will lead to unexpected behavior for attributes
+        # whose names contain the substring index
         data.message_idx_ij = indices_ij
         data.message_idx_ji = indices_ji
 
         # Precompute node message indices for diagonal entries in the hessian
         diag_ij, diag_ji, node_transpose_idx = _get_node_diagonal_1d_indexadd_indices(
-            N, data.pos.device
+            N=N, device=data.pos.device
         )
         # Store indices in data object
         data.diag_ij = diag_ij
@@ -160,63 +163,64 @@ class HessianGraphTransform(BaseTransform):
     def __repr__(self):
         return f"{self.__class__.__name__}()"
 
-    # @conditional_grad(torch.enable_grad())
-    def generate_graph(
-        self,
-        data,
-        cutoff=None,
-        max_neighbors=None,
-        use_pbc=None,
-    ):
-        if use_pbc:
-            edge_index, cell_offsets, neighbors = radius_graph_pbc(
-                data, cutoff, max_neighbors
-            )
 
-            out = get_pbc_distances(
-                data.pos,
-                edge_index,
-                data.cell,
-                cell_offsets,
-                neighbors,
-                return_offsets=True,
-                return_distance_vec=True,
-            )
-
-            edge_index = out["edge_index"]
-            edge_dist = out["distances"]
-            cell_offset_distances = out["offsets"]
-            distance_vec = out["distance_vec"]
-        else:
-            edge_index = radius_graph(
-                data.pos,
-                r=cutoff,
-                batch=data.batch,
-                max_num_neighbors=max_neighbors,
-            )
-
-            j, i = edge_index
-            distance_vec = data.pos[j] - data.pos[i]
-
-            edge_dist = distance_vec.norm(dim=-1)
-            cell_offsets = torch.zeros(edge_index.shape[1], 3, device=data.pos.device)
-            cell_offset_distances = torch.zeros_like(
-                cell_offsets, device=data.pos.device
-            )
-            neighbors = compute_neighbors(data, edge_index)
-
-        return (
-            edge_index,
-            edge_dist,
-            distance_vec,
-            cell_offsets,
-            cell_offset_distances,
-            neighbors,
+# Taken from ocpmodels/common/utils.py
+def generate_graph(
+    data,
+    cutoff=None,
+    max_neighbors=32,
+    use_pbc=None,
+):
+    if use_pbc:
+        edge_index, cell_offsets, neighbors = radius_graph_pbc(
+            data, cutoff, max_neighbors
         )
+
+        out = get_pbc_distances(
+            data.pos,
+            edge_index,
+            data.cell,
+            cell_offsets,
+            neighbors,
+            return_offsets=True,
+            return_distance_vec=True,
+        )
+
+        edge_index = out["edge_index"]
+        edge_dist = out["distances"]
+        cell_offset_distances = out["offsets"]
+        distance_vec = out["distance_vec"]
+    else:
+        edge_index = radius_graph(
+            data.pos,
+            r=cutoff,
+            batch=data.batch,
+            max_num_neighbors=max_neighbors,
+        )
+
+        j, i = edge_index
+        distance_vec = data.pos[j] - data.pos[i]
+
+        edge_dist = distance_vec.norm(dim=-1)
+        cell_offsets = torch.zeros(edge_index.shape[1], 3, device=data.pos.device)
+        cell_offset_distances = torch.zeros_like(cell_offsets, device=data.pos.device)
+        neighbors = compute_neighbors(data, edge_index)
+        # neighbors = torch.tensor([0.0])
+
+    return (
+        edge_index,
+        edge_dist,
+        distance_vec,
+        cell_offsets,
+        cell_offset_distances,
+        neighbors,
+    )
 
 
 def generate_fullyconnected_graph_nopbc(data, cutoff, max_neighbors: int = 32):
-    # used by HORM
+    """Used by HORM.
+    Maybe easier to differentiate through for autograd Hessian?
+    """
     if max_neighbors is None:
         max_neighbors = 32
     pos = data.pos
@@ -237,6 +241,10 @@ def generate_fullyconnected_graph_nopbc(data, cutoff, max_neighbors: int = 32):
         torch.tensor([0.0]),
         torch.tensor([0.0]),
     )
+
+
+# HessianDataLoader
+# Offsets indices due to batching.
 
 
 class HessianBatchTransform:
@@ -263,7 +271,7 @@ class HessianBatchTransform:
         return add_extra_props_for_hessian(batch, offset_indices=True)
 
 
-def create_hessian_collate_fn(dataset, follow_batch, exclude_keys):
+def _create_hessian_collate_fn(dataset, follow_batch, exclude_keys):
     """
     Create a custom collate function that applies batch offsetting after batching.
     Use this instead of the default PyG collate function when training with Hessian prediction.
@@ -308,7 +316,7 @@ class HessianDataLoader(torch.utils.data.DataLoader):
 
         self.do_hessian_batch_offsetting = do_hessian_batch_offsetting
         if self.do_hessian_batch_offsetting:
-            collate_fn = create_hessian_collate_fn(dataset, follow_batch, exclude_keys)
+            collate_fn = _create_hessian_collate_fn(dataset, follow_batch, exclude_keys)
         else:
             collate_fn = TGCollater(dataset, follow_batch, exclude_keys)
 

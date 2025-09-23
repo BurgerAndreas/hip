@@ -4,8 +4,8 @@
 # This config is designed to overfit to sample_100.lmdb quickly
 
 training:
-  trn_path: "data/sample_100-hesspred.lmdb"
-  val_path: "data/sample_100-hesspred.lmdb"
+  trn_path: "data/sample_100.lmdb"
+  val_path: "data/sample_100.lmdb"
   bz: 100
   bz_val: 100
   # lr_schedule_type: null  # No learning rate decay for overfitting
@@ -37,4 +37,4 @@ ckpt_resume_auto: false
 ckpt_do_save: false
 ckpt_trainer_path: null
 
-experiment_name: "hesspred_overfit100"
+experiment_name: "overfit100"

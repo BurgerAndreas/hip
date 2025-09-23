@@ -70,18 +70,25 @@ _AVG_DEGREE = 23.395238876342773  # IS2RE: 100k, max_radius = 5, max_neighbors =
 # l1_features = x_message.embedding.narrow(dimension=1, start=1, length=3)
 # l2_features = x_message.embedding.narrow(dim=1, start=4, length=5) # length=2l+1
 def get_scalar_from_embedding(embedding, data):
+    # get l=0 component
     embedding = embedding.embedding.narrow(1, 0, 1)
     scalars = torch.zeros(
         len(data.natoms), device=embedding.device, dtype=embedding.dtype
     )
+    # sum over all nodes in the batch
     scalars.index_add_(0, data.batch, embedding.view(-1))
-    return scalars / _AVG_NUM_NODES
+    # avg number of nodes=atoms in the batch
+    avg_num_nodes = torch.sum(data.natoms) / len(data.natoms)
+    # return scalars / _AVG_NUM_NODES
+    return scalars / avg_num_nodes
 
 
 def irreps_to_cartesian_matrix(irrpes):
-    """Luca's creation"""
+    """Luca Thiede's creation"""
 
-    assert irrpes.shape[-1] == 9, "Irreps must be of shape (..., 9)"
+    assert irrpes.shape[-1] == 9, (
+        f"Irreps must be of shape (..., 9) but got {irrpes.shape}"
+    )
     M = torch.zeros((irrpes.shape[0], 3, 3), device=irrpes.device, dtype=irrpes.dtype)
     for l3 in range(3):
         ClGo = o3.wigner_3j(1, 1, l3, dtype=irrpes.dtype, device=irrpes.device)
@@ -186,7 +193,9 @@ class EquiformerV2_OC20(BaseModel):
         drop_path_rate=0.05,
         proj_drop=0.0,
         weight_init="normal",
+        avg_degree=_AVG_DEGREE,  # rescale factor for edge_degree_embedding
         # added for hessian prediction
+        avg_degree_hessian=_AVG_DEGREE,
         hessian_alpha_drop=0.0,
         num_layers_hessian=0,
         share_atom_edge_embedding_hessian=False,
@@ -238,6 +247,7 @@ class EquiformerV2_OC20(BaseModel):
                 f"{self.__class__.__name__}: got cutoff {cutoff} and radius {max_radius}"
             )
         self.max_num_elements = max_num_elements
+        self.avg_degree = avg_degree
 
         self.num_layers = num_layers
         self.sphere_channels = sphere_channels
@@ -363,7 +373,7 @@ class EquiformerV2_OC20(BaseModel):
             self.max_num_elements,
             self.edge_channels_list,
             self.block_use_atom_edge_embedding,
-            rescale_factor=_AVG_DEGREE,
+            rescale_factor=avg_degree,
         )
 
         # Initialize the blocks for each layer of EquiformerV2
@@ -517,9 +527,7 @@ class EquiformerV2_OC20(BaseModel):
                     None,
                 )
 
-        # TODO: rescale_factor=_AVG_DEGREE
-        # changed because we changed cutoff
-
+        self.avg_degree_hessian = avg_degree_hessian
         self.reinit_edge_degree_embedding_hessian = reinit_edge_degree_embedding_hessian
         # only used if reinit_edge_degree_embedding_hessian is True
         # Edge-degree embedding for initializing node features
@@ -532,7 +540,7 @@ class EquiformerV2_OC20(BaseModel):
             self.max_num_elements,
             self.edge_channels_list_hessian,
             self.block_use_atom_edge_embedding_hessian,
-            rescale_factor=_AVG_DEGREE,
+            rescale_factor=avg_degree_hessian,
         )
         self.hessian_module_list.append("edge_degree_embedding_hessian")
 
@@ -650,10 +658,7 @@ class EquiformerV2_OC20(BaseModel):
 
         if not otf_graph:
             try:
-                try:
-                    edge_index = data.edge_index
-                except:
-                    edge_index = data.edge_index
+                edge_index = data.edge_index
 
                 if use_pbc:
                     cell_offsets = data.cell_offsets
@@ -869,12 +874,6 @@ class EquiformerV2_OC20(BaseModel):
         # Energy estimation
         ###############################################################
         node_energy = self.energy_block(x)
-        # node_energy = node_energy.embedding.narrow(1, 0, 1)
-        # energy = torch.zeros(
-        #     len(data.natoms), device=node_energy.device, dtype=node_energy.dtype
-        # )
-        # energy.index_add_(0, data.batch, node_energy.view(-1))
-        # energy = energy / _AVG_NUM_NODES
         energy = get_scalar_from_embedding(node_energy, data)
 
         # hessian_ij = self.grad_hess_ij(energy=energy, posj=posj, posi=posi)
@@ -1003,7 +1002,10 @@ class EquiformerV2_OC20(BaseModel):
             l012_node_features_3x3 = irreps_to_cartesian_matrix(l012_node_features)
 
             hessian = self._get_hessian_from_features(
-                edge_index, data, l012_edge_features_3x3, l012_node_features_3x3
+                edge_index=edge_index_hessian,
+                data=data,
+                l012_edge_features=l012_edge_features_3x3,
+                l012_node_features=l012_node_features_3x3,
             )
 
             if return_l_features:

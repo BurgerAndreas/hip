@@ -3,6 +3,7 @@ import omegaconf
 import numpy as np
 import torch
 from pathlib import Path
+import hashlib
 
 # e.g. inference kwargs
 IGNORE_OVERRIDES = [
@@ -88,7 +89,9 @@ def name_from_config(args: omegaconf.DictConfig, is_checkpoint_name=False) -> st
     for key, value in REPLACE.items():
         override_names = override_names.replace(key, value)
     if is_checkpoint_name:
-        pass
+        # Use a short, stable hash for checkpoint base name
+        raw = override_names.strip()
+        override_names = f"ck-{hashlib.sha1(raw.encode('utf-8')).hexdigest()[:8]}"
     else:
         # Make wandb name human readable
         for key, value in REPLACE_HUMAN.items():

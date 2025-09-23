@@ -274,7 +274,7 @@ wandb sweep sweeps/hessian_uv.yaml
 
 Start the background relaunch loop (4 runs every 72 hours):
 ```bash
-export SWEEP_ID=<YOUR_SWEEP_ID>
+export SWEEP_ID=
 nohup bash scripts/launch_sweep_loop.sh > logs/launch_sweep_loop.out 2>&1 < /dev/null &
 
 # pgrep -af 'launch_sweep_loop.sh'   # find it
