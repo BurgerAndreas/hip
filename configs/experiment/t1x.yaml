@@ -3,7 +3,7 @@
 # Fit on the larger training dataset (TS1x), test on TS1x
 
 training:
-  trn_path: ["ts1x_hess_train_big.lmdb"]
+  trn_path: "ts1x_hess_train_big.lmdb"
   val_path: "ts1x-val.lmdb"
 
   # already preprocessed dataset, don't need to do hessian graph transform
