@@ -55,7 +55,7 @@ Get the HORM dataset: # TODO: upload preprocessed data
 python scripts/download_horm_data_kaggle.py
 ```
 
-Preprocess the Hessian dataset (takes ~48 hours) 
+Preprocess the Hessian dataset (takes ~3 hours) 
 ```bash
 python scripts/preprocess_hessian_dataset.py --dataset-file data/sample_100.lmdb
 

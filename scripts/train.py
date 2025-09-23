@@ -57,8 +57,10 @@ def setup_training(cfg: DictConfig):
     suffix = f"r{int(cfg.model.max_radius)}_rh{int(cfg.model.cutoff_hessian)}_maxn{int(cfg.model.max_neighbors)}"
     if cfg.model.use_pbc:
         suffix += "_pbc"
-    cfg.training.trn_path = cfg.training.trn_path.replace(".lmdb", f"-{suffix}.lmdb")
-    cfg.training.val_path = cfg.training.val_path.replace(".lmdb", f"-{suffix}.lmdb")
+    trn_path = cfg.training.trn_path
+    val_path = cfg.training.val_path
+    cfg.training.trn_path = trn_path.replace(".lmdb", f"-{suffix}.lmdb")
+    cfg.training.val_path = val_path.replace(".lmdb", f"-{suffix}.lmdb")
 
     # Add SLURM job ID to config if it exists in environment
     if "SLURM_JOB_ID" in os.environ:
@@ -66,7 +68,7 @@ def setup_training(cfg: DictConfig):
     print(f"SLURM job ID: {cfg.slurm_job_id}")
 
     ###########################################
-    # Model checkpoint loading
+    # Get configs
     ###########################################
     run_name = name_from_config(cfg)
 
