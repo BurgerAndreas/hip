@@ -5,6 +5,11 @@
 
 set -euo pipefail
 
+source .env
+export WANDB_ENTITY=andreas-burger
+
+source ${PYTHONBIN}/activate
+
 if [[ -z "${SWEEP_ID:-}" ]]; then
   echo "SWEEP_ID not set. Export SWEEP_ID or pass as first arg." >&2
   [[ $# -ge 1 ]] || exit 1

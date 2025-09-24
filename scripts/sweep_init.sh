@@ -16,6 +16,7 @@ source .env
 source ${PYTHONBIN}/activate
 
 # Ensure WANDB is available via uv if not globally installed
+export WANDB_ENTITY=andreas-burger
 export WANDB_PROJECT=hip
 
 echo $(date): Job $SLURM_JOB_ID starting sweep agent for one suggestion

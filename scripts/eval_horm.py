@@ -183,7 +183,7 @@ def evaluate(
                 batch.pos.requires_grad_()
                 energy_model, force_model = model.forward(batch)
                 hessian_model = compute_hessian(batch.pos, energy_model, force_model)
-
+        
         start_event_all = torch.cuda.Event(enable_timing=True)
         end_event_all = torch.cuda.Event(enable_timing=True)
         start_event_all.record()
@@ -310,9 +310,15 @@ def evaluate(
             eigvals_model_eckart = torch.tensor(freqs_model["eigvals"])
 
             sample_data["true_neg_num"] = true_neg_num
+            sample_data["true_is_minima"] = 1 if true_neg_num == 0 else 0
             sample_data["true_is_ts"] = 1 if true_neg_num == 1 else 0
+            sample_data["true_is_ts_order2"] = 1 if true_neg_num == 2 else 0
+            sample_data["true_is_higher_order"] = 1 if true_neg_num > 2 else 0
             sample_data["model_neg_num"] = freqs_model_neg_num
             sample_data["model_is_ts"] = 1 if freqs_model_neg_num == 1 else 0
+            sample_data["model_is_minima"] = 1 if freqs_model_neg_num == 0 else 0
+            sample_data["model_is_ts_order2"] = 1 if freqs_model_neg_num == 2 else 0
+            sample_data["model_is_higher_order"] = 1 if freqs_model_neg_num > 2 else 0
             sample_data["neg_num_agree"] = (
                 1 if (true_neg_num == freqs_model_neg_num) else 0
             )
@@ -386,7 +392,13 @@ def evaluate(
         "true_neg_num": df_results["true_neg_num"].mean(),
         "model_neg_num": df_results["model_neg_num"].mean(),
         "true_is_ts": df_results["true_is_ts"].mean(),
+        "true_is_minima": df_results["true_is_minima"].mean(),
+        "true_is_ts_order2": df_results["true_is_ts_order2"].mean(),
+        "true_is_higher_order": df_results["true_is_higher_order"].mean(),
         "model_is_ts": df_results["model_is_ts"].mean(),
+        "model_is_minima": df_results["model_is_minima"].mean(),
+        "model_is_ts_order2": df_results["model_is_ts_order2"].mean(),
+        "model_is_higher_order": df_results["model_is_higher_order"].mean(),
         "is_ts_agree": (df_results["model_is_ts"] == df_results["true_is_ts"]).mean(),
         # Speed
         "time": df_results["time"].mean(),  # ms

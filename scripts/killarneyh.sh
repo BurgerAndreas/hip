@@ -9,11 +9,12 @@
 #SBATCH --output=/project/aip-aspuru/aburger/hip/outslurm/slurm-%j.txt 
 #SBATCH --error=/project/aip-aspuru/aburger/hip/outslurm/slurm-%j.txt
 
-# activate venv
-source ${PYTHONBIN}/activate
-
 # get environment variables
 source .env
+export WANDB_ENTITY=andreas-burger
+
+# activate venv
+source ${PYTHONBIN}/activate
 
 #module load cuda/12.6
 #module load gcc/12.3

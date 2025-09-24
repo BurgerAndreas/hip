@@ -232,22 +232,22 @@ class PotentialModule(LightningModule):
         # energy and force loss
         self.loss_fn = nn.L1Loss()
         # Hessian loss
-        if self.training_config["hessian_loss_type"] == "mse":
+        if self.training_config.get("hessian_loss_type", "mae") == "mse":
             self.loss_fn_hessian = torch.nn.MSELoss()
             # self.loss_fn_hessian = torch.nn.functional.mse_loss
-        elif self.training_config["hessian_loss_type"] == "mae":
+        elif self.training_config.get("hessian_loss_type", "mae") == "mae":
             self.loss_fn_hessian = torch.nn.L1Loss()
         else:
             raise ValueError(
                 f"Invalid Hessian loss type: {self.model_config['hessian_loss_type']}"
             )
-        self.loss_fn_eigen = get_hessian_loss_fn(**training_config["eigen_loss"])
 
-        _alpha = self.training_config["eigen_loss"]["alpha"]
-        if isinstance(_alpha, Iterable) or (isinstance(_alpha, float) and _alpha > 0.0):
-            self.do_eigen_loss = True
-        else:
-            self.do_eigen_loss = False
+        self.do_eigen_loss = False
+        if "eigen_loss" in self.training_config:
+            self.loss_fn_eigen = get_hessian_loss_fn(**training_config["eigen_loss"])
+            _alpha = self.training_config["eigen_loss"]["alpha"]
+            if isinstance(_alpha, Iterable) or (isinstance(_alpha, float) and _alpha > 0.0):
+                self.do_eigen_loss = True
 
         # Save arguments to hparams attribute for checkpointing
         self.save_hyperparameters(logger=False)
