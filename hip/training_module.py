@@ -427,11 +427,16 @@ class PotentialModule(LightningModule):
                     print(f"Loaded dataset from {path} with {len(dataset)} samples")
 
                 # Combine all datasets into a single concatenated dataset
-                if ("data_weight" in self.training_config) and (self.training_config["data_weight"] is not None):
-                    datasets = [
-                        dataset * weight
-                        for dataset, weight in zip(datasets, self.training_config["data_weight"])
-                    ]
+                if ("data_weight" in self.training_config) and (
+                    self.training_config["data_weight"] is not None
+                ):
+                    _datasets = []
+                    for dataset, weight in zip(
+                        datasets, self.training_config["data_weight"]
+                    ):
+                        for _ in range(weight):
+                            _datasets.append(dataset)
+                    datasets = _datasets
                 self.train_dataset = ConcatDataset(datasets)
                 print(
                     f"Combined {len(datasets)} datasets into one with {len(self.train_dataset)} total samples"
