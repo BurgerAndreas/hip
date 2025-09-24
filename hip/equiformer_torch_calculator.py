@@ -1,20 +1,13 @@
-from typing import Dict, List, Optional, Tuple
-from omegaconf import ListConfig
-import yaml
+from typing import Optional
 import os
 import torch
-import warnings
-from pathlib import Path
-import json
 
-from torch_geometric.data import Batch
-from torch_geometric.data import Data as TGData
-from torch_geometric.loader import DataLoader as TGDataLoader
+# from torch_geometric.data import Batch
+# from torch_geometric.data import Data as TGData
+# from torch_geometric.loader import DataLoader as TGDataLoader
 
 from ocpmodels.common.relaxation.ase_utils import (
-    # batch_to_atoms,
-    # ase_atoms_to_torch_geometric,
-    ase_atoms_to_torch_geometric_hessian,
+    # ase_atoms_to_torch_geometric_hessian,
     coord_atoms_to_torch_geometric_hessian,
 )
 
@@ -24,7 +17,7 @@ from hip.hessian_utils import compute_hessian
 from hip.inference_utils import get_model_from_checkpoint, get_dataloader
 from hip.frequency_analysis import (
     analyze_frequencies_torch,
-    eckart_projection_notmw_torch,
+    # eckart_projection_notmw_torch,
 )
 
 

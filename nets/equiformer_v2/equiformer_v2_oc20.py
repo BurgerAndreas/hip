@@ -5,17 +5,14 @@ import numpy as np
 import torch
 import einops
 
-from pyexpat.model import XML_CQUANT_OPT
 from torch.autograd import grad
 from ocpmodels.common.registry import registry
-from ocpmodels.common.utils import conditional_grad
 from ocpmodels.models.base import BaseModel
-from ocpmodels.models.scn.sampling import CalcSpherePoints
 from ocpmodels.models.scn.smearing import (
     GaussianSmearing,
-    LinearSigmoidSmearing,
-    SigmoidSmearing,
-    SiLUSmearing,
+    # LinearSigmoidSmearing,
+    # SigmoidSmearing,
+    # SiLUSmearing,
 )
 from ocpmodels.common.utils import (
     compute_neighbors,
@@ -25,11 +22,7 @@ from ocpmodels.common.utils import (
 )
 from torch_geometric.nn import radius_graph
 
-try:
-    from e3nn import o3
-except ImportError:
-    print("e3nn not found in nets/equiformer_v2/equiformer_v2_oc20.py")
-    pass
+from e3nn import o3
 
 from .gaussian_rbf import GaussianRadialBasisLayer
 from .edge_rot_mat import init_edge_rot_mat
@@ -41,7 +34,7 @@ from .so3 import (
     SO3_LinearV2,
 )
 from .module_list import ModuleListInfo
-from .so2_ops import SO2_Convolution
+# from .so2_ops import SO2_Convolution
 from .radial_function import RadialFunction
 from .layer_norm import (
     EquivariantLayerNormArray,
