@@ -28,4 +28,4 @@ echo "Inside slurm_launcher.slrm ($0). received arguments: $@"
 # hand over all arguments to the script
 echo "Submitting ${HOMEROOT}/$@"
 
-${PYTHONBIN}/python ${HOMEROOT}/"$@"
+srun ${PYTHONBIN}/python ${HOMEROOT}/"$@"

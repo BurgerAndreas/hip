@@ -9,11 +9,11 @@
 #SBATCH --output=/project/aip-aspuru/aburger/hip/outslurm/slurm-%j.txt 
 #SBATCH --error=/project/aip-aspuru/aburger/hip/outslurm/slurm-%j.txt
 
-# activate venv
-source ${PYTHONBIN}/activate
-
 # get environment variables
 source .env
+
+# activate venv
+source ${PYTHONBIN}/activate
 
 #module load cuda/12.6
 #module load gcc/12.3
@@ -27,4 +27,4 @@ echo "Inside slurm_launcher.slrm ($0). received arguments: $@"
 # hand over all arguments to the script
 echo "Submitting ${HOMEROOT}/$@"
 
-${PYTHONBIN}/python ${HOMEROOT}/"$@"
+srun ${PYTHONBIN}/python ${HOMEROOT}/"$@"
