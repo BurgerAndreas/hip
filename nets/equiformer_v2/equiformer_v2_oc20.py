@@ -232,6 +232,9 @@ class EquiformerV2_OC20(BaseModel):
         reduce_mode=None,
         compute_forces=None,
         compute_stress=None,
+        do_hessian=None,
+        num_gaussians_distance_hessian=None,
+        hessian_build_method=None,
         device=None,
     ):
         super().__init__()

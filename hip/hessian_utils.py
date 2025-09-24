@@ -381,7 +381,7 @@ def test_hessian_utils():
     print(f"Loading model from: {checkpoint_path}")
 
     # Load checkpoint to get model info
-    ckpt = torch.load(checkpoint_path, map_location="cpu")
+    ckpt = torch.load(checkpoint_path, weights_only=False, map_location="cpu")
     model_name = ckpt["hyper_parameters"]["model_config"]["name"]
     print(f"Model type: {model_name}")
 
