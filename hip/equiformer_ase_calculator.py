@@ -4,31 +4,23 @@ ASE Calculator wrapper for Equiformer model.
 
 from typing import Optional
 import numpy as np
-import yaml
 import os
 
 import torch
-from torch_geometric.data import Data as TGData
-from torch_geometric.data import Batch
 
-import ase
 from ase import Atoms
 from ase.calculators.calculator import all_changes
 from ase.calculators.calculator import Calculator as ASECalculator
-from ase.data import atomic_numbers
-from ase.calculators.singlepoint import SinglePointCalculator as sp
-from ase.constraints import FixAtoms
 
-from ocpmodels.datasets import data_list_collater
-from ocpmodels.preprocessing import AtomsToGraphs
+# from ocpmodels.datasets import data_list_collater
+# from ocpmodels.preprocessing import AtomsToGraphs
 from ocpmodels.common.relaxation.ase_utils import (
     # batch_to_atoms,
     # ase_atoms_to_torch_geometric,
     ase_atoms_to_torch_geometric_hessian,
-    coord_atoms_to_torch_geometric_hessian,
+    # coord_atoms_to_torch_geometric_hessian,
 )
 
-from nets.equiformer_v2.equiformer_v2_oc20 import EquiformerV2_OC20
 from nets.prediction_utils import compute_extra_props
 
 from hip.hessian_utils import compute_hessian
@@ -220,6 +212,10 @@ class EquiformerASECalculator(ASECalculator):
         if hessian_method is not None:
             self.hessian_method = hessian_method
         return self.get_property("hessian", atoms)
+    
+    def get_results(self, atoms) -> dict:
+        """Return all results."""
+        return self.results
 
 
 ##############################################################################################################
@@ -254,7 +250,8 @@ if __name__ == "__main__":
     atoms.calc = calculator
 
     # Calculate energy and forces
-    results = calculator.get_energy(atoms)
+    calculator.calculate(atoms)
+    results = calculator.results
     energy = results["energy"]
     forces = results["forces"]
 
@@ -268,7 +265,6 @@ if __name__ == "__main__":
     print(f"Hessian shape: {hessian.shape}")
 
     # Or all at once
-    results = calculator.get_hessian(atoms)
     print(f"Results: {results.keys()}")
 
     # Analyze frequencies
