@@ -183,7 +183,7 @@ def evaluate(
                 batch.pos.requires_grad_()
                 energy_model, force_model = model.forward(batch)
                 hessian_model = compute_hessian(batch.pos, energy_model, force_model)
-        
+
         start_event_all = torch.cuda.Event(enable_timing=True)
         end_event_all = torch.cuda.Event(enable_timing=True)
         start_event_all.record()

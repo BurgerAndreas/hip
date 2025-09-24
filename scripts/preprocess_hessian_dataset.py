@@ -20,7 +20,7 @@ import numpy as np
 
 
 def create_preprocessed_dataset(
-    dataset_file,
+    input_lmdb_path,
     output_lmdb_path,
     cutoff=12.0,
     cutoff_hessian=100.0,
@@ -40,8 +40,6 @@ def create_preprocessed_dataset(
     """
     # ---- Config ----
     summary = []
-
-    input_lmdb_path = fix_dataset_path(dataset_file)
 
     # Clean up old database files if they exist
     successfully_removed = remove_dir_recursively(output_lmdb_path)
@@ -111,7 +109,7 @@ def create_preprocessed_dataset(
         )
     out_env.close()
     print(f"Done. New dataset written to {output_lmdb_path}")
-    summary.append((dataset_file, len(dataset), output_lmdb_path))
+    summary.append((input_lmdb_path, len(dataset), output_lmdb_path))
 
     # ---- Print dataset statistics ----
     try:
@@ -137,9 +135,7 @@ def create_preprocessed_dataset(
     return summary
 
 
-def test_dataset(dataset_file):
-    input_lmdb_path = fix_dataset_path(dataset_file)
-
+def test_dataset(input_lmdb_path):
     # ---- Load dataset ----
     dataset = LmdbDataset(input_lmdb_path)
     print(f"\nLoaded dataset with {len(dataset)} samples from {input_lmdb_path}")
@@ -198,13 +194,15 @@ if __name__ == "__main__":
     )
     args = parser.parse_args()
 
+    input_lmdb_path = fix_dataset_path(args.dataset_file)
+
     suffix = f"r{int(args.r)}_rh{int(args.rh)}_maxn{int(args.maxn)}"
     if args.pbc:
         suffix += "_pbc"
-    output_lmdb_path = args.dataset_file.replace(".lmdb", f"-{suffix}.lmdb")
+    output_lmdb_path = input_lmdb_path.replace(".lmdb", f"-{suffix}.lmdb")
 
     create_preprocessed_dataset(
-        dataset_file=args.dataset_file,
+        input_lmdb_path=input_lmdb_path,
         output_lmdb_path=output_lmdb_path,
         cutoff=args.r,
         cutoff_hessian=args.rh,
@@ -212,4 +210,4 @@ if __name__ == "__main__":
         use_pbc=args.pbc,
     )
 
-    # test_dataset(dataset_file=output_lmdb_path)
+    # test_dataset(input_lmdb_path=output_lmdb_path)

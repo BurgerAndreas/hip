@@ -21,6 +21,7 @@ wandb
 runs_*/
 runs_relaxation/
 **/Transition1x/
+results_*/
 !**/*.csv
 
 _docs
@@ -43,6 +44,11 @@ logs_hormtssearch
 *.whl
 *env
 uv.lock
+_uv.lock
+
+*.sh
+*.slrm
+*.sbatch
 
 # sub repos
 Data/Transition1x

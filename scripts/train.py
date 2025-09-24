@@ -58,13 +58,21 @@ def setup_training(cfg: DictConfig):
     if cfg.model.use_pbc:
         suffix += "_pbc"
     if isinstance(cfg.training.trn_path, ListConfig):
-        cfg.training.trn_path = [p.replace(".lmdb", f"-{suffix}.lmdb") for p in cfg.training.trn_path]
+        cfg.training.trn_path = [
+            p.replace(".lmdb", f"-{suffix}.lmdb") for p in cfg.training.trn_path
+        ]
     else:
-        cfg.training.trn_path = cfg.training.trn_path.replace(".lmdb", f"-{suffix}.lmdb")
+        cfg.training.trn_path = cfg.training.trn_path.replace(
+            ".lmdb", f"-{suffix}.lmdb"
+        )
     if isinstance(cfg.training.val_path, ListConfig):
-        cfg.training.val_path = [p.replace(".lmdb", f"-{suffix}.lmdb") for p in cfg.training.val_path]
+        cfg.training.val_path = [
+            p.replace(".lmdb", f"-{suffix}.lmdb") for p in cfg.training.val_path
+        ]
     else:
-        cfg.training.val_path = cfg.training.val_path.replace(".lmdb", f"-{suffix}.lmdb")
+        cfg.training.val_path = cfg.training.val_path.replace(
+            ".lmdb", f"-{suffix}.lmdb"
+        )
 
     # Add SLURM job ID to config if it exists in environment
     if "SLURM_JOB_ID" in os.environ:

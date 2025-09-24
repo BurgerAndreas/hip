@@ -50,5 +50,6 @@ networkx==3.4.2
 # Database and storage
 lmdb==1.5.1
 h5py>=3.10.0
-# JAX (separate install recommended)
+# JAX 
 # jax[cuda12]==0.6.2
+# git+https://github.com/KellerJordan/Muon

@@ -49,6 +49,7 @@ training:
   bz_val: 128
   num_workers: 2 # 48
   clip_grad: true
+  data_weight: null
 
   # horm used: loss = floss * 100 + eloss * 4 + hessian_loss * 4
   hessian_loss_weight: 10.0

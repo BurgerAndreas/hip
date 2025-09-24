@@ -65,6 +65,7 @@ LR_SCHEDULER = {
 GLOBAL_ATOM_NUMBERS = torch.tensor([1, 6, 7, 8])
 
 
+# from ocpmodels
 def add_weight_decay(model, weight_decay=1e-5, skip_list=()):
     decay = []
     no_decay = []
@@ -246,7 +247,9 @@ class PotentialModule(LightningModule):
         if "eigen_loss" in self.training_config:
             self.loss_fn_eigen = get_hessian_loss_fn(**training_config["eigen_loss"])
             _alpha = self.training_config["eigen_loss"]["alpha"]
-            if isinstance(_alpha, Iterable) or (isinstance(_alpha, float) and _alpha > 0.0):
+            if isinstance(_alpha, Iterable) or (
+                isinstance(_alpha, float) and _alpha > 0.0
+            ):
                 self.do_eigen_loss = True
 
         # Save arguments to hparams attribute for checkpointing
@@ -395,13 +398,6 @@ class PotentialModule(LightningModule):
 
     def setup(self, stage: Optional[str] = None):
         # Add SLURM job ID to config if it exists in environment
-        if "SLURM_JOB_ID" in os.environ:
-            slurm_job_id = os.environ["SLURM_JOB_ID"]
-            try:
-                wandb.log({"slurm_job_id": slurm_job_id})
-            except Exception as e:
-                print(f"Error logging SLURM job ID: {e}")
-            print(f"SLURM job ID: {slurm_job_id}")
         print("Setting up dataset")
         if stage == "fit":
             # train dataset
@@ -431,6 +427,11 @@ class PotentialModule(LightningModule):
                     print(f"Loaded dataset from {path} with {len(dataset)} samples")
 
                 # Combine all datasets into a single concatenated dataset
+                if ("data_weight" in self.training_config) and (self.training_config["data_weight"] is not None):
+                    datasets = [
+                        dataset * weight
+                        for dataset, weight in zip(datasets, self.training_config["data_weight"])
+                    ]
                 self.train_dataset = ConcatDataset(datasets)
                 print(
                     f"Combined {len(datasets)} datasets into one with {len(self.train_dataset)} total samples"

@@ -1,0 +1,13 @@
+# @package _global_
+
+# RGD1 is about 3.5% of T1x, so we weight it 10x to balance the dataset
+
+training:
+  trn_path: ["ts1x_hess_train_big.lmdb", "RGD1.lmdb"]
+  val_path: "ts1x-val.lmdb"
+  data_weight: [1, 10]
+
+  # already preprocessed dataset, don't need to do hessian graph transform
+  do_hessiangraphtransform: false
+
+experiment_name: "allw10"
