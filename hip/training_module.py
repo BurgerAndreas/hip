@@ -451,10 +451,12 @@ class PotentialModule(LightningModule):
                     )
                 else:
                     transform = None
-                self.train_dataset = LmdbDataset(
-                    Path(self.training_config["trn_path"]),
-                    transform=transform,
-                    **self.training_config,
+                self.train_dataset = SchemaUniformDataset(
+                    LmdbDataset(
+                        Path(self.training_config["trn_path"]),
+                        transform=transform,
+                        **self.training_config,
+                    )
                 )
             # val dataset
             if self.training_config["do_hessiangraphtransform"]:
@@ -780,7 +782,8 @@ class PotentialModule(LightningModule):
         if not self.training_config["train_hessian_only"]:
             # energy
             hat_ae = hat_ae.squeeze().to(self.device)
-            ae = batch.ae.to(self.device)
+            # ae = batch.ae.to(self.device)
+            ae = batch.energy.to(self.device)
             eloss = self.loss_fn(ae, hat_ae)
             loss += eloss * self.training_config["energy_loss_weight"]
             info["Loss E"] = eloss.detach().item()
