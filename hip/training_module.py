@@ -466,10 +466,12 @@ class PotentialModule(LightningModule):
                 )
             else:
                 transform = None
-            self.val_dataset = LmdbDataset(
-                Path(self.training_config["val_path"]),
-                transform=transform,
-                **self.training_config,
+            self.val_dataset = SchemaUniformDataset(
+                LmdbDataset(
+                    Path(self.training_config["val_path"]),
+                    transform=transform,
+                    **self.training_config,
+                )
             )
             print("Number of training samples: ", len(self.train_dataset))
             print("Number of validation samples: ", len(self.val_dataset))
