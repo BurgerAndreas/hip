@@ -56,7 +56,6 @@ training:
   energy_loss_weight: 1.0
   force_loss_weight: 25.0
   hessian_loss_type: "mae"
-  # mask_hessian: false
 
   follow_batch: ["diag_ij", "edge_index", "message_idx_ij"]
 

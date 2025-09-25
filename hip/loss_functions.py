@@ -117,20 +117,19 @@ def batch_hessian_loss(
 class BatchHessianLoss(torch.nn.Module):
     """Wrapper to batch a loss function over hessian matrices."""
 
-    def __init__(self, loss_fn, mask_hessian=False, **kwargs):
+    def __init__(self, loss_fn, **kwargs):
         super(BatchHessianLoss, self).__init__()
         self.loss_fn = loss_fn
         if kwargs is None:
             kwargs = {}
         self.kwargs = kwargs
-        self.mask_hessian = mask_hessian
 
     def forward(self, pred, target, data, **kwargs):
         _kwargs = self.kwargs.copy()
         if kwargs is not None:
             _kwargs.update(kwargs)
         return batch_hessian_loss(
-            pred, target, data, self.loss_fn, mask_hessian=self.mask_hessian, **_kwargs
+            pred, target, data, self.loss_fn, **_kwargs
         )
 
 

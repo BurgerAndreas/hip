@@ -88,7 +88,7 @@ def name_from_config(args: omegaconf.DictConfig, is_checkpoint_name=False) -> st
         raise error
     for key, value in REPLACE.items():
         override_names = override_names.replace(key, value)
-    if is_checkpoint_name or len(override_names) > 25:
+    if is_checkpoint_name or len(override_names) > 40:
         # Use a short, stable hash for checkpoint base name
         raw = override_names.strip()
         override_names = f"ck-{hashlib.sha1(raw.encode('utf-8')).hexdigest()[:8]}"
