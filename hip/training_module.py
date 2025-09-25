@@ -782,8 +782,8 @@ class PotentialModule(LightningModule):
         if not self.training_config["train_hessian_only"]:
             # energy
             hat_ae = hat_ae.squeeze().to(self.device)
-            # ae = batch.ae.to(self.device)
-            ae = batch.energy.to(self.device)
+            ae = batch.ae.to(self.device)
+            # ae = batch.energy.to(self.device)
             eloss = self.loss_fn(ae, hat_ae)
             loss += eloss * self.training_config["energy_loss_weight"]
             info["Loss E"] = eloss.detach().item()
