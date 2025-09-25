@@ -159,6 +159,7 @@ def eigenspectrum_loss(
     alpha=1.0,
     loss_type="eigen",
     dist="mse",  # MAE, MSE, frosq
+    **kwargs,
 ):
     """Compute the eigenspectrum loss for a single Hessian matrix.
 

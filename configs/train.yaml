@@ -64,7 +64,6 @@ training:
     loss_type: "eigen" # eigen or wa
     k: null
     alpha: null
-    dof_filter_fn: null
     dist: "mae" # frosq or mae recommended
 
   # already preprocessed dataset, don't need to do hessian graph transform
