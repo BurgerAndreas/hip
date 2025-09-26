@@ -7,7 +7,4 @@ training:
   val_path: "ts1x-val.lmdb"
   data_weight: [1, 10]
 
-  # already preprocessed dataset, don't need to do hessian graph transform
-  do_hessiangraphtransform: false
-
 experiment_name: "allw10"

@@ -11,9 +11,6 @@ training:
   # lr_schedule_type: null  # No learning rate decay for overfitting
   max_epochs: 100000
 
-  # already preprocessed dataset, don't need to do hessian graph transform
-  do_hessiangraphtransform: false
-
   
   lr_schedule_type: "step"
   lr_schedule_config:

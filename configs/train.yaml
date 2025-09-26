@@ -67,7 +67,7 @@ training:
     dist: "mae" # frosq or mae recommended
 
   # already preprocessed dataset, don't need to do hessian graph transform
-  do_hessiangraphtransform: false
+  use_preproc_data: true
 
   train_hessian_only: false
 

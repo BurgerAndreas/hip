@@ -6,7 +6,4 @@ training:
   trn_path: ["ts1x_hess_train_big.lmdb", "RGD1.lmdb"]
   val_path: "ts1x-val.lmdb"
 
-  # already preprocessed dataset, don't need to do hessian graph transform
-  do_hessiangraphtransform: false
-
 experiment_name: "alldata"

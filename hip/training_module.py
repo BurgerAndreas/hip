@@ -409,15 +409,15 @@ class PotentialModule(LightningModule):
             ):
                 datasets = []
                 for path in self.training_config["trn_path"]:
-                    if self.training_config["do_hessiangraphtransform"]:
+                    if self.training_config["use_preproc_data"]:
+                        transform = None
+                    else:
                         transform = HessianGraphTransform(
                             cutoff=self.potential.cutoff,
                             cutoff_hessian=self.potential.cutoff_hessian,
                             max_neighbors=self.potential.max_neighbors,
                             use_pbc=self.potential.use_pbc,
                         )
-                    else:
-                        transform = None
                     dataset = LmdbDataset(
                         Path(path),
                         transform=transform,
@@ -442,15 +442,15 @@ class PotentialModule(LightningModule):
                     f"Combined {len(datasets)} datasets into one with {len(self.train_dataset)} total samples"
                 )
             else:
-                if self.training_config["do_hessiangraphtransform"]:
+                if self.training_config["use_preproc_data"]:
+                    transform = None
+                else:
                     transform = HessianGraphTransform(
                         cutoff=self.potential.cutoff,
                         cutoff_hessian=self.potential.cutoff_hessian,
                         max_neighbors=self.potential.max_neighbors,
                         use_pbc=self.potential.use_pbc,
                     )
-                else:
-                    transform = None
                 self.train_dataset = SchemaUniformDataset(
                     LmdbDataset(
                         Path(self.training_config["trn_path"]),
@@ -459,15 +459,15 @@ class PotentialModule(LightningModule):
                     )
                 )
             # val dataset
-            if self.training_config["do_hessiangraphtransform"]:
+            if self.training_config["use_preproc_data"]:
+                transform = None
+            else:
                 transform = HessianGraphTransform(
                     cutoff=self.potential.cutoff,
                     cutoff_hessian=self.potential.cutoff_hessian,
                     max_neighbors=self.potential.max_neighbors,
                     use_pbc=self.potential.use_pbc,
                 )
-            else:
-                transform = None
             self.val_dataset = SchemaUniformDataset(
                 LmdbDataset(
                     Path(self.training_config["val_path"]),
