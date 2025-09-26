@@ -34,6 +34,3 @@ def get_dataloader(dataset_name, model, batch_size=1, shuffle=False):
         dataset, batch_size=batch_size, shuffle=shuffle, follow_batch=FOLLOW_BATCH
     )
     return loader
-
-
-

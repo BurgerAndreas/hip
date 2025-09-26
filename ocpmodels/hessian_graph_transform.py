@@ -23,6 +23,7 @@ from torch_geometric.data import Dataset as TGDataset
 from typing import Any, List, Optional, Sequence, Union
 
 import torch.utils.data
+
 # from torch.utils.data.dataloader import default_collate
 from torch_geometric.loader.dataloader import Collater as TGCollater
 

@@ -38,6 +38,7 @@ from ocpmodels.hessian_graph_transform import (
 
 from hip.ff_lmdb import LmdbDataset
 from hip.utils import average_over_batch_metrics, pretty_print
+
 # import hip.utils as diff_utils
 import yaml
 from hip.path_config import find_project_root, fix_dataset_path
@@ -254,8 +255,9 @@ class PotentialModule(LightningModule):
         if self.training_config["otfgraph_in_model"]:
             # no need because we will compute graph during forward pass
             self.use_hessian_graph_transform = False
-            assert self.training_config["offset_in_model"], "offset_in_model must be True if otfgraph_in_model is True"
-        
+            assert self.training_config["offset_in_model"], (
+                "offset_in_model must be True if otfgraph_in_model is True"
+            )
 
     def set_wandb_run_id(self, run_id: str) -> None:
         """Set the WandB run ID for checkpoint continuation."""
@@ -578,10 +580,11 @@ class PotentialModule(LightningModule):
         batch = compute_extra_props(batch, pos_require_grad=self.pos_require_grad)
 
         hat_ae, hat_forces, outputs = self.potential.forward(
-            batch.to(self.device), hessian=True, 
+            batch.to(self.device),
+            hessian=True,
             otf_graph=self.training_config["otfgraph_in_model"],
             otf_graph_hessian=self.training_config["otfgraph_in_model"],
-            add_props=self.training_config["offset_in_model"], 
+            add_props=self.training_config["offset_in_model"],
         )
         nedges = batch.edge_index.shape[1]
         natoms = batch.natoms.sum().item()

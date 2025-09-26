@@ -33,6 +33,7 @@ from .so3 import (
     SO3_LinearV2,
 )
 from .module_list import ModuleListInfo
+
 # from .so2_ops import SO2_Convolution
 from .radial_function import RadialFunction
 from .layer_norm import (
@@ -51,17 +52,25 @@ from .input_block import EdgeDegreeEmbedding
 from .hessian_pred_utils import (
     add_extra_props_for_hessian,
     predict_hessian_1d_fast,
+    irreps_to_cartesian_matrix,
 )
 
 # Statistics of IS2RE 100K
-_AVG_NUM_NODES = 77.81317
+# _AVG_NUM_NODES = 77.81317
 _AVG_DEGREE = 23.395238876342773  # IS2RE: 100k, max_radius = 5, max_neighbors = 100
+
+# HORM T1x
+# Number of edges: 176.7360948021343
+# Number of edges (hessian): 186.7841774653667
+# Number of atoms: 13.919938540433833
+# _AVG_DEGREE_HESSIAN = 13.4184627987
+# _AVG_DEGREE = 12.6966145927
 
 
 # l0_features = x_message.embedding.narrow(dimension=1, start=0, length=1)
 # l1_features = x_message.embedding.narrow(dimension=1, start=1, length=3)
 # l2_features = x_message.embedding.narrow(dim=1, start=4, length=5) # length=2l+1
-def get_scalar_from_embedding(embedding, data):
+def get_scalar_from_embedding(embedding, data, avg_num_nodes=None):
     # get l=0 component
     embedding = embedding.embedding.narrow(1, 0, 1)
     scalars = torch.zeros(
@@ -70,30 +79,9 @@ def get_scalar_from_embedding(embedding, data):
     # sum over all nodes in the batch
     scalars.index_add_(0, data.batch, embedding.view(-1))
     # avg number of nodes=atoms in the batch
-    avg_num_nodes = torch.sum(data.natoms) / len(data.natoms)
-    # return scalars / _AVG_NUM_NODES
+    if avg_num_nodes is None:
+        avg_num_nodes = torch.sum(data.natoms) / len(data.natoms)
     return scalars / avg_num_nodes
-
-
-def irreps_to_cartesian_matrix(irreps):
-    """Luca Thiede's creation"""
-
-    assert irreps.shape[-1] == 9, (
-        f"Irreps must be of shape (..., 9) but got {irreps.shape}"
-    )
-    M = torch.zeros((irreps.shape[0], 3, 3), device=irreps.device, dtype=irreps.dtype)
-    for l3 in range(3):
-        ClGo = o3.wigner_3j(1, 1, l3, dtype=irreps.dtype, device=irreps.device)
-        if l3 == 0:
-            features_l3 = irreps[..., :1]
-        elif l3 == 1:
-            features_l3 = irreps[..., 1:4]
-        elif l3 == 2:
-            features_l3 = irreps[..., 4:9]
-
-        M += einops.einsum(ClGo, features_l3, "m1 m2 m3, b m3 -> b m1 m2")
-
-    return M
 
 
 @registry.register_model("equiformer_v2")
@@ -188,6 +176,7 @@ class EquiformerV2_OC20(BaseModel):
         avg_degree=_AVG_DEGREE,  # rescale factor for edge_degree_embedding
         # added for hessian prediction
         avg_degree_hessian=_AVG_DEGREE,
+        avg_num_nodes=None,
         hessian_alpha_drop=0.0,
         num_layers_hessian=0,
         share_atom_edge_embedding_hessian=False,
@@ -243,6 +232,7 @@ class EquiformerV2_OC20(BaseModel):
             )
         self.max_num_elements = max_num_elements
         self.avg_degree = avg_degree
+        self.avg_num_nodes = avg_num_nodes
 
         self.num_layers = num_layers
         self.sphere_channels = sphere_channels
@@ -743,7 +733,7 @@ class EquiformerV2_OC20(BaseModel):
         data,
         hessian=True,
         return_l_features=False,
-        otf_graph=None, # will default to self.otf_graph
+        otf_graph=None,  # will default to self.otf_graph
         otf_graph_hessian=False,
         add_props=True,
     ):
@@ -787,8 +777,8 @@ class EquiformerV2_OC20(BaseModel):
 
         # Compute 3x3 rotation matrix per edge [E, 3, 3]
         assert edge_distance_vec.numel() > 0, (
-            f"edge_distance_vec is empty. edge_index: {edge_index.shape}, edge_distance: {edge_distance}"\
-                "You passed a data object instead of a batch. Use `from torch_geometric.data import Batch, Dataloader` to create a batch."
+            f"edge_distance_vec is empty. edge_index: {edge_index.shape}, edge_distance: {edge_distance}"
+            "You passed a data object instead of a batch. Use `from torch_geometric.data import Batch, Dataloader` to create a batch."
         )
         edge_rot_mat = self._init_edge_rot_mat(data, edge_index, edge_distance_vec)
 
@@ -864,7 +854,9 @@ class EquiformerV2_OC20(BaseModel):
         # Energy estimation
         ###############################################################
         node_energy = self.energy_block(x)
-        energy = get_scalar_from_embedding(node_energy, data)
+        energy = get_scalar_from_embedding(
+            node_energy, data, avg_num_nodes=self.avg_num_nodes
+        )
 
         # hessian_ij = self.grad_hess_ij(energy=energy, posj=posj, posi=posi)
 
@@ -889,7 +881,9 @@ class EquiformerV2_OC20(BaseModel):
                     edge_index_hessian,
                     edge_distance_hessian,
                     edge_distance_vec_hessian,
-                ) = self.generate_graph_nopbc(data, cutoff=self.cutoff_hessian, otf_graph=False)
+                ) = self.generate_graph_nopbc(
+                    data, cutoff=self.cutoff_hessian, otf_graph=False
+                )
             else:
                 edge_index_hessian = data.edge_index_hessian
                 edge_distance_hessian = data.edge_distance_hessian

@@ -128,9 +128,7 @@ class BatchHessianLoss(torch.nn.Module):
         _kwargs = self.kwargs.copy()
         if kwargs is not None:
             _kwargs.update(kwargs)
-        return batch_hessian_loss(
-            pred, target, data, self.loss_fn, **_kwargs
-        )
+        return batch_hessian_loss(pred, target, data, self.loss_fn, **_kwargs)
 
 
 def _reduce_diff(diff, dist):

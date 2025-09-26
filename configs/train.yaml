@@ -19,8 +19,11 @@ model:
   # if to also use atom type embedding or just relative distances for edge features
   # in edge_distance 
   use_atom_edge_embedding_hessian: True
-  # if the same embedding is used in every transformer block
+  # True = the same embedding is used in every transformer block
   share_atom_edge_embedding_hessian: False
+
+  # TODO: if they do not move the needle, remove them
+  # If True, the same atom embedding is used for the Hessian as for the backbone layers
   reuse_source_target_embedding_hessian: True
   reinit_edge_degree_embedding_hessian: False # add edge degree embedding to node features
   max_radius: 5.0

@@ -77,7 +77,9 @@ class AlphaNetCalculator(Calculator):
         self.results = {}  # type: ignore
         # load model
         self.device = device or ("cuda" if torch.cuda.is_available() else "cpu")
-        pm = PotentialModule.load_from_checkpoint(weight, map_location=self.device, strict=False)
+        pm = PotentialModule.load_from_checkpoint(
+            weight, map_location=self.device, strict=False
+        )
         pm.eval()
         self.model = pm.potential
 

@@ -14,6 +14,19 @@ model:
   max_radius:               12.0
   max_num_elements:         90
 
+  # avg_num_nodes:            77.81317
+  avg_degree:               23.395238876342773  # IS2RE: 100k, max_radius = 5, max_neighbors = 100
+  avg_degree_hessian:       23.395238876342773
+
+  avg_num_nodes:            null
+  # HORM T1x
+  # Number of edges: 176.7360948021343
+  # Number of edges (hessian): 186.7841774653667
+  # Number of atoms: 13.919938540433833
+  # _AVG_DEGREE_HESSIAN = 13.4184627987
+  # _AVG_DEGREE = 12.6966145927
+
+
   num_layers:               4
   sphere_channels:          128
   attn_hidden_channels:     64              # [64, 96] This determines the hidden size of message passing. Do not necessarily use 96.

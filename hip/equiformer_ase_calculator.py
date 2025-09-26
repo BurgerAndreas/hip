@@ -212,7 +212,7 @@ class EquiformerASECalculator(ASECalculator):
         if hessian_method is not None:
             self.hessian_method = hessian_method
         return self.get_property("hessian", atoms)
-    
+
     def get_results(self, atoms) -> dict:
         """Return all results."""
         return self.results
