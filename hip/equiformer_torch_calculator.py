@@ -93,7 +93,6 @@ class EquiformerTorchCalculator:
                         batch,
                         otf_graph=False,  # TODO: does that work? we should have gradients from ase_atoms_to_torch_geometric_hessian
                         hessian=False,
-                        add_props=False,
                     )
                     # Use autograd to compute hessian
                     hessian = compute_hessian(
@@ -108,7 +107,6 @@ class EquiformerTorchCalculator:
                         batch,
                         hessian=True,
                         otf_graph=False,
-                        add_props=True,  # not necessary for single molecule (only needed for batching)
                     )
                     hessian = out["hessian"]
 
@@ -126,7 +124,6 @@ class EquiformerTorchCalculator:
                 batch,
                 otf_graph=False,
                 hessian=False,
-                add_props=False,
             )
 
         # Energy is per molecule, extract scalar value

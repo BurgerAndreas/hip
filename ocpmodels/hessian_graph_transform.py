@@ -253,7 +253,7 @@ class HessianBatchTransform:
     Post-batching transform that applies batch-specific index offsetting.
     This should be used in a custom collate function after batching individual samples.
 
-    This replaces the need to call add_extra_props_for_hessian(batch, offset_indices=True)
+    This replaces the need to call add_extra_props_for_hessian(batch)
     during training, moving the computation to dataloader workers.
     """
 
@@ -267,9 +267,9 @@ class HessianBatchTransform:
         Returns:
             batch: Modified batch with offset indices
         """
-        # This is equivalent to add_extra_props_for_hessian(batch, offset_indices=True)
+        # This is equivalent to add_extra_props_for_hessian(batch)
         # but optimized for the dataloader worker context
-        return add_extra_props_for_hessian(batch, offset_indices=True)
+        return add_extra_props_for_hessian(batch)
 
 
 def _create_hessian_collate_fn(dataset, follow_batch, exclude_keys):

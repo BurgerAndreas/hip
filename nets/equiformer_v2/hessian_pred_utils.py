@@ -45,7 +45,7 @@ def irreps_to_cartesian_matrix(irreps: torch.Tensor) -> torch.Tensor:
     )
 
 
-def add_extra_props_for_hessian(data: TGBatch, offset_indices: bool = False) -> TGBatch:
+def add_extra_props_for_hessian(data: TGBatch, offset_indices: bool = True) -> TGBatch:
     """
     Optionally offset precomputed per-sample 1D indices to batched/global space
     and attach convenience pointers for flattened Hessians.
@@ -60,16 +60,13 @@ def add_extra_props_for_hessian(data: TGBatch, offset_indices: bool = False) -> 
         - diag_ji: shape (sum_b N_b*9,)
         - node_transpose_idx: shape (sum_b N_b*9,)
 
-    Side effects (after call when offset_indices=True):
-        - message_idx_ij/message_idx_ji/diag_ij/diag_ji/node_transpose_idx are
-          offset in-place to index into the batched flattened Hessian.
-        - ptr_1d_hessian: LongTensor of shape (B+1,) may be added (when B>1),
-          acting as a pointer over per-sample flattened Hessian segments.
+    - message_idx_ij/message_idx_ji/diag_ij/diag_ji/node_transpose_idx are
+        offset in-place to index into the batched flattened Hessian.
+    - ptr_1d_hessian: of shape (B+1,) may be added (when B>1),
+        acting as a pointer over per-sample flattened Hessian segments.
 
     Args:
         data: Object with attributes listed above.
-        offset_indices: bool. If True, perform in-place offsetting. If False,
-            return the input unchanged.
 
     Returns:
         data: The same object, with fields updated/added as described above.
@@ -82,41 +79,40 @@ def add_extra_props_for_hessian(data: TGBatch, offset_indices: bool = False) -> 
     _sizes = (_nedges * 3) ** 2
     # indices are computed for each sample individually
     # so we need to offset the indices by the number of entries in the previous samples in the batch
-    if offset_indices:
-        if hasattr(data, "offsetdone") and (data.offsetdone is True):
-            return data
-        data.offsetdone = True
-        # Precompute exclusive cumulative offsets once (O(B))
-        natoms = data.natoms.to(device=data.batch.device, dtype=torch.long)
-        hess_entries_per_sample = (natoms * 3) ** 2
-        node_entries_per_sample = natoms * 9
-        cumsum_hess = torch.cumsum(hess_entries_per_sample, dim=0)
-        cumsum_node = torch.cumsum(node_entries_per_sample, dim=0)
-        hess_offsets = torch.zeros_like(cumsum_hess)
-        node_offsets = torch.zeros_like(cumsum_node)
-        if B > 1:
-            data.ptr_1d_hessian = torch.empty(
-                B + 1, device=data.batch.device, dtype=torch.long
-            )
-            data.ptr_1d_hessian[0] = 0
-            if B > 0:
-                data.ptr_1d_hessian[1:] = torch.cumsum(_sizes, dim=0)
-            hess_offsets[1:] = cumsum_hess[:-1]
-            node_offsets[1:] = cumsum_node[:-1]
-        # Parallelize offsets across all elements using repeat_interleave per-sample lengths
-        edge_counts = (_nedges * 9).to(dtype=torch.long)
-        node_counts = (natoms * 9).to(dtype=torch.long)
-        # Build full-length offset vectors
-        if edge_counts.sum().item() > 0:
-            full_edge_hess_offsets = torch.repeat_interleave(hess_offsets, edge_counts)
-            data.message_idx_ij += full_edge_hess_offsets
-            data.message_idx_ji += full_edge_hess_offsets
-        if node_counts.sum().item() > 0:
-            full_node_hess_offsets = torch.repeat_interleave(hess_offsets, node_counts)
-            full_node_node_offsets = torch.repeat_interleave(node_offsets, node_counts)
-            data.diag_ij += full_node_hess_offsets
-            data.diag_ji += full_node_hess_offsets
-            data.node_transpose_idx += full_node_node_offsets
+    if hasattr(data, "offsetdone") and (data.offsetdone is True):
+        return data
+    data.offsetdone = True
+    # Precompute exclusive cumulative offsets once (O(B))
+    natoms = data.natoms.to(device=data.batch.device, dtype=torch.long)
+    hess_entries_per_sample = (natoms * 3) ** 2
+    node_entries_per_sample = natoms * 9
+    cumsum_hess = torch.cumsum(hess_entries_per_sample, dim=0)
+    cumsum_node = torch.cumsum(node_entries_per_sample, dim=0)
+    hess_offsets = torch.zeros_like(cumsum_hess)
+    node_offsets = torch.zeros_like(cumsum_node)
+    if B > 1:
+        data.ptr_1d_hessian = torch.empty(
+            B + 1, device=data.batch.device, dtype=torch.long
+        )
+        data.ptr_1d_hessian[0] = 0
+        if B > 0:
+            data.ptr_1d_hessian[1:] = torch.cumsum(_sizes, dim=0)
+        hess_offsets[1:] = cumsum_hess[:-1]
+        node_offsets[1:] = cumsum_node[:-1]
+    # Parallelize offsets across all elements using repeat_interleave per-sample lengths
+    edge_counts = (_nedges * 9).to(dtype=torch.long)
+    node_counts = (natoms * 9).to(dtype=torch.long)
+    # Build full-length offset vectors
+    if edge_counts.sum().item() > 0:
+        full_edge_hess_offsets = torch.repeat_interleave(hess_offsets, edge_counts)
+        data.message_idx_ij += full_edge_hess_offsets
+        data.message_idx_ji += full_edge_hess_offsets
+    if node_counts.sum().item() > 0:
+        full_node_hess_offsets = torch.repeat_interleave(hess_offsets, node_counts)
+        full_node_node_offsets = torch.repeat_interleave(node_offsets, node_counts)
+        data.diag_ij += full_node_hess_offsets
+        data.diag_ji += full_node_hess_offsets
+        data.node_transpose_idx += full_node_node_offsets
 
     return data
 

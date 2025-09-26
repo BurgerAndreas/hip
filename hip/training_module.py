@@ -255,9 +255,6 @@ class PotentialModule(LightningModule):
         if self.training_config["otfgraph_in_model"]:
             # no need because we will compute graph during forward pass
             self.use_hessian_graph_transform = False
-            assert self.training_config["offset_in_model"], (
-                "offset_in_model must be True if otfgraph_in_model is True"
-            )
 
     def set_wandb_run_id(self, run_id: str) -> None:
         """Set the WandB run ID for checkpoint continuation."""
@@ -519,47 +516,25 @@ class PotentialModule(LightningModule):
 
     def train_dataloader(self):
         """Override to use custom collate function for Hessian batch offsetting"""
-        if self.training_config["offset_in_model"]:
-            return TGDataLoader(
-                self.train_dataset,
-                batch_size=self.training_config["bz"],
-                shuffle=True,
-                num_workers=self.training_config["num_workers"],
-                follow_batch=self.training_config["follow_batch"],
-                drop_last=self.training_config["drop_last"],
-            )
-        else:
-            return HessianDataLoader(
-                self.train_dataset,
-                batch_size=self.training_config["bz"],
-                shuffle=True,
-                num_workers=self.training_config["num_workers"],
-                follow_batch=self.training_config["follow_batch"],
-                drop_last=self.training_config["drop_last"],
-                do_hessian_batch_offsetting=True,
-            )
+        return TGDataLoader(
+            self.train_dataset,
+            batch_size=self.training_config["bz"],
+            shuffle=True,
+            num_workers=self.training_config["num_workers"],
+            follow_batch=self.training_config["follow_batch"],
+            drop_last=self.training_config["drop_last"],
+        )
 
     def val_dataloader(self):
         """Override to use custom collate function for Hessian batch offsetting"""
-        if self.training_config["offset_in_model"]:
-            return TGDataLoader(
-                self.val_dataset,
-                batch_size=self.training_config["bz_val"],
-                shuffle=False,
-                num_workers=self.training_config["num_workers"],
-                follow_batch=self.training_config["follow_batch"],
-                drop_last=self.training_config["drop_last"],
-            )
-        else:
-            return HessianDataLoader(
-                self.val_dataset,
-                batch_size=self.training_config["bz_val"],
-                shuffle=False,
-                num_workers=self.training_config["num_workers"],
-                follow_batch=self.training_config["follow_batch"],
-                drop_last=self.training_config["drop_last"],
-                do_hessian_batch_offsetting=True,
-            )
+        return TGDataLoader(
+            self.val_dataset,
+            batch_size=self.training_config["bz_val"],
+            shuffle=False,
+            num_workers=self.training_config["num_workers"],
+            follow_batch=self.training_config["follow_batch"],
+            drop_last=self.training_config["drop_last"],
+        )
 
     # not used
     def test_dataloader(self) -> TGDataLoader:
@@ -584,7 +559,6 @@ class PotentialModule(LightningModule):
             hessian=True,
             otf_graph=self.training_config["otfgraph_in_model"],
             otf_graph_hessian=self.training_config["otfgraph_in_model"],
-            add_props=self.training_config["offset_in_model"],
         )
         nedges = batch.edge_index.shape[1]
         natoms = batch.natoms.sum().item()

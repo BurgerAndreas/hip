@@ -175,7 +175,7 @@ def evaluate(
                 else:
                     with torch.no_grad():
                         energy_model, force_model, out = model.forward(
-                            batch, otf_graph=False, hessian=True, add_props=True
+                            batch, otf_graph=False,
                         )
                     hessian_model = out["hessian"].reshape(n_atoms * 3, n_atoms * 3)
             else:
@@ -216,7 +216,7 @@ def evaluate(
                 else:
                     with torch.no_grad():
                         energy_model, force_model, out = model.forward(
-                            batch, otf_graph=False, hessian=True, add_props=True
+                            batch, otf_graph=False,
                         )
                     hessian_model = out["hessian"]
             else:

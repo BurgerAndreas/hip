@@ -967,8 +967,7 @@ class EquiformerV2_OC20(BaseModel):
             )  # (E, 3, 3)
             # messages: torch.Tensor = l012_edge_features
 
-            if add_props:
-                data = add_extra_props_for_hessian(data, offset_indices=True)
+            data = add_extra_props_for_hessian(data)
 
             # combine message with node embeddings (self-connection)
             # node embeddings -> (N, 3, 3)
