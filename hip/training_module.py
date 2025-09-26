@@ -251,9 +251,6 @@ class PotentialModule(LightningModule):
         self.save_hyperparameters(logger=False)
 
         self.use_hessian_graph_transform = True
-        if self.training_config["use_preproc_data"]:
-            # no need because graph was build during preprocessing
-            self.use_hessian_graph_transform = False
         if self.training_config["otfgraph_in_model"]:
             # no need because we will compute graph during forward pass
             self.use_hessian_graph_transform = False
@@ -447,15 +444,15 @@ class PotentialModule(LightningModule):
                     f"Combined {len(datasets)} datasets into one with {len(self.train_dataset)} total samples"
                 )
             else:
-                if self.training_config["use_preproc_data"] or (self.training_config["otfgraph_in_model"] is False):
-                    transform = None
-                else:
+                if self.use_hessian_graph_transform:
                     transform = HessianGraphTransform(
                         cutoff=self.potential.cutoff,
                         cutoff_hessian=self.potential.cutoff_hessian,
                         max_neighbors=self.potential.max_neighbors,
                         use_pbc=self.potential.use_pbc,
                     )
+                else:
+                    transform = None
                 self.train_dataset = SchemaUniformDataset(
                     LmdbDataset(
                         Path(self.training_config["trn_path"]),
@@ -464,15 +461,15 @@ class PotentialModule(LightningModule):
                     )
                 )
             # val dataset
-            if self.training_config["use_preproc_data"] or (self.training_config["otfgraph_in_model"] is False):
-                transform = None
-            else:
+            if self.use_hessian_graph_transform:
                 transform = HessianGraphTransform(
                     cutoff=self.potential.cutoff,
                     cutoff_hessian=self.potential.cutoff_hessian,
                     max_neighbors=self.potential.max_neighbors,
                     use_pbc=self.potential.use_pbc,
                 )
+            else:
+                transform = None
             self.val_dataset = SchemaUniformDataset(
                 LmdbDataset(
                     Path(self.training_config["val_path"]),

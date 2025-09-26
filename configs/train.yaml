@@ -64,8 +64,6 @@ training:
     alpha: null
     dist: "mae" # frosq or mae recommended
 
-  # already preprocessed dataset, don't need to do hessian graph transform
-  use_preproc_data: true
   #
   otfgraph_in_model: false
   #
