@@ -26,8 +26,6 @@ model:
   max_radius: 5.0
   max_neighbors: 32
   cutoff_hessian: 100.0
-  # graph
-  otf_graph: false
 
   hessian_no_attn_weights: True # build Hessian off-diagonal elements from raw messages without attention weights
   attn_wo_sigmoid: False # do not apply sigmoid to attention weights
@@ -68,6 +66,10 @@ training:
 
   # already preprocessed dataset, don't need to do hessian graph transform
   use_preproc_data: true
+  #
+  otfgraph_in_model: false
+  #
+  offset_in_model: false
 
   train_hessian_only: false
 

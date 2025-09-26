@@ -1,7 +1,6 @@
 import logging
 import time
 import math
-import numpy as np
 import torch
 import einops
 
@@ -76,21 +75,21 @@ def get_scalar_from_embedding(embedding, data):
     return scalars / avg_num_nodes
 
 
-def irreps_to_cartesian_matrix(irrpes):
+def irreps_to_cartesian_matrix(irreps):
     """Luca Thiede's creation"""
 
-    assert irrpes.shape[-1] == 9, (
-        f"Irreps must be of shape (..., 9) but got {irrpes.shape}"
+    assert irreps.shape[-1] == 9, (
+        f"Irreps must be of shape (..., 9) but got {irreps.shape}"
     )
-    M = torch.zeros((irrpes.shape[0], 3, 3), device=irrpes.device, dtype=irrpes.dtype)
+    M = torch.zeros((irreps.shape[0], 3, 3), device=irreps.device, dtype=irreps.dtype)
     for l3 in range(3):
-        ClGo = o3.wigner_3j(1, 1, l3, dtype=irrpes.dtype, device=irrpes.device)
+        ClGo = o3.wigner_3j(1, 1, l3, dtype=irreps.dtype, device=irreps.device)
         if l3 == 0:
-            features_l3 = irrpes[..., :1]
+            features_l3 = irreps[..., :1]
         elif l3 == 1:
-            features_l3 = irrpes[..., 1:4]
+            features_l3 = irreps[..., 1:4]
         elif l3 == 2:
-            features_l3 = irrpes[..., 4:9]
+            features_l3 = irreps[..., 4:9]
 
         M += einops.einsum(ClGo, features_l3, "m1 m2 m3, b m3 -> b m1 m2")
 
@@ -153,7 +152,7 @@ class EquiformerV2_OC20(BaseModel):
         # num_targets,    # not used
         use_pbc=True,
         regress_forces=True,
-        otf_graph=True,
+        otf_graph=False,
         max_neighbors=500,
         max_radius=5.0,
         max_num_elements=90,
@@ -714,9 +713,11 @@ class EquiformerV2_OC20(BaseModel):
             neighbors,
         )
 
-    # used by HORM
-    # maybe easier to differentiate through for autograd hessian?
-    def generate_fullyconnected_graph_nopbc(self, data, otf_graph=None, cutoff=None):
+    def generate_graph_nopbc(self, data, otf_graph=None, cutoff=None):
+        """Simplified graph generation without periodic boundary conditions.
+        Used by HORM.
+        Not sure why, maybe it is easier to differentiate through for autograd hessian?
+        """
         otf_graph = otf_graph or self.otf_graph
         cutoff = cutoff or self.cutoff
         if otf_graph:
@@ -742,7 +743,8 @@ class EquiformerV2_OC20(BaseModel):
         data,
         hessian=True,
         return_l_features=False,
-        otf_graph=None,
+        otf_graph=None, # will default to self.otf_graph
+        otf_graph_hessian=False,
         add_props=True,
     ):
         """
@@ -762,9 +764,7 @@ class EquiformerV2_OC20(BaseModel):
 
         atomic_numbers = data.z.long()
         num_atoms = len(atomic_numbers)
-        # pos = data.pos
 
-        # # TODO
         # # cell_offsets, cell_offset_distances, neighbors are not used in EquiformerV2
         # (
         #     edge_index,
@@ -779,14 +779,7 @@ class EquiformerV2_OC20(BaseModel):
             edge_index,  # [E, 2]
             edge_distance,  # [E]
             edge_distance_vec,  # [E, 3]
-        ) = self.generate_fullyconnected_graph_nopbc(data, otf_graph=otf_graph)
-        if hasattr(data, "edge_index") and (data.edge_index is not None):
-            # it only matters if we are doing hessian prediction
-            # if we pass otf_graph=True we want to do autograd (no hessian prediction)
-            if otf_graph is None:
-                assert torch.allclose(edge_index, data.edge_index), (
-                    "To fix this: model.otf_graph=False"
-                )
+        ) = self.generate_graph_nopbc(data, otf_graph=otf_graph)
 
         ###############################################################
         # Initialize data structures
@@ -794,7 +787,8 @@ class EquiformerV2_OC20(BaseModel):
 
         # Compute 3x3 rotation matrix per edge [E, 3, 3]
         assert edge_distance_vec.numel() > 0, (
-            f"edge_distance_vec is empty. edge_index: {edge_index.shape}, edge_distance: {edge_distance}"
+            f"edge_distance_vec is empty. edge_index: {edge_index.shape}, edge_distance: {edge_distance}"\
+                "You passed a data object instead of a batch. Use `from torch_geometric.data import Batch, Dataloader` to create a batch."
         )
         edge_rot_mat = self._init_edge_rot_mat(data, edge_index, edge_distance_vec)
 
@@ -890,15 +884,16 @@ class EquiformerV2_OC20(BaseModel):
         if hessian:
             # we are going to use a different graph here
             # with a bigger cutoff radius
-            # graph = edge_distance, edge_index
-            # (
-            #     edge_index_hessian,
-            #     edge_distance_hessian,
-            #     edge_distance_vec_hessian,
-            # ) = self.generate_fullyconnected_graph_nopbc(data, cutoff=self.cutoff_hessian, otf_graph=False)
-            edge_index_hessian = data.edge_index_hessian
-            edge_distance_hessian = data.edge_distance_hessian
-            edge_distance_vec_hessian = data.edge_distance_vec_hessian
+            if otf_graph_hessian:
+                (
+                    edge_index_hessian,
+                    edge_distance_hessian,
+                    edge_distance_vec_hessian,
+                ) = self.generate_graph_nopbc(data, cutoff=self.cutoff_hessian, otf_graph=False)
+            else:
+                edge_index_hessian = data.edge_index_hessian
+                edge_distance_hessian = data.edge_distance_hessian
+                edge_distance_vec_hessian = data.edge_distance_vec_hessian
 
             # Compute 3x3 rotation matrix per edge
             edge_rot_mat_hessian = self._init_edge_rot_mat(

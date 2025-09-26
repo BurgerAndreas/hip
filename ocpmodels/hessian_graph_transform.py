@@ -5,30 +5,29 @@ from nets.equiformer_v2.hessian_pred_utils import (
     _get_node_diagonal_1d_indexadd_indices,
     add_extra_props_for_hessian,
 )
-from nets.equiformer_v2.equiformer_v2_oc20 import EquiformerV2_OC20
+# from nets.equiformer_v2.equiformer_v2_oc20 import EquiformerV2_OC20
 
 from ocpmodels.common.utils import (
     compute_neighbors,
-    conditional_grad,
+    # conditional_grad,
     get_pbc_distances,
     radius_graph_pbc,
 )
 from torch_geometric.nn import radius_graph
 
-from torch_geometric.data import Data as TGData
-from torch_geometric.data import Batch as TGBatch
+# from torch_geometric.data import Data as TGData
+# from torch_geometric.data import Batch as TGBatch
 from torch_geometric.data import Dataset as TGDataset
 
-from collections.abc import Mapping
+# from collections.abc import Mapping
 from typing import Any, List, Optional, Sequence, Union
 
 import torch.utils.data
-from torch.utils.data.dataloader import default_collate
+# from torch.utils.data.dataloader import default_collate
 from torch_geometric.loader.dataloader import Collater as TGCollater
 
 from torch_geometric.data.data import BaseData
 from torch_geometric.data.datapipes import DatasetAdapter
-from torch_geometric.typing import TensorFrame, torch_frame
 
 FOLLOW_BATCH = ["diag_ij", "edge_index", "message_idx_ij"]
 
@@ -217,9 +216,10 @@ def generate_graph(
     )
 
 
-def generate_fullyconnected_graph_nopbc(data, cutoff, max_neighbors: int = 32):
-    """Used by HORM.
-    Maybe easier to differentiate through for autograd Hessian?
+def generate_graph_nopbc(data, cutoff, max_neighbors: int = 32):
+    """Simplified graph generation without periodic boundary conditions.
+    Used by HORM.
+    Not sure why, maybe it is easier to differentiate through for autograd hessian?
     """
     if max_neighbors is None:
         max_neighbors = 32
@@ -244,7 +244,7 @@ def generate_fullyconnected_graph_nopbc(data, cutoff, max_neighbors: int = 32):
 
 
 # HessianDataLoader
-# Offsets indices due to batching.
+# Offsets indices to account for batching.
 
 
 class HessianBatchTransform:
@@ -295,14 +295,15 @@ def _create_hessian_collate_fn(dataset, follow_batch, exclude_keys):
 
 
 class HessianDataLoader(torch.utils.data.DataLoader):
-    r"""A copy of the torch_geometric dataloader, but adds our custom collate function after the torch_geometric collate function."""
+    """Offsets indices to account for batching.
+    A copy of the torch_geometric dataloader, but adds our custom collate function after the torch_geometric collate function."""
 
     def __init__(
         self,
         dataset: Union[TGDataset, Sequence[BaseData], DatasetAdapter],
         batch_size: int = 1,
         shuffle: bool = False,
-        follow_batch: Optional[List[str]] = None,
+        follow_batch: Optional[List[str]] = ["diag_ij", "edge_index", "message_idx_ij"],
         exclude_keys: Optional[List[str]] = None,
         do_hessian_batch_offsetting: bool = True,
         **kwargs,

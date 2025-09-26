@@ -29,11 +29,6 @@ try:
 except ImportError:
     from lightning.pytorch.utilities import grad_norm as pl_grad_norm
     from lightning import LightningModule
-from torchmetrics import (
-    MeanAbsoluteError,
-    MeanAbsolutePercentageError,
-    CosineSimilarity,
-)
 from nets.equiformer_v2.equiformer_v2_oc20 import EquiformerV2_OC20
 from ocpmodels.hessian_graph_transform import (
     HessianGraphTransform,
@@ -43,7 +38,7 @@ from ocpmodels.hessian_graph_transform import (
 
 from hip.ff_lmdb import LmdbDataset
 from hip.utils import average_over_batch_metrics, pretty_print
-import hip.utils as diff_utils
+# import hip.utils as diff_utils
 import yaml
 from hip.path_config import find_project_root, fix_dataset_path
 from nets.prediction_utils import compute_extra_props
@@ -255,6 +250,16 @@ class PotentialModule(LightningModule):
         # Save arguments to hparams attribute for checkpointing
         self.save_hyperparameters(logger=False)
 
+        self.use_hessian_graph_transform = True
+        if self.training_config["use_preproc_data"]:
+            # no need because graph was build during preprocessing
+            self.use_hessian_graph_transform = False
+        if self.training_config["otfgraph_in_model"]:
+            # no need because we will compute graph during forward pass
+            self.use_hessian_graph_transform = False
+            assert self.training_config["offset_in_model"], "offset_in_model must be True if otfgraph_in_model is True"
+        
+
     def set_wandb_run_id(self, run_id: str) -> None:
         """Set the WandB run ID for checkpoint continuation."""
         self.wandb_run_id = run_id
@@ -409,7 +414,7 @@ class PotentialModule(LightningModule):
             ):
                 datasets = []
                 for path in self.training_config["trn_path"]:
-                    if self.training_config["use_preproc_data"]:
+                    if self.use_hessian_graph_transform:
                         transform = None
                     else:
                         transform = HessianGraphTransform(
@@ -442,7 +447,7 @@ class PotentialModule(LightningModule):
                     f"Combined {len(datasets)} datasets into one with {len(self.train_dataset)} total samples"
                 )
             else:
-                if self.training_config["use_preproc_data"]:
+                if self.training_config["use_preproc_data"] or (self.training_config["otfgraph_in_model"] is False):
                     transform = None
                 else:
                     transform = HessianGraphTransform(
@@ -459,7 +464,7 @@ class PotentialModule(LightningModule):
                     )
                 )
             # val dataset
-            if self.training_config["use_preproc_data"]:
+            if self.training_config["use_preproc_data"] or (self.training_config["otfgraph_in_model"] is False):
                 transform = None
             else:
                 transform = HessianGraphTransform(
@@ -513,224 +518,49 @@ class PotentialModule(LightningModule):
             print(f"Error logging trainable parameters: {e}")
         return
 
-    # def get_jacobian(self, forces, pos, grad_outputs, create_graph=False, looped=False):
-    #     """
-    #     Compute the Jacobian of forces with respect to atomic positions (∂F/∂r).
-
-    #     This function computes the negative Hessian matrix by taking derivatives of predicted
-    #     forces with respect to atomic positions. The Jacobian is mathematically equivalent to
-    #     the negative second derivative of energy: ∂F/∂r = -∂²E/∂r².
-
-    #     Args:
-    #         forces (torch.Tensor): Predicted forces tensor of shape (N_atoms, 3)
-    #         pos (torch.Tensor): Atomic positions tensor of shape (N_atoms, 3) with requires_grad=True
-    #         grad_outputs (torch.Tensor): Gradient output tensor specifying which Jacobian elements
-    #             to compute. Shape varies: (num_samples, N_atoms, 3) or (num_samples, 3, N_atoms, 3)
-    #         create_graph (bool, optional): Whether to create computation graph for higher-order
-    #             derivatives. Defaults to False.
-    #         looped (bool, optional): Whether to use explicit loops instead of vectorized vmap.
-    #             Use when vmap causes memory issues. Defaults to False.
-
-    #     Returns:
-    #         torch.Tensor: Jacobian tensor containing ∂F_i/∂r_j for sampled indices.
-    #             Shape matches grad_outputs dimensions.
-
-    #     Note:
-    #         - Uses torch.vmap for efficient vectorized computation when possible
-    #         - Falls back to explicit loops when looped=True for memory efficiency
-    #         - The grad_outputs tensor acts as a mask, computing only requested Jacobian elements
-    #         - Essential for stochastic row sampling in Hessian-informed training
-    #     """
-
-    #     def compute_grad(grad_output):
-    #         return torch.autograd.grad(
-    #             outputs=forces,
-    #             inputs=pos,
-    #             grad_outputs=grad_output,
-    #             create_graph=create_graph,
-    #             retain_graph=True,
-    #         )[0]
-
-    #     if not looped:
-    #         if len(grad_outputs.shape) == 4:
-    #             compute_jacobian = torch.vmap(torch.vmap(compute_grad))
-    #         else:
-    #             compute_jacobian = torch.vmap(compute_grad)
-    #         return compute_jacobian(grad_outputs)
-    #     else:
-    #         num_atoms = forces.shape[0]
-    #         if len(grad_outputs.shape) == 4:
-    #             full_jac = torch.zeros(grad_outputs.shape[0], 3, num_atoms, 3).to(
-    #                 forces.device
-    #             )
-    #             for i in range(grad_outputs.shape[0]):
-    #                 for j in range(3):
-    #                     full_jac[i, j] = compute_grad(grad_outputs[i, j])
-    #         else:
-    #             full_jac = torch.zeros(grad_outputs.shape[0], num_atoms, 3).to(
-    #                 forces.device
-    #             )
-    #             for i in range(grad_outputs.shape[0]):
-    #                 full_jac[i] = compute_grad(grad_outputs[i])
-    #         return full_jac
-
-    # def get_force_jac_loss(
-    #     self,
-    #     forces,
-    #     batch,
-    #     hessian_label,
-    #     num_samples=2,  # number of HVPs
-    #     looped=False,
-    #     finite_differences=False,
-    #     forward=None,
-    #     collater=None,
-    # ):
-    #     natoms = batch.natoms
-    #     total_num_atoms = forces.shape[0]
-
-    #     mask = torch.ones(total_num_atoms, dtype=torch.bool)
-    #     cumulative_sums = [0] + torch.cumsum(natoms, 0).tolist()
-
-    #     by_molecule = []
-    #     grad_outputs = torch.zeros((num_samples, total_num_atoms, 3)).to(forces.device)
-    #     for i, atoms_in_mol in enumerate(batch.natoms):
-    #         submask = mask[cumulative_sums[i] : cumulative_sums[i + 1]]
-    #         samples = self.sample_with_mask(atoms_in_mol, num_samples, submask)
-
-    #         by_molecule.append(samples)  # swap below and above line, crucial
-    #         offset_samples = (
-    #             samples.clone()
-    #         )  # Create a copy of the samples array to avoid modifying the original
-    #         offset_samples[:, 0] += cumulative_sums[i]
-    #         # Vectorized assignment to grad_outputs
-    #         grad_outputs[
-    #             torch.arange(samples.shape[0]),
-    #             offset_samples[:, 0],
-    #             offset_samples[:, 1],
-    #         ] = 1
-
-    #     # Compute the jacobian using grad_outputs
-    #     jac = self.get_jacobian(
-    #         forces, batch.pos, grad_outputs, create_graph=True, looped=looped
-    #     )
-    #     # jac = self.get_jacobian_finite_difference(forces, batch, grad_outputs = grad_outputs, forward=self._forward)
-
-    #     # Decomposing the Jacobian tensor by molecule in a batch
-    #     mask_per_mol = [
-    #         mask[cum_sum : cum_sum + nat]
-    #         for cum_sum, nat in zip(cumulative_sums[:-1], natoms)
-    #     ]
-    #     num_free_atoms_per_mol = torch.tensor(
-    #         [sum(sub_mask) for sub_mask in mask_per_mol], device=natoms.device
-    #     )
-    #     cum_jac_indexes = [0] + torch.cumsum(
-    #         (num_free_atoms_per_mol * natoms) * 9, dim=0
-    #     ).tolist()
-
-    #     jacs_per_mol = [
-    #         jac[: len(mol_samps), cum_sum : cum_sum + nat, :]
-    #         for mol_samps, cum_sum, nat in zip(
-    #             by_molecule, cumulative_sums[:-1], natoms
-    #         )
-    #     ]
-    #     jacs_per_mol = [
-    #         mol_jac[:, mask, :] for mol_jac, mask in zip(jacs_per_mol, mask_per_mol)
-    #     ]  # do the same for te student hessians
-
-    #     if torch.any(torch.isnan(jac)):
-    #         raise Exception("FORCE JAC IS NAN")
-
-    #     batch.fixed = torch.zeros(total_num_atoms)
-
-    #     true_jacs_per_mol = []
-    #     for i, samples in enumerate(by_molecule):
-    #         fixed_atoms = batch.fixed[cumulative_sums[i] : cumulative_sums[i + 1]]
-    #         fixed_cumsum = torch.cumsum(fixed_atoms, dim=0)
-    #         num_free_atoms = num_free_atoms_per_mol[i]
-    #         curr = hessian_label[cum_jac_indexes[i] : cum_jac_indexes[i + 1]].reshape(
-    #             num_free_atoms, 3, natoms[i], 3
-    #         )
-    #         curr = curr[:, :, mask_per_mol[i], :]  # filter out the masked columns
-    #         subsampled_curr = curr[
-    #             (samples[:, 0] - fixed_cumsum[samples[:, 0]]).long(), samples[:, 1]
-    #         ]  # get the sampled rows
-    #         true_jacs_per_mol.append(subsampled_curr)
-
-    #     # just copying what DDPLoss does for our special case
-    #     def custom_loss(jac, true_jac):
-    #         return torch.norm(jac - true_jac, p=2, dim=-1).sum(dim=1).mean(dim=0)
-
-    #     losses = [
-    #         custom_loss(-jac, true_jac)
-    #         for jac, true_jac in zip(jacs_per_mol, true_jacs_per_mol)
-    #     ]
-    #     valid_losses = [
-    #         loss * 1e-8 if true_jac.abs().max().item() > 10000 else loss
-    #         for loss, true_jac in zip(losses, true_jacs_per_mol)
-    #     ]  # filter weird hessians
-
-    #     loss = sum(valid_losses)
-
-    #     num_samples = batch.batch.max() + 1
-    #     # Multiply by world size since gradients are averaged
-    #     # across DDP replicas
-    #     loss = loss / num_samples / 10
-    #     return loss
-
-    # def sample_with_mask(self, n, num_samples, mask):
-    #     if mask.shape[0] != n:
-    #         raise ValueError(
-    #             "Mask length must be equal to the number of rows in the grid (n)"
-    #         )
-
-    #     # Calculate total available columns after applying the mask
-    #     # Only rows where mask is True are considered
-    #     valid_rows = torch.where(mask)[0]  # Get indices of rows that are True
-    #     if valid_rows.numel() == 0:
-    #         raise ValueError("No valid rows available according to the mask")
-
-    #     # Each valid row contributes 3 indices
-    #     valid_indices = valid_rows.repeat_interleave(3) * 3 + torch.tensor(
-    #         [0, 1, 2]
-    #     ).repeat(valid_rows.size(0)).to(mask.device)
-
-    #     # Sample unique indices from the valid indices
-    #     chosen_indices = valid_indices[
-    #         torch.randperm(valid_indices.size(0))[:num_samples]
-    #     ]
-
-    #     # Convert flat indices back to row and column indices
-    #     row_indices = chosen_indices // 3
-    #     col_indices = chosen_indices % 3
-
-    #     # Combine into 2-tuples
-    #     samples = torch.stack((row_indices, col_indices), dim=1)
-
-    #     return samples
-
     def train_dataloader(self):
         """Override to use custom collate function for Hessian batch offsetting"""
-        return HessianDataLoader(
-            self.train_dataset,
-            batch_size=self.training_config["bz"],
-            shuffle=True,
-            num_workers=self.training_config["num_workers"],
-            follow_batch=self.training_config["follow_batch"],
-            drop_last=self.training_config["drop_last"],
-            do_hessian_batch_offsetting=True,
-        )
+        if self.training_config["offset_in_model"]:
+            return TGDataLoader(
+                self.train_dataset,
+                batch_size=self.training_config["bz"],
+                shuffle=True,
+                num_workers=self.training_config["num_workers"],
+                follow_batch=self.training_config["follow_batch"],
+                drop_last=self.training_config["drop_last"],
+            )
+        else:
+            return HessianDataLoader(
+                self.train_dataset,
+                batch_size=self.training_config["bz"],
+                shuffle=True,
+                num_workers=self.training_config["num_workers"],
+                follow_batch=self.training_config["follow_batch"],
+                drop_last=self.training_config["drop_last"],
+                do_hessian_batch_offsetting=True,
+            )
 
     def val_dataloader(self):
         """Override to use custom collate function for Hessian batch offsetting"""
-        return HessianDataLoader(
-            self.val_dataset,
-            batch_size=self.training_config["bz_val"],
-            shuffle=False,
-            num_workers=self.training_config["num_workers"],
-            follow_batch=self.training_config["follow_batch"],
-            drop_last=self.training_config["drop_last"],
-            do_hessian_batch_offsetting=True,
-        )
+        if self.training_config["offset_in_model"]:
+            return TGDataLoader(
+                self.val_dataset,
+                batch_size=self.training_config["bz_val"],
+                shuffle=False,
+                num_workers=self.training_config["num_workers"],
+                follow_batch=self.training_config["follow_batch"],
+                drop_last=self.training_config["drop_last"],
+            )
+        else:
+            return HessianDataLoader(
+                self.val_dataset,
+                batch_size=self.training_config["bz_val"],
+                shuffle=False,
+                num_workers=self.training_config["num_workers"],
+                follow_batch=self.training_config["follow_batch"],
+                drop_last=self.training_config["drop_last"],
+                do_hessian_batch_offsetting=True,
+            )
 
     # not used
     def test_dataloader(self) -> TGDataLoader:
@@ -744,14 +574,17 @@ class PotentialModule(LightningModule):
         )
 
     @torch.enable_grad()
-    def compute_loss(self, batch):
+    def compute_loss(self, batch, return_efh=False):
         loss = 0.0
         info = {}
         # batch.pos.requires_grad_()
         batch = compute_extra_props(batch, pos_require_grad=self.pos_require_grad)
 
         hat_ae, hat_forces, outputs = self.potential.forward(
-            batch.to(self.device), hessian=True, add_props=False
+            batch.to(self.device), hessian=True, 
+            otf_graph=self.training_config["otfgraph_in_model"],
+            otf_graph_hessian=self.training_config["otfgraph_in_model"],
+            add_props=self.training_config["offset_in_model"], 
         )
         nedges = batch.edge_index.shape[1]
         natoms = batch.natoms.sum().item()
@@ -799,6 +632,8 @@ class PotentialModule(LightningModule):
             info["Loss F per edge"] = floss.detach().item() / nedges
             info["Loss F per atom"] = floss.detach().item() / natoms
 
+        if return_efh:
+            return loss, info, (hat_ae, hat_forces, outputs)
         # loss = floss * 100 + eloss * 4 + hessian_loss * 4
         return loss, info
 
@@ -815,14 +650,9 @@ class PotentialModule(LightningModule):
         del info
         return loss
 
-    def compute_eval_loss(self, batch, prefix):
+    def compute_eval_loss(self, batch, prefix, efh):
         """Compute comprehensive evaluation metrics for eigenvalues and eigenvectors."""
-        batch = compute_extra_props(batch=batch, pos_require_grad=self.pos_require_grad)
-        # batch = add_extra_props_for_hessian(batch, offset_indices=True) # MISC
-        with torch.no_grad():
-            hat_ae, hat_forces, outputs = self.potential.forward(
-                batch.to(self.device), hessian=True, add_props=False
-            )
+        hat_ae, hat_forces, outputs = efh
         eval_metrics = {}
 
         hessian_true = batch.hessian
@@ -857,7 +687,8 @@ class PotentialModule(LightningModule):
 
     def _shared_eval(self, batch, batch_idx, prefix, *args):
         # compute training loss on eval set
-        loss, info = self.compute_loss(batch)
+        with torch.no_grad():
+            loss, info, efh = self.compute_loss(batch, return_efh=True)
         detached_loss = loss.detach()
         info["trainloss"] = detached_loss.item()
 
@@ -866,7 +697,7 @@ class PotentialModule(LightningModule):
             info_prefix[f"{prefix}-{k}"] = v
 
         # compute eval metrics on eval set
-        eval_info = self.compute_eval_loss(batch, prefix=prefix)
+        eval_info = self.compute_eval_loss(batch, prefix=prefix, efh=efh)
         for k, v in eval_info.items():
             info_prefix[f"{prefix}-{k}"] = v
 
