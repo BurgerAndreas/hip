@@ -1,34 +1,26 @@
 import torch
 from torch_geometric.transforms import BaseTransform
 from nets.equiformer_v2.hessian_pred_utils import (
-    _get_flat_indexadd_message_indices,
+    _get_indexadd_offdiagonal_to_flat_hessian_message_indices,
     _get_node_diagonal_1d_indexadd_indices,
-    add_extra_props_for_hessian,
+    # add_extra_props_for_hessian,
 )
+# from torch_geometric.data import Batch as TGBatch
 # from nets.equiformer_v2.equiformer_v2_oc20 import EquiformerV2_OC20
 
 from ocpmodels.common.utils import (
-    compute_neighbors,
-    # conditional_grad,
-    get_pbc_distances,
-    radius_graph_pbc,
+    generate_graph,
+    generate_graph_nopbc,
 )
-from torch_geometric.nn import radius_graph
 
 # from torch_geometric.data import Data as TGData
 # from torch_geometric.data import Batch as TGBatch
-from torch_geometric.data import Dataset as TGDataset
+# from torch_geometric.data import Dataset as TGDataset
 
 # from collections.abc import Mapping
-from typing import Any, List, Optional, Sequence, Union
 
-import torch.utils.data
 
 # from torch.utils.data.dataloader import default_collate
-from torch_geometric.loader.dataloader import Collater as TGCollater
-
-from torch_geometric.data.data import BaseData
-from torch_geometric.data.datapipes import DatasetAdapter
 
 FOLLOW_BATCH = ["diag_ij", "edge_index", "message_idx_ij"]
 
@@ -132,7 +124,7 @@ class HessianGraphTransform(BaseTransform):
 
         # Precompute edge message indices for offdiagonal entries in the hessian
         N = data.natoms.sum().item()  # Number of atoms
-        indices_ij, indices_ji = _get_flat_indexadd_message_indices(
+        indices_ij, indices_ji = _get_indexadd_offdiagonal_to_flat_hessian_message_indices(
             N=N, edge_index=edge_index_hessian
         )
         # Store indices in data object
@@ -153,82 +145,3 @@ class HessianGraphTransform(BaseTransform):
     def __repr__(self):
         return f"{self.__class__.__name__}()"
 
-
-# Taken from ocpmodels/common/utils.py
-def generate_graph(
-    data,
-    cutoff=None,
-    max_neighbors=32,
-    use_pbc=None,
-):
-    if use_pbc:
-        edge_index, cell_offsets, neighbors = radius_graph_pbc(
-            data, cutoff, max_neighbors
-        )
-
-        out = get_pbc_distances(
-            data.pos,
-            edge_index,
-            data.cell,
-            cell_offsets,
-            neighbors,
-            return_offsets=True,
-            return_distance_vec=True,
-        )
-
-        edge_index = out["edge_index"]
-        edge_dist = out["distances"]
-        cell_offset_distances = out["offsets"]
-        distance_vec = out["distance_vec"]
-    else:
-        edge_index = radius_graph(
-            data.pos,
-            r=cutoff,
-            batch=data.batch,
-            max_num_neighbors=max_neighbors,
-        )
-
-        j, i = edge_index
-        distance_vec = data.pos[j] - data.pos[i]
-
-        edge_dist = distance_vec.norm(dim=-1)
-        cell_offsets = torch.zeros(edge_index.shape[1], 3, device=data.pos.device)
-        cell_offset_distances = torch.zeros_like(cell_offsets, device=data.pos.device)
-        neighbors = compute_neighbors(data, edge_index)
-        # neighbors = torch.tensor([0.0])
-
-    return (
-        edge_index,
-        edge_dist,
-        distance_vec,
-        cell_offsets,
-        cell_offset_distances,
-        neighbors,
-    )
-
-
-def generate_graph_nopbc(data, cutoff, max_neighbors: int = 32):
-    """Simplified graph generation without periodic boundary conditions.
-    Used by HORM.
-    Not sure why, maybe it is easier to differentiate through for autograd hessian?
-    """
-    if max_neighbors is None:
-        max_neighbors = 32
-    pos = data.pos
-    edge_index = radius_graph(
-        pos, r=cutoff, batch=data.batch, max_num_neighbors=max_neighbors
-    )
-    j, i = edge_index
-    posj = pos[j]
-    posi = pos[i]
-    vecs = posj - posi
-    edge_distance_vec = vecs
-    edge_distance = (vecs).norm(dim=-1)
-    return (
-        edge_index,
-        edge_distance,
-        edge_distance_vec,
-        torch.tensor([0.0]),
-        torch.tensor([0.0]),
-        torch.tensor([0.0]),
-    )

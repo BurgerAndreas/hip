@@ -21,8 +21,6 @@ from ocpmodels.common.utils import (
 )
 from torch_geometric.nn import radius_graph
 
-from e3nn import o3
-
 from .gaussian_rbf import GaussianRadialBasisLayer
 from .edge_rot_mat import init_edge_rot_mat
 from .so3 import (
@@ -51,10 +49,11 @@ from .transformer_block import (
 from .input_block import EdgeDegreeEmbedding
 from .hessian_pred_utils import (
     add_extra_props_for_hessian,
-    predict_hessian_1d_fast,
+    l012_features_to_hessian,
     irreps_to_cartesian_matrix,
-    _get_flat_indexadd_message_indices,
-    _get_node_diagonal_1d_indexadd_indices,
+    add_graph_batch,
+    # _get_indexadd_offdiagonal_to_flat_hessian_message_indices,
+    # _get_node_diagonal_1d_indexadd_indices,
 )
 
 # Statistics of IS2RE 100K
@@ -610,7 +609,7 @@ class EquiformerV2_OC20(BaseModel):
             out_features=1,
             lmax=2,
         )
-        self._get_hessian_from_features = predict_hessian_1d_fast
+        self._get_hessian_from_features = l012_features_to_hessian
 
         self.apply(self._init_weights)
         self.apply(self._uniform_init_rad_func_linear_weights)
@@ -736,8 +735,7 @@ class EquiformerV2_OC20(BaseModel):
         hessian=True,
         return_l_features=False,
         otf_graph=None,  # will default to self.otf_graph
-        otf_graph_hessian=False,
-        add_props=True,
+        **kwargs
     ):
         """
         hessian=True means direct prediction of the Hessian.
@@ -772,6 +770,12 @@ class EquiformerV2_OC20(BaseModel):
             edge_distance,  # [E]
             edge_distance_vec,  # [E, 3]
         ) = self.generate_graph_nopbc(data, otf_graph=otf_graph)
+
+        if otf_graph:
+            # For Hessian prediction
+            data = add_graph_batch(data, cutoff=self.cutoff, max_neighbors=self.max_neighbors, use_pbc=self.use_pbc)
+            data = add_extra_props_for_hessian(data)
+
 
         ###############################################################
         # Initialize data structures
@@ -878,44 +882,9 @@ class EquiformerV2_OC20(BaseModel):
         if hessian:
             # we are going to use a different graph here
             # with a bigger cutoff radius
-            if otf_graph_hessian:
-                raise NotImplementedError("otf_graph_hessian is not implemented")
-                (
-                    edge_index_hessian,
-                    edge_distance_hessian,
-                    edge_distance_vec_hessian,
-                ) = self.generate_graph_nopbc(
-                    data, cutoff=self.cutoff_hessian, otf_graph=False
-                )
-                data.edge_index_hessian = edge_index_hessian
-                data.edge_distance_hessian = edge_distance_hessian
-                data.edge_distance_vec_hessian = edge_distance_vec_hessian
-                # add number of edges, analagous to natoms
-                data.nedges_hessian = torch.tensor(
-                    edge_index_hessian.shape[1], dtype=torch.long
-                )
-                # Precompute edge message indices for offdiagonal entries in the hessian
-                N = data.natoms.sum().item()  # Number of atoms
-                indices_ij, indices_ji = _get_flat_indexadd_message_indices(
-                    N=N, edge_index=edge_index_hessian
-                )
-                # Store indices in data object
-                data.message_idx_ij = indices_ij
-                data.message_idx_ji = indices_ji
-                # Precompute node message indices for diagonal entries in the hessian
-                diag_ij, diag_ji, node_transpose_idx = (
-                    _get_node_diagonal_1d_indexadd_indices(N=N, device=data.pos.device)
-                )
-                # Store indices in data object
-                data.diag_ij = diag_ij
-                data.diag_ji = diag_ji
-                data.node_transpose_idx = node_transpose_idx
-                # add theoretical maximal number of edges
-                data.max_nedges = torch.tensor(N * (N - 1), dtype=torch.long)
-            else:
-                edge_index_hessian = data.edge_index_hessian
-                edge_distance_hessian = data.edge_distance_hessian
-                edge_distance_vec_hessian = data.edge_distance_vec_hessian
+            edge_index_hessian = data.edge_index_hessian
+            edge_distance_hessian = data.edge_distance_hessian
+            edge_distance_vec_hessian = data.edge_distance_vec_hessian
 
             # Compute 3x3 rotation matrix per edge
             edge_rot_mat_hessian = self._init_edge_rot_mat(
@@ -994,8 +963,6 @@ class EquiformerV2_OC20(BaseModel):
                 l012_edge_features
             )  # (E, 3, 3)
             # messages: torch.Tensor = l012_edge_features
-
-            data = add_extra_props_for_hessian(data)
 
             # combine message with node embeddings (self-connection)
             # node embeddings -> (N, 3, 3)

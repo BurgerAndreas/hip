@@ -33,6 +33,7 @@ from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
 from matplotlib.figure import Figure
 from torch_geometric.data import Data
 from torch_geometric.utils import remove_self_loops
+from torch_geometric.nn import radius_graph
 
 # from torch_scatter import scatter, segment_coo, segment_csr
 from ocpmodels.common.scatter_utils import scatter, segment_coo, segment_csr
@@ -491,6 +492,87 @@ def save_experiment_log(args, jobs, configs):
                 file=f,
             )
     return log_file
+
+
+# Taken from ocpmodels/common/utils.py
+def generate_graph(
+    data,
+    cutoff=None,
+    max_neighbors=32,
+    use_pbc=None,
+):
+    if use_pbc:
+        edge_index, cell_offsets, neighbors = radius_graph_pbc(
+            data, cutoff, max_neighbors
+        )
+
+        out = get_pbc_distances(
+            data.pos,
+            edge_index,
+            data.cell,
+            cell_offsets,
+            neighbors,
+            return_offsets=True,
+            return_distance_vec=True,
+        )
+
+        edge_index = out["edge_index"]
+        edge_dist = out["distances"]
+        cell_offset_distances = out["offsets"]
+        distance_vec = out["distance_vec"]
+    else:
+        edge_index = radius_graph(
+            data.pos,
+            r=cutoff,
+            batch=data.batch,
+            max_num_neighbors=max_neighbors,
+        )
+
+        j, i = edge_index
+        distance_vec = data.pos[j] - data.pos[i]
+
+        edge_dist = distance_vec.norm(dim=-1)
+        cell_offsets = torch.zeros(edge_index.shape[1], 3, device=data.pos.device)
+        cell_offset_distances = torch.zeros_like(cell_offsets, device=data.pos.device)
+        neighbors = compute_neighbors(data, edge_index)
+        # neighbors = torch.tensor([0.0])
+
+    return (
+        edge_index,
+        edge_dist,
+        distance_vec,
+        cell_offsets,
+        cell_offset_distances,
+        neighbors,
+    )
+
+
+def generate_graph_nopbc(data, cutoff, max_neighbors: int = 32):
+    """Simplified graph generation without periodic boundary conditions.
+    Used by HORM.
+    Not sure why, maybe it is easier to differentiate through for autograd hessian?
+    """
+    if max_neighbors is None:
+        max_neighbors = 32
+    pos = data.pos
+    edge_index = radius_graph(
+        pos, r=cutoff, batch=data.batch, max_num_neighbors=max_neighbors
+    )
+    j, i = edge_index
+    posj = pos[j]
+    posi = pos[i]
+    vecs = posj - posi
+    edge_distance_vec = vecs
+    edge_distance = (vecs).norm(dim=-1)
+    return (
+        edge_index,
+        edge_distance,
+        edge_distance_vec,
+        torch.tensor([0.0]),
+        torch.tensor([0.0]),
+        torch.tensor([0.0]),
+    )
+
 
 
 def get_pbc_distances(

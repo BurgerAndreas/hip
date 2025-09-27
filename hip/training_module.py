@@ -556,12 +556,7 @@ class PotentialModule(LightningModule):
             batch.to(self.device),
             hessian=True,
             otf_graph=self.training_config["otfgraph_in_model"],
-            otf_graph_hessian=self.training_config["otfgraph_in_model"],
         )
-        nedges = batch.edge_index.shape[1]
-        natoms = batch.natoms.sum().item()
-        info["Num Atoms"] = natoms
-        info["Num Edges"] = nedges
 
         hessian_pred = outputs["hessian"].to(self.device)
         hessian_true = batch.hessian.to(self.device)
@@ -570,8 +565,6 @@ class PotentialModule(LightningModule):
             hessian_loss = self.loss_fn_hessian(hessian_pred, hessian_true)
             loss += hessian_loss * self.training_config["hessian_loss_weight"]
             info["Loss Hessian"] = hessian_loss.detach().item()
-            info["Loss Hessian per edge"] = hessian_loss.detach().item() / nedges
-            info["Loss Hessian per atom"] = hessian_loss.detach().item() / natoms
 
         if self.do_eigen_loss:
             eigen_loss = self.loss_fn_eigen(
@@ -581,8 +574,6 @@ class PotentialModule(LightningModule):
             )
             loss += eigen_loss
             info["Loss Eigen"] = eigen_loss.detach().item()
-            info["Loss Eigen per edge"] = eigen_loss.detach().item() / nedges
-            info["Loss Eigen per atom"] = eigen_loss.detach().item() / natoms
 
         if not self.training_config["train_hessian_only"]:
             # energy
@@ -592,8 +583,6 @@ class PotentialModule(LightningModule):
             eloss = self.loss_fn(ae, hat_ae)
             loss += eloss * self.training_config["energy_loss_weight"]
             info["Loss E"] = eloss.detach().item()
-            info["Loss E per edge"] = eloss.detach().item() / nedges
-            info["Loss E per atom"] = eloss.detach().item() / natoms
 
             # forces
             hat_forces = hat_forces.to(self.device)
@@ -601,8 +590,6 @@ class PotentialModule(LightningModule):
             floss = self.loss_fn(forces, hat_forces)
             loss += floss * self.training_config["force_loss_weight"]
             info["Loss F"] = floss.detach().item()
-            info["Loss F per edge"] = floss.detach().item() / nedges
-            info["Loss F per atom"] = floss.detach().item() / natoms
 
         if return_efh:
             return loss, info, (hat_ae, hat_forces, outputs)
@@ -646,14 +633,6 @@ class PotentialModule(LightningModule):
             prefix=f"{prefix}-step{self.global_step}-epoch{self.current_epoch}",
         )
         eval_metrics.update(eig_metrics)
-
-        B = batch.batch.max().item() + 1
-        if hasattr(batch, "edge_index_hessian"):
-            eval_metrics["Num Edges Hessian"] = batch.edge_index_hessian.shape[1] / B
-        if hasattr(batch, "edge_index"):
-            eval_metrics["Num Edges"] = batch.edge_index.shape[1] / B
-        if hasattr(batch, "max_nedges"):
-            eval_metrics["Max Num Edges"] = batch.max_nedges.sum().item() / B
 
         return eval_metrics
 
