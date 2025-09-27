@@ -53,6 +53,8 @@ from .hessian_pred_utils import (
     add_extra_props_for_hessian,
     predict_hessian_1d_fast,
     irreps_to_cartesian_matrix,
+    _get_flat_indexadd_message_indices,
+    _get_node_diagonal_1d_indexadd_indices,
 )
 
 # Statistics of IS2RE 100K
@@ -884,6 +886,31 @@ class EquiformerV2_OC20(BaseModel):
                 ) = self.generate_graph_nopbc(
                     data, cutoff=self.cutoff_hessian, otf_graph=False
                 )
+                data.edge_index_hessian = edge_index_hessian
+                data.edge_distance_hessian = edge_distance_hessian
+                data.edge_distance_vec_hessian = edge_distance_vec_hessian
+                # add number of edges, analagous to natoms
+                data.nedges_hessian = torch.tensor(
+                    edge_index_hessian.shape[1], dtype=torch.long
+                )
+                # Precompute edge message indices for offdiagonal entries in the hessian
+                N = data.natoms.sum().item()  # Number of atoms
+                indices_ij, indices_ji = _get_flat_indexadd_message_indices(
+                    N=N, edge_index=edge_index_hessian
+                )
+                # Store indices in data object
+                data.message_idx_ij = indices_ij
+                data.message_idx_ji = indices_ji
+                # Precompute node message indices for diagonal entries in the hessian
+                diag_ij, diag_ji, node_transpose_idx = _get_node_diagonal_1d_indexadd_indices(
+                    N=N, device=data.pos.device
+                )
+                # Store indices in data object
+                data.diag_ij = diag_ij
+                data.diag_ji = diag_ji
+                data.node_transpose_idx = node_transpose_idx
+                # add theoretical maximal number of edges
+                data.max_nedges = torch.tensor(N * (N - 1), dtype=torch.long)
             else:
                 edge_index_hessian = data.edge_index_hessian
                 edge_distance_hessian = data.edge_distance_hessian
