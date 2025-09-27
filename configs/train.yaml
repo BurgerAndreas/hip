@@ -67,9 +67,6 @@ training:
     alpha: null
     dist: "mae" # frosq or mae recommended
 
-  # graph computation as dataset transform or in model forward pass
-  otfgraph_in_model: false
-
   train_hessian_only: false
 
   # Checkpoint loading options
