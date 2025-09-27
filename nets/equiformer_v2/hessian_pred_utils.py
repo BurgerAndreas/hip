@@ -11,6 +11,7 @@ from ocpmodels.common.utils import (
     # generate_graph_nopbc,
 )
 
+
 # l0_features = x_message.embedding.narrow(dimension=1, start=0, length=1)
 # l1_features = x_message.embedding.narrow(dimension=1, start=1, length=3)
 # l2_features = x_message.embedding.narrow(dim=1, start=4, length=5) # length=2l+1
@@ -340,7 +341,9 @@ def l012_features_to_hessian(
         hessian: Tensor, shape (sum_b (N_b*3)^2,).
     """
     # fast
-    hessian = _indexadd_offdiagonal_to_flat_hessian(edge_index, l012_edge_features, data)
+    hessian = _indexadd_offdiagonal_to_flat_hessian(
+        edge_index, l012_edge_features, data
+    )
     hessian = _indexadd_diagonal_to_flat_hessian(hessian, l012_node_features, data)
     return hessian
 
@@ -366,11 +369,12 @@ def l012_features_to_hessian_loops(
     """
     # slow but trusworthy
     N = data.natoms.sum().item()
-    hessian = _loop_offdiagonal_to_blockdiagonal_hessian(N, edge_index, l012_edge_features)
+    hessian = _loop_offdiagonal_to_blockdiagonal_hessian(
+        N, edge_index, l012_edge_features
+    )
     hessian = hessian.reshape(N * 3, N * 3)
     hessian = _loop_diagonal_to_blockdiagonal_hessian(hessian, l012_node_features, N)
     return hessian
-
 
 
 def add_graph_batch(
@@ -468,8 +472,8 @@ def add_graph_batch(
     j_local = j_local.view(E_total, 1, 1)
     N3_by_edge = N3_by_edge.view(E_total, 1, 1)
 
-    idx_ij_in_sample = ((i_local * 3 + ci) * N3_by_edge + (j_local * 3 + cj))
-    idx_ji_in_sample = ((j_local * 3 + ci) * N3_by_edge + (i_local * 3 + cj))
+    idx_ij_in_sample = (i_local * 3 + ci) * N3_by_edge + (j_local * 3 + cj)
+    idx_ji_in_sample = (j_local * 3 + ci) * N3_by_edge + (i_local * 3 + cj)
 
     # Add per-edge Hessian segment offsets to obtain global indices
     edge_hess_offset = hess_offsets[sample_by_edge].view(E_total, 1, 1)
@@ -505,7 +509,7 @@ def add_graph_batch(
         base_node_flat = (node_offsets[sample_by_node] * 9 + ii_local * 9).view(
             total_nodes, 1, 1
         )
-        within9_T = (cj * 3 + ci)  # (1,3,3)
+        within9_T = cj * 3 + ci  # (1,3,3)
         node_transpose_idx = base_node_flat + within9_T
         data.node_transpose_idx = node_transpose_idx.reshape(-1)
     else:
@@ -515,6 +519,7 @@ def add_graph_batch(
 
     data.offsetdone = True
     return data
+
 
 if __name__ == "__main__":
     import torch_geometric
@@ -552,8 +557,10 @@ if __name__ == "__main__":
         # Precompute edge message indices for offdiagonal entries in the hessian
         # TODO: only works for a single sample, not for a batch
         N = data.natoms.sum().item()  # Number of atoms
-        indices_ij, indices_ji = _get_indexadd_offdiagonal_to_flat_hessian_message_indices(
-            N=N, edge_index=edge_index_hessian
+        indices_ij, indices_ji = (
+            _get_indexadd_offdiagonal_to_flat_hessian_message_indices(
+                N=N, edge_index=edge_index_hessian
+            )
         )
         # Store indices in data object
         data.message_idx_ij = indices_ij
@@ -594,41 +601,79 @@ if __name__ == "__main__":
     edge_index = batch.edge_index_hessian
     rnd_messages = torch.randn(edge_index.shape[1], 3, 3)
     rnd_node_features = torch.randn(batch.natoms.sum().item(), 3, 3)
-    hessian = l012_features_to_hessian(edge_index, batch, rnd_messages, rnd_node_features)
-    hessian_loops = l012_features_to_hessian_loops(edge_index, batch, rnd_messages, rnd_node_features)
+    hessian = l012_features_to_hessian(
+        edge_index, batch, rnd_messages, rnd_node_features
+    )
+    hessian_loops = l012_features_to_hessian_loops(
+        edge_index, batch, rnd_messages, rnd_node_features
+    )
     print(hessian.shape)
     print(hessian_loops.shape)
 
     # first datapoint
     print(
-        (hessian[:(batch.natoms[0]*3)**2] - hessian_loops[:(batch.natoms[0]*3),:(batch.natoms[0]*3)].reshape(-1)).abs().max()
+        (
+            hessian[: (batch.natoms[0] * 3) ** 2]
+            - hessian_loops[: (batch.natoms[0] * 3), : (batch.natoms[0] * 3)].reshape(
+                -1
+            )
+        )
+        .abs()
+        .max()
     )
     # second datapoint
     print(
-        (hessian[(batch.natoms[0]*3)**2:] - hessian_loops[(batch.natoms[0]*3):,(batch.natoms[0]*3):].reshape(-1)).abs().max()
+        (
+            hessian[(batch.natoms[0] * 3) ** 2 :]
+            - hessian_loops[(batch.natoms[0] * 3) :, (batch.natoms[0] * 3) :].reshape(
+                -1
+            )
+        )
+        .abs()
+        .max()
     )
 
     ##################################################################################
     # Test 2: add graph to batch (so we can do it on the fly during forward pass)
     ##################################################################################
 
-    batch = torch_geometric.data.Batch.from_data_list([copy.deepcopy(data1_base), copy.deepcopy(data2_base)])
+    batch = torch_geometric.data.Batch.from_data_list(
+        [copy.deepcopy(data1_base), copy.deepcopy(data2_base)]
+    )
     batch = add_graph_batch(batch)
 
     edge_index = batch.edge_index_hessian
     # rnd_messages = torch.randn(edge_index.shape[1], 3, 3)
     # rnd_node_features = torch.randn(batch.natoms.sum().item(), 3, 3)
-    hessian2 = l012_features_to_hessian(edge_index, batch, rnd_messages, rnd_node_features)
-    hessian_loops2 = l012_features_to_hessian_loops(edge_index, batch, rnd_messages, rnd_node_features)
+    hessian2 = l012_features_to_hessian(
+        edge_index, batch, rnd_messages, rnd_node_features
+    )
+    hessian_loops2 = l012_features_to_hessian_loops(
+        edge_index, batch, rnd_messages, rnd_node_features
+    )
 
     print()
     # first datapoint
     print(
-        (hessian2[:(batch.natoms[0]*3)**2] - hessian_loops2[:(batch.natoms[0]*3),:(batch.natoms[0]*3)].reshape(-1)).abs().max()
+        (
+            hessian2[: (batch.natoms[0] * 3) ** 2]
+            - hessian_loops2[: (batch.natoms[0] * 3), : (batch.natoms[0] * 3)].reshape(
+                -1
+            )
+        )
+        .abs()
+        .max()
     )
     # second datapoint
     print(
-        (hessian2[(batch.natoms[0]*3)**2:] - hessian_loops2[(batch.natoms[0]*3):,(batch.natoms[0]*3):].reshape(-1)).abs().max()
+        (
+            hessian2[(batch.natoms[0] * 3) ** 2 :]
+            - hessian_loops2[(batch.natoms[0] * 3) :, (batch.natoms[0] * 3) :].reshape(
+                -1
+            )
+        )
+        .abs()
+        .max()
     )
 
     # compare to before
@@ -680,7 +725,9 @@ if __name__ == "__main__":
     rnd_node_features_b = torch.randn(batch_for_assembly.natoms.sum().item(), 3, 3)
 
     def _call_assembly(_):
-        return l012_features_to_hessian(edge_index_b, batch_for_assembly, rnd_messages_b, rnd_node_features_b)
+        return l012_features_to_hessian(
+            edge_index_b, batch_for_assembly, rnd_messages_b, rnd_node_features_b
+        )
 
     t_assemble = time_call(_call_assembly, None, repeats=100)
     print(f"l012_features_to_hessian: {t_assemble:.3f} ms")

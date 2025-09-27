@@ -735,7 +735,7 @@ class EquiformerV2_OC20(BaseModel):
         hessian=True,
         return_l_features=False,
         otf_graph=None,  # will default to self.otf_graph
-        **kwargs
+        **kwargs,
     ):
         """
         hessian=True means direct prediction of the Hessian.
@@ -773,9 +773,13 @@ class EquiformerV2_OC20(BaseModel):
 
         if otf_graph:
             # For Hessian prediction
-            data = add_graph_batch(data, cutoff=self.cutoff, max_neighbors=self.max_neighbors, use_pbc=self.use_pbc)
+            data = add_graph_batch(
+                data,
+                cutoff=self.cutoff,
+                max_neighbors=self.max_neighbors,
+                use_pbc=self.use_pbc,
+            )
             data = add_extra_props_for_hessian(data)
-
 
         ###############################################################
         # Initialize data structures

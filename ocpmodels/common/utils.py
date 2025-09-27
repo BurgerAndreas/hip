@@ -574,7 +574,6 @@ def generate_graph_nopbc(data, cutoff, max_neighbors: int = 32):
     )
 
 
-
 def get_pbc_distances(
     pos,
     edge_index,

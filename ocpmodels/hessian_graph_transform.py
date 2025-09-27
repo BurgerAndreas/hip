@@ -124,8 +124,10 @@ class HessianGraphTransform(BaseTransform):
 
         # Precompute edge message indices for offdiagonal entries in the hessian
         N = data.natoms.sum().item()  # Number of atoms
-        indices_ij, indices_ji = _get_indexadd_offdiagonal_to_flat_hessian_message_indices(
-            N=N, edge_index=edge_index_hessian
+        indices_ij, indices_ji = (
+            _get_indexadd_offdiagonal_to_flat_hessian_message_indices(
+                N=N, edge_index=edge_index_hessian
+            )
         )
         # Store indices in data object
         data.message_idx_ij = indices_ij
@@ -144,4 +146,3 @@ class HessianGraphTransform(BaseTransform):
 
     def __repr__(self):
         return f"{self.__class__.__name__}()"
-
