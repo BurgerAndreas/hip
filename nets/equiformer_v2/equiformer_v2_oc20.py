@@ -879,6 +879,7 @@ class EquiformerV2_OC20(BaseModel):
             # we are going to use a different graph here
             # with a bigger cutoff radius
             if otf_graph_hessian:
+                raise NotImplementedError("otf_graph_hessian is not implemented")
                 (
                     edge_index_hessian,
                     edge_distance_hessian,
@@ -902,8 +903,8 @@ class EquiformerV2_OC20(BaseModel):
                 data.message_idx_ij = indices_ij
                 data.message_idx_ji = indices_ji
                 # Precompute node message indices for diagonal entries in the hessian
-                diag_ij, diag_ji, node_transpose_idx = _get_node_diagonal_1d_indexadd_indices(
-                    N=N, device=data.pos.device
+                diag_ij, diag_ji, node_transpose_idx = (
+                    _get_node_diagonal_1d_indexadd_indices(N=N, device=data.pos.device)
                 )
                 # Store indices in data object
                 data.diag_ij = diag_ij

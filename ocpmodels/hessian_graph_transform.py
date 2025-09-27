@@ -130,19 +130,12 @@ class HessianGraphTransform(BaseTransform):
             edge_index_hessian.shape[1], dtype=torch.long
         )
 
-        ########################################################################################
         # Precompute edge message indices for offdiagonal entries in the hessian
         N = data.natoms.sum().item()  # Number of atoms
         indices_ij, indices_ji = _get_flat_indexadd_message_indices(
             N=N, edge_index=edge_index_hessian
         )
         # Store indices in data object
-        # Careful!
-        # By default, PyG increments attributes by the number of nodes
-        # whenever their attribute names contain the substring index (for historical reasons),
-        # which comes in handy for attributes such as edge_index or node_index.
-        # This will lead to unexpected behavior for attributes
-        # whose names contain the substring index
         data.message_idx_ij = indices_ij
         data.message_idx_ji = indices_ji
 
@@ -154,9 +147,6 @@ class HessianGraphTransform(BaseTransform):
         data.diag_ij = diag_ij
         data.diag_ji = diag_ji
         data.node_transpose_idx = node_transpose_idx
-
-        # add theoretical maximal number of edges
-        data.max_nedges = torch.tensor(N * (N - 1), dtype=torch.long)
 
         return data
 
@@ -242,5 +232,3 @@ def generate_graph_nopbc(data, cutoff, max_neighbors: int = 32):
         torch.tensor([0.0]),
         torch.tensor([0.0]),
     )
-
-
