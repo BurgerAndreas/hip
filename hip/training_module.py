@@ -249,6 +249,11 @@ class PotentialModule(LightningModule):
         # Save arguments to hparams attribute for checkpointing
         self.save_hyperparameters(logger=False)
 
+        self.use_hessian_graph_transform = True
+        if self.training_config["otfgraph_in_model"]:
+            # no need because we will compute graph during forward pass
+            self.use_hessian_graph_transform = False
+
     def set_wandb_run_id(self, run_id: str) -> None:
         """Set the WandB run ID for checkpoint continuation."""
         self.wandb_run_id = run_id
@@ -403,8 +408,17 @@ class PotentialModule(LightningModule):
             ):
                 datasets = []
                 for path in self.training_config["trn_path"]:
+                    transform = None
+                    if self.use_hessian_graph_transform:
+                        transform = HessianGraphTransform(
+                            cutoff=self.potential.cutoff,
+                            cutoff_hessian=self.potential.cutoff_hessian,
+                            max_neighbors=self.potential.max_neighbors,
+                            use_pbc=self.potential.use_pbc,
+                        )
                     dataset = LmdbDataset(
                         Path(path),
+                        transform=transform,
                         **self.training_config,
                     )
                     datasets.append(SchemaUniformDataset(dataset))
@@ -426,22 +440,34 @@ class PotentialModule(LightningModule):
                     f"Combined {len(datasets)} datasets into one with {len(self.train_dataset)} total samples"
                 )
             else:
-                # transform = HessianGraphTransform(
-                #     cutoff=self.potential.cutoff,
-                #     cutoff_hessian=self.potential.cutoff_hessian,
-                #     max_neighbors=self.potential.max_neighbors,
-                #     use_pbc=self.potential.use_pbc,
-                # )
+                transform = None
+                if self.use_hessian_graph_transform:
+                    transform = HessianGraphTransform(
+                        cutoff=self.potential.cutoff,
+                        cutoff_hessian=self.potential.cutoff_hessian,
+                        max_neighbors=self.potential.max_neighbors,
+                        use_pbc=self.potential.use_pbc,
+                    )
                 self.train_dataset = SchemaUniformDataset(
                     LmdbDataset(
                         Path(self.training_config["trn_path"]),
+                        transform=transform,
                         **self.training_config,
                     )
                 )
             # val dataset
+            transform = None
+            if self.use_hessian_graph_transform:
+                transform = HessianGraphTransform(
+                    cutoff=self.potential.cutoff,
+                    cutoff_hessian=self.potential.cutoff_hessian,
+                    max_neighbors=self.potential.max_neighbors,
+                    use_pbc=self.potential.use_pbc,
+                )
             self.val_dataset = SchemaUniformDataset(
                 LmdbDataset(
                     Path(self.training_config["val_path"]),
+                    transform=transform,
                     **self.training_config,
                 )
             )
@@ -526,7 +552,7 @@ class PotentialModule(LightningModule):
         hat_ae, hat_forces, outputs = self.potential.forward(
             batch.to(self.device),
             hessian=True,
-            otf_graph=True,
+            otf_graph=self.training_config["otfgraph_in_model"],
         )
 
         hessian_pred = outputs["hessian"].to(self.device)

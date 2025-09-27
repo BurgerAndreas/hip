@@ -779,6 +779,7 @@ class EquiformerV2_OC20(BaseModel):
                 max_neighbors=self.max_neighbors,
                 use_pbc=self.use_pbc,
             )
+        else:
             data = add_extra_props_for_hessian(data)
 
         ###############################################################

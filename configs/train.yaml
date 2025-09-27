@@ -69,6 +69,8 @@ training:
 
   train_hessian_only: false
 
+  otfgraph_in_model: false
+
   # Checkpoint loading options
   load_weights_only: false  # If true, only load model weights, ignore training state (epoch, optimizer, etc.)
 
