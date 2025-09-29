@@ -2,14 +2,9 @@ from typing import Optional
 import os
 import torch
 
-# from torch_geometric.data import Batch
-# from torch_geometric.data import Data as TGData
+from torch_geometric.data import Batch as TGBatch
+from torch_geometric.data import Data as TGData
 # from torch_geometric.loader import DataLoader as TGDataLoader
-
-from ocpmodels.common.relaxation.ase_utils import (
-    # ase_atoms_to_torch_geometric_hessian,
-    coord_atoms_to_torch_geometric_hessian,
-)
 
 from nets.prediction_utils import compute_extra_props
 
@@ -20,6 +15,36 @@ from hip.frequency_analysis import (
     # eckart_projection_notmw_torch,
 )
 
+
+def coord_atoms_to_torch_geometric(
+    coords,  # (N, 3)
+    atomic_nums,  # (N,)
+):
+    """
+    Convert ASE Atoms object to torch_geometric Data format expected by Equiformer.
+    with_grad=True ensures there are gradients of the energy and forces w.r.t. the positions,
+    through the graph generation.
+
+    Args:
+        atoms: ASE Atoms object
+
+    Returns:
+        Data: torch_geometric Data object with required attributes
+    """
+
+    # Convert to torch tensors
+    data = TGData(
+        pos=torch.as_tensor(coords, dtype=torch.float32).reshape(-1, 3),
+        z=torch.as_tensor(atomic_nums, dtype=torch.int64),
+        charges=torch.as_tensor(atomic_nums, dtype=torch.int64),
+        natoms=torch.tensor([len(atomic_nums)], dtype=torch.int64),
+        cell=None,
+        pbc=torch.tensor(False, dtype=torch.bool),
+    )
+    return TGBatch.from_data_list(
+        [data], 
+        # follow_batch=["diag_ij", "edge_index", "message_idx_ij"]
+    )
 
 class EquiformerTorchCalculator:
     def __init__(
@@ -66,14 +91,9 @@ class EquiformerTorchCalculator:
             assert coords is not None and atomic_nums is not None, (
                 "coords and atomic_nums must be provided if batch is not provided"
             )
-            batch = coord_atoms_to_torch_geometric_hessian(
+            batch = coord_atoms_to_torch_geometric(
                 coords,
                 atomic_nums,
-                cutoff=self.potential.cutoff,
-                max_neighbors=self.potential.max_neighbors,
-                use_pbc=self.potential.use_pbc,
-                with_grad=do_autograd,
-                cutoff_hessian=100.0,
             )
 
         # Store results
@@ -88,11 +108,10 @@ class EquiformerTorchCalculator:
             if hessian_method == "autograd":
                 # Compute energy and forces with autograd
                 with torch.enable_grad():
-                    # batch.pos.requires_grad = True # already set in ase_atoms_to_torch_geometric_hessian
+                    batch.pos.requires_grad = True 
                     energy, forces, _ = self.potential.forward(
                         batch,
-                        otf_graph=False,  # TODO: does that work? we should have gradients from ase_atoms_to_torch_geometric_hessian
-                        hessian=False,
+                        otf_graph=True, 
                     )
                     # Use autograd to compute hessian
                     hessian = compute_hessian(
@@ -105,8 +124,7 @@ class EquiformerTorchCalculator:
                 with torch.no_grad():
                     energy, forces, out = self.potential.forward(
                         batch,
-                        hessian=True,
-                        otf_graph=False,
+                        otf_graph=True,
                     )
                     hessian = out["hessian"]
 

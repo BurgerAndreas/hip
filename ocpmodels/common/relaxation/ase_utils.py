@@ -33,7 +33,7 @@ from ocpmodels.common.utils import (
 )
 from ocpmodels.datasets import data_list_collater
 from ocpmodels.preprocessing import AtomsToGraphs
-from ocpmodels.hessian_graph_transform import HessianGraphTransform
+# from ocpmodels.hessian_graph_transform import HessianGraphTransform
 
 
 def batch_to_atoms(batch):
@@ -227,7 +227,6 @@ def ase_atoms_to_torch_geometric(atoms):
     # Convert to torch tensors
     data = TGData(
         pos=torch.tensor(positions, dtype=torch.float32),
-        # TODO: difference between z and charges?
         z=torch.tensor(atomic_nums, dtype=torch.int64),
         charges=torch.tensor(atomic_nums, dtype=torch.int64),
         natoms=torch.tensor([len(atomic_nums)], dtype=torch.int64),
@@ -239,105 +238,103 @@ def ase_atoms_to_torch_geometric(atoms):
     return data
 
 
-# by Andreas. We do not care about the graph, because connectivity is computed on the fly?
-def ase_atoms_to_torch_geometric_hessian(
-    atoms, cutoff, max_neighbors, use_pbc, with_grad=False, cutoff_hessian=100.0
-):
-    """
-    Convert ASE Atoms object to torch_geometric Data format expected by Equiformer.
-    with_grad=True ensures there are gradients of the energy and forces w.r.t. the positions,
-    through the graph generation.
+# def ase_atoms_to_torch_geometric_hessian(
+#     atoms, cutoff, max_neighbors, use_pbc, with_grad=False, cutoff_hessian=100.0
+# ):
+#     """
+#     Convert ASE Atoms object to torch_geometric Data format expected by Equiformer.
+#     with_grad=True ensures there are gradients of the energy and forces w.r.t. the positions,
+#     through the graph generation.
 
-    Args:
-        atoms: ASE Atoms object
+#     Args:
+#         atoms: ASE Atoms object
 
-    Returns:
-        Data: torch_geometric Data object with required attributes
-    """
-    positions = atoms.get_positions().astype(np.float32)
-    atomic_nums = atoms.get_atomic_numbers()
+#     Returns:
+#         Data: torch_geometric Data object with required attributes
+#     """
+#     positions = atoms.get_positions().astype(np.float32)
+#     atomic_nums = atoms.get_atomic_numbers()
 
-    # Convert to torch tensors
-    data = TGData(
-        pos=torch.tensor(positions, dtype=torch.float32),
-        # TODO: difference between z and charges?
-        z=torch.tensor(atomic_nums, dtype=torch.int64),
-        charges=torch.tensor(atomic_nums, dtype=torch.int64),
-        natoms=torch.tensor([len(atomic_nums)], dtype=torch.int64),
-        cell=torch.tensor(atoms.get_cell().astype(np.float32), dtype=torch.float32),
-        pbc=torch.tensor(False, dtype=torch.bool),
-    )
-    if with_grad:
-        data.pos.requires_grad = True
-        with torch.enable_grad():
-            data = HessianGraphTransform(
-                cutoff=cutoff,
-                cutoff_hessian=cutoff_hessian,
-                max_neighbors=max_neighbors,
-                use_pbc=use_pbc,
-            )(data)
-    else:
-        data = HessianGraphTransform(
-            cutoff=cutoff,
-            cutoff_hessian=cutoff_hessian,
-            max_neighbors=max_neighbors,
-            use_pbc=use_pbc,
-        )(data)
-    data = Batch.from_data_list(
-        [data], follow_batch=["diag_ij", "edge_index", "message_idx_ij"]
-    )
+#     # Convert to torch tensors
+#     data = TGData(
+#         pos=torch.tensor(positions, dtype=torch.float32),
+#         z=torch.tensor(atomic_nums, dtype=torch.int64),
+#         charges=torch.tensor(atomic_nums, dtype=torch.int64),
+#         natoms=torch.tensor([len(atomic_nums)], dtype=torch.int64),
+#         cell=torch.tensor(atoms.get_cell().astype(np.float32), dtype=torch.float32),
+#         pbc=torch.tensor(False, dtype=torch.bool),
+#     )
+#     if with_grad:
+#         data.pos.requires_grad = True
+#         with torch.enable_grad():
+#             data = HessianGraphTransform(
+#                 cutoff=cutoff,
+#                 cutoff_hessian=cutoff_hessian,
+#                 max_neighbors=max_neighbors,
+#                 use_pbc=use_pbc,
+#             )(data)
+#     else:
+#         data = HessianGraphTransform(
+#             cutoff=cutoff,
+#             cutoff_hessian=cutoff_hessian,
+#             max_neighbors=max_neighbors,
+#             use_pbc=use_pbc,
+#         )(data)
+#     data = Batch.from_data_list(
+#         [data], follow_batch=["diag_ij", "edge_index", "message_idx_ij"]
+#     )
 
-    return data
+#     return data
 
 
-def coord_atoms_to_torch_geometric_hessian(
-    coords,  # (N, 3)
-    atomic_nums,  # (N,)
-    cutoff,
-    max_neighbors,
-    use_pbc,
-    with_grad=False,
-    cutoff_hessian=100.0,
-):
-    """
-    Convert ASE Atoms object to torch_geometric Data format expected by Equiformer.
-    with_grad=True ensures there are gradients of the energy and forces w.r.t. the positions,
-    through the graph generation.
+# def coord_atoms_to_torch_geometric_hessian(
+#     coords,  # (N, 3)
+#     atomic_nums,  # (N,)
+#     cutoff,
+#     max_neighbors,
+#     use_pbc,
+#     with_grad=False,
+#     cutoff_hessian=100.0,
+# ):
+#     """
+#     Convert ASE Atoms object to torch_geometric Data format expected by Equiformer.
+#     with_grad=True ensures there are gradients of the energy and forces w.r.t. the positions,
+#     through the graph generation.
 
-    Args:
-        atoms: ASE Atoms object
+#     Args:
+#         atoms: ASE Atoms object
 
-    Returns:
-        Data: torch_geometric Data object with required attributes
-    """
+#     Returns:
+#         Data: torch_geometric Data object with required attributes
+#     """
 
-    # Convert to torch tensors
-    data = TGData(
-        pos=torch.as_tensor(coords, dtype=torch.float32).reshape(-1, 3),
-        # TODO: difference between z and charges?
-        z=torch.as_tensor(atomic_nums, dtype=torch.int64),
-        charges=torch.as_tensor(atomic_nums, dtype=torch.int64),
-        natoms=torch.tensor([len(atomic_nums)], dtype=torch.int64),
-        cell=None,
-        pbc=torch.tensor(False, dtype=torch.bool),
-    )
-    if with_grad:
-        data.pos.requires_grad = True
-        with torch.enable_grad():
-            data = HessianGraphTransform(
-                cutoff=cutoff,
-                cutoff_hessian=cutoff_hessian,
-                max_neighbors=max_neighbors,
-                use_pbc=use_pbc,
-            )(data)
-    else:
-        data = HessianGraphTransform(
-            cutoff=cutoff,
-            cutoff_hessian=cutoff_hessian,
-            max_neighbors=max_neighbors,
-            use_pbc=use_pbc,
-        )(data)
+#     # Convert to torch tensors
+#     data = TGData(
+#         pos=torch.as_tensor(coords, dtype=torch.float32).reshape(-1, 3),
+#         # TODO: difference between z and charges?
+#         z=torch.as_tensor(atomic_nums, dtype=torch.int64),
+#         charges=torch.as_tensor(atomic_nums, dtype=torch.int64),
+#         natoms=torch.tensor([len(atomic_nums)], dtype=torch.int64),
+#         cell=None,
+#         pbc=torch.tensor(False, dtype=torch.bool),
+#     )
+#     if with_grad:
+#         data.pos.requires_grad = True
+#         with torch.enable_grad():
+#             data = HessianGraphTransform(
+#                 cutoff=cutoff,
+#                 cutoff_hessian=cutoff_hessian,
+#                 max_neighbors=max_neighbors,
+#                 use_pbc=use_pbc,
+#             )(data)
+#     else:
+#         data = HessianGraphTransform(
+#             cutoff=cutoff,
+#             cutoff_hessian=cutoff_hessian,
+#             max_neighbors=max_neighbors,
+#             use_pbc=use_pbc,
+#         )(data)
 
-    return Batch.from_data_list(
-        [data], follow_batch=["diag_ij", "edge_index", "message_idx_ij"]
-    )
+#     return Batch.from_data_list(
+#         [data], follow_batch=["diag_ij", "edge_index", "message_idx_ij"]
+#     )

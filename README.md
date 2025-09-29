@@ -54,16 +54,6 @@ Get the HORM dataset:
 python scripts/download_horm_data_kaggle.py
 ```
 
-Preprocess the Hessian dataset (takes ~3 hours) 
-```bash
-python scripts/preprocess_hessian_dataset.py --dataset-file data/sample_100.lmdb
-
-python scripts/preprocess_hessian_dataset.py --dataset-file ts1x-val.lmdb
-python scripts/preprocess_hessian_dataset.py --dataset-file RGD1.lmdb
-python scripts/preprocess_hessian_dataset.py --dataset-file ts1x_hess_train_big.lmdb
-```
-
-
 ## Use our model
 
 Download the checkpoint from HuggingFace

@@ -141,7 +141,7 @@ class EquiformerV2_OC20(BaseModel):
         # num_targets,    # not used
         use_pbc=True,
         regress_forces=True,
-        otf_graph=False,
+        otf_graph=True,
         max_neighbors=500,
         max_radius=5.0,
         max_num_elements=90,

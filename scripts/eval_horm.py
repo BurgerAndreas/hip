@@ -120,18 +120,7 @@ def evaluate(
         torch.manual_seed(42)
         np.random.seed(42)
 
-        # if hessian_method == "predict" or model.do_hessian or model.otf_graph == False:
-        if hessian_method == "predict":
-            transform = HessianGraphTransform(
-                cutoff=model.cutoff,
-                cutoff_hessian=model.cutoff_hessian,
-                max_neighbors=model.max_neighbors,
-                use_pbc=model.use_pbc,
-            )
-        else:
-            transform = None
-
-        dataset = LmdbDataset(fix_dataset_path(lmdb_path), transform=transform)
+        dataset = LmdbDataset(fix_dataset_path(lmdb_path))
         # dataset = LmdbDataset(fix_dataset_path(lmdb_path))
         dataloader = TGDataLoader(dataset, batch_size=1, shuffle=True)
 
