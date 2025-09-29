@@ -250,7 +250,7 @@ class PotentialModule(LightningModule):
         self.save_hyperparameters(logger=False)
 
         self.use_hessian_graph_transform = True
-        if self.training_config["otfgraph_in_model"]:
+        if "otfgraph_in_model" in self.training_config and self.training_config["otfgraph_in_model"]:
             # no need because we will compute graph during forward pass
             self.use_hessian_graph_transform = False
 
