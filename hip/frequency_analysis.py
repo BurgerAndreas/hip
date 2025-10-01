@@ -342,15 +342,14 @@ def unweight_mw_hessian_torch(mw_hessian, masses3d):
     return mm_sqrt @ h_t @ mm_sqrt
 
 
-def eckart_projection_notmw_torch(hessian, cart_coords, atomsymbols, ev_thresh=-1e-6):
+def eckart_projection_notmw_torch(hessian: torch.Tensor, cart_coords: torch.Tensor, atomsymbols: list[str], ev_thresh: float = -1e-6):
     """Eckart projection starting from not-mass-weighted Hessian (torch).
 
     hessian: torch.Tensor (N*3, N*3)
     cart_coords: torch.Tensor (N*3)
     atomsymbols: list[str] (N)
     """
-    masses_np = np.array([MASS_DICT[atom.lower()] for atom in atomsymbols])
-    masses_t = _to_torch_double(masses_np, device=hessian.device)
+    masses_t = torch.tensor([MASS_DICT[atom.lower()] for atom in atomsymbols], dtype=torch.float64, device=hessian.device)
     masses3d_t = masses_t.repeat_interleave(3)
 
     mw_hessian_t = mass_weigh_hessian_torch(hessian, masses3d_t)

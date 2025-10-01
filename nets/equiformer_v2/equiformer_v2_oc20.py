@@ -218,6 +218,7 @@ class EquiformerV2_OC20(BaseModel):
         num_gaussians_distance_hessian=None,
         hessian_build_method=None,
         device=None,
+        **kwargs,
     ):
         super().__init__()
 
