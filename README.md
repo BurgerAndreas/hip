@@ -116,13 +116,14 @@ print(f"natoms: {frequency_analysis['natoms']}")
 
 If you found this code useful, please consider citing:
 ```bibtex
-@inproceedings{
-burger2025hessians,
-title={Molecular Hessians Without Derivatives},
-author={Andreas Burger and Luca Thiede and  Nikolaj Rønne and Nandita Vijaykumar and Tejs Vegge and Arghya Bhowmik and Alan Aspuru-Guzik},
-booktitle={The Fourteenth International Conference on Learning Representations},
-year={2026},
-url={https://openreview.net/forum?id=CNLC4ZkLmW}
+@misc{burger2025hiphessian,
+      title={Shoot from the HIP: Hessian Interatomic Potentials without derivatives}, 
+      author={Andreas Burger and Luca Thiede and Nikolaj Rønne and Varinia Bernales and Nandita Vijaykumar and Tejs Vegge and Arghya Bhowmik and Alan Aspuru-Guzik},
+      year={2025},
+      eprint={2509.21624},
+      archivePrefix={arXiv},
+      primaryClass={cs.LG},
+      url={https://arxiv.org/abs/2509.21624}, 
 }
 ```
 
