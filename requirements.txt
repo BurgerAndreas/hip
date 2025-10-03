@@ -26,6 +26,8 @@ progressbar==2.5
 # Machine learning
 einops
 torchmetrics
+pyarrow 
+fastparquet
 pytorch_warmup
 lightning==2.5.1.post0
 triton==3.3.0

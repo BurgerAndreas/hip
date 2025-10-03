@@ -111,12 +111,13 @@ def get_datasplit(dataset, dataset_name: str, split: str, splitsize: str | int, 
         rng = np.random.RandomState(splitseed)
         rng.shuffle(all_indices)
         
-        if isinstance(splitsize, int):
-            selected_indices = all_indices[:splitsize]
-        else:
+        if splitsize < 1.0:
             # If splitsize is a fraction (e.g., 0.5 for 50%)
             n_samples = int(float(splitsize) * dataset_size)
             selected_indices = all_indices[:n_samples]
+        else:
+            splitsize = int(splitsize)
+            selected_indices = all_indices[:splitsize]
         
         print(f"Random split: selected {len(selected_indices)} samples from {dataset_size}")
         return Subset(dataset, selected_indices)
