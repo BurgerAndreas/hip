@@ -30,7 +30,7 @@ _docs
 _docs/*
 plots/
 plots_*/
-metadata/*
+metadata/*.csv
 
 tmp_quacc*/
 vib

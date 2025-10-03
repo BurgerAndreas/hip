@@ -122,18 +122,18 @@ def compare_formulas_between_datasets(train_csv_path, val_csv_path, output_file=
     Find training samples with formulas that don't appear in validation set.
     
     Args:
-        train_csv_path: Path to training dataset metadata CSV
-        val_csv_path: Path to validation dataset metadata CSV
+        train_csv_path: Path to training dataset metadata parquet file
+        val_csv_path: Path to validation dataset metadata parquet file
         output_file: Output file for unique training indices (auto-generated if None)
     
     Returns:
         tuple: (unique_indices, common_formulas, unique_formulas)
     """
     print(f"Loading training data from {train_csv_path}")
-    df_train = pd.read_csv(train_csv_path)
+    df_train = pd.read_parquet(train_csv_path)
     
     print(f"Loading validation data from {val_csv_path}")
-    df_val = pd.read_csv(val_csv_path)
+    df_val = pd.read_parquet(val_csv_path)
     
     print(f"Training samples: {len(df_train)}")
     print(f"Validation samples: {len(df_val)}")
@@ -161,15 +161,15 @@ def compare_formulas_between_datasets(train_csv_path, val_csv_path, output_file=
     
     # Save results
     if output_file is None:
-        output_file = "unique_training_indices.csv"
+        output_file = "unique_training_indices.parquet"
     
     # Create DataFrame with unique training samples
     df_unique_train = df_train[df_train['index'].isin(unique_train_indices)].copy()
-    df_unique_train.to_csv(output_file, index=False)
+    df_unique_train.to_parquet(output_file, index=False)
     print(f"Saved unique training samples to {output_file}")
     
     # Save summary statistics
-    summary_file = output_file.replace('.csv', '_summary.txt')
+    summary_file = output_file.replace('.parquet', '_summary.txt')
     with open(summary_file, 'w') as f:
         f.write("Dataset Formula Comparison Summary\n")
         f.write("=" * 40 + "\n\n")
@@ -210,7 +210,7 @@ def extract_dataset_metadata(lmdb_path, max_samples=None, output_file=None):
     Args:
         lmdb_path: Path to the LMDB dataset
         max_samples: Maximum number of samples to process (None for all)
-        output_file: Output CSV file path (auto-generated if None)
+        output_file: Output parquet file path (auto-generated if None)
     
     Returns:
         pandas.DataFrame: DataFrame with metadata
@@ -305,13 +305,13 @@ def extract_dataset_metadata(lmdb_path, max_samples=None, output_file=None):
     # Generate output filename if not provided
     if output_file is None:
         dataset_name = lmdb_path.split("/")[-1].split(".")[0]
-        output_file = f"dataset_metadata_{dataset_name}.csv"
+        output_file = f"dataset_metadata_{dataset_name}.parquet"
     
     # Create output directory if it doesn't exist
     os.makedirs(os.path.dirname(output_file) if os.path.dirname(output_file) else ".", exist_ok=True)
     
-    # Save to CSV
-    df_metadata.to_csv(output_file, index=False)
+    # Save to parquet
+    df_metadata.to_parquet(output_file, index=False)
     print(f"Saved metadata to {output_file}")
     
     # Print summary statistics
@@ -337,7 +337,7 @@ def main():
     uv run scripts/extract_dataset_metadata.py --dataset RGD1.lmdb
     
     # Compare formulas between datasets
-    uv run scripts/extract_dataset_metadata.py --compare --train_csv dataset_metadata_ts1x_hess_train_big.csv --val_csv dataset_metadata_ts1x-val.csv
+    uv run scripts/extract_dataset_metadata.py --compare --train_csv dataset_metadata_ts1x_hess_train_big.parquet --val_csv dataset_metadata_ts1x-val.parquet
     """
     parser = argparse.ArgumentParser(description="Extract dataset metadata for split design")
     parser.add_argument(
@@ -358,7 +358,7 @@ def main():
         "-o",
         type=str,
         default=None,
-        help="Output CSV file path (auto-generated if not provided)",
+        help="Output parquet file path (auto-generated if not provided)",
     )
     parser.add_argument(
         "--compare",
@@ -368,12 +368,12 @@ def main():
     parser.add_argument(
         "--train_csv",
         type=str,
-        help="Path to training dataset CSV file (for comparison)",
+        help="Path to training dataset parquet file (for comparison)",
     )
     parser.add_argument(
         "--val_csv",
         type=str,
-        help="Path to validation dataset CSV file (for comparison)",
+        help="Path to validation dataset parquet file (for comparison)",
     )
     
     args = parser.parse_args()

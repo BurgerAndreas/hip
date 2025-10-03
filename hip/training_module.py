@@ -124,23 +124,23 @@ def get_datasplit(dataset, dataset_name: str, split: str, splitsize: str | int, 
     elif split == "formula":
         # Formula-based split
         # Load metadata file with formula information
-        metadata_file = f"metadata/dataset_metadata_{dataset_name}.csv"
+        metadata_file = f"metadata/dataset_metadata_{dataset_name}.parquet"
         
         if not os.path.exists(metadata_file):
             print(f"Warning: Metadata file {metadata_file} not found. Returning full dataset.")
             return dataset
         
-        df_metadata = pd.read_csv(metadata_file)
+        df_metadata = pd.read_parquet(metadata_file)
         
         if splitsize == "unseen":
             # Use unseen formula split - load precomputed unique training formulas
-            unseen_file = f"metadata/unique_training_indices.csv"
+            unseen_file = f"metadata/unique_training_indices.parquet"
             
             if not os.path.exists(unseen_file):
                 print(f"Warning: Unseen formula file {unseen_file} not found. Returning full dataset.")
                 return dataset
             
-            df_unseen = pd.read_csv(unseen_file)
+            df_unseen = pd.read_parquet(unseen_file)
             selected_indices = df_unseen['index'].tolist()
             
             print(f"Unseen formula split: selected {len(selected_indices)} samples with formulas not in validation set")
