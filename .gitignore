@@ -24,12 +24,13 @@ runs_*/
 runs_relaxation/
 **/Transition1x/
 results_*/
-!**/*.csv
+# !**/*.csv
 
 _docs
 _docs/*
 plots/
 plots_*/
+metadata/*
 
 tmp_quacc*/
 vib

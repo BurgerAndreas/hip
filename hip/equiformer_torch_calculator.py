@@ -6,15 +6,17 @@ from torch_geometric.data import Batch as TGBatch
 from torch_geometric.data import Data as TGData
 # from torch_geometric.loader import DataLoader as TGDataLoader
 
-from nets.prediction_utils import compute_extra_props
+from nets.prediction_utils import compute_extra_props, Z_TO_ATOM_SYMBOL
 
 from hip.hessian_utils import compute_hessian
 from hip.inference_utils import get_model_from_checkpoint, get_dataloader
 from hip.frequency_analysis import (
     analyze_frequencies_torch,
-    # eckart_projection_notmw_torch,
+    eckart_projection_notmw_torch,
+    get_trans_rot_projector_torch,
+    mass_weigh_hessian_torch,
 )
-
+from hip.masses import MASS_DICT
 
 def coord_atoms_to_torch_geometric(
     coords,  # (N, 3)
@@ -66,6 +68,7 @@ class EquiformerTorchCalculator:
         """
         if device is None:
             device = "cuda" if torch.cuda.is_available() else "cpu"
+        self.device = device
 
         if model is None:
             model = get_model_from_checkpoint(checkpoint_path, device)
@@ -73,6 +76,11 @@ class EquiformerTorchCalculator:
         self.potential = model
 
         self.hessian_method = hessian_method
+    
+    def to(self, device):
+        self.device = device
+        self.potential = self.potential.to(device)
+        return self
 
     def predict(
         self,
@@ -85,7 +93,7 @@ class EquiformerTorchCalculator:
         """Predict one or multiple samples"""
         if hessian_method is None:
             hessian_method = self.hessian_method
-        do_autograd = (hessian_method == "autodiff") and (do_hessian)
+        do_autograd = (hessian_method == "autograd") and (do_hessian)
 
         if batch is None:
             assert coords is not None and atomic_nums is not None, (
@@ -159,6 +167,8 @@ class EquiformerTorchCalculator:
         = F + 2(-F, v(x))v(x)
         since F=-∇V(x)
         where v(x) is the eigenvector of the Hessian with the smallest eigenvalue.
+
+        eckart: bool, whether to use Eckart projection to remove redundant translations and rotations
         """
         assert batch.batch.max() + 1 == 1, (
             "Only one batch is supported for GAD prediction"
@@ -166,15 +176,18 @@ class EquiformerTorchCalculator:
         results = self.predict(batch, hessian_method=hessian_method)
         N = batch.pos.shape[0]
         hessian = results["hessian"].reshape(N * 3, N * 3)
+        forces = results["forces"].reshape(-1)  # N*3
         eigenvalues, eigenvectors = torch.linalg.eigh(hessian)
         # eigval1 = eigenvalues[0]
-        v = eigenvectors[:, 0]  # N*3
-        forces = results["forces"].reshape(-1)  # N*3
+        # eigval_prod = eigenvalues[0] * eigenvalues[1]
+        v = eigenvectors[:, 0]
         # -∇V(x) + 2(∇V, v(x))v(x)
-        gad = forces + 2 * torch.einsum("i,i->", -forces, v) * v
+        grad = -forces
+        # gad = -grad + 2 * torch.einsum("i,i->", grad, v) * v
+        gad = -grad + 2 * torch.dot(grad, v) * v
         results.update(
             {
-                "gad": gad,
+                "gad": gad, 
             }
         )
         return results

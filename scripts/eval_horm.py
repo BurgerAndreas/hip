@@ -16,7 +16,6 @@ from hip.training_module import PotentialModule
 from hip.ff_lmdb import LmdbDataset
 from hip.path_config import fix_dataset_path
 from nets.prediction_utils import compute_extra_props, Z_TO_ATOM_SYMBOL
-from ocpmodels.hessian_graph_transform import HessianGraphTransform
 
 from hip.frequency_analysis import analyze_frequencies
 

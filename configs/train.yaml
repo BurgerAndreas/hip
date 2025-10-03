@@ -78,6 +78,10 @@ training:
   max_val_samples: null
   drop_last: true # otherwise we run into shape issues
 
+  split: null # str: random, formula, 
+  splitsize: null # int: 1e3 or str: unseen
+  splitseed: 0
+
 # Pytorch Lightning Trainer configuration
 pltrainer:
   max_epochs: 10000

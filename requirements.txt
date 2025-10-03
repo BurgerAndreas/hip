@@ -6,6 +6,7 @@ pandas
 # Chemistry and molecular modeling
 ase #==3.25.0
 dxtb[libcint]
+rdkit>=2024.3.6 # for smiles generation
 rmsd
 pyscf
 openbabel-wheel
