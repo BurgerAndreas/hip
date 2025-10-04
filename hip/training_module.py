@@ -128,8 +128,7 @@ def get_datasplit(dataset, dataset_name: str, split: str, splitsize: str | int, 
         metadata_file = f"metadata/dataset_metadata_{dataset_name}.parquet"
         
         if not os.path.exists(metadata_file):
-            print(f"Warning: Metadata file {metadata_file} not found. Returning full dataset.")
-            return dataset
+            raise FileNotFoundError(f"Metadata file {metadata_file} not found.")
         
         df_metadata = pd.read_parquet(metadata_file)
         
@@ -138,8 +137,7 @@ def get_datasplit(dataset, dataset_name: str, split: str, splitsize: str | int, 
             unseen_file = f"metadata/unique_training_indices.parquet"
             
             if not os.path.exists(unseen_file):
-                print(f"Warning: Unseen formula file {unseen_file} not found. Returning full dataset.")
-                return dataset
+                raise FileNotFoundError(f"Warning: Unseen formula file {unseen_file} not found. Returning full dataset.")
             
             df_unseen = pd.read_parquet(unseen_file)
             selected_indices = df_unseen['index'].tolist()
@@ -170,7 +168,7 @@ def get_datasplit(dataset, dataset_name: str, split: str, splitsize: str | int, 
     
     else:
         print(f"Warning: Unknown split type '{split}'. Returning full dataset.")
-        return dataset
+        raise ValueError(f"Unknown split type '{split}'")
 
 class SchemaUniformDataset:
     """Wrapper that ensures all datasets have the same attributes.
