@@ -235,8 +235,8 @@ def setup_training(cfg: DictConfig):
         limit_train_batches=cfg.pltrainer.limit_train_batches,
         limit_val_batches=cfg.pltrainer.limit_val_batches,
         log_every_n_steps=cfg.pltrainer.log_every_n_steps,
-        # check_val_every_n_epoch=cfg.pltrainer.get('check_val_every_n_epoch', 1),
-        # val_check_interval=cfg.pltrainer.get('val_check_interval', None),
+        check_val_every_n_epoch=cfg.pltrainer.get('check_val_every_n_epoch', None),
+        val_check_interval=cfg.pltrainer.get('val_check_interval', None),
     )
     print("Trainer initialized")
 
