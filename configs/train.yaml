@@ -6,6 +6,7 @@ defaults:
   - preset: mae
   - experiment: t1x
   - gpu: one
+  - extra: base
 
 # Model configuration
 model_type: "EquiformerV2"
@@ -66,6 +67,8 @@ training:
     k: null
     alpha: null
     dist: "mae" # frosq or mae recommended
+  
+  pos_require_grad: false # track gradient on positions
 
   train_hessian_only: false
 
@@ -89,7 +92,7 @@ pltrainer:
   gradient_clip_algorithm: "norm"
   accumulate_grad_batches: 1
   limit_train_batches: 1600
-  limit_val_batches: 200 # 50844 samples / 64 bz = 794.4375 batches
+  limit_val_batches: 100 # 50844 samples / 64 bz = 794.4375 batches
   log_every_n_steps: 1
   check_val_every_n_epoch: 4  # Run validation every N epochs (default: 1)
   # val_check_interval: 0.5    # Alternative: Run validation every N steps or fraction of epoch

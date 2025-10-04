@@ -1,0 +1,16 @@
+# @package _global_
+
+training: 
+  bz: 64
+  bz_val: 64
+
+  hessian_loss_weight: 0.0
+
+  pos_require_grad: true
+
+  # regularize towards smooth forces (small curvatures)
+  freg: trace # trace, frob, spectral
+  fregw: 0.1 # weight for the force regularization
+  k: 2 # number of Hutchinson probes or power iterations
+  proj: false # project out rigid translations
+  norm_per_dof: true # normalize by the number of degrees of freedom

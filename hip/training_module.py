@@ -2,7 +2,7 @@
 PyTorch Lightning module for training AlphaNet
 """
 
-from typing import Dict, List, Optional, Tuple, Any, Mapping
+from typing import Dict, List, Optional
 from collections.abc import Iterable
 from omegaconf import ListConfig, OmegaConf
 import os
@@ -17,6 +17,8 @@ from torch import nn
 from torch.utils.data import ConcatDataset
 
 from torch_geometric.loader import DataLoader as TGDataLoader
+from torch_scatter import scatter_add, scatter_mean
+
 from torch.optim.lr_scheduler import (
     CosineAnnealingWarmRestarts,
     ReduceLROnPlateau,
@@ -36,7 +38,7 @@ from ocpmodels.hessian_graph_transform import (
 )
 
 from hip.ff_lmdb import LmdbDataset
-from hip.utils import average_over_batch_metrics, pretty_print
+from hip.utils import average_over_batch_metrics
 
 # import hip.utils as diff_utils
 import yaml
@@ -211,6 +213,179 @@ class SchemaUniformDataset:
         return data
 
 
+
+def hutchinson_trace_and_fro(energy, forces, batch, K=2, project_trans=True, norm_per_dof=True, use_energy=False):
+    """Apply Hutchinson on the concatenated batch and reduce per-molecule with `batch.batch`. 
+    The Hessian is block-diagonal across graphs when your energy is a per-graph sum, so one HVP over all nodes covers all molecules.
+    - Use per-node probes (z\in\mathbb{R}^{N\times 3}). Reduce to per-graph scalars with `scatter_add`.
+    - For trace: average (z^\top H z) over K probes. For Frobenius: average (|Hz|^2).
+    - If you predict energy per graph (`hat_ae`), get (H) via double backprop on (E=\sum \text{hat_ae}).  
+        If you only predict forces, use (Hz=-J_F z) with a VJP; works best if forces are conservative.    
+    - Project out rigid translations per graph to avoid null-mode noise.
+    """
+    # batch.pos: (N,3), batch.batch: (N,), hat_ae: (B,)
+    pos = batch.pos
+    # if not pos.requires_grad:
+    #     pos.requires_grad_(True)
+
+    if use_energy:
+        E = energy.sum() # (B,) -> scalar
+        # ∇E wrt positions
+        g = torch.autograd.grad(E, pos, create_graph=True)[0]   # (N,3)
+
+        def hvp(v):
+            return torch.autograd.grad((g * v).sum(), pos, retain_graph=True, create_graph=True)[0]
+        get_Hz = hvp
+
+    else:
+        forces = forces.reshape(-1, 3) # (N,3)
+        def Jv(v):  # ≈ Jacobian(F) @ v; equals J^T v if non-conservative
+            return torch.autograd.grad((forces * v).sum(), pos, retain_graph=True, create_graph=True)[0]
+        # Hz = -Jv(z)
+        def get_Hz(z):
+            return -Jv(z)
+
+    N = pos.shape[0]
+    B = int(batch.batch.max()) + 1
+    tr_acc = pos.new_zeros(B)
+    fro_acc = pos.new_zeros(B)
+    dof = 3 * torch.bincount(batch.batch, minlength=B)
+
+    for _ in range(K):
+        z = (torch.randint(0, 2, (N, 3), device=pos.device, dtype=torch.int64) * 2 - 1).to(pos.dtype)
+        if project_trans:
+            z = z - scatter_mean(z, batch.batch, dim=0)[batch.batch]  # remove per-graph translation
+        Hz = get_Hz(z)                                # (N,3)
+        tr_k  = (z * Hz).sum(dim=1)                # node scalars
+        fro_k = (Hz ** 2).sum(dim=1)
+
+        tr_acc  += scatter_add(tr_k,  batch.batch, dim=0)  # per-graph
+        fro_acc += scatter_add(fro_k, batch.batch, dim=0)
+
+    tr_est  = tr_acc  / K
+    fro_est = fro_acc / K
+    if norm_per_dof:
+        tr_est  = tr_est  / dof.clamp_min(1)
+        fro_est = fro_est / dof.clamp_min(1)
+    # trace, frobenius norm
+    return tr_est, fro_est    # shape (B,), one value per molecule
+
+
+def spectral_radius_estimate(energy, forces, batch, iters=3, project_trans=True, use_energy=False):
+    """Estimate the largest-magnitude eigenvalue (spectral radius) per graph using
+    a few steps of power iteration with Hessian-vector products.
+
+    - Avoids building the full Hessian; uses autograd HVPs like trace/fro estimator.
+    - For forces-only models, uses Hz = -Jv(z), where Jv is VJP of forces wrt positions.
+    - Returns one estimate per molecule/graph.
+    """
+    pos = batch.pos
+    # if not pos.requires_grad:
+    #     pos.requires_grad_(True)
+
+    if use_energy:
+        E = energy.sum()
+        g = torch.autograd.grad(E, pos, create_graph=True)[0]
+
+        def hvp(v):
+            return torch.autograd.grad((g * v).sum(), pos, retain_graph=True, create_graph=True)[0]
+
+        get_Hz = hvp
+    else:
+        forces = forces.reshape(-1, 3)
+
+        def Jv(v):
+            return torch.autograd.grad((forces * v).sum(), pos, retain_graph=True, create_graph=True)[0]
+
+        def get_Hz(z):
+            return -Jv(z)
+
+    N = pos.shape[0]
+
+    # Random Rademacher initialization per node
+    v = (torch.randint(0, 2, (N, 3), device=pos.device, dtype=torch.int64) * 2 - 1).to(pos.dtype)
+    if project_trans:
+        v = v - scatter_mean(v, batch.batch, dim=0)[batch.batch]
+
+    # Power iterations with per-graph renormalization
+    for _ in range(max(1, iters)):
+        y = get_Hz(v)
+        # Compute per-graph L2 norms of y
+        y_sq = (y ** 2).sum(dim=1)
+        y_sq_sum = scatter_add(y_sq, batch.batch, dim=0).clamp_min(1e-12)
+        y_norm = torch.sqrt(y_sq_sum)[batch.batch].unsqueeze(-1)
+        v = y / y_norm
+        if project_trans:
+            v = v - scatter_mean(v, batch.batch, dim=0)[batch.batch]
+
+    # Rayleigh quotient per graph: (v^T H v) / (v^T v)
+    Hv = get_Hz(v)
+    num_node = (v * Hv).sum(dim=1)
+    den_node = (v ** 2).sum(dim=1).clamp_min(1e-12)
+    num_graph = scatter_add(num_node, batch.batch, dim=0)
+    den_graph = scatter_add(den_node, batch.batch, dim=0).clamp_min(1e-12)
+    rq = num_graph / den_graph  # shape (B,)
+    return rq.abs()
+
+
+def forward_fd_force_smoothness(
+    potential,
+    batch,
+    delta: float = 0.0075,
+    num_dirs: int = 2,
+    project_trans: bool = True,
+    pos_require_grad: bool = False,
+    otf_graph: bool = False,
+):
+    """Estimate force smoothness with cheap forward-only central differences.
+
+    For K random per-node directions v (Rademacher), compute two displacements
+    ±delta and approximate the directional Jacobian of forces:
+
+        J_F v ≈ (F(x+delta v) - F(x-delta v)) / (2 delta)
+
+    Aggregate per-graph by averaging node L2 norms of J_F v. Returns one value
+    per graph (higher means less smooth / larger force curvature magnitude).
+    """
+
+    device = batch.pos.device
+    pos0 = batch.pos
+    B = int(batch.batch.max()) + 1
+    num_nodes_per_graph = torch.bincount(batch.batch, minlength=B).clamp_min(1)
+    smooth_acc = pos0.new_zeros(B)
+
+    num_dirs = max(1, int(num_dirs))
+    with torch.no_grad():
+        for _ in range(num_dirs):
+            v = (torch.randint(0, 2, (pos0.shape[0], 3), device=device, dtype=torch.int64) * 2 - 1).to(pos0.dtype)
+            if project_trans:
+                v = v - scatter_mean(v, batch.batch, dim=0)[batch.batch]
+            denom = (v ** 2).sum(dim=1, keepdim=True).sqrt().clamp_min(1e-12)
+            v = v / denom
+
+            # +delta
+            batch.pos = pos0 + delta * v
+            batch = compute_extra_props(batch, pos_require_grad=pos_require_grad)
+            _, f_plus, _ = potential.forward(batch.to(device), hessian=False, otf_graph=otf_graph)
+            f_plus = f_plus.reshape(-1, 3)
+
+            # -delta
+            batch.pos = pos0 - delta * v
+            batch = compute_extra_props(batch, pos_require_grad=pos_require_grad)
+            _, f_minus, _ = potential.forward(batch.to(device), hessian=False, otf_graph=otf_graph)
+            f_minus = f_minus.reshape(-1, 3)
+
+            jf_v = (f_plus - f_minus) / (2.0 * delta)
+            node_norm = (jf_v ** 2).sum(dim=1).sqrt()
+            graph_norm = scatter_add(node_norm, batch.batch, dim=0) / num_nodes_per_graph
+            smooth_acc += graph_norm
+
+        # restore original positions
+        batch.pos = pos0
+
+    return smooth_acc / num_dirs
+
+
 class AlphaConfig:
     def __init__(self, config):
         for k, v in config.items():
@@ -239,6 +414,7 @@ class PotentialModule(LightningModule):
         self.optimizer_config = optimizer_config
         self.training_config = training_config
 
+        self.pos_require_grad = self.training_config["pos_require_grad"]
         if self.model_config["name"] == "EquiformerV2":
             root_dir = find_project_root()
             config_path = os.path.join(root_dir, "configs/equiformer_v2.yaml")
@@ -251,7 +427,6 @@ class PotentialModule(LightningModule):
             model_config = config["model"]
             model_config.update(self.model_config)
             self.potential = EquiformerV2_OC20(**model_config)
-            self.pos_require_grad = False
         elif self.model_config["name"] == "AlphaNet":
             from alphanet.models.alphanet import AlphaNet
 
@@ -342,6 +517,10 @@ class PotentialModule(LightningModule):
         if "otfgraph_in_model" in self.training_config and self.training_config["otfgraph_in_model"]:
             # no need because we will compute graph during forward pass
             self.use_hessian_graph_transform = False
+        
+        self.do_hessian = False
+        if "hessian_loss_weight" in self.training_config and self.training_config["hessian_loss_weight"] > 0.0:
+            self.do_hessian = True
 
     def set_wandb_run_id(self, run_id: str) -> None:
         """Set the WandB run ID for checkpoint continuation."""
@@ -358,7 +537,7 @@ class PotentialModule(LightningModule):
         try:
             training_config["trn_path"] = fix_dataset_path(training_config["trn_path"])
             training_config["val_path"] = fix_dataset_path(training_config["val_path"])
-        except Exception as e:
+        except Exception:
             pass
         return training_config
 
@@ -662,14 +841,50 @@ class PotentialModule(LightningModule):
 
         hat_ae, hat_forces, outputs = self.potential.forward(
             batch.to(self.device),
-            hessian=True,
+            hessian=self.do_hessian,
             otf_graph=self.training_config["otfgraph_in_model"],
         )
 
-        hessian_pred = outputs["hessian"].to(self.device)
-        hessian_true = batch.hessian.to(self.device)
+        freg = self.training_config.get("freg", None)   
+        if freg is not None:
+            fregw = self.training_config.get("fregw", 0.1)
+            if freg == "trace":
+                # estimate trace using Hutchinson's trace estimator
+                trace, _ = hutchinson_trace_and_fro(
+                    hat_ae, hat_forces, batch, 
+                    K=self.training_config.get("k", 2), 
+                    project_trans=self.training_config.get("proj", False), 
+                    norm_per_dof=self.training_config.get("norm_per_dof", True), 
+                    use_energy=False
+                )
+                loss += fregw * trace.mean()
+                info["Loss Freg Trace"] = trace.mean().detach().item()
+            elif freg == "frob":
+                _, fro = hutchinson_trace_and_fro(
+                    hat_ae, hat_forces, batch, 
+                    K=self.training_config.get("k", 2), 
+                    project_trans=self.training_config.get("proj", False), 
+                    norm_per_dof=self.training_config.get("norm_per_dof", True), 
+                    use_energy=False
+                )
+                loss += fregw * fro.mean()
+                info["Loss Freg Fro"] = fro.mean().detach().item()
+            elif freg == "spectral":
+                # estimate spectral radius (largest |eigenvalue|) via power iteration
+                spec = spectral_radius_estimate(
+                    hat_ae, hat_forces, batch,
+                    iters=self.training_config.get("k", 3),
+                    project_trans=self.training_config.get("proj", False),
+                    use_energy=False,
+                )
+                loss += fregw * spec.mean()
+                info["Loss Freg Spectral"] = spec.mean().detach().item()
+            else:
+                raise ValueError(f"Invalid freg: {freg}")
 
-        if self.training_config["hessian_loss_weight"] > 0.0:
+        if self.do_hessian:
+            hessian_pred = outputs["hessian"].to(self.device)
+            hessian_true = batch.hessian.to(self.device)
             hessian_loss = self.loss_fn_hessian(hessian_pred, hessian_true)
             loss += hessian_loss * self.training_config["hessian_loss_weight"]
             info["Loss Hessian"] = hessian_loss.detach().item()
@@ -722,32 +937,49 @@ class PotentialModule(LightningModule):
         hat_ae, hat_forces, outputs = efh
         eval_metrics = {}
 
-        hessian_true = batch.hessian
-        hessian_pred = outputs["hessian"].detach()
+        if "hessian" in outputs:
+            hessian_true = batch.hessian
+            hessian_pred = outputs["hessian"].detach()
 
-        # MSE Hessian
-        eval_metrics["MSE Hessian"] = (
-            (hessian_pred.squeeze() - hessian_true.squeeze()).pow(2).mean().item()
-        )
-        eval_metrics["MAE Hessian"] = (
-            (hessian_pred.squeeze() - hessian_true.squeeze()).abs().mean().item()
-        )
+            # MSE Hessian
+            eval_metrics["MSE Hessian"] = (
+                (hessian_pred.squeeze() - hessian_true.squeeze()).pow(2).mean().item()
+            )
+            eval_metrics["MAE Hessian"] = (
+                (hessian_pred.squeeze() - hessian_true.squeeze()).abs().mean().item()
+            )
 
-        # Eigenvalue, Eigenvector metrics
-        eig_metrics = get_eigval_eigvec_metrics(
-            hessian_true.to("cpu"),
-            hessian_pred.to("cpu"),
-            batch.to("cpu"),
-            prefix=f"{prefix}-step{self.global_step}-epoch{self.current_epoch}",
+            # Eigenvalue, Eigenvector metrics
+            eig_metrics = get_eigval_eigvec_metrics(
+                hessian_true.to("cpu"),
+                hessian_pred.to("cpu"),
+                batch.to("cpu"),
+                prefix=f"{prefix}-step{self.global_step}-epoch{self.current_epoch}",
+            )
+            eval_metrics.update(eig_metrics)
+
+        # Cheap force smoothness via forward finite differences
+        smooth = forward_fd_force_smoothness(
+            potential=self.potential,
+            batch=batch,
+            delta=self.training_config.get("fd_delta", 0.0075),
+            num_dirs=self.training_config.get("fd_dirs", 2),
+            project_trans=self.training_config.get("proj", False),
+            pos_require_grad=self.pos_require_grad,
+            otf_graph=self.training_config.get("otfgraph_in_model", False),
         )
-        eval_metrics.update(eig_metrics)
+        eval_metrics["Smoothness FD"] = smooth.mean().item()
 
         return eval_metrics
 
     def _shared_eval(self, batch, batch_idx, prefix, *args):
         # compute training loss on eval set
-        with torch.no_grad():
-            loss, info, efh = self.compute_loss(batch, return_efh=True)
+        if self.pos_require_grad:
+            with torch.enable_grad():
+                loss, info, efh = self.compute_loss(batch, return_efh=True)
+        else:
+            with torch.no_grad():
+                loss, info, efh = self.compute_loss(batch, return_efh=True)
         detached_loss = loss.detach()
         info["trainloss"] = detached_loss.item()
 
@@ -761,12 +993,15 @@ class PotentialModule(LightningModule):
             info_prefix[f"{prefix}-{k}"] = v
 
         info_prefix[f"{prefix}-totloss"] = (
-            info["Loss Hessian"]
-            + info["Loss E"]
+            info["Loss E"]
             + info["Loss F"]
-            + eval_info["MAE Eigvals"]
-            + (-1 * eval_info["Abs Cosine Sim v1"] / 20)
         )
+        if "hessian" in efh[2]:
+            info_prefix[f"{prefix}-totloss"] += (
+                info["Loss Hessian"]
+                + eval_info["MAE Eigvals"]
+                + (-1 * eval_info["Abs Cosine Sim v1"] / 20)
+            )
 
         # del info
         # if torch.cuda.is_available():
