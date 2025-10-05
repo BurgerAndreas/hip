@@ -254,8 +254,9 @@ def setup_training(cfg: DictConfig):
 def main(cfg: DictConfig) -> None:
     torch.set_float32_matmul_precision("high")
     trainer, pm = setup_training(cfg)
-    print("Running initial validation (step 0)")
-    trainer.validate(pm, ckpt_path=cfg.ckpt_trainer_path)
+    if pm.global_step == 0 and cfg.ckpt_trainer_path is None:
+        print("Running initial validation (step 0)")
+        trainer.validate(pm, ckpt_path=cfg.ckpt_trainer_path)
     print("Fitting model")
     trainer.fit(pm, ckpt_path=cfg.ckpt_trainer_path)
     print("\nTraining complete!")
