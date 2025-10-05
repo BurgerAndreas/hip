@@ -79,6 +79,7 @@ def setup_training(cfg: DictConfig):
     # ckpt_model_path
     # only loads the model weights, not the trainer state
     # like optimizer, learning rate scheduler, epoch/step, RNG state, etc.
+    # useful for finetuning existing ckpt
 
     # pm = EigenPotentialModule(model_config, optimizer_config, training_config)
     # pm = hydra.utils.instantiate(cfg.potential_module_class, model_config, optimizer_config, training_config)
@@ -100,9 +101,19 @@ def setup_training(cfg: DictConfig):
         pm.potential.load_state_dict(state_dict, strict=False)
     elif os.path.exists(cfg.ckpt_model_path):
         # pm = hydra.utils.instantiate(cfg.potential_module_class).load_from_checkpoint(
-        pm = eval(cfg.potential_module_class).load_from_checkpoint(
-            cfg.ckpt_model_path, strict=False
+        # pm = eval(cfg.potential_module_class).load_from_checkpoint(
+        #     cfg.ckpt_model_path, strict=False
+        # )
+        ckpt = torch.load(
+            cfg.ckpt_model_path, map_location="cuda", weights_only=True
         )
+        print(f"Checkpoint keys: {ckpt.keys()}")
+        print(f"Checkpoint state_dict keys: {len(ckpt['state_dict'].keys())}")
+        # keys all start with `potential.`
+        state_dict = {
+            k.replace("potential.", ""): v for k, v in ckpt["state_dict"].items()
+        }
+        pm.potential.load_state_dict(state_dict, strict=False)
     else:
         print(f"Not loading model checkpoint from {cfg.ckpt_model_path}")
     print(f"{cfg.potential_module_class} initialized")
