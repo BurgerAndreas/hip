@@ -336,6 +336,7 @@ def forward_fd_force_smoothness(
     project_trans: bool = True,
     pos_require_grad: bool = False,
     otf_graph: bool = False,
+    device: torch.device = None,
 ):
     """Estimate force smoothness with cheap forward-only central differences.
 
@@ -348,7 +349,6 @@ def forward_fd_force_smoothness(
     per graph (higher means less smooth / larger force curvature magnitude).
     """
 
-    device = batch.pos.device
     pos0 = batch.pos
     B = int(batch.batch.max()) + 1
     num_nodes_per_graph = torch.bincount(batch.batch, minlength=B).clamp_min(1)
@@ -664,9 +664,10 @@ class PotentialModule(LightningModule):
         return optimizer
 
     def setup(self, stage: Optional[str] = None):
+        self.potential.to(self.device)
         # Add SLURM job ID to config if it exists in environment
         print("Setting up dataset")
-        if stage == "fit":
+        if stage in ("fit", "validate", "test", None):
             # train dataset
             print(f"Loading training dataset from {self.training_config['trn_path']}")
             if (
@@ -934,8 +935,22 @@ class PotentialModule(LightningModule):
 
     def compute_eval_loss(self, batch, prefix, efh):
         """Compute comprehensive evaluation metrics for eigenvalues and eigenvectors."""
+        # Ensure batch is on the same device as the model for evaluation utilities
         hat_ae, hat_forces, outputs = efh
         eval_metrics = {}
+
+        # Cheap force smoothness via forward finite differences
+        smooth = forward_fd_force_smoothness(
+            potential=self.potential,
+            batch=batch,
+            delta=self.training_config.get("fd_delta", 0.0075),
+            num_dirs=self.training_config.get("fd_dirs", 2),
+            project_trans=self.training_config.get("proj", False),
+            pos_require_grad=self.pos_require_grad,
+            otf_graph=self.training_config.get("otfgraph_in_model", False),
+            device=self.device,
+        )
+        eval_metrics["Smoothness FD"] = smooth.mean().item()
 
         if "hessian" in outputs:
             hessian_true = batch.hessian
@@ -957,18 +972,6 @@ class PotentialModule(LightningModule):
                 prefix=f"{prefix}-step{self.global_step}-epoch{self.current_epoch}",
             )
             eval_metrics.update(eig_metrics)
-
-        # Cheap force smoothness via forward finite differences
-        smooth = forward_fd_force_smoothness(
-            potential=self.potential,
-            batch=batch,
-            delta=self.training_config.get("fd_delta", 0.0075),
-            num_dirs=self.training_config.get("fd_dirs", 2),
-            project_trans=self.training_config.get("proj", False),
-            pos_require_grad=self.pos_require_grad,
-            otf_graph=self.training_config.get("otfgraph_in_model", False),
-        )
-        eval_metrics["Smoothness FD"] = smooth.mean().item()
 
         return eval_metrics
 
