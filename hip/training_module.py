@@ -414,7 +414,7 @@ class PotentialModule(LightningModule):
         self.optimizer_config = optimizer_config
         self.training_config = training_config
 
-        self.pos_require_grad = self.training_config["pos_require_grad"]
+        self.pos_require_grad = self.training_config.get("pos_require_grad", False)
         if self.model_config["name"] == "EquiformerV2":
             root_dir = find_project_root()
             config_path = os.path.join(root_dir, "configs/equiformer_v2.yaml")
@@ -514,12 +514,12 @@ class PotentialModule(LightningModule):
         self.save_hyperparameters(logger=False)
 
         self.use_hessian_graph_transform = True
-        if "otfgraph_in_model" in self.training_config and self.training_config["otfgraph_in_model"]:
+        if self.training_config.get("otfgraph_in_model", True):
             # no need because we will compute graph during forward pass
             self.use_hessian_graph_transform = False
         
         self.do_hessian = False
-        if "hessian_loss_weight" in self.training_config and self.training_config["hessian_loss_weight"] > 0.0:
+        if self.training_config.get("hessian_loss_weight", 0.0) > 0.0:
             self.do_hessian = True
 
     def set_wandb_run_id(self, run_id: str) -> None:
