@@ -712,7 +712,7 @@ class EquiformerV2_OC20(BaseModel):
         """
         otf_graph = otf_graph or self.otf_graph
         cutoff = cutoff or self.cutoff
-        if otf_graph or not hasattr(data, 'edge_distance'):
+        if otf_graph or not hasattr(data, "edge_distance"):
             pos = data.pos
             edge_index = radius_graph(pos, r=cutoff, batch=data.batch)
             j, i = edge_index
@@ -772,7 +772,7 @@ class EquiformerV2_OC20(BaseModel):
             edge_distance_vec,  # [E, 3]
         ) = self.generate_graph_nopbc(data, otf_graph=otf_graph)
 
-        if otf_graph or not hasattr(data, 'nedges_hessian'):
+        if otf_graph or not hasattr(data, "nedges_hessian"):
             # For Hessian prediction
             data = add_graph_batch(
                 data,

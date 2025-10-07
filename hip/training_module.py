@@ -83,94 +83,6 @@ def add_weight_decay(model, weight_decay=1e-5, skip_list=()):
         {"params": decay, "weight_decay": weight_decay},
     ]
 
-def get_datasplit(dataset, dataset_name: str, split: str, splitsize: str | int, splitseed: int):
-    """
-    Split dataset based on specified strategy.
-    
-    Args:
-        dataset: The dataset to split (can be SchemaUniformDataset or LmdbDataset)
-        dataset_name: Name of the dataset (e.g., "ts1x_hess_train_big")
-        split: Split strategy - "random" or "formula"
-        splitsize: Size of split - integer for count, "unseen" for unseen formulas
-        splitseed: Random seed for reproducibility
-    
-    Returns:
-        Subset of the dataset based on split strategy
-    """
-    from torch.utils.data import Subset
-    
-    if split is None or split == "none":
-        return dataset
-    
-    # Get total dataset size
-    dataset_size = len(dataset)
-    all_indices = list(range(dataset_size))
-    
-    if split == "random":
-        # Random split - select random subset of samples
-        rng = np.random.RandomState(splitseed)
-        rng.shuffle(all_indices)
-        
-        if splitsize < 1.0:
-            # If splitsize is a fraction (e.g., 0.5 for 50%)
-            n_samples = int(float(splitsize) * dataset_size)
-            selected_indices = all_indices[:n_samples]
-        else:
-            splitsize = int(splitsize)
-            selected_indices = all_indices[:splitsize]
-        
-        print(f"Random split: selected {len(selected_indices)} samples from {dataset_size}")
-        return Subset(dataset, selected_indices)
-    
-    elif split == "formula":
-        # Formula-based split
-        # Load metadata file with formula information
-        metadata_file = f"metadata/dataset_metadata_{dataset_name}.parquet"
-        
-        if not os.path.exists(metadata_file):
-            print(f"Warning: Metadata file {metadata_file} not found. Returning full dataset.")
-            return dataset
-        
-        df_metadata = pd.read_parquet(metadata_file)
-        
-        if splitsize == "unseen":
-            # Use unseen formula split - load precomputed unique training formulas
-            unseen_file = f"metadata/unique_training_indices.parquet"
-            
-            if not os.path.exists(unseen_file):
-                print(f"Warning: Unseen formula file {unseen_file} not found. Returning full dataset.")
-                return dataset
-            
-            df_unseen = pd.read_parquet(unseen_file)
-            selected_indices = df_unseen['index'].tolist()
-            
-            print(f"Unseen formula split: selected {len(selected_indices)} samples with formulas not in validation set")
-        
-        else:
-            # Random formula subset split
-            # Select a random subset of formulas, then get all samples with those formulas
-            unique_formulas = df_metadata['formula'].unique()
-            n_unique_formulas = len(unique_formulas)
-            
-            rng = np.random.RandomState(splitseed)
-            
-            if isinstance(splitsize, int):
-                # splitsize is number of formulas to select
-                n_formulas_to_select = min(splitsize, n_unique_formulas)
-            else:
-                # splitsize is fraction of formulas
-                n_formulas_to_select = int(float(splitsize) * n_unique_formulas)
-            
-            selected_formulas = rng.choice(unique_formulas, size=n_formulas_to_select, replace=False)
-            selected_indices = df_metadata[df_metadata['formula'].isin(selected_formulas)]['index'].tolist()
-            
-            print(f"Formula subset split: selected {n_formulas_to_select} formulas ({len(selected_indices)} samples) from {n_unique_formulas} unique formulas")
-        
-        return Subset(dataset, selected_indices)
-    
-    else:
-        print(f"Warning: Unknown split type '{split}'. Returning full dataset.")
-        return dataset
 
 class SchemaUniformDataset:
     """Wrapper that ensures all datasets have the same attributes.
@@ -339,7 +251,10 @@ class PotentialModule(LightningModule):
         self.save_hyperparameters(logger=False)
 
         self.use_hessian_graph_transform = True
-        if "otfgraph_in_model" in self.training_config and self.training_config["otfgraph_in_model"]:
+        if (
+            "otfgraph_in_model" in self.training_config
+            and self.training_config["otfgraph_in_model"]
+        ):
             # no need because we will compute graph during forward pass
             self.use_hessian_graph_transform = False
 
@@ -511,19 +426,10 @@ class PotentialModule(LightningModule):
                         **self.training_config,
                     )
                     wrapped_dataset = SchemaUniformDataset(base_dataset)
-                    
-                    # Apply split if configured
-                    dataset_name = Path(path).stem
-                    split_dataset = get_datasplit(
-                        dataset=wrapped_dataset,
-                        dataset_name=dataset_name,
-                        split=self.training_config.get("split", None),
-                        splitsize=self.training_config.get("splitsize", None),
-                        splitseed=self.training_config.get("splitseed", 0),
+                    datasets.append(wrapped_dataset)
+                    print(
+                        f"Loaded dataset from {path} with {len(wrapped_dataset)} samples (after split)"
                     )
-                    
-                    datasets.append(split_dataset)
-                    print(f"Loaded dataset from {path} with {len(split_dataset)} samples (after split)")
 
                 # Combine all datasets into a single concatenated dataset
                 if ("data_weight" in self.training_config) and (
@@ -549,22 +455,12 @@ class PotentialModule(LightningModule):
                         max_neighbors=self.potential.max_neighbors,
                         use_pbc=self.potential.use_pbc,
                     )
-                base_dataset = SchemaUniformDataset(
+                self.train_dataset = SchemaUniformDataset(
                     LmdbDataset(
                         Path(self.training_config["trn_path"]),
                         transform=transform,
                         **self.training_config,
                     )
-                )
-                
-                # Apply split if configured
-                dataset_name = Path(self.training_config["trn_path"]).stem
-                self.train_dataset = get_datasplit(
-                    dataset=base_dataset,
-                    dataset_name=dataset_name,
-                    split=self.training_config.get("split", None),
-                    splitsize=self.training_config.get("splitsize", None),
-                    splitseed=self.training_config.get("splitseed", 0),
                 )
             # val dataset
             transform = None

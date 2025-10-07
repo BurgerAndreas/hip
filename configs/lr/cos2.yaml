@@ -1,0 +1,11 @@
+# @package _global_
+
+# Cosine decay learning rate schedule
+training:
+  lr_schedule_type: "cosine"
+  lr_schedule_config:
+    T_max: 800 # Maximum number of epochs.
+    eta_min: 5e-5 # Minimum learning rate. 
+    warmup_epochs: 40          # number of epochs to warm up (0 disables)
+    warmup_init_lr: 0.0      # start LR for warmup
+    hold_min_after_tmax: true # if true, stay at eta_min after T_max
