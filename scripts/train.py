@@ -104,9 +104,7 @@ def setup_training(cfg: DictConfig):
         # pm = eval(cfg.potential_module_class).load_from_checkpoint(
         #     cfg.ckpt_model_path, strict=False
         # )
-        ckpt = torch.load(
-            cfg.ckpt_model_path, map_location="cuda", weights_only=True
-        )
+        ckpt = torch.load(cfg.ckpt_model_path, map_location="cuda", weights_only=True)
         print(f"Checkpoint keys: {ckpt.keys()}")
         print(f"Checkpoint state_dict keys: {len(ckpt['state_dict'].keys())}")
         # keys all start with `potential.`

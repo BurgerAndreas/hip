@@ -85,34 +85,37 @@ def add_weight_decay(model, weight_decay=1e-5, skip_list=()):
         {"params": decay, "weight_decay": weight_decay},
     ]
 
-def get_datasplit(dataset, dataset_name: str, split: str, splitsize: str | int, splitseed: int):
+
+def get_datasplit(
+    dataset, dataset_name: str, split: str, splitsize: str | int, splitseed: int
+):
     """
     Split dataset based on specified strategy.
-    
+
     Args:
         dataset: The dataset to split (can be SchemaUniformDataset or LmdbDataset)
         dataset_name: Name of the dataset (e.g., "ts1x_hess_train_big")
         split: Split strategy - "random" or "formula"
         splitsize: Size of split - integer for count, "unseen" for unseen formulas
         splitseed: Random seed for reproducibility
-    
+
     Returns:
         Subset of the dataset based on split strategy
     """
     from torch.utils.data import Subset
-    
+
     if split is None or split == "none":
         return dataset
-    
+
     # Get total dataset size
     dataset_size = len(dataset)
     all_indices = list(range(dataset_size))
-    
+
     if split == "random":
         # Random split - select random subset of samples
         rng = np.random.RandomState(splitseed)
         rng.shuffle(all_indices)
-        
+
         if splitsize < 1.0:
             # If splitsize is a fraction (e.g., 0.5 for 50%)
             n_samples = int(float(splitsize) * dataset_size)
@@ -120,59 +123,74 @@ def get_datasplit(dataset, dataset_name: str, split: str, splitsize: str | int, 
         else:
             splitsize = int(splitsize)
             selected_indices = all_indices[:splitsize]
-        
-        print(f"Random split: selected {len(selected_indices)} samples from {dataset_size}")
+
+        print(
+            f"Random split: selected {len(selected_indices)} samples from {dataset_size}"
+        )
         return Subset(dataset, selected_indices)
-    
+
     elif split == "formula":
         # Formula-based split
         # Load metadata file with formula information
         metadata_file = f"metadata/dataset_metadata_{dataset_name}.parquet"
-        
+
         if not os.path.exists(metadata_file):
-            print(f"Warning: Metadata file {metadata_file} not found. Returning full dataset.")
+            print(
+                f"Warning: Metadata file {metadata_file} not found. Returning full dataset."
+            )
             return dataset
-        
+
         df_metadata = pd.read_parquet(metadata_file)
-        
+
         if splitsize == "unseen":
             # Use unseen formula split - load precomputed unique training formulas
             unseen_file = f"metadata/unique_training_indices.parquet"
-            
+
             if not os.path.exists(unseen_file):
-                print(f"Warning: Unseen formula file {unseen_file} not found. Returning full dataset.")
+                print(
+                    f"Warning: Unseen formula file {unseen_file} not found. Returning full dataset."
+                )
                 return dataset
-            
+
             df_unseen = pd.read_parquet(unseen_file)
-            selected_indices = df_unseen['index'].tolist()
-            
-            print(f"Unseen formula split: selected {len(selected_indices)} samples with formulas not in validation set")
-        
+            selected_indices = df_unseen["index"].tolist()
+
+            print(
+                f"Unseen formula split: selected {len(selected_indices)} samples with formulas not in validation set"
+            )
+
         else:
             # Random formula subset split
             # Select a random subset of formulas, then get all samples with those formulas
-            unique_formulas = df_metadata['formula'].unique()
+            unique_formulas = df_metadata["formula"].unique()
             n_unique_formulas = len(unique_formulas)
-            
+
             rng = np.random.RandomState(splitseed)
-            
+
             if isinstance(splitsize, int):
                 # splitsize is number of formulas to select
                 n_formulas_to_select = min(splitsize, n_unique_formulas)
             else:
                 # splitsize is fraction of formulas
                 n_formulas_to_select = int(float(splitsize) * n_unique_formulas)
-            
-            selected_formulas = rng.choice(unique_formulas, size=n_formulas_to_select, replace=False)
-            selected_indices = df_metadata[df_metadata['formula'].isin(selected_formulas)]['index'].tolist()
-            
-            print(f"Formula subset split: selected {n_formulas_to_select} formulas ({len(selected_indices)} samples) from {n_unique_formulas} unique formulas")
-        
+
+            selected_formulas = rng.choice(
+                unique_formulas, size=n_formulas_to_select, replace=False
+            )
+            selected_indices = df_metadata[
+                df_metadata["formula"].isin(selected_formulas)
+            ]["index"].tolist()
+
+            print(
+                f"Formula subset split: selected {n_formulas_to_select} formulas ({len(selected_indices)} samples) from {n_unique_formulas} unique formulas"
+            )
+
         return Subset(dataset, selected_indices)
-    
+
     else:
         print(f"Warning: Unknown split type '{split}'. Returning full dataset.")
         return dataset
+
 
 class SchemaUniformDataset:
     """Wrapper that ensures all datasets have the same attributes.
@@ -213,14 +231,15 @@ class SchemaUniformDataset:
         return data
 
 
+def hutchinson_trace_and_fro(
+    energy, forces, batch, K=2, project_trans=True, norm_per_dof=True, use_energy=False
+):
+    r"""Apply Hutchinson on the concatenated batch and reduce per-molecule with `batch.batch`.
 
-def hutchinson_trace_and_fro(energy, forces, batch, K=2, project_trans=True, norm_per_dof=True, use_energy=False):
-    """Apply Hutchinson on the concatenated batch and reduce per-molecule with `batch.batch`. 
-    The Hessian is block-diagonal across graphs when your energy is a per-graph sum, so one HVP over all nodes covers all molecules.
     - Use per-node probes (z\in\mathbb{R}^{N\times 3}). Reduce to per-graph scalars with `scatter_add`.
     - For trace: average (z^\top H z) over K probes. For Frobenius: average (|Hz|^2).
-    - If you predict energy per graph (`hat_ae`), get (H) via double backprop on (E=\sum \text{hat_ae}).  
-        If you only predict forces, use (Hz=-J_F z) with a VJP; works best if forces are conservative.    
+    - If you predict energy per graph (`hat_ae`), get (H) via double backprop on (E=\sum \text{hat_ae}).
+        If you only predict forces, use (Hz=-J_F z) with a VJP
     - Project out rigid translations per graph to avoid null-mode noise.
     """
     # batch.pos: (N,3), batch.batch: (N,), hat_ae: (B,)
@@ -229,18 +248,25 @@ def hutchinson_trace_and_fro(energy, forces, batch, K=2, project_trans=True, nor
     #     pos.requires_grad_(True)
 
     if use_energy:
-        E = energy.sum() # (B,) -> scalar
+        E = energy.sum()  # (B,) -> scalar
         # ∇E wrt positions
-        g = torch.autograd.grad(E, pos, create_graph=True)[0]   # (N,3)
+        g = torch.autograd.grad(E, pos, create_graph=True)[0]  # (N,3)
 
         def hvp(v):
-            return torch.autograd.grad((g * v).sum(), pos, retain_graph=True, create_graph=True)[0]
+            return torch.autograd.grad(
+                (g * v).sum(), pos, retain_graph=True, create_graph=True
+            )[0]
+
         get_Hz = hvp
 
     else:
-        forces = forces.reshape(-1, 3) # (N,3)
+        forces = forces.reshape(-1, 3)  # (N,3)
+
         def Jv(v):  # ≈ Jacobian(F) @ v; equals J^T v if non-conservative
-            return torch.autograd.grad((forces * v).sum(), pos, retain_graph=True, create_graph=True)[0]
+            return torch.autograd.grad(
+                (forces * v).sum(), pos, retain_graph=True, create_graph=True
+            )[0]
+
         # Hz = -Jv(z)
         def get_Hz(z):
             return -Jv(z)
@@ -251,29 +277,40 @@ def hutchinson_trace_and_fro(energy, forces, batch, K=2, project_trans=True, nor
     fro_acc = pos.new_zeros(B)
     dof = 3 * torch.bincount(batch.batch, minlength=B)
 
+    # Hutchinson's trace estimator
+    # Hessian-vector product: Hz = -Jv(z)
     for _ in range(K):
-        z = (torch.randint(0, 2, (N, 3), device=pos.device, dtype=torch.int64) * 2 - 1).to(pos.dtype)
+        z = (
+            torch.randint(0, 2, (N, 3), device=pos.device, dtype=torch.int64) * 2 - 1
+        ).to(pos.dtype)
         if project_trans:
-            z = z - scatter_mean(z, batch.batch, dim=0)[batch.batch]  # remove per-graph translation
-        Hz = get_Hz(z)                                # (N,3)
-        tr_k  = (z * Hz).sum(dim=1)                # node scalars
-        fro_k = (Hz ** 2).sum(dim=1)
+            z = (
+                z - scatter_mean(z, batch.batch, dim=0)[batch.batch]
+            )  # remove per-graph translation
+        Hz = get_Hz(z)  # (N,3)
+        tr_k = (z * Hz).sum(dim=1)  # node scalars
+        fro_k = (Hz**2).sum(dim=1)
 
-        tr_acc  += scatter_add(tr_k,  batch.batch, dim=0)  # per-graph
+        tr_acc += scatter_add(tr_k, batch.batch, dim=0)  # per-graph
         fro_acc += scatter_add(fro_k, batch.batch, dim=0)
 
-    tr_est  = tr_acc  / K
+    tr_est = tr_acc / K
     fro_est = fro_acc / K
     if norm_per_dof:
-        tr_est  = tr_est  / dof.clamp_min(1)
+        tr_est = tr_est / dof.clamp_min(1)
         fro_est = fro_est / dof.clamp_min(1)
     # trace, frobenius norm
-    return tr_est, fro_est    # shape (B,), one value per molecule
+    return tr_est, fro_est  # shape (B,), one value per molecule
 
 
-def spectral_radius_estimate(energy, forces, batch, iters=3, project_trans=True, use_energy=False):
-    """Estimate the largest-magnitude eigenvalue (spectral radius) per graph using
+def spectral_radius_estimate(
+    energy, forces, batch, iters=3, project_trans=True, use_energy=False
+):
+    r"""Estimate the largest-magnitude eigenvalue (spectral radius) per graph using
     a few steps of power iteration with Hessian-vector products.
+
+    - $v_{t+1}\leftarrow H v_t/\|H v_t\|$
+    - Penalize $(v^\top H v)^2$ or $\max(0, v^\top H v - \tau)^2$
 
     - Avoids building the full Hessian; uses autograd HVPs like trace/fro estimator.
     - For forces-only models, uses Hz = -Jv(z), where Jv is VJP of forces wrt positions.
@@ -288,14 +325,18 @@ def spectral_radius_estimate(energy, forces, batch, iters=3, project_trans=True,
         g = torch.autograd.grad(E, pos, create_graph=True)[0]
 
         def hvp(v):
-            return torch.autograd.grad((g * v).sum(), pos, retain_graph=True, create_graph=True)[0]
+            return torch.autograd.grad(
+                (g * v).sum(), pos, retain_graph=True, create_graph=True
+            )[0]
 
         get_Hz = hvp
     else:
         forces = forces.reshape(-1, 3)
 
         def Jv(v):
-            return torch.autograd.grad((forces * v).sum(), pos, retain_graph=True, create_graph=True)[0]
+            return torch.autograd.grad(
+                (forces * v).sum(), pos, retain_graph=True, create_graph=True
+            )[0]
 
         def get_Hz(z):
             return -Jv(z)
@@ -303,7 +344,9 @@ def spectral_radius_estimate(energy, forces, batch, iters=3, project_trans=True,
     N = pos.shape[0]
 
     # Random Rademacher initialization per node
-    v = (torch.randint(0, 2, (N, 3), device=pos.device, dtype=torch.int64) * 2 - 1).to(pos.dtype)
+    v = (torch.randint(0, 2, (N, 3), device=pos.device, dtype=torch.int64) * 2 - 1).to(
+        pos.dtype
+    )
     if project_trans:
         v = v - scatter_mean(v, batch.batch, dim=0)[batch.batch]
 
@@ -311,7 +354,7 @@ def spectral_radius_estimate(energy, forces, batch, iters=3, project_trans=True,
     for _ in range(max(1, iters)):
         y = get_Hz(v)
         # Compute per-graph L2 norms of y
-        y_sq = (y ** 2).sum(dim=1)
+        y_sq = (y**2).sum(dim=1)
         y_sq_sum = scatter_add(y_sq, batch.batch, dim=0).clamp_min(1e-12)
         y_norm = torch.sqrt(y_sq_sum)[batch.batch].unsqueeze(-1)
         v = y / y_norm
@@ -321,7 +364,7 @@ def spectral_radius_estimate(energy, forces, batch, iters=3, project_trans=True,
     # Rayleigh quotient per graph: (v^T H v) / (v^T v)
     Hv = get_Hz(v)
     num_node = (v * Hv).sum(dim=1)
-    den_node = (v ** 2).sum(dim=1).clamp_min(1e-12)
+    den_node = (v**2).sum(dim=1).clamp_min(1e-12)
     num_graph = scatter_add(num_node, batch.batch, dim=0)
     den_graph = scatter_add(den_node, batch.batch, dim=0).clamp_min(1e-12)
     rq = num_graph / den_graph  # shape (B,)
@@ -357,27 +400,39 @@ def forward_fd_force_smoothness(
     num_dirs = max(1, int(num_dirs))
     with torch.no_grad():
         for _ in range(num_dirs):
-            v = (torch.randint(0, 2, (pos0.shape[0], 3), device=device, dtype=torch.int64) * 2 - 1).to(pos0.dtype)
+            v = (
+                torch.randint(
+                    0, 2, (pos0.shape[0], 3), device=device, dtype=torch.int64
+                )
+                * 2
+                - 1
+            ).to(pos0.dtype)
             if project_trans:
                 v = v - scatter_mean(v, batch.batch, dim=0)[batch.batch]
-            denom = (v ** 2).sum(dim=1, keepdim=True).sqrt().clamp_min(1e-12)
+            denom = (v**2).sum(dim=1, keepdim=True).sqrt().clamp_min(1e-12)
             v = v / denom
 
             # +delta
             batch.pos = pos0 + delta * v
             batch = compute_extra_props(batch, pos_require_grad=pos_require_grad)
-            _, f_plus, _ = potential.forward(batch.to(device), hessian=False, otf_graph=otf_graph)
+            _, f_plus, _ = potential.forward(
+                batch.to(device), hessian=False, otf_graph=otf_graph
+            )
             f_plus = f_plus.reshape(-1, 3)
 
             # -delta
             batch.pos = pos0 - delta * v
             batch = compute_extra_props(batch, pos_require_grad=pos_require_grad)
-            _, f_minus, _ = potential.forward(batch.to(device), hessian=False, otf_graph=otf_graph)
+            _, f_minus, _ = potential.forward(
+                batch.to(device), hessian=False, otf_graph=otf_graph
+            )
             f_minus = f_minus.reshape(-1, 3)
 
             jf_v = (f_plus - f_minus) / (2.0 * delta)
-            node_norm = (jf_v ** 2).sum(dim=1).sqrt()
-            graph_norm = scatter_add(node_norm, batch.batch, dim=0) / num_nodes_per_graph
+            node_norm = (jf_v**2).sum(dim=1).sqrt()
+            graph_norm = (
+                scatter_add(node_norm, batch.batch, dim=0) / num_nodes_per_graph
+            )
             smooth_acc += graph_norm
 
         # restore original positions
@@ -517,7 +572,7 @@ class PotentialModule(LightningModule):
         if self.training_config.get("otfgraph_in_model", True):
             # no need because we will compute graph during forward pass
             self.use_hessian_graph_transform = False
-        
+
         self.do_hessian = False
         if self.training_config.get("hessian_loss_weight", 0.0) > 0.0:
             self.do_hessian = True
@@ -691,7 +746,7 @@ class PotentialModule(LightningModule):
                         **self.training_config,
                     )
                     wrapped_dataset = SchemaUniformDataset(base_dataset)
-                    
+
                     # Apply split if configured
                     dataset_name = Path(path).stem
                     split_dataset = get_datasplit(
@@ -701,9 +756,11 @@ class PotentialModule(LightningModule):
                         splitsize=self.training_config.get("splitsize", None),
                         splitseed=self.training_config.get("splitseed", 0),
                     )
-                    
+
                     datasets.append(split_dataset)
-                    print(f"Loaded dataset from {path} with {len(split_dataset)} samples (after split)")
+                    print(
+                        f"Loaded dataset from {path} with {len(split_dataset)} samples (after split)"
+                    )
 
                 # Combine all datasets into a single concatenated dataset
                 if ("data_weight" in self.training_config) and (
@@ -736,7 +793,7 @@ class PotentialModule(LightningModule):
                         **self.training_config,
                     )
                 )
-                
+
                 # Apply split if configured
                 dataset_name = Path(self.training_config["trn_path"]).stem
                 self.train_dataset = get_datasplit(
@@ -846,34 +903,40 @@ class PotentialModule(LightningModule):
             otf_graph=self.training_config["otfgraph_in_model"],
         )
 
-        freg = self.training_config.get("freg", None)   
+        freg = self.training_config.get("freg", None)
         if freg is not None:
             fregw = self.training_config.get("fregw", 0.1)
             if freg == "trace":
                 # estimate trace using Hutchinson's trace estimator
                 trace, _ = hutchinson_trace_and_fro(
-                    hat_ae, hat_forces, batch, 
-                    K=self.training_config.get("k", 2), 
-                    project_trans=self.training_config.get("proj", False), 
-                    norm_per_dof=self.training_config.get("norm_per_dof", True), 
-                    use_energy=False
+                    hat_ae,
+                    hat_forces,
+                    batch,
+                    K=self.training_config.get("k", 2),
+                    project_trans=self.training_config.get("proj", False),
+                    norm_per_dof=self.training_config.get("norm_per_dof", True),
+                    use_energy=False,
                 )
                 loss += fregw * trace.mean()
                 info["Loss Freg Trace"] = trace.mean().detach().item()
             elif freg == "frob":
                 _, fro = hutchinson_trace_and_fro(
-                    hat_ae, hat_forces, batch, 
-                    K=self.training_config.get("k", 2), 
-                    project_trans=self.training_config.get("proj", False), 
-                    norm_per_dof=self.training_config.get("norm_per_dof", True), 
-                    use_energy=False
+                    hat_ae,
+                    hat_forces,
+                    batch,
+                    K=self.training_config.get("k", 2),
+                    project_trans=self.training_config.get("proj", False),
+                    norm_per_dof=self.training_config.get("norm_per_dof", True),
+                    use_energy=False,
                 )
                 loss += fregw * fro.mean()
                 info["Loss Freg Fro"] = fro.mean().detach().item()
             elif freg == "spectral":
                 # estimate spectral radius (largest |eigenvalue|) via power iteration
                 spec = spectral_radius_estimate(
-                    hat_ae, hat_forces, batch,
+                    hat_ae,
+                    hat_forces,
+                    batch,
                     iters=self.training_config.get("k", 3),
                     project_trans=self.training_config.get("proj", False),
                     use_energy=False,
@@ -919,6 +982,177 @@ class PotentialModule(LightningModule):
             return loss, info, (hat_ae, hat_forces, outputs)
         # loss = floss * 100 + eloss * 4 + hessian_loss * 4
         return loss, info
+
+    def get_jacobian(self, forces, pos, grad_outputs, create_graph=False, looped=False):
+        # This function should: take the derivatives of forces with respect to positions.
+        # Grad_outputs should be supplied. if it's none, then
+        def compute_grad(grad_output):
+            return torch.autograd.grad(
+                outputs=forces,
+                inputs=pos,
+                grad_outputs=grad_output,
+                create_graph=create_graph,
+                retain_graph=True,
+            )[0]
+
+        if not looped:
+            if len(grad_outputs.shape) == 4:
+                compute_jacobian = torch.vmap(torch.vmap(compute_grad))
+            else:
+                compute_jacobian = torch.vmap(compute_grad)
+            return compute_jacobian(grad_outputs)
+        else:
+            num_atoms = forces.shape[0]
+            if len(grad_outputs.shape) == 4:
+                full_jac = torch.zeros(grad_outputs.shape[0], 3, num_atoms, 3).to(
+                    forces.device
+                )
+                for i in range(grad_outputs.shape[0]):
+                    for j in range(3):
+                        full_jac[i, j] = compute_grad(grad_outputs[i, j])
+            else:
+                full_jac = torch.zeros(grad_outputs.shape[0], num_atoms, 3).to(
+                    forces.device
+                )
+                for i in range(grad_outputs.shape[0]):
+                    full_jac[i] = compute_grad(grad_outputs[i])
+            return full_jac
+
+    def get_force_jac_loss(
+        self,
+        forces,
+        batch,
+        hessian_label,
+        num_samples=2,
+        looped=False,
+        finite_differences=False,
+        forward=None,
+        collater=None,
+    ):
+        natoms = batch.natoms
+        total_num_atoms = forces.shape[0]
+
+        mask = torch.ones(total_num_atoms, dtype=torch.bool)
+        cumulative_sums = [0] + torch.cumsum(natoms, 0).tolist()
+
+        by_molecule = []
+        grad_outputs = torch.zeros((num_samples, total_num_atoms, 3)).to(forces.device)
+        for i, atoms_in_mol in enumerate(batch.natoms):
+            submask = mask[cumulative_sums[i] : cumulative_sums[i + 1]]
+            samples = self.sample_with_mask(atoms_in_mol, num_samples, submask)
+
+            by_molecule.append(samples)  # swap below and above line, crucial
+            offset_samples = (
+                samples.clone()
+            )  # Create a copy of the samples array to avoid modifying the original
+            offset_samples[:, 0] += cumulative_sums[i]
+            # Vectorized assignment to grad_outputs
+            grad_outputs[
+                torch.arange(samples.shape[0]),
+                offset_samples[:, 0],
+                offset_samples[:, 1],
+            ] = 1
+        # Compute the jacobian using grad_outputs
+
+        jac = self.get_jacobian(
+            forces, batch.pos, grad_outputs, create_graph=True, looped=looped
+        )
+        # jac = self.get_jacobian_finite_difference(forces, batch, grad_outputs = grad_outputs, forward=self._forward)
+
+        # Decomposing the Jacobian tensor by molecule in a batch
+        mask_per_mol = [
+            mask[cum_sum : cum_sum + nat]
+            for cum_sum, nat in zip(cumulative_sums[:-1], natoms)
+        ]
+        num_free_atoms_per_mol = torch.tensor(
+            [sum(sub_mask) for sub_mask in mask_per_mol], device=natoms.device
+        )
+        cum_jac_indexes = [0] + torch.cumsum(
+            (num_free_atoms_per_mol * natoms) * 9, dim=0
+        ).tolist()
+
+        jacs_per_mol = [
+            jac[: len(mol_samps), cum_sum : cum_sum + nat, :]
+            for mol_samps, cum_sum, nat in zip(
+                by_molecule, cumulative_sums[:-1], natoms
+            )
+        ]
+        jacs_per_mol = [
+            mol_jac[:, mask, :] for mol_jac, mask in zip(jacs_per_mol, mask_per_mol)
+        ]  # do the same for te student hessians
+
+        if torch.any(torch.isnan(jac)):
+            raise Exception("FORCE JAC IS NAN")
+
+        batch.fixed = torch.zeros(total_num_atoms)
+
+        true_jacs_per_mol = []
+        for i, samples in enumerate(by_molecule):
+            fixed_atoms = batch.fixed[cumulative_sums[i] : cumulative_sums[i + 1]]
+            fixed_cumsum = torch.cumsum(fixed_atoms, dim=0)
+            num_free_atoms = num_free_atoms_per_mol[i]
+            curr = hessian_label[cum_jac_indexes[i] : cum_jac_indexes[i + 1]].reshape(
+                num_free_atoms, 3, natoms[i], 3
+            )
+            curr = curr[:, :, mask_per_mol[i], :]  # filter out the masked columns
+            subsampled_curr = curr[
+                (samples[:, 0] - fixed_cumsum[samples[:, 0]]).long(), samples[:, 1]
+            ]  # get the sampled rows
+            true_jacs_per_mol.append(subsampled_curr)
+
+        # just copying what DDPLoss does for our special case
+        custom_loss = (
+            lambda jac, true_jac: torch.norm(jac - true_jac, p=2, dim=-1)
+            .sum(dim=1)
+            .mean(dim=0)
+        )
+        losses = [
+            custom_loss(-jac, true_jac)
+            for jac, true_jac in zip(jacs_per_mol, true_jacs_per_mol)
+        ]
+        valid_losses = [
+            loss * 1e-8 if true_jac.abs().max().item() > 10000 else loss
+            for loss, true_jac in zip(losses, true_jacs_per_mol)
+        ]  # filter weird hessians
+
+        loss = sum(valid_losses)
+
+        num_samples = batch.batch.max() + 1
+        # Multiply by world size since gradients are averaged
+        # across DDP replicas
+        loss = loss / num_samples / 10
+        return loss
+
+    def sample_with_mask(self, n, num_samples, mask):
+        if mask.shape[0] != n:
+            raise ValueError(
+                "Mask length must be equal to the number of rows in the grid (n)"
+            )
+
+        # Calculate total available columns after applying the mask
+        # Only rows where mask is True are considered
+        valid_rows = torch.where(mask)[0]  # Get indices of rows that are True
+        if valid_rows.numel() == 0:
+            raise ValueError("No valid rows available according to the mask")
+
+        # Each valid row contributes 3 indices
+        valid_indices = valid_rows.repeat_interleave(3) * 3 + torch.tensor(
+            [0, 1, 2]
+        ).repeat(valid_rows.size(0)).to(mask.device)
+
+        # Sample unique indices from the valid indices
+        chosen_indices = valid_indices[
+            torch.randperm(valid_indices.size(0))[:num_samples]
+        ]
+
+        # Convert flat indices back to row and column indices
+        row_indices = chosen_indices // 3
+        col_indices = chosen_indices % 3
+
+        # Combine into 2-tuples
+        samples = torch.stack((row_indices, col_indices), dim=1)
+
+        return samples
 
     def training_step(self, batch, batch_idx):
         loss, info = self.compute_loss(batch)
@@ -995,10 +1229,7 @@ class PotentialModule(LightningModule):
         for k, v in eval_info.items():
             info_prefix[f"{prefix}-{k}"] = v
 
-        info_prefix[f"{prefix}-totloss"] = (
-            info["Loss E"]
-            + info["Loss F"]
-        )
+        info_prefix[f"{prefix}-totloss"] = info["Loss E"] + info["Loss F"]
         if "hessian" in efh[2]:
             info_prefix[f"{prefix}-totloss"] += (
                 info["Loss Hessian"]

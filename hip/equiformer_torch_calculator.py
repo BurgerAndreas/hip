@@ -18,6 +18,7 @@ from hip.frequency_analysis import (
 )
 from hip.masses import MASS_DICT
 
+
 def coord_atoms_to_torch_geometric(
     coords,  # (N, 3)
     atomic_nums,  # (N,)
@@ -44,9 +45,10 @@ def coord_atoms_to_torch_geometric(
         pbc=torch.tensor(False, dtype=torch.bool),
     )
     return TGBatch.from_data_list(
-        [data], 
+        [data],
         # follow_batch=["diag_ij", "edge_index", "message_idx_ij"]
     )
+
 
 class EquiformerTorchCalculator:
     def __init__(
@@ -76,7 +78,7 @@ class EquiformerTorchCalculator:
         self.potential = model
 
         self.hessian_method = hessian_method
-    
+
     def to(self, device):
         self.device = device
         self.potential = self.potential.to(device)
@@ -116,10 +118,10 @@ class EquiformerTorchCalculator:
             if hessian_method == "autograd":
                 # Compute energy and forces with autograd
                 with torch.enable_grad():
-                    batch.pos.requires_grad = True 
+                    batch.pos.requires_grad = True
                     energy, forces, _ = self.potential.forward(
                         batch,
-                        otf_graph=True, 
+                        otf_graph=True,
                     )
                     # Use autograd to compute hessian
                     hessian = compute_hessian(
@@ -187,7 +189,7 @@ class EquiformerTorchCalculator:
         gad = -grad + 2 * torch.dot(grad, v) * v
         results.update(
             {
-                "gad": gad, 
+                "gad": gad,
             }
         )
         return results
