@@ -340,6 +340,8 @@ class PotentialModule(LightningModule):
         if "otfgraph_in_model" in self.training_config and self.training_config["otfgraph_in_model"]:
             # no need because we will compute graph during forward pass
             self.use_hessian_graph_transform = False
+        
+        self.do_hessian = training_config["hessian_loss_weight"] > 0.0
 
     def set_wandb_run_id(self, run_id: str) -> None:
         """Set the WandB run ID for checkpoint continuation."""
@@ -660,26 +662,27 @@ class PotentialModule(LightningModule):
 
         hat_ae, hat_forces, outputs = self.potential.forward(
             batch.to(self.device),
-            hessian=True,
+            hessian=self.do_hessian,
             otf_graph=self.training_config["otfgraph_in_model"],
         )
 
-        hessian_pred = outputs["hessian"].to(self.device)
-        hessian_true = batch.hessian.to(self.device)
 
-        if self.training_config["hessian_loss_weight"] > 0.0:
+        if self.do_hessian:
+            hessian_pred = outputs["hessian"].to(self.device)
+            hessian_true = batch.hessian.to(self.device)
+
             hessian_loss = self.loss_fn_hessian(hessian_pred, hessian_true)
             loss += hessian_loss * self.training_config["hessian_loss_weight"]
             info["Loss Hessian"] = hessian_loss.detach().item()
 
-        if self.do_eigen_loss:
-            eigen_loss = self.loss_fn_eigen(
-                pred=hessian_pred,
-                target=hessian_true,
-                data=batch,
-            )
-            loss += eigen_loss
-            info["Loss Eigen"] = eigen_loss.detach().item()
+            if self.do_eigen_loss:
+                eigen_loss = self.loss_fn_eigen(
+                    pred=hessian_pred,
+                    target=hessian_true,
+                    data=batch,
+                )
+                loss += eigen_loss
+                info["Loss Eigen"] = eigen_loss.detach().item()
 
         if not self.training_config["train_hessian_only"]:
             # energy
