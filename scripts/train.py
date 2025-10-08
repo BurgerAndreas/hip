@@ -124,7 +124,7 @@ def setup_training(cfg: DictConfig):
                 f"Auto-resume is overwriting ckpt_trainer_path: {cfg.ckpt_trainer_path}"
             )
         print("Auto-resume enabled, searching for existing checkpoints...")
-        latest_ckpt = find_latest_checkpoint(checkpoint_name, cfg.project)
+        latest_ckpt = find_latest_checkpoint(checkpoint_name, cfg.ckpt_base_dir)
         if latest_ckpt:
             cfg.ckpt_trainer_path = latest_ckpt
             print(f"Auto-resume: Will resume from {latest_ckpt}")
@@ -144,7 +144,7 @@ def setup_training(cfg: DictConfig):
     checkpoint_name = f"{checkpoint_name}-{cfg.slurm_job_id}-{datetime.now().strftime('%Y%m%d-%H%M%S')}"
     print(f"Checkpoint name: {checkpoint_name}")
 
-    ckpt_output_path = f"checkpoint/{cfg.project}/{checkpoint_name}"
+    ckpt_output_path = f"{cfg.ckpt_base_dir}/{checkpoint_name}"
     print(f"Checkpoint output path: {ckpt_output_path}")
 
     early_stopping_callback = EarlyStopping(

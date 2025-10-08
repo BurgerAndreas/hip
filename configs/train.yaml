@@ -103,6 +103,7 @@ early_stopping:
 
 use_wandb: true
 
+ckpt_base_dir: "checkpoint/datascaling"
 ckpt_model_path: null # horm for finetuning
 # Checkpoint that contains model weights and optimizerstate , lr state, etc. 
 ckpt_trainer_path: null
