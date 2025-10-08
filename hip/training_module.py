@@ -720,25 +720,26 @@ class PotentialModule(LightningModule):
         hat_ae, hat_forces, outputs = efh
         eval_metrics = {}
 
-        hessian_true = batch.hessian
-        hessian_pred = outputs["hessian"].detach()
+        if "hessian" in outputs:
+            hessian_true = batch.hessian
+            hessian_pred = outputs["hessian"].detach()
 
-        # MSE Hessian
-        eval_metrics["MSE Hessian"] = (
-            (hessian_pred.squeeze() - hessian_true.squeeze()).pow(2).mean().item()
-        )
-        eval_metrics["MAE Hessian"] = (
-            (hessian_pred.squeeze() - hessian_true.squeeze()).abs().mean().item()
-        )
+            # MSE Hessian
+            eval_metrics["MSE Hessian"] = (
+                (hessian_pred.squeeze() - hessian_true.squeeze()).pow(2).mean().item()
+            )
+            eval_metrics["MAE Hessian"] = (
+                (hessian_pred.squeeze() - hessian_true.squeeze()).abs().mean().item()
+            )
 
-        # Eigenvalue, Eigenvector metrics
-        eig_metrics = get_eigval_eigvec_metrics(
-            hessian_true.to("cpu"),
-            hessian_pred.to("cpu"),
-            batch.to("cpu"),
-            prefix=f"{prefix}-step{self.global_step}-epoch{self.current_epoch}",
-        )
-        eval_metrics.update(eig_metrics)
+            # Eigenvalue, Eigenvector metrics
+            eig_metrics = get_eigval_eigvec_metrics(
+                hessian_true.to("cpu"),
+                hessian_pred.to("cpu"),
+                batch.to("cpu"),
+                prefix=f"{prefix}-step{self.global_step}-epoch{self.current_epoch}",
+            )
+            eval_metrics.update(eig_metrics)
 
         return eval_metrics
 
@@ -759,12 +760,13 @@ class PotentialModule(LightningModule):
             info_prefix[f"{prefix}-{k}"] = v
 
         info_prefix[f"{prefix}-totloss"] = (
-            info["Loss Hessian"]
             + info["Loss E"]
             + info["Loss F"]
-            + eval_info["MAE Eigvals"]
-            + (-1 * eval_info["Abs Cosine Sim v1"] / 20)
         )
+        if "Loss Hessian" in info:
+            info_prefix[f"{prefix}-totloss"] += info["Loss Hessian"]
+            info_prefix[f"{prefix}-totloss"] += eval_info["MAE Eigvals"]
+            info_prefix[f"{prefix}-totloss"] += (-1 * eval_info["Abs Cosine Sim v1"] / 20)
 
         # del info
         # if torch.cuda.is_available():
