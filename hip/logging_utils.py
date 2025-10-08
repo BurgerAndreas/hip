@@ -128,7 +128,7 @@ def find_latest_checkpoint(base_checkpoint_name: str, project: str) -> str:
         Path to the latest checkpoint file, or None if not found
     """
     root_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    checkpoint_base_dir = Path(f"{root_dir}/checkpoint/{project}")
+    checkpoint_base_dir = Path(f"{root_dir}/{project}")
     if not checkpoint_base_dir.exists():
         print(f"Checkpoint directory {checkpoint_base_dir} does not exist")
         return None
