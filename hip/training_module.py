@@ -469,7 +469,7 @@ class PotentialModule(LightningModule):
         self.optimizer_config = optimizer_config
         self.training_config = training_config
 
-        self.pos_require_grad = self.training_config.get("pos_require_grad", False)
+        self.pos_require_grad = self.training_config.get("pos_require_grad", True)
         if self.model_config["name"] == "EquiformerV2":
             root_dir = find_project_root()
             config_path = os.path.join(root_dir, "configs/equiformer_v2.yaml")
@@ -657,43 +657,6 @@ class PotentialModule(LightningModule):
         #     parameters = model.parameters()
         if optim_type.lower() == "adamw":
             optimizer = torch.optim.AdamW(trainable_params, **self.optimizer_config)
-        elif optim_type.lower() == "muon":
-            assert not self.training_config.get("train_hessian_only", False)
-            # Muon is an optimizer for the hidden weights of a neural network.
-            # Other parameters, such as embeddings, classifier heads, and hidden gains/biases
-            # should be optimized using standard AdamW.
-            from muon import MuonWithAuxAdam
-
-            # hidden_weights = [p for p in self.potential.body.parameters() if p.ndim >= 2]
-            # hidden_gains_biases = [p for p in self.potential.body.parameters() if p.ndim < 2]
-            # nonhidden_params = [*self.potential.head.parameters(), *self.potential.embed.parameters()]
-            # muon_params = hidden_weights
-            # adam_params = hidden_gains_biases + nonhidden_params
-            muon_params, adam_params = self.potential.get_muon_param_groups(
-                **self.optimizer_config
-            )
-            # "params", "lr", "betas", "eps", "weight_decay", "use_muon"
-            param_groups = [
-                dict(
-                    params=muon_params,
-                    use_muon=True,
-                    lr=self.optimizer_config.get("lr_muon", 0.02),
-                    weight_decay=self.optimizer_config.get("weight_decay", 0.01),
-                ),
-                # Adam
-                dict(
-                    params=adam_params,
-                    use_muon=False,
-                    lr=self.optimizer_config.get("lr", 0.0005),
-                    betas=self.optimizer_config.get("betas", (0.9, 0.999)),
-                    eps=self.optimizer_config.get("eps", 1e-12),
-                    weight_decay=self.optimizer_config.get("weight_decay", 0.01),
-                    # **self.optimizer_config
-                ),
-            ]
-            self.num_muon_params = len(muon_params)
-            print(f"Number of muon parameters: {self.num_muon_params}")
-            optimizer = MuonWithAuxAdam(param_groups)
         else:
             raise ValueError(f"Unknown optimizer: {optim_type}")
 
