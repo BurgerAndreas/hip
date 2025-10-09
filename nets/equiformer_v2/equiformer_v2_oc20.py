@@ -19,6 +19,7 @@ from ocpmodels.common.utils import (
     get_pbc_distances,
     radius_graph_pbc,
 )
+import torch_geometric
 from torch_geometric.nn import radius_graph
 
 from .gaussian_rbf import GaussianRadialBasisLayer
@@ -632,7 +633,7 @@ class EquiformerV2_OC20(BaseModel):
     @conditional_grad(torch.enable_grad())
     def generate_graph(
         self,
-        data,
+        data: torch_geometric.data.Batch,
         cutoff=None,
         max_neighbors=None,
         use_pbc=None,
@@ -732,7 +733,7 @@ class EquiformerV2_OC20(BaseModel):
 
     def forward(
         self,
-        data,
+        data: torch_geometric.data.Batch,
         hessian=True,
         return_l_features=False,
         otf_graph=None,  # will default to self.otf_graph
@@ -789,8 +790,9 @@ class EquiformerV2_OC20(BaseModel):
 
         # Compute 3x3 rotation matrix per edge [E, 3, 3]
         assert edge_distance_vec.numel() > 0, (
-            f"edge_distance_vec is empty. edge_index: {edge_index.shape}, edge_distance: {edge_distance}"
-            "You passed a data object instead of a batch. Use `from torch_geometric.data import Batch, Dataloader` to create a batch."
+            f"edge_distance_vec is empty. edge_index: {edge_index.shape}, edge_distance: {edge_distance}. "
+            "Maybe you passed a data object instead of a batch. Use `from torch_geometric.data import Batch, Dataloader` to create a batch. "
+            "Or the atoms are so far apart, that there are no edges."
         )
         edge_rot_mat = self._init_edge_rot_mat(data, edge_index, edge_distance_vec)
 
