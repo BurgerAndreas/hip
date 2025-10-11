@@ -7,6 +7,7 @@ training:
   hessian_loss_weight: 0.0
 
   pos_require_grad: true
+  otfgraph_in_model: true
 
   # regularize towards smooth forces (small curvatures)
   freg: trace # trace, frob, spectral

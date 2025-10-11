@@ -713,6 +713,7 @@ class EquiformerV2_OC20(BaseModel):
         otf_graph = otf_graph or self.otf_graph
         cutoff = cutoff or self.cutoff
         if otf_graph or not hasattr(data, "edge_distance"):
+            data.pos.requires_grad_()
             pos = data.pos
             edge_index = radius_graph(pos, r=cutoff, batch=data.batch)
             j, i = edge_index

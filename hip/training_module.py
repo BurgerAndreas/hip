@@ -568,15 +568,19 @@ class PotentialModule(LightningModule):
         # Save arguments to hparams attribute for checkpointing
         self.save_hyperparameters(logger=False)
 
+        self.pos_require_grad = True
+        self.otfgraph_in_model = True
+        
         self.use_hessian_graph_transform = True
-        if self.training_config.get("otfgraph_in_model", True):
+        if self.otfgraph_in_model:
             # no need because we will compute graph during forward pass
             self.use_hessian_graph_transform = False
 
         self.do_hessian = False
         if self.training_config.get("hessian_loss_weight", 0.0) > 0.0:
             self.do_hessian = True
-
+        
+        
     def set_wandb_run_id(self, run_id: str) -> None:
         """Set the WandB run ID for checkpoint continuation."""
         self.wandb_run_id = run_id
@@ -857,13 +861,14 @@ class PotentialModule(LightningModule):
     def compute_loss(self, batch, return_efh=False):
         loss = 0.0
         info = {}
-        # batch.pos.requires_grad_()
         batch = compute_extra_props(batch, pos_require_grad=self.pos_require_grad)
+        batch = batch.to(self.device)
+        batch.pos.requires_grad_()
 
         hat_ae, hat_forces, outputs = self.potential.forward(
-            batch.to(self.device),
+            batch,
             hessian=self.do_hessian,
-            otf_graph=self.training_config["otfgraph_in_model"],
+            otf_graph=self.otfgraph_in_model,
         )
 
         freg = self.training_config.get("freg", None)
@@ -1118,6 +1123,7 @@ class PotentialModule(LightningModule):
         return samples
 
     def training_step(self, batch, batch_idx):
+        self.pos_require_grad = True
         loss, info = self.compute_loss(batch)
 
         # self.log("train-totloss", loss, rank_zero_only=True)
@@ -1129,6 +1135,73 @@ class PotentialModule(LightningModule):
         self.log_dict(loss_dict, rank_zero_only=True)
         del info
         return loss
+
+    def compute_hessian_row_vjp(self, batch, hat_forces):
+        """Compute one row of the Hessian using VJP and compare to ground truth.
+        
+        For a batch, computes one randomly selected Hessian row per molecule using
+        a single Vector-Jacobian Product and returns the comparison metrics.
+        """
+        pos = batch.pos
+        forces = hat_forces.reshape(-1, 3)
+        N = pos.shape[0]
+        B = int(batch.batch.max()) + 1
+        
+        # Randomly select one atom and one dimension per molecule
+        atoms_per_graph = torch.bincount(batch.batch, minlength=B)
+        cumsum_atoms = torch.cat([torch.tensor([0], device=pos.device), atoms_per_graph.cumsum(0)])
+        
+        # Create a vector v to select one row: v[i,j] = 1 for one (i,j) per molecule, 0 elsewhere
+        v = torch.zeros_like(forces)
+        selected_indices = []
+        for b in range(B):
+            start_idx = cumsum_atoms[b]
+            n_atoms = atoms_per_graph[b]
+            # Randomly select atom index and dimension within this molecule
+            atom_idx = torch.randint(0, n_atoms.item(), (1,), device=pos.device).item()
+            dim_idx = torch.randint(0, 3, (1,), device=pos.device).item()
+            global_atom_idx = start_idx + atom_idx
+            v[global_atom_idx, dim_idx] = 1.0
+            selected_indices.append((b, atom_idx, dim_idx))
+        
+        # Compute VJP: gradient of (v^T F) w.r.t. pos gives one row of -Hessian
+        hessian_row_vjp = torch.autograd.grad(
+            outputs=(forces * v).sum(),
+            inputs=pos,
+            retain_graph=True,
+            create_graph=False,
+        )[0]  # Shape: (N, 3)
+        
+        # Hessian = -dF/dx, so negate
+        hessian_row_vjp = -hessian_row_vjp.reshape(-1)  # Flatten to (N*3,)
+        
+        # Extract corresponding row from ground truth Hessian
+        hessian_true = batch.hessian.reshape(N, 3, N, 3)  # (N, 3, N, 3)
+        
+        mae_per_mol = []
+        mse_per_mol = []
+        for b, atom_idx, dim_idx in selected_indices:
+            start_idx = cumsum_atoms[b]
+            n_atoms = atoms_per_graph[b]
+            global_atom_idx = start_idx + atom_idx
+            
+            # Extract the row from VJP result for this molecule
+            mol_start = cumsum_atoms[b]
+            mol_end = cumsum_atoms[b + 1]
+            vjp_row = hessian_row_vjp[mol_start * 3 : mol_end * 3]  # (n_atoms*3,)
+            
+            # Extract corresponding row from ground truth
+            # hessian_true[global_atom_idx, dim_idx] gives row for atom_idx, dim_idx
+            true_row = hessian_true[global_atom_idx, dim_idx, mol_start:mol_end, :].reshape(-1)  # (n_atoms*3,)
+            
+            # Compute error metrics
+            mae_per_mol.append((vjp_row - true_row).abs().mean())
+            mse_per_mol.append((vjp_row - true_row).pow(2).mean())
+        
+        mae_vjp = torch.stack(mae_per_mol).mean().item()
+        mse_vjp = torch.stack(mse_per_mol).mean().item()
+        
+        return {"MAE Hessian Row VJP": mae_vjp, "MSE Hessian Row VJP": mse_vjp}
 
     def compute_eval_loss(self, batch, prefix, efh):
         """Compute comprehensive evaluation metrics for eigenvalues and eigenvectors."""
@@ -1144,10 +1217,14 @@ class PotentialModule(LightningModule):
             num_dirs=self.training_config.get("fd_dirs", 2),
             project_trans=self.training_config.get("proj", False),
             pos_require_grad=self.pos_require_grad,
-            otf_graph=self.training_config.get("otfgraph_in_model", False),
+            otf_graph=self.otfgraph_in_model,
             device=self.device,
         )
         eval_metrics["Smoothness FD"] = smooth.mean().item()
+        
+        # VJP-based Hessian row comparison
+        vjp_metrics = self.compute_hessian_row_vjp(batch, hat_forces)
+        eval_metrics.update(vjp_metrics)
 
         if "hessian" in outputs:
             hessian_true = batch.hessian
@@ -1161,6 +1238,7 @@ class PotentialModule(LightningModule):
                 (hessian_pred.squeeze() - hessian_true.squeeze()).abs().mean().item()
             )
 
+
             # Eigenvalue, Eigenvector metrics
             eig_metrics = get_eigval_eigvec_metrics(
                 hessian_true.to("cpu"),
@@ -1173,6 +1251,7 @@ class PotentialModule(LightningModule):
         return eval_metrics
 
     def _shared_eval(self, batch, batch_idx, prefix, *args):
+        self.potential.train()
         # compute training loss on eval set
         if self.pos_require_grad:
             with torch.enable_grad():
@@ -1206,9 +1285,11 @@ class PotentialModule(LightningModule):
         return info_prefix
 
     def validation_step(self, batch, batch_idx, *args):
+        self.pos_require_grad = True
         return self._shared_eval(batch, batch_idx, "val", *args)
 
     def test_step(self, batch, batch_idx, *args):
+        self.pos_require_grad = True
         return self._shared_eval(batch, batch_idx, "test", *args)
 
     def on_validation_batch_end(self, outputs, batch, batch_idx, dataloader_idx=0):
