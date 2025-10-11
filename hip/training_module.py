@@ -90,8 +90,8 @@ def get_datasplit(dataset, dataset_name: str, split: str, splitsize: str | int, 
     Args:
         dataset: The dataset to split (can be SchemaUniformDataset or LmdbDataset)
         dataset_name: Name of the dataset (e.g., "ts1x_hess_train_big")
-        split: Split strategy - "random" or "formula"
-        splitsize: Size of split - integer for count, "unseen" for unseen formulas
+        split: Split strategy - "random", "formula", or "size"
+        splitsize: Size of split - integer for count, "unseen" for unseen formulas, or max atoms for size split
         splitseed: Random seed for reproducibility
     
     Returns:
@@ -163,6 +163,36 @@ def get_datasplit(dataset, dataset_name: str, split: str, splitsize: str | int, 
             selected_indices = df_metadata[df_metadata['formula'].isin(selected_formulas)]['index'].tolist()
             
             print(f"Formula subset split: selected {n_formulas_to_select} formulas ({len(selected_indices)} samples) from {n_unique_formulas} unique formulas")
+        
+        return Subset(dataset, selected_indices)
+    
+    elif split == "size":
+        # Size-based split - filter by maximum number of atoms
+        # Load metadata file with atom count information
+        metadata_file = f"metadata/dataset_metadata_{dataset_name}.parquet"
+        
+        if not os.path.exists(metadata_file):
+            raise FileNotFoundError(f"Metadata file {metadata_file} not found.")
+        
+        df_metadata = pd.read_parquet(metadata_file)
+        
+        # Filter by maximum number of atoms
+        max_atoms = int(splitsize)
+        size_filtered = df_metadata[df_metadata['natoms'] <= max_atoms]
+        selected_indices = size_filtered['index'].tolist()
+        
+        # Get the baseline count (samples with <= 8 atoms) for consistent dataset size
+        baseline_count = len(df_metadata[df_metadata['natoms'] <= 8])
+        
+        # If we have more samples than the baseline, randomly sample to match baseline size
+        if len(selected_indices) > baseline_count:
+            rng = np.random.RandomState(splitseed)
+            selected_indices = rng.choice(selected_indices, size=baseline_count, replace=False).tolist()
+        
+        print(f"Size split (max {max_atoms} atoms): selected {len(selected_indices)} samples from {len(df_metadata)} total")
+        print(f"  - Samples with <= 8 atoms: {len(df_metadata[df_metadata['natoms'] <= 8])}")
+        print(f"  - Samples with <= {max_atoms} atoms: {len(df_metadata[df_metadata['natoms'] <= max_atoms])}")
+        print(f"  - Final selected: {len(selected_indices)} (capped at baseline size)")
         
         return Subset(dataset, selected_indices)
     
