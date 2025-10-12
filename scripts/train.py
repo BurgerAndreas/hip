@@ -187,15 +187,14 @@ def setup_training(cfg: DictConfig):
             checkpoint = torch.load(
                 cfg.ckpt_trainer_path, map_location="cpu", weights_only=False
             )
-            if "state_dict" in checkpoint:
-                # Look for wandb_run_id in the model state
-                for key, value in checkpoint["state_dict"].items():
-                    if key == "wandb_run_id" and value is not None:
-                        wandb_run_id = value
-                        print(f"Found WandB run ID in checkpoint: {wandb_run_id}")
-                        break
+            # Look for wandb_run_id 
+            for key, value in checkpoint.items():
+                if key == "wandb_run_id" and value is not None:
+                    wandb_run_id = value
+                    print(f"Found WandB run ID in checkpoint: {wandb_run_id}")
+                    break
             if wandb_run_id is None:
-                print("No WandB run ID found in checkpoint:", [k for k in checkpoint["state_dict"].keys() if "potential" not in k])
+                print("No WandB run ID found in checkpoint:", [k for k in checkpoint.keys() if "potential" not in k])
         except Exception as e:
             print(f"Could not extract WandB run ID from checkpoint: {e}")
 
