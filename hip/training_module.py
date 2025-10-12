@@ -201,7 +201,7 @@ def get_datasplit(dataset, dataset_name: str, split: str, splitsize: str | int, 
         raise ValueError(f"Unknown split type '{split}'")
 
 
-def get_eval_sets_by_atom_count(dataset, dataset_name: str, max_atoms: int, splitseed: int, max_samples_per_size: int = 100):
+def get_eval_sets_by_atom_count(dataset, dataset_name: str, max_atoms: int, splitseed: int, max_samples_per_size: int = 32):
     """
     Create eval sets grouped by atom count for size-based evaluation.
     
@@ -684,7 +684,7 @@ class PotentialModule(LightningModule):
                     dataset_name=dataset_name,
                     max_atoms=max_atoms,
                     splitseed=self.training_config.get("splitseed", 0),
-                    max_samples_per_size=self.training_config.get("max_samples_per_eval_size", 100),
+                    max_samples_per_size=self.training_config.get("max_samples_per_eval_size", 32),
                 )
                 print(f"Created eval datasets for atom counts: {list(self.eval_datasets.keys())}")
             

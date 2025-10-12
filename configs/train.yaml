@@ -85,7 +85,7 @@ training:
   # Eval set configuration (only used when split=size)
   create_eval_sets: true # Create eval sets by atom count when split=size
   max_eval_atoms: 20 # Maximum atom count for eval sets (default: 20)
-  max_samples_per_eval_size: 64 # Maximum samples per atom count in eval sets
+  max_samples_per_eval_size: 32 # Maximum samples per atom count in eval sets
   eval_sets_in_validation: true # Evaluate eval sets during validation loop
 
 # Pytorch Lightning Trainer configuration
