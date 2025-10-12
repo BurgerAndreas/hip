@@ -195,7 +195,7 @@ def setup_training(cfg: DictConfig):
                         print(f"Found WandB run ID in checkpoint: {wandb_run_id}")
                         break
             if wandb_run_id is None:
-                print("No WandB run ID found in checkpoint:", checkpoint["state_dict"].keys())
+                print("No WandB run ID found in checkpoint:", [k for k in checkpoint["state_dict"].keys() if "potential" not in k])
         except Exception as e:
             print(f"Could not extract WandB run ID from checkpoint: {e}")
 
