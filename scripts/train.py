@@ -91,8 +91,6 @@ def setup_training(cfg: DictConfig):
         ckpt = torch.load(
             CHECKPOINT_PATH_EQUIFORMER_HORM, map_location="cuda", weights_only=True
         )
-        print(f"Checkpoint keys: {ckpt.keys()}")
-        print(f"Checkpoint state_dict keys: {len(ckpt['state_dict'].keys())}")
         # keys all start with `potential.`
         state_dict = {
             k.replace("potential.", ""): v for k, v in ckpt["state_dict"].items()
@@ -188,15 +186,13 @@ def setup_training(cfg: DictConfig):
                 cfg.ckpt_trainer_path, map_location="cpu", weights_only=False
             )
             # Look for wandb_run_id 
-            for key, value in checkpoint.items():
+            for key, value in checkpoint["hyper_parameters"].items():
                 if key == "wandb_run_id" and value is not None:
                     wandb_run_id = value
                     print(f"Found WandB run ID in checkpoint: {wandb_run_id}")
                     break
             if wandb_run_id is None:
-                print("No WandB run ID found in checkpoint:", [k for k in checkpoint.keys() if "potential" not in k])
-                print("hparams_name:", checkpoint["hparams_name"])
-                print("hyper_parameters:", checkpoint["hyper_parameters"])
+                print("No WandB run ID found in checkpoint:", checkpoint["hyper_parameters"])
         except Exception as e:
             print(f"Could not extract WandB run ID from checkpoint: {e}")
 

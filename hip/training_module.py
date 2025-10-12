@@ -382,6 +382,8 @@ class PotentialModule(LightningModule):
         self.val_step_outputs = []
 
         self.wandb_run_id = None
+        if wandb.run is not None:
+            self.wandb_run_id = wandb.run.id
         self.num_muon_params = None
         self.grad_norm_history = []
 
