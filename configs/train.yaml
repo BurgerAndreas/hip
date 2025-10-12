@@ -87,6 +87,7 @@ training:
   max_eval_atoms: 20 # Maximum atom count for eval sets (default: 20)
   max_samples_per_eval_size: 32 # Maximum samples per atom count in eval sets
   eval_sets_in_validation: true # Evaluate eval sets during validation loop
+  equal_samples_per_size: false # If True and split is "size", get equal number of samples for each atom count
 
 # Pytorch Lightning Trainer configuration
 pltrainer:

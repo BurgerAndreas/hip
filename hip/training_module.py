@@ -83,7 +83,7 @@ def add_weight_decay(model, weight_decay=1e-5, skip_list=()):
         {"params": decay, "weight_decay": weight_decay},
     ]
 
-def get_datasplit(dataset, dataset_name: str, split: str, splitsize: str | int, splitseed: int):
+def get_datasplit(dataset, dataset_name: str, split: str, splitsize: str | int, splitseed: int, equal_samples_per_size: bool = False):
     """
     Split dataset based on specified strategy.
     
@@ -93,6 +93,7 @@ def get_datasplit(dataset, dataset_name: str, split: str, splitsize: str | int, 
         split: Split strategy - "random", "formula", or "size"
         splitsize: Size of split - integer for count, "unseen" for unseen formulas, or max atoms for size split
         splitseed: Random seed for reproducibility
+        equal_samples_per_size: If True and split is "size", get equal number of samples for each atom count
     
     Returns:
         Subset of the dataset based on split strategy
@@ -179,20 +180,54 @@ def get_datasplit(dataset, dataset_name: str, split: str, splitsize: str | int, 
         # Filter by maximum number of atoms
         max_atoms = int(splitsize)
         size_filtered = df_metadata[df_metadata['natoms'] <= max_atoms]
-        selected_indices = size_filtered['index'].tolist()
         
-        # Get the baseline count (samples with <= 8 atoms) for consistent dataset size
-        baseline_count = len(df_metadata[df_metadata['natoms'] <= 8])
-        
-        # If we have more samples than the baseline, randomly sample to match baseline size
-        if len(selected_indices) > baseline_count:
+        if equal_samples_per_size:
+            # Equal sampling: get equal number of samples for each atom count
             rng = np.random.RandomState(splitseed)
-            selected_indices = rng.choice(selected_indices, size=baseline_count, replace=False).tolist()
-        
-        print(f"Size split (max {max_atoms} atoms): selected {len(selected_indices)} samples from {len(df_metadata)} total")
-        print(f"  - Samples with <= 8 atoms: {len(df_metadata[df_metadata['natoms'] <= 8])}")
-        print(f"  - Samples with <= {max_atoms} atoms: {len(df_metadata[df_metadata['natoms'] <= max_atoms])}")
-        print(f"  - Final selected: {len(selected_indices)} (capped at baseline size)")
+            selected_indices = []
+            
+            # Get samples for each atom count from 8 to max_atoms
+            for atom_count in range(8, max_atoms + 1):
+                atom_samples = size_filtered[size_filtered['natoms'] == atom_count]
+                if len(atom_samples) > 0:
+                    # Calculate how many samples to take per atom count
+                    # Use the minimum available across all atom counts to ensure equal distribution
+                    if atom_count == 8:
+                        # First pass: find the minimum count across all atom counts
+                        min_count = min([len(size_filtered[size_filtered['natoms'] == ac]) for ac in range(8, max_atoms + 1)])
+                        samples_per_size = min_count
+                        print(f"Equal sampling: {samples_per_size} samples per atom count")
+                    
+                    # Sample the calculated number of samples for this atom count
+                    if len(atom_samples) >= samples_per_size:
+                        atom_indices = rng.choice(atom_samples['index'].tolist(), size=samples_per_size, replace=False).tolist()
+                    else:
+                        # If we don't have enough samples, take all available
+                        atom_indices = atom_samples['index'].tolist()
+                        print(f"Warning: Only {len(atom_indices)} samples available for {atom_count} atoms (requested {samples_per_size})")
+                    
+                    selected_indices.extend(atom_indices)
+                    print(f"  - {atom_count} atoms: {len(atom_indices)} samples")
+            
+            print(f"Equal size split (max {max_atoms} atoms): selected {len(selected_indices)} samples from {len(df_metadata)} total")
+            print(f"  - Equal distribution across atom counts 8-{max_atoms}")
+            
+        else:
+            # Original behavior: random sampling with baseline cap
+            selected_indices = size_filtered['index'].tolist()
+            
+            # Get the baseline count (samples with <= 8 atoms) for consistent dataset size
+            baseline_count = len(df_metadata[df_metadata['natoms'] <= 8])
+            
+            # If we have more samples than the baseline, randomly sample to match baseline size
+            if len(selected_indices) > baseline_count:
+                rng = np.random.RandomState(splitseed)
+                selected_indices = rng.choice(selected_indices, size=baseline_count, replace=False).tolist()
+            
+            print(f"Size split (max {max_atoms} atoms): selected {len(selected_indices)} samples from {len(df_metadata)} total")
+            print(f"  - Samples with <= 8 atoms: {len(df_metadata[df_metadata['natoms'] <= 8])}")
+            print(f"  - Samples with <= {max_atoms} atoms: {len(df_metadata[df_metadata['natoms'] <= max_atoms])}")
+            print(f"  - Final selected: {len(selected_indices)} (capped at baseline size)")
         
         return Subset(dataset, selected_indices)
     
@@ -600,6 +635,7 @@ class PotentialModule(LightningModule):
                         split=self.training_config.get("split", None),
                         splitsize=self.training_config.get("splitsize", None),
                         splitseed=self.training_config.get("splitseed", 0),
+                        equal_samples_per_size=self.training_config.get("equal_samples_per_size", False),
                     )
                     
                     datasets.append(split_dataset)
@@ -645,6 +681,7 @@ class PotentialModule(LightningModule):
                     split=self.training_config.get("split", None),
                     splitsize=self.training_config.get("splitsize", None),
                     splitseed=self.training_config.get("splitseed", 0),
+                    equal_samples_per_size=self.training_config.get("equal_samples_per_size", False),
                 )
             # val dataset
             transform = None
