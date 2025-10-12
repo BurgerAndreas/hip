@@ -2,7 +2,7 @@
 PyTorch Lightning module for training AlphaNet
 """
 
-from typing import Dict, List, Optional, Tuple, Any, Mapping
+from typing import Dict, List, Optional
 from collections.abc import Iterable
 from omegaconf import ListConfig, OmegaConf
 import os
@@ -36,7 +36,7 @@ from ocpmodels.hessian_graph_transform import (
 )
 
 from hip.ff_lmdb import LmdbDataset
-from hip.utils import average_over_batch_metrics, pretty_print
+from hip.utils import average_over_batch_metrics
 
 # import hip.utils as diff_utils
 import yaml
@@ -199,6 +199,54 @@ def get_datasplit(dataset, dataset_name: str, split: str, splitsize: str | int, 
     else:
         print(f"Warning: Unknown split type '{split}'. Returning full dataset.")
         raise ValueError(f"Unknown split type '{split}'")
+
+
+def get_eval_sets_by_atom_count(dataset, dataset_name: str, max_atoms: int, splitseed: int, max_samples_per_size: int = 100):
+    """
+    Create eval sets grouped by atom count for size-based evaluation.
+    
+    Args:
+        dataset: The dataset to split (can be SchemaUniformDataset or LmdbDataset)
+        dataset_name: Name of the dataset (e.g., "ts1x_hess_train_big")
+        max_atoms: Maximum number of atoms to consider (creates sets for 8 to max_atoms)
+        splitseed: Random seed for reproducibility
+        max_samples_per_size: Maximum samples per atom count to avoid memory issues
+    
+    Returns:
+        Dictionary with keys as atom counts (8 to max_atoms) and values as Subset datasets
+    """
+    from torch.utils.data import Subset
+    
+    # Load metadata file with atom count information
+    metadata_file = f"metadata/dataset_metadata_{dataset_name}.parquet"
+    
+    if not os.path.exists(metadata_file):
+        raise FileNotFoundError(f"Metadata file {metadata_file} not found.")
+    
+    df_metadata = pd.read_parquet(metadata_file)
+    
+    eval_sets = {}
+    rng = np.random.RandomState(splitseed)
+    
+    # Create eval sets for each atom count from 8 to max_atoms
+    for atom_count in range(8, max_atoms + 1):
+        # Filter samples with exactly this atom count
+        atom_filtered = df_metadata[df_metadata['natoms'] == atom_count]
+        
+        if len(atom_filtered) > 0:
+            selected_indices = atom_filtered['index'].tolist()
+            
+            # If we have too many samples, randomly sample a subset for efficiency
+            if len(selected_indices) > max_samples_per_size:
+                selected_indices = rng.choice(selected_indices, size=max_samples_per_size, replace=False).tolist()
+            
+            eval_sets[atom_count] = Subset(dataset, selected_indices)
+            print(f"Eval set for {atom_count} atoms: {len(selected_indices)} samples")
+        else:
+            print(f"No samples found with exactly {atom_count} atoms")
+            eval_sets[atom_count] = Subset(dataset, [])  # Empty subset
+    
+    return eval_sets
 
 class SchemaUniformDataset:
     """Wrapper that ensures all datasets have the same attributes.
@@ -388,7 +436,7 @@ class PotentialModule(LightningModule):
         try:
             training_config["trn_path"] = fix_dataset_path(training_config["trn_path"])
             training_config["val_path"] = fix_dataset_path(training_config["val_path"])
-        except Exception as e:
+        except Exception:
             pass
         return training_config
 
@@ -612,6 +660,34 @@ class PotentialModule(LightningModule):
                     **self.training_config,
                 )
             )
+            
+            # Create eval sets by atom count if split is size and create_eval_sets is enabled
+            self.eval_datasets = None
+            if (self.training_config.get("split") == "size" and 
+                self.training_config.get("create_eval_sets", True)):
+                print("Creating eval sets by atom count...")
+                # Use the same transform as validation dataset
+                val_base_dataset = SchemaUniformDataset(
+                    LmdbDataset(
+                        Path(self.training_config["val_path"]),
+                        transform=transform,
+                        **self.training_config,
+                    )
+                )
+                
+                # Get max atoms from config
+                max_atoms = int(self.training_config.get("max_eval_atoms", 20))
+                dataset_name = Path(self.training_config["val_path"]).stem
+                
+                self.eval_datasets = get_eval_sets_by_atom_count(
+                    dataset=val_base_dataset,
+                    dataset_name=dataset_name,
+                    max_atoms=max_atoms,
+                    splitseed=self.training_config.get("splitseed", 0),
+                    max_samples_per_size=self.training_config.get("max_samples_per_eval_size", 100),
+                )
+                print(f"Created eval datasets for atom counts: {list(self.eval_datasets.keys())}")
+            
             print("Number of training samples: ", len(self.train_dataset))
             print("Number of validation samples: ", len(self.val_dataset))
             num_train_batches = len(self.train_dataset) // self.training_config["bz"]
@@ -682,6 +758,61 @@ class PotentialModule(LightningModule):
             follow_batch=self.training_config["follow_batch"],
             drop_last=self.training_config["drop_last"],
         )
+
+    def evaluate_eval_sets(self):
+        """
+        Evaluate the model on eval sets grouped by atom count.
+        Returns metrics for each atom count.
+        """
+        if self.eval_datasets is None:
+            return {}
+        else:
+            eval_dataloaders = {}
+            for atom_count, dataset in self.eval_datasets.items():
+                if len(dataset) > 0:  # Only create dataloader if dataset is not empty
+                    eval_dataloaders[atom_count] = TGDataLoader(
+                        dataset,
+                        batch_size=self.training_config["bz_val"],
+                        shuffle=False,
+                        num_workers=self.training_config["num_workers"],
+                        follow_batch=self.training_config["follow_batch"],
+                        drop_last=False,  # Don't drop last for eval sets
+                    )
+        
+        eval_metrics = {}
+        
+        for atom_count, dataloader in eval_dataloaders.items():
+            if len(dataloader.dataset) == 0:
+                continue  # Skip empty datasets
+                
+            atom_metrics = []
+            
+            # Evaluate on all batches for this atom count
+            for batch_idx, batch in enumerate(dataloader):
+                with torch.no_grad():
+                    loss, info, efh = self.compute_loss(batch, return_efh=True)
+                    
+                    # Compute eval metrics
+                    eval_info = self.compute_eval_loss(batch, prefix=f"eval_{atom_count}", efh=efh)
+                    
+                    # Combine loss info and eval info
+                    batch_metrics = {}
+                    for k, v in info.items():
+                        batch_metrics[f"eval_{atom_count}-{k}"] = v
+                    for k, v in eval_info.items():
+                        batch_metrics[f"eval_{atom_count}-{k}"] = v
+                    
+                    # Add total loss
+                    batch_metrics[f"eval_{atom_count}-totloss"] = loss.item()
+                    
+                    atom_metrics.append(batch_metrics)
+            
+            # Average metrics across batches for this atom count
+            if atom_metrics:
+                avg_metrics = average_over_batch_metrics(atom_metrics)
+                eval_metrics.update(avg_metrics)
+                
+        return eval_metrics
 
     @torch.enable_grad()
     def compute_loss(self, batch, return_efh=False):
@@ -817,13 +948,14 @@ class PotentialModule(LightningModule):
 
     def on_validation_epoch_end(self):
         val_epoch_metrics = average_over_batch_metrics(self.val_step_outputs)
-        # if self.trainer.is_global_zero:
-        #     # tqdm.write(f"Val epoch {self.current_epoch} completed")
-        #     pretty_print(
-        #         self.current_epoch,
-        #         {"val-totloss": val_epoch_metrics["val-totloss"]},
-        #         prefix="\nVal"
-        #     )
+
+        # Evaluate eval sets if they exist and are enabled
+        if (self.eval_datasets is not None and 
+            self.training_config.get("eval_sets_in_validation", True)):
+            print("Evaluating eval sets by atom count...")
+            eval_metrics = self.evaluate_eval_sets()
+            val_epoch_metrics.update(eval_metrics)
+            print(f"Eval set metrics logged for atom counts: {list(set([k.split('-')[0].replace('eval_', '') for k in eval_metrics.keys() if k.startswith('eval_')]))}")
 
         val_epoch_metrics.update({"epoch": self.current_epoch})
         for k, v in val_epoch_metrics.items():

@@ -263,5 +263,8 @@ if __name__ == "__main__":
     """Try:
     python scripts/train.py experiment=debug
     python scripts/train.py training.bz=2
+    
+    For size-based eval sets:
+    python scripts/train.py training.split=size training.splitsize=20 training.create_eval_sets=true training.eval_sets_in_validation=true
     """
     main()

@@ -81,6 +81,12 @@ training:
   split: null # str: random, formula, size
   splitsize: null # int: 1e3 or str: unseen or max atoms for size split
   splitseed: 0
+  
+  # Eval set configuration (only used when split=size)
+  create_eval_sets: true # Create eval sets by atom count when split=size
+  max_eval_atoms: 20 # Maximum atom count for eval sets (default: 20)
+  max_samples_per_eval_size: 64 # Maximum samples per atom count in eval sets
+  eval_sets_in_validation: true # Evaluate eval sets during validation loop
 
 # Pytorch Lightning Trainer configuration
 pltrainer:
@@ -107,7 +113,7 @@ ckpt_base_dir: "checkpoint/datascaling"
 ckpt_model_path: null # horm for finetuning
 # Checkpoint that contains model weights and optimizerstate , lr state, etc. 
 ckpt_trainer_path: null
-ckpt_resume_auto: false
+ckpt_resume_auto: true
 ckpt_do_save: true
 
 # will be overwritten later
