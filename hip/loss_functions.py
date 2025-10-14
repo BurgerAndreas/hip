@@ -250,6 +250,10 @@ def get_eigval_eigvec_metrics(hessian_true, hessian_pred, data, prefix=""):
         hessian_pred_b = hessian_pred[_start:_end]
         hessian_true_b = hessian_true[_start:_end]
 
+        print("z shape", data.z.shape)
+        print("natoms shape", natoms.shape)
+        print("batch shape", data.batch.shape)
+
         hessian_pred_b = hessian_pred_b.reshape(natoms[_b] * 3, natoms[_b] * 3)
         hessian_true_b = hessian_true_b.reshape(natoms[_b] * 3, natoms[_b] * 3)
 

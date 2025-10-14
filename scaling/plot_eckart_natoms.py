@@ -55,9 +55,11 @@ else:
         # Keep only columns containing "val"
         summary_dict = {k: v for k, v in summary_dict.items() if "val" in k}
 
-        if "eval_8-Loss E" not in summary_dict:
+        if "eval_8-Loss E" in summary_dict:
+            # old runs
             continue
-        if "val-MAE Val1 Eckart" in summary_dict:
+        if "val-MAE Val1 Eckart" not in summary_dict:
+            # old runs
             continue
 
         # # try to find minimal value in history
