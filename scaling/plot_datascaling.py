@@ -21,7 +21,7 @@ for losstype in ["Loss E", "Loss F", "MAE Hessian"]:
     ]
 
     # Load the CSV file
-    df = pd.read_csv(f"wandb_datascaling_loss_{human_name.lower()}.csv")
+    df = pd.read_csv(f"scaling/wandb_datascaling_loss_{human_name.lower()}.csv")
 
     # Print basic info about the dataset
     print("Original dataset shape:", df.shape)

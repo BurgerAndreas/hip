@@ -4,6 +4,7 @@ import os
 import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
+from tqdm import tqdm
 
 
 def flatten_dict(d, parent_key="", sep="."):
@@ -42,7 +43,7 @@ else:
     runs = api.runs("andreas-burger/hip")
 
     list_of_runs = []
-    for run in runs:
+    for run in tqdm(runs):
         if (
             "split" not in run.config["training"]
             or run.config["training"]["split"] != "size"
@@ -57,6 +58,27 @@ else:
         if "eval_8-Loss E" not in summary_dict:
             continue
 
+        # # try to find minimal value in history
+        # # Returns: An iterable collection over history records (dict)
+        # keys = [k for k in summary_dict.keys()]
+        # print("keys", keys)
+        # history = run.scan_history(keys=keys)
+        # tqdm.write("Got history")
+        # print("history", history)
+        # # Compute minima per metric column
+        # min_history = {}
+        # for c in keys:
+        #     c_values = [row[c] for row in history]
+        #     print("c_values", c_values)
+        #     min_history[c] = float(np.nanmin(c_values))
+        #     if np.nanmin(c_values) is not None:
+        #         print(f"-> Min value for {c}: {min_history[c]}")
+        #     else:
+        #         print(f"-> No non-NaN values found for {c}")
+        
+        # # over write last value with min value
+        # summary_dict.update(min_history)
+
         # .config contains the hyperparameters.
         #  We remove special values that start with _.
         config_dict = {k: v for k, v in run.config.items() if not k.startswith("_")}
@@ -64,7 +86,7 @@ else:
         config_dict = flatten_dict(config_dict)
         # Keep only columns containing "weight" or "split"
         config_dict = {
-            k: v for k, v in config_dict.items() if "weight" in k or "split" in k
+            k: v for k, v in config_dict.items() if "weight" in k or "split" in k or "equal_samples_per_size" in k
         }
 
         # .name is the human-readable name of the run.
@@ -99,13 +121,15 @@ for loss_type in ["Loss E", "Loss F", "MAE Hessian"]:
     matching_cols = [col for col in df.columns if loss_type in col]
 
     # Keep only loss-related columns plus name and hessian weight
-    columns_to_keep = ["name", "training.splitsize", "training.hessian_loss_weight"] + matching_cols
+    columns_to_keep = ["name", "training.splitsize", "training.hessian_loss_weight", "training.equal_samples_per_size"] + matching_cols
     df = df[columns_to_keep]
     
 
     print(f"\nDataFrame shape: {df.shape}")
     print("\nFirst few rows:")
     print(df.head())
+    # map training.equal_samples_per_size nan to False
+    df["training.equal_samples_per_size"] = df["training.equal_samples_per_size"].fillna(False)
 
     ##########################################################
     # Plot evaluation metrics
@@ -157,11 +181,13 @@ for loss_type in ["Loss E", "Loss F", "MAE Hessian"]:
                         "Value": float(val),
                         "Split Size": splitsize,
                         "Method": row["name"],
+                        "Equal Samples Per Size": bool(row["training.equal_samples_per_size"]),
                     }
                 )
 
     if plot_data:
         plot_df = pd.DataFrame(plot_data)
+        plot_df = plot_df[~plot_df["Equal Samples Per Size"]]
         # Sort by split size for consistent ordering
         plot_df = plot_df.sort_values("Split Size", ascending=False)
         sns.lineplot(
@@ -251,7 +277,8 @@ for loss_type in ["Loss E", "Loss F", "MAE Hessian"]:
                         "Value": float(val),
                         "Split Size": splitsize,
                         "Method": row["name"],
-                        "Line Style": "Solid"
+                        "Line Style": "Solid",
+                        "Equal Samples Per Size": bool(row["training.equal_samples_per_size"]),
                     }
                 )
     
@@ -268,7 +295,8 @@ for loss_type in ["Loss E", "Loss F", "MAE Hessian"]:
                         "Value": float(val),
                         "Split Size": splitsize,
                         "Method": row["name"],
-                        "Line Style": "Dashed"
+                        "Line Style": "Dashed",
+                        "Equal Samples Per Size": bool(row["training.equal_samples_per_size"]),
                     }
                 )
     
@@ -277,6 +305,7 @@ for loss_type in ["Loss E", "Loss F", "MAE Hessian"]:
         
         # Plot solid lines first (hessian > 0) - color by Split Size only
         solid_df = plot_df[plot_df["Line Style"] == "Solid"]
+        solid_df = solid_df[~solid_df["Equal Samples Per Size"]]
         if not solid_df.empty:
             sns.lineplot(
                 data=solid_df,
@@ -292,6 +321,7 @@ for loss_type in ["Loss E", "Loss F", "MAE Hessian"]:
         
         # Plot dashed lines (hessian == 0) with correct colors but single legend entry
         dashed_df = plot_df[plot_df["Line Style"] == "Dashed"]
+        dashed_df = dashed_df[~dashed_df["Equal Samples Per Size"]]
         print("Number of dashed lines:", len(dashed_df))
         if not dashed_df.empty:
             # Get unique split sizes for dashed lines to assign colors
@@ -327,6 +357,144 @@ for loss_type in ["Loss E", "Loss F", "MAE Hessian"]:
     # Save the plot
     filename = os.path.join(
         base_dir, f"natoms_eval_{loss_type.replace(' ', '_').lower()}_ef_plot.png"
+    )
+    plt.savefig(filename, dpi=300, bbox_inches="tight")
+    print(f"Saved plot: {filename}")
+    plt.cla()
+    plt.clf()
+    plt.close()
+
+    ##########################################################
+    # Plot only specific split sizes
+    # training.equal_samples_per_size == True as solid lines
+    # training.equal_samples_per_size == False as dashed lines
+    # color by "Split Size", label by "Method"
+    # only plot the sizes that exist for equal_samples_per_size == True
+
+    plt.figure(figsize=(12, 8))
+
+    # Determine which split sizes exist for equal_samples_per_size == True
+    df_eq_true = df[df["training.equal_samples_per_size"]]
+    target_split_sizes = sorted(df_eq_true["training.splitsize"].dropna().unique().tolist())
+
+    if len(target_split_sizes) == 0:
+        print("No data found where training.equal_samples_per_size == True")
+        continue
+
+    # Filter for only those split sizes
+    df_filtered = df[df["training.splitsize"].isin(target_split_sizes)]
+
+    # Use all available x values instead of filtering
+    eval_cols = [col for col in df_filtered.columns if "eval_" in col and loss_type in col]
+    if not eval_cols:
+        print(f"No eval columns found for {loss_type}")
+        continue
+
+    # Extract x values from column names
+    x_values = []
+    for col in eval_cols:
+        try:
+            x_val = int(col.split("eval_")[1].split("-")[0])
+            x_values.append(x_val)
+        except (IndexError, ValueError):
+            continue
+
+    if not x_values:
+        print(f"Could not extract x values for {loss_type}")
+        continue
+
+    # Sort columns by x value
+    sorted_cols = sorted(zip(x_values, eval_cols))
+    x_vals = [x for x, _ in sorted_cols]
+    sorted_eval_cols = [col for _, col in sorted_cols]
+
+    # Prepare data for both equal_samples_per_size True (dotted) and False (solid)
+    plot_data = []
+
+    # Dotted: equal_samples_per_size == True
+    for idx, row in df_filtered[df_filtered["training.equal_samples_per_size"]].iterrows():
+        splitsize = row.get("training.splitsize", f"Split {idx}")
+        for i, col in enumerate(sorted_eval_cols):
+            val = row[col]
+            if pd.notna(val) and val is not None:
+                plot_data.append(
+                    {
+                        "X Value": x_vals[i],
+                        "Value": float(val),
+                        "Split Size": splitsize,
+                        "Method": row["name"],
+                        "Line Style": "Dotted",
+                    }
+                )
+
+    # Solid: equal_samples_per_size == False (but only those split sizes that exist for True)
+    for idx, row in df_filtered[~df_filtered["training.equal_samples_per_size"]].iterrows():
+        splitsize = row.get("training.splitsize", f"Split {idx}")
+        for i, col in enumerate(sorted_eval_cols):
+            val = row[col]
+            if pd.notna(val) and val is not None:
+                plot_data.append(
+                    {
+                        "X Value": x_vals[i],
+                        "Value": float(val),
+                        "Split Size": splitsize,
+                        "Method": row["name"],
+                        "Line Style": "Solid",
+                    }
+                )
+
+    if plot_data:
+        plot_df = pd.DataFrame(plot_data)
+
+        # Plot solid lines first (Unequal samples) - color by Split Size only
+        solid_df = plot_df[plot_df["Line Style"] == "Solid"]
+        if not solid_df.empty:
+            sns.lineplot(
+                data=solid_df,
+                x="X Value",
+                y="Value",
+                hue="Split Size",
+                marker="o",
+                linewidth=2,
+                markersize=4,
+                palette="viridis",
+                linestyle="-",
+            )
+
+        # Plot dotted lines (Equal samples) with matching colors but single legend entry for linestyle
+        dotted_df = plot_df[plot_df["Line Style"] == "Dotted"]
+        if not dotted_df.empty:
+            unique_split_sizes = dotted_df["Split Size"].unique()
+            colors = plt.cm.viridis(np.linspace(0, 1, len(unique_split_sizes)))
+            split_size_to_color = dict(zip(unique_split_sizes, colors))
+
+            for split_size in unique_split_sizes:
+                split_data = dotted_df[dotted_df["Split Size"] == split_size]
+                plt.plot(
+                    split_data["X Value"],
+                    split_data["Value"],
+                    linestyle=":",
+                    color=split_size_to_color[split_size],
+                    linewidth=2,
+                    marker="o",
+                    markersize=4,
+                    label=None,
+                )
+
+            # Add a single dummy legend entry to indicate dotted = equal samples
+            plt.plot([], [], linestyle=":", color="gray", linewidth=2, label="Equal stratified")
+
+    plt.xlabel("Number of atoms during validation")
+    plt.ylabel(f"{loss_labels_axis[loss_type]}")
+    plt.xlim(x_vals[0], x_vals[-1])
+    plt.title(f"{loss_labels[loss_type]} per atom size (random vs equal-number-per-size samples)")
+    plt.legend(title="Training Atoms", frameon=True, edgecolor="none")
+    plt.grid(True, alpha=0.3)
+    plt.tight_layout(pad=0.0)
+
+    # Save the plot
+    filename = os.path.join(
+        base_dir, f"natoms_eval_{loss_type.replace(' ', '_').lower()}_equalsamplesizes_plot.png"
     )
     plt.savefig(filename, dpi=300, bbox_inches="tight")
     print(f"Saved plot: {filename}")
