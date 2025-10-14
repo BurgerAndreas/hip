@@ -2,7 +2,9 @@ import torch
 import torch.nn.functional as F
 from functools import partial
 from collections.abc import Iterable
-
+from hip.frequency_analysis import eckart_projection_notmw_torch
+from hip.masses import MASS_DICT
+from nets.prediction_utils import Z_TO_ATOM_SYMBOL
 
 def tensor_info(t):
     if not isinstance(t, torch.Tensor):
@@ -234,19 +236,12 @@ def get_eigval_eigvec_metrics(hessian_true, hessian_pred, data, prefix=""):
     hessian_pred = hessian_pred.view(-1)
     hessian_true = hessian_true.view(-1)
     metrics = {
-        "Abs Cosine Sim v1": [],
-        "Abs Cosine Sim v2": [],
-        # L2
-        "MSE Vec1": [],
-        "MSE Vec2": [],
-        "MSE Val1": [],
-        "MSE Val2": [],
+        "Abs Cosine Sim v1 Eckart": [],
+        "Abs Cosine Sim v2 Eckart": [],
         # L1
-        "MAE Vec1": [],
-        "MAE Vec2": [],
-        "MAE Val1": [],
-        "MAE Val2": [],
-        "MAE Eigvals": [],
+        "MAE Val1 Eckart": [],
+        "MAE Val2 Eckart": [],
+        "MAE Eigvals Eckart": [],
     }
     for _b in range(B):
         _start = ptr_hessian[_b].item()
@@ -258,6 +253,12 @@ def get_eigval_eigvec_metrics(hessian_true, hessian_pred, data, prefix=""):
         hessian_pred_b = hessian_pred_b.reshape(natoms[_b] * 3, natoms[_b] * 3)
         hessian_true_b = hessian_true_b.reshape(natoms[_b] * 3, natoms[_b] * 3)
 
+        # mass weight and Eckart project
+        cart_coords = data.pos[_b].reshape(-1, 3).to(hessian_pred_b.device)
+        atomsymbols = [Z_TO_ATOM_SYMBOL[z] for z in data.z[_b].tolist()]
+        hessian_pred_b = eckart_projection_notmw_torch(hessian_pred_b, cart_coords, atomsymbols)
+        hessian_true_b = eckart_projection_notmw_torch(hessian_true_b, cart_coords, atomsymbols)
+
         eigvals_true_b, eigvecs_true_b = torch.linalg.eigh(hessian_true_b)
         eigvals_pred_b, eigvecs_pred_b = torch.linalg.eigh(hessian_pred_b)
 
@@ -266,12 +267,10 @@ def get_eigval_eigvec_metrics(hessian_true, hessian_pred, data, prefix=""):
         e1_pred = eigvals_pred_b[0]
         e2_true = eigvals_true_b[1]
         e2_pred = eigvals_pred_b[1]
-        metrics["MSE Val1"].append((e1_true - e1_pred).pow(2).mean())
-        metrics["MSE Val2"].append((e2_true - e2_pred).pow(2).mean())
-        metrics["MAE Val1"].append((e1_true - e1_pred).abs().mean())
-        metrics["MAE Val2"].append((e2_true - e2_pred).abs().mean())
+        metrics["MAE Val1 Eckart"].append((e1_true - e1_pred).abs().mean())
+        metrics["MAE Val2 Eckart"].append((e2_true - e2_pred).abs().mean())
         # over all eigenvalues
-        metrics["MAE Eigvals"].append(
+        metrics["MAE Eigvals Eckart"].append(
             torch.mean(torch.abs(eigvals_true_b - eigvals_pred_b))
         )
         # eigenvectors
@@ -279,12 +278,8 @@ def get_eigval_eigvec_metrics(hessian_true, hessian_pred, data, prefix=""):
         v1_pred = eigvecs_pred_b[:, 0].reshape(-1)
         v2_true = eigvecs_true_b[:, 1].reshape(-1)
         v2_pred = eigvecs_pred_b[:, 1].reshape(-1)
-        metrics["Abs Cosine Sim v1"].append(torch.abs(torch.dot(v1_true, v1_pred)))
-        metrics["Abs Cosine Sim v2"].append(torch.abs(torch.dot(v2_true, v2_pred)))
-        metrics["MSE Vec1"].append(torch.abs(v1_true - v1_pred).pow(2).mean())
-        metrics["MSE Vec2"].append(torch.abs(v2_true - v2_pred).pow(2).mean())
-        metrics["MAE Vec1"].append(torch.abs(v1_true - v1_pred).mean())
-        metrics["MAE Vec2"].append(torch.abs(v2_true - v2_pred).mean())
+        metrics["Abs Cosine Sim v1 Eckart"].append(torch.abs(torch.dot(v1_true, v1_pred)))
+        metrics["Abs Cosine Sim v2 Eckart"].append(torch.abs(torch.dot(v2_true, v2_pred)))
 
     # average over batches
     for key in metrics:

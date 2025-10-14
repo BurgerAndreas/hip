@@ -129,7 +129,9 @@ for loss_type in ["Loss E", "Loss F", "MAE Hessian"]:
     print("\nFirst few rows:")
     print(df.head())
     # map training.equal_samples_per_size nan to False
-    df["training.equal_samples_per_size"] = df["training.equal_samples_per_size"].fillna(False)
+    df["training.equal_samples_per_size"] = (
+        df["training.equal_samples_per_size"].fillna(False).infer_objects(copy=False)
+    )
 
     ##########################################################
     # Plot evaluation metrics
@@ -375,6 +377,8 @@ for loss_type in ["Loss E", "Loss F", "MAE Hessian"]:
 
     # Determine which split sizes exist for equal_samples_per_size == True
     df_eq_true = df[df["training.equal_samples_per_size"]]
+    # Filter to only include rows where training.hessian_loss_weight > 0
+    df_eq_true = df_eq_true[df_eq_true["training.hessian_loss_weight"] > 0]
     target_split_sizes = sorted(df_eq_true["training.splitsize"].dropna().unique().tolist())
 
     if len(target_split_sizes) == 0:
@@ -383,6 +387,8 @@ for loss_type in ["Loss E", "Loss F", "MAE Hessian"]:
 
     # Filter for only those split sizes
     df_filtered = df[df["training.splitsize"].isin(target_split_sizes)]
+    # Filter to only include rows where training.hessian_loss_weight > 0
+    df_filtered = df_filtered[df_filtered["training.hessian_loss_weight"] > 0]
 
     # Use all available x values instead of filtering
     eval_cols = [col for col in df_filtered.columns if "eval_" in col and loss_type in col]
@@ -482,12 +488,12 @@ for loss_type in ["Loss E", "Loss F", "MAE Hessian"]:
                 )
 
             # Add a single dummy legend entry to indicate dotted = equal samples
-            plt.plot([], [], linestyle=":", color="gray", linewidth=2, label="Equal stratified")
+            plt.plot([], [], linestyle=":", color="gray", linewidth=2, label="Stratified")
 
     plt.xlabel("Number of atoms during validation")
     plt.ylabel(f"{loss_labels_axis[loss_type]}")
     plt.xlim(x_vals[0], x_vals[-1])
-    plt.title(f"{loss_labels[loss_type]} per atom size (random vs equal-number-per-size samples)")
+    plt.title(f"{loss_labels[loss_type]} per size (random vs equal-samples-per-size splits)")
     plt.legend(title="Training Atoms", frameon=True, edgecolor="none")
     plt.grid(True, alpha=0.3)
     plt.tight_layout(pad=0.0)

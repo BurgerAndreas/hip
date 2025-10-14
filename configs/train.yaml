@@ -114,7 +114,7 @@ ckpt_base_dir: "checkpoint/datascaling"
 ckpt_model_path: null # horm for finetuning
 # Checkpoint that contains model weights and optimizerstate , lr state, etc. 
 ckpt_trainer_path: null
-ckpt_resume_auto: true
+ckpt_resume_auto: false
 ckpt_do_save: true
 
 # will be overwritten later
