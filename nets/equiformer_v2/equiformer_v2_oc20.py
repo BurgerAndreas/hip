@@ -19,6 +19,7 @@ from ocpmodels.common.utils import (
     get_pbc_distances,
     radius_graph_pbc,
 )
+from nets.scatter_utils import scatter_mean
 import torch_geometric
 from torch_geometric.nn import radius_graph
 
@@ -85,6 +86,10 @@ def get_scalar_from_embedding(embedding, data, avg_num_nodes=None):
         avg_num_nodes = torch.sum(data.natoms) / len(data.natoms)
     return scalars / avg_num_nodes
 
+def remove_mean_batch(x, indices):
+    mean = scatter_mean(x, indices, dim=0)
+    x = x - mean[indices]
+    return x
 
 @registry.register_model("equiformer_v2")
 class EquiformerV2_OC20(BaseModel):
@@ -737,6 +742,7 @@ class EquiformerV2_OC20(BaseModel):
         hessian=True,
         return_l_features=False,
         otf_graph=None,  # will default to self.otf_graph
+        return_sparse_hessian=False,
         **kwargs,
     ):
         """
@@ -750,6 +756,8 @@ class EquiformerV2_OC20(BaseModel):
             outputs (Optional):
                 hessian: (B*N*3*N*3)
         """
+        data.pos = remove_mean_batch(data.pos, data.batch)
+        
         self.batch_size = len(data.natoms)
         self.dtype = data.pos.dtype
         self.device = data.pos.device
@@ -988,12 +996,17 @@ class EquiformerV2_OC20(BaseModel):
             # (N, 3, 3)
             l012_node_features_3x3 = irreps_to_cartesian_matrix(l012_node_features)
 
-            hessian = self._get_hessian_from_features(
-                edge_index=edge_index_hessian,
-                data=data,
-                l012_edge_features=l012_edge_features_3x3,
-                l012_node_features=l012_node_features_3x3,
-            )
+            if return_sparse_hessian:
+                # A sparse COO tensor can be constructed by providing the two tensors of indices and values, 
+                # as well as the size of the sparse tensor (when it cannot be inferred from the indices and values tensors) to a function torch.sparse_coo_tensor()
+                raise NotImplementedError("Sparse Hessian not implemented")
+            else:
+                hessian = self._get_hessian_from_features(
+                    edge_index=edge_index_hessian,
+                    data=data,
+                    l012_edge_features=l012_edge_features_3x3,
+                    l012_node_features=l012_node_features_3x3,
+                )
 
             if return_l_features:
                 outputs["l012_node_features"] = l012_node_features_3x3

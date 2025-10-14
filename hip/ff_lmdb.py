@@ -15,7 +15,36 @@ import torch
 from torch.utils.data import Dataset
 
 # from torch_geometric.data import Batch
+from nets.scatter_utils import scatter_mean
 
+GLOBAL_ATOM_NUMBERS = torch.tensor([1, 6, 7, 8])
+GLOBAL_ATOM_SYMBOLS = np.array(["H", "C", "N", "O"])
+Z_TO_ATOM_SYMBOL = {
+    1: "H",
+    6: "C",
+    7: "N",
+    8: "O",
+}
+
+
+def onehot_convert(atomic_numbers, device):
+    """
+    Convert a list of atomic numbers into an one-hot matrix
+    """
+    encoder = {
+        1: [1, 0, 0, 0, 0],
+        6: [0, 1, 0, 0, 0],
+        7: [0, 0, 1, 0, 0],
+        8: [0, 0, 0, 1, 0],
+    }
+    onehot = [encoder[i] for i in atomic_numbers]
+    return torch.tensor(onehot, dtype=torch.int64, device=device)
+
+
+def remove_mean_batch(x, indices):
+    mean = scatter_mean(x, indices, dim=0)
+    x = x - mean[indices]
+    return x
 
 class LmdbDataset(Dataset):
     r"""Dataset class to load from LMDB files containing relaxation
@@ -99,6 +128,15 @@ class LmdbDataset(Dataset):
                 raise KeyError(f"No data found for index {idx}")
             data_object = pickle.loads(datapoint_pickled)
 
+        # this is only for the HORM dataset
+        # it uses a weird convention
+        # atom types are encoded as one-hot vectors of shape (N, 5)
+        # where the fifth is unused, likely a padding or None class
+        # corresponds to H, C, N, O, None
+        indices = data_object.one_hot.long().argmax(dim=1)
+        data_object.z = GLOBAL_ATOM_NUMBERS.to(data_object.pos.device)[indices.to(data_object.pos.device)]
+        # data_object.pos = remove_mean_batch(data_object.pos, data_object.batch)
+        
         if self.transform is not None:
             data_object = self.transform(data_object)
 

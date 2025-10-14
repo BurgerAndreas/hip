@@ -590,7 +590,7 @@ def plot_hip_batchsize(results_df, output_dir, logy=False):
 
 
 def plot_combined_speed_memory_batchsize(
-    results_df, bz_results_df, output_dir, show_std=False
+    results_df, bz_results_df, output_dir, show_std=False, _name=""
 ):
     from plotly.subplots import make_subplots
 
@@ -883,9 +883,9 @@ def plot_combined_speed_memory_batchsize(
     )
     # Manual label positions (domain coordinates) for subplot 1
     speed_tail_label_x = 0.9
-    speed_tail_label_y = 0.8
+    speed_tail_label_y = 0.2
     speed_head_label_x = 0.9
-    speed_head_label_y = 0.2
+    speed_head_label_y = 0.8
     # Labels at tail/head for subplot 1
     if speed_no_hess_text:
         fig.add_annotation(
@@ -910,7 +910,7 @@ def plot_combined_speed_memory_batchsize(
     # Reduction label (no_hessian vs hip) in the middle, vertical
     if "no_hessian" in final_vals_speed and "hip" in final_vals_speed:
         _r = final_vals_speed["no_hessian"] / max(1e-12, final_vals_speed["hip"])
-        speed_mid_text = f"<b>{int(round(_r))}x</b>"
+        speed_mid_text = f"<b>{round(_r, 3)}x</b>"
         speed_mid_label_x = 0.92
         speed_mid_label_y = 0.48
         fig.add_annotation(
@@ -947,7 +947,7 @@ def plot_combined_speed_memory_batchsize(
     memory_tail_label_x = 0.83
     memory_tail_label_y = 0.89
     memory_head_label_x = 0.9
-    memory_head_label_y = 0.25
+    memory_head_label_y = 0.6
     # Labels at tail/head for subplot 2
     fig.add_annotation(
         x=memory_tail_label_x,
@@ -1037,7 +1037,7 @@ def plot_combined_speed_memory_batchsize(
         )
 
     # Save only PNG to keep output concise
-    output_path = output_dir / "combined_speed_memory_batchsize.png"
+    output_path = output_dir / f"combined_speed_memory_batchsize_{_name}.png"
     # The height of the exported image in layout pixels. If the scale property is 1.0, this will also be the height of the exported image in physical pixels.
     # Scale > 1 increases the image resolution
     fig.write_image(output_path, width=width, height=height, scale=2)
@@ -1046,6 +1046,8 @@ def plot_combined_speed_memory_batchsize(
 
 """
 uv run scripts/speed_comparison.py --dataset ts1x-val.lmdb --max_samples_per_n 10 --ckpt_path ./ckpt/hesspred_v1.ckpt
+uv run scripts/speed_comparison.py --dataset ts1x-val.lmdb --max_samples_per_n 10 --ckpt_path ./ckpt/hip_v1.ckpt
+
 python scripts/speed_comparison.py --dataset RGD1.lmdb --max_samples_per_n 10 --ckpt_path ../ReactBench/ckpt/hesspred/eqv2hp1.ckpt
 python scripts/speed_comparison.py --dataset ts1x-val.lmdb --max_samples_per_n 100
 python scripts/speed_comparison.py --dataset ts1x_hess_train_big.lmdb --max_samples_per_n 1000
@@ -1098,11 +1100,13 @@ if __name__ == "__main__":
 
     redo = args.redo
 
+    ckpt_name = args.ckpt_path.split("/")[-1].split(".")[0]
+
     output_dir = "./results_speed_hip"
     output_dir = Path(output_dir)
     output_path = (
         output_dir
-        / f"{args.dataset}_speed_comparison_results_{args.max_samples_per_n}.csv"
+        / f"{args.dataset}_speed_comparison_results_{ckpt_name}_{args.max_samples_per_n}.csv"
     )
     if not redo:
         if output_path.exists():
@@ -1131,7 +1135,7 @@ if __name__ == "__main__":
     dataset_name = "ts1x-val.lmdb"
     output_path_speedbz = (
         output_dir
-        / f"{dataset_name}_hip_batchsize_results_{args.max_samples_per_n}.csv"
+        / f"{dataset_name}_hip_batchsize_results_{ckpt_name}_{args.max_samples_per_n}.csv"
     )
     if output_path_speedbz.exists() and not args.redobz:
         bz_results_df = pd.read_csv(output_path_speedbz)
@@ -1150,7 +1154,7 @@ if __name__ == "__main__":
 
     # Combined side-by-side plot
     plot_combined_speed_memory_batchsize(
-        results_df, bz_results_df, output_dir=output_dir, show_std=args.show_std
+        results_df, bz_results_df, output_dir=output_dir, show_std=args.show_std, _name=ckpt_name
     )
 
     print("\nDone!")

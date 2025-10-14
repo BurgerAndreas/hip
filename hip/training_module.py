@@ -456,7 +456,7 @@ class PotentialModule(LightningModule):
             # no need because we will compute graph during forward pass
             self.use_hessian_graph_transform = False
         
-        self.do_hessian = training_config["hessian_loss_weight"] > 0.0
+        self.do_hessian = self.training_config.get("hessian_loss_weight", 1.0) > 0.0
 
     def set_wandb_run_id(self, run_id: str) -> None:
         """Set the WandB run ID for checkpoint continuation."""

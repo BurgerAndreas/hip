@@ -111,17 +111,19 @@ print("DataFrame columns:")
 print(runs_df.columns.tolist())
 
 loss_labels_axis = {
-    "Loss E": "Energy MAE [eV]", "Loss F": "Force MAE [eV/A]", "MAE Hessian": "Hessian MAE [eV/A^2]", "CosSim1": "Hessian Cosine Sim v1",
+    "Loss E": "Energy MAE [eV]", "Loss F": "Force MAE [eV/A]", "MAE Hessian": "Hessian MAE [eV/A^2]", "Abs Cosine Sim v1": "Hessian Cosine Sim v1",
+    "MAE Eigvals": "Hessian Eigenvalue MAE"
 }
 loss_labels = {
-    "Loss E": "Energy MAE", "Loss F": "Force MAE", "MAE Hessian": "Hessian MAE", "CosSim1": "Hessian Cosine Sim v1"
+    "Loss E": "Energy MAE", "Loss F": "Force MAE", "MAE Hessian": "Hessian MAE", "Abs Cosine Sim v1": "Hessian Cosine Sim v1", "MAE Eigvals": "Hessian Eigenvalue MAE"
 }
 
 # Filter to keep only columns containing loss types
 for loss_type in [
     "Loss E", "Loss F", 
     # "MAE Hessian", 
-    "CosSim1"
+    "Abs Cosine Sim v1",
+    "MAE Eigvals",
 ]:
     df = runs_df.copy()
     matching_cols = [col for col in df.columns if loss_type in col]
@@ -230,6 +232,7 @@ for loss_type in [
     
     
     ##########################################################
+    # HIP vs no Hessian
     # Plot only specific split sizes
     # training.hessian_loss_weight > 0 as solid lines
     # training.hessian_loss_weight < 0.1 as dashed lines
