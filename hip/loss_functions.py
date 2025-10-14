@@ -235,6 +235,7 @@ def get_eigval_eigvec_metrics(hessian_true, hessian_pred, data, prefix=""):
     ptr_hessian = torch.cumsum(ptr_hessian, dim=0)
     hessian_pred = hessian_pred.view(-1)
     hessian_true = hessian_true.view(-1)
+    all_pos = data.pos.reshape(-1, 3).to(hessian_pred.device)
     metrics = {
         "Abs Cosine Sim v1 Eckart": [],
         "Abs Cosine Sim v2 Eckart": [],
@@ -250,18 +251,20 @@ def get_eigval_eigvec_metrics(hessian_true, hessian_pred, data, prefix=""):
         hessian_pred_b = hessian_pred[_start:_end]
         hessian_true_b = hessian_true[_start:_end]
 
-        print("z shape", data.z.shape)
-        print("natoms shape", natoms.shape)
-        print("batch shape", data.batch.shape)
-
         hessian_pred_b = hessian_pred_b.reshape(natoms[_b] * 3, natoms[_b] * 3)
         hessian_true_b = hessian_true_b.reshape(natoms[_b] * 3, natoms[_b] * 3)
 
+        idx_atoms = data.batch == _b
+
         # mass weight and Eckart project
-        cart_coords = data.pos[_b].reshape(-1, 3).to(hessian_pred_b.device)
-        atomsymbols = [Z_TO_ATOM_SYMBOL[z] for z in data.z[_b].tolist()]
-        hessian_pred_b = eckart_projection_notmw_torch(hessian_pred_b, cart_coords, atomsymbols)
-        hessian_true_b = eckart_projection_notmw_torch(hessian_true_b, cart_coords, atomsymbols)
+        cart_coords = all_pos[idx_atoms]
+        atomsymbols = [Z_TO_ATOM_SYMBOL[z] for z in data.z[data.batch == _b].tolist()]
+        hessian_pred_b = eckart_projection_notmw_torch(
+            hessian_pred_b, cart_coords, atomsymbols
+        )
+        hessian_true_b = eckart_projection_notmw_torch(
+            hessian_true_b, cart_coords, atomsymbols
+        )
 
         eigvals_true_b, eigvecs_true_b = torch.linalg.eigh(hessian_true_b)
         eigvals_pred_b, eigvecs_pred_b = torch.linalg.eigh(hessian_pred_b)
@@ -282,8 +285,12 @@ def get_eigval_eigvec_metrics(hessian_true, hessian_pred, data, prefix=""):
         v1_pred = eigvecs_pred_b[:, 0].reshape(-1)
         v2_true = eigvecs_true_b[:, 1].reshape(-1)
         v2_pred = eigvecs_pred_b[:, 1].reshape(-1)
-        metrics["Abs Cosine Sim v1 Eckart"].append(torch.abs(torch.dot(v1_true, v1_pred)))
-        metrics["Abs Cosine Sim v2 Eckart"].append(torch.abs(torch.dot(v2_true, v2_pred)))
+        metrics["Abs Cosine Sim v1 Eckart"].append(
+            torch.abs(torch.dot(v1_true, v1_pred))
+        )
+        metrics["Abs Cosine Sim v2 Eckart"].append(
+            torch.abs(torch.dot(v2_true, v2_pred))
+        )
 
     # average over batches
     for key in metrics:

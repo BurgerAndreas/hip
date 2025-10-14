@@ -968,8 +968,8 @@ class PotentialModule(LightningModule):
         )
         if "Loss Hessian" in info:
             info_prefix[f"{prefix}-totloss"] += info["Loss Hessian"]
-            info_prefix[f"{prefix}-totloss"] += eval_info["MAE Eigvals"]
-            info_prefix[f"{prefix}-totloss"] += (-1 * eval_info["Abs Cosine Sim v1"] / 20)
+            info_prefix[f"{prefix}-totloss"] += eval_info["MAE Eigvals Eckart"]
+            info_prefix[f"{prefix}-totloss"] += (-1 * eval_info["Abs Cosine Sim v1 Eckart"] / 20)
 
         # del info
         # if torch.cuda.is_available():
