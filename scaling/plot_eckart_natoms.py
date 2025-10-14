@@ -58,9 +58,6 @@ else:
         if "eval_8-Loss E" in summary_dict:
             # old runs
             continue
-        if "val-MAE Val1 Eckart" not in summary_dict:
-            # old runs
-            continue
 
         # # try to find minimal value in history
         # # Returns: An iterable collection over history records (dict)
@@ -92,6 +89,10 @@ else:
         config_dict = {
             k: v for k, v in config_dict.items() if "weight" in k or "split" in k or "equal_samples_per_size" in k
         }
+        
+        if "val-MAE Val1 Eckart" not in summary_dict and config_dict["training.hessian_loss_weight"] > 0:
+            # old runs
+            continue
 
         # .name is the human-readable name of the run.
         list_of_runs.append(

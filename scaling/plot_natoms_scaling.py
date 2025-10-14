@@ -111,14 +111,18 @@ print("DataFrame columns:")
 print(runs_df.columns.tolist())
 
 loss_labels_axis = {
-    "Loss E": "Energy MAE [eV]", "Loss F": "Force MAE [eV/A]", "MAE Hessian": "Hessian MAE [eV/A^2]"
+    "Loss E": "Energy MAE [eV]", "Loss F": "Force MAE [eV/A]", "MAE Hessian": "Hessian MAE [eV/A^2]", "CosSim1": "Hessian Cosine Sim v1",
 }
 loss_labels = {
-    "Loss E": "Energy MAE", "Loss F": "Force MAE", "MAE Hessian": "Hessian MAE"
+    "Loss E": "Energy MAE", "Loss F": "Force MAE", "MAE Hessian": "Hessian MAE", "CosSim1": "Hessian Cosine Sim v1"
 }
 
 # Filter to keep only columns containing loss types
-for loss_type in ["Loss E", "Loss F", "MAE Hessian"]:
+for loss_type in [
+    "Loss E", "Loss F", 
+    # "MAE Hessian", 
+    "CosSim1"
+]:
     df = runs_df.copy()
     matching_cols = [col for col in df.columns if loss_type in col]
 
