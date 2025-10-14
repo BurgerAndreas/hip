@@ -96,7 +96,7 @@ pltrainer:
   gradient_clip_algorithm: "norm"
   accumulate_grad_batches: 1
   limit_train_batches: 1600
-  limit_val_batches: 200 # 50844 samples / 64 bz = 794.4375 batches
+  limit_val_batches: 80 # 50844 samples / 64 bz = 794.4375 batches
   log_every_n_steps: 1
   # check_val_every_n_epoch: 4  # Run validation every N epochs (default: 1)
   val_check_interval: 3600    # Run validation every 3600 seconds (1 hour)
