@@ -660,8 +660,8 @@ class PotentialModule(LightningModule):
             info["Loss Hessian"]
             + info["Loss E"]
             + info["Loss F"]
-            + eval_info["MAE Eigvals"]
-            + (-1 * eval_info["Abs Cosine Sim v1"] / 20)
+            + eval_info["MAE Eigvals Eckart"]
+            + (-1 * eval_info["Abs Cosine Sim v1 Eckart"] / 20)
         )
 
         # del info

@@ -236,6 +236,7 @@ def get_eigval_eigvec_metrics(hessian_true, hessian_pred, data, prefix=""):
     ptr_hessian = torch.cumsum(ptr_hessian, dim=0)
     hessian_pred = hessian_pred.view(-1)
     hessian_true = hessian_true.view(-1)
+    all_pos = data.pos.reshape(-1, 3).to(hessian_pred.device)
     metrics = {
         "Abs Cosine Sim v1 Eckart": [],
         "Abs Cosine Sim v2 Eckart": [],
@@ -254,9 +255,11 @@ def get_eigval_eigvec_metrics(hessian_true, hessian_pred, data, prefix=""):
         hessian_pred_b = hessian_pred_b.reshape(natoms[_b] * 3, natoms[_b] * 3)
         hessian_true_b = hessian_true_b.reshape(natoms[_b] * 3, natoms[_b] * 3)
 
+        idx_atoms = data.batch == _b
+
         # mass weight and Eckart project
-        cart_coords = data.pos[_b].reshape(-1, 3).to(hessian_pred_b.device)
-        atomsymbols = [Z_TO_ATOM_SYMBOL[z] for z in data.z[_b].tolist()]
+        cart_coords = all_pos[idx_atoms]
+        atomsymbols = [Z_TO_ATOM_SYMBOL[z] for z in data.z[data.batch == _b].tolist()]
         hessian_pred_b = eckart_projection_notmw_torch(
             hessian_pred_b, cart_coords, atomsymbols
         )
