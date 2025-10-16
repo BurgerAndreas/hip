@@ -1088,7 +1088,7 @@ class EquiformerV2_OC20(BaseModel):
         Build parameter groups for MuonWithAuxAdam with a strict scope:
 
         - Muon group (use_muon=True): ONLY parameters with ndim >= 2 inside
-          `hessian_layers`.
+          `blocks`.
         - Aux Adam group (use_muon=False): every other parameter in the model
           (embeddings, heads, biases/gains, blocks, etc.).
 
@@ -1099,7 +1099,7 @@ class EquiformerV2_OC20(BaseModel):
         adam_params = []
 
         for name, param in self.named_parameters():
-            if name.startswith("hessian_layers.") and param.ndim >= 2:
+            if name.startswith("blocks.") and param.ndim >= 2:
                 muon_params.append(param)
             else:
                 adam_params.append(param)
