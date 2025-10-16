@@ -56,7 +56,10 @@ def setup_training(cfg: DictConfig):
     ###########################################
     # Get configs
     ###########################################
-    run_name = name_from_config(cfg)
+    if cfg.run_name is None:
+        run_name = name_from_config(cfg)
+    else:
+        run_name = cfg.run_name
 
     # from the HORM paper:
     # Model Layers HiddenDim Heads LearningRate BatchSize
@@ -106,7 +109,10 @@ def setup_training(cfg: DictConfig):
     # Trainer checkpoint loading
     ###########################################
     # get checkpoint name
-    run_name_ckpt = name_from_config(cfg, is_checkpoint_name=True)
+    if cfg.run_name is None:
+        run_name_ckpt = name_from_config(cfg, is_checkpoint_name=True)
+    else:
+        run_name_ckpt = cfg.run_name
     checkpoint_name = re.sub(r"[^a-zA-Z0-9]", "", run_name_ckpt)
     if len(checkpoint_name) <= 1:
         checkpoint_name = "base"
