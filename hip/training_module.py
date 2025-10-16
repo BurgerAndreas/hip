@@ -336,7 +336,8 @@ class PotentialModule(LightningModule):
         # else:
         #     parameters = model.parameters()
         if optim_type.lower() == "adamw":
-            optimizer = torch.optim.AdamW(trainable_params, **self.optimizer_config)
+            optimizer_config = {k: v for k, v in self.optimizer_config.items() if "muon" not in k}
+            optimizer = torch.optim.AdamW(trainable_params, **optimizer_config)
         elif optim_type.lower() == "muon":
             assert not self.training_config.get("train_hessian_only", False)
             # Muon is an optimizer for the hidden weights of a neural network.
