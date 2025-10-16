@@ -223,7 +223,7 @@ class EquiformerV2_OC20(BaseModel):
         do_hessian=None,
         num_gaussians_distance_hessian=None,
         hessian_build_method=None,
-        hessian_drop_path_rate=0.05,
+        hessian_drop_path_rate=0.0,
         hessian_proj_drop=0.0,
         device=None,
         **kwargs,
