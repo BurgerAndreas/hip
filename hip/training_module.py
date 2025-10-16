@@ -41,7 +41,6 @@ from hip.utils import average_over_batch_metrics, pretty_print
 # import hip.utils as diff_utils
 import yaml
 from hip.path_config import find_project_root, fix_dataset_path
-from nets.prediction_utils import compute_extra_props
 from hip.loss_functions import (
     # compute_loss_blockdiagonal_hessian,
     get_hessian_loss_fn,
@@ -554,7 +553,6 @@ class PotentialModule(LightningModule):
         loss = 0.0
         info = {}
         # batch.pos.requires_grad_()
-        batch = compute_extra_props(batch, pos_require_grad=self.pos_require_grad)
 
         hat_ae, hat_forces, outputs = self.potential.forward(
             batch.to(self.device),

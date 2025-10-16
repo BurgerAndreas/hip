@@ -1,9 +1,3 @@
-"""Script to train new prediction heads for Hessian eigenvalues and eigenvectors.
-
-Starts from the checkpoint of the EquiformerV2 model finetuned on the HORM dataset.
-Keeps the existing weights frozen.
-Adds one extra head each to predict the smallest two eigenvalues and eigenvectors of the Hessian.
-"""
 
 import os
 import torch
@@ -36,6 +30,7 @@ except ImportError:
 from hip.training_module import PotentialModule
 from hip.path_config import CHECKPOINT_PATH_EQUIFORMER_HORM
 from hip.logging_utils import name_from_config, find_latest_checkpoint
+from hip.custom_strategy import flexible_load_optimizer_state_dict
 
 
 def setup_training(cfg: DictConfig):
@@ -238,6 +233,13 @@ def setup_training(cfg: DictConfig):
         # check_val_every_n_epoch=cfg.pltrainer.get('check_val_every_n_epoch', 1),
         # val_check_interval=cfg.pltrainer.get('val_check_interval', None),
     )
+    
+    # Monkey-patch the strategy to use flexible optimizer loading
+    import types
+    trainer.strategy.load_optimizer_state_dict = types.MethodType(
+        flexible_load_optimizer_state_dict, trainer.strategy
+    )
+    
     print("Trainer initialized")
 
     # Set WandB run ID on the model for future checkpoints

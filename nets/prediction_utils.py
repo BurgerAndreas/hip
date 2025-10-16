@@ -32,27 +32,27 @@ def remove_mean_batch(x, indices):
     return x
 
 
-def compute_extra_props(batch, pos_require_grad=True):
-    """Adds device, z, and removes mean batch"""
-    device = batch.pos.device
-    if hasattr(batch, "one_hot"):
-        # this is only for the HORM dataset
-        # it uses a weird convention
-        # atom types are encoded as one-hot vectors of shape (N, 5)
-        # where the fifth is unused, likely a padding or None class
-        # corresponds to H, C, N, O, None
-        indices = batch.one_hot.long().argmax(dim=1)
-        batch.z = GLOBAL_ATOM_NUMBERS.to(device)[indices.to(device)]
-    elif hasattr(batch, "z"):
-        batch.z = batch.z.to(device)
-        batch.one_hot = onehot_convert(batch.z.tolist(), device)
-    else:
-        raise ValueError("batch has no one_hot or z attribute")
-    batch.pos = remove_mean_batch(batch.pos, batch.batch)
-    # # atomization energy. shape used by equiformerv2
-    # if not hasattr(batch, "ae"):
-    #     if hasattr(batch, "energy"):
-    #         batch.ae = batch.energy.clone()
-    if pos_require_grad:
-        batch.pos.requires_grad_(True)
-    return batch
+# def compute_extra_props(batch, pos_require_grad=True):
+#     """Adds device, z, and removes mean batch"""
+#     device = batch.pos.device
+#     if hasattr(batch, "one_hot"):
+#         # this is only for the HORM dataset
+#         # it uses a weird convention
+#         # atom types are encoded as one-hot vectors of shape (N, 5)
+#         # where the fifth is unused, likely a padding or None class
+#         # corresponds to H, C, N, O, None
+#         indices = batch.one_hot.long().argmax(dim=1)
+#         batch.z = GLOBAL_ATOM_NUMBERS.to(device)[indices.to(device)]
+#     elif hasattr(batch, "z"):
+#         batch.z = batch.z.to(device)
+#         batch.one_hot = onehot_convert(batch.z.tolist(), device)
+#     else:
+#         raise ValueError("batch has no one_hot or z attribute")
+#     batch.pos = remove_mean_batch(batch.pos, batch.batch)
+#     # # atomization energy. shape used by equiformerv2
+#     # if not hasattr(batch, "ae"):
+#     #     if hasattr(batch, "energy"):
+#     #         batch.ae = batch.energy.clone()
+#     if pos_require_grad:
+#         batch.pos.requires_grad_(True)
+#     return batch

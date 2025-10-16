@@ -18,8 +18,6 @@ from ase.calculators.calculator import Calculator as ASECalculator
 # from ocpmodels.datasets import data_list_collater
 # from ocpmodels.preprocessing import AtomsToGraphs
 
-from nets.prediction_utils import compute_extra_props
-
 from hip.hessian_utils import compute_hessian
 from hip.inference_utils import get_model_from_checkpoint, get_dataloader
 from hip.frequency_analysis import analyze_frequencies, eckart_projection_notmw
@@ -156,9 +154,6 @@ class EquiformerASECalculator(ASECalculator):
 
         # Store results
         self.results = {}
-
-        # Prepare batch with extra properties
-        batch = compute_extra_props(batch, pos_require_grad=do_autograd)
 
         # Run prediction
         if "hessian" in properties:

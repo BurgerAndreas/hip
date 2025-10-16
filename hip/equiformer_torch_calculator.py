@@ -6,7 +6,6 @@ from torch_geometric.data import Batch as TGBatch
 from torch_geometric.data import Data as TGData
 # from torch_geometric.loader import DataLoader as TGDataLoader
 
-from nets.prediction_utils import compute_extra_props, Z_TO_ATOM_SYMBOL
 
 from hip.hessian_utils import compute_hessian
 from hip.inference_utils import get_model_from_checkpoint, get_dataloader
@@ -111,7 +110,6 @@ class EquiformerTorchCalculator:
 
         # Prepare batch with extra properties
         batch = batch.to(self.potential.device)
-        batch = compute_extra_props(batch, pos_require_grad=do_autograd)
 
         # Run prediction
         if do_hessian:

@@ -6,7 +6,7 @@ from torch_geometric.loader import DataLoader as TGDataLoader
 
 from hip.ff_lmdb import LmdbDataset
 from hip.path_config import fix_dataset_path
-from nets.prediction_utils import Z_TO_ATOM_SYMBOL, compute_extra_props
+from nets.prediction_utils import Z_TO_ATOM_SYMBOL
 
 try:
     from rdkit import Chem
@@ -236,8 +236,6 @@ def extract_dataset_metadata(lmdb_path, max_samples=None, output_file=None):
     for idx, batch in enumerate(dataloader):
         if idx >= n_total_samples:
             break
-
-        batch = compute_extra_props(batch, pos_require_grad=False)
 
         # Extract basic information
         n_atoms = batch.pos.shape[0]

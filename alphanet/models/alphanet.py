@@ -11,7 +11,7 @@ from torch_geometric.nn.conv import MessagePassing
 
 # from torch_scatter import scatter, segment_coo, segment_csr
 from nets.scatter_utils import scatter, segment_coo, segment_csr
-
+from nets.prediction_utils import remove_mean_batch
 
 def get_max_neighbors_mask(natoms, index, atom_distance, max_num_neighbors_threshold):
     """
@@ -886,6 +886,7 @@ class AlphaNet(nn.Module):
         return s
 
     def forward(self, data):
+        data.pos = remove_mean_batch(data.pos, data.batch)
         return self._forward(data)
 
     def cal_forces(self, energy, positions):

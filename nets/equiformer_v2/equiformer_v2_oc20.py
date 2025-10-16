@@ -55,6 +55,8 @@ from .hessian_pred_utils import (
     # _get_indexadd_offdiagonal_to_flat_hessian_message_indices,
     # _get_node_diagonal_1d_indexadd_indices,
 )
+from nets.scatter_utils import scatter_mean
+# from torch_scatter import scatter_mean
 
 # Statistics of IS2RE 100K
 # _AVG_NUM_NODES = 77.81317
@@ -83,6 +85,10 @@ def get_scalar_from_embedding(embedding, data, avg_num_nodes=None):
         avg_num_nodes = torch.sum(data.natoms) / len(data.natoms)
     return scalars / avg_num_nodes
 
+def remove_mean_batch(x, indices):
+    mean = scatter_mean(x, indices, dim=0)
+    x = x - mean[indices]
+    return x
 
 @registry.register_model("equiformer_v2")
 class EquiformerV2_OC20(BaseModel):
@@ -681,6 +687,8 @@ class EquiformerV2_OC20(BaseModel):
             outputs (Optional):
                 hessian: (B*N*3*N*3)
         """
+        data.pos = remove_mean_batch(data.pos, data.batch)
+
         self.batch_size = len(data.natoms)
         self.dtype = data.pos.dtype
         self.device = data.pos.device

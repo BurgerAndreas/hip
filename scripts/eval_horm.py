@@ -15,7 +15,7 @@ from leftnet.model.leftnet import LEFTNet
 from hip.training_module import PotentialModule
 from hip.ff_lmdb import LmdbDataset
 from hip.path_config import fix_dataset_path
-from nets.prediction_utils import compute_extra_props, Z_TO_ATOM_SYMBOL
+from nets.prediction_utils import Z_TO_ATOM_SYMBOL
 
 from hip.frequency_analysis import analyze_frequencies
 
@@ -137,7 +137,6 @@ def evaluate(
             if _i >= 10:
                 break
             batch = batch.to("cuda")
-            batch = compute_extra_props(batch)
 
             n_atoms = batch.pos.shape[0]
 
@@ -179,7 +178,6 @@ def evaluate(
 
         for batch in tqdm(dataloader, desc="Evaluating", total=n_total_samples):
             batch = batch.to("cuda")
-            batch = compute_extra_props(batch)
 
             n_atoms = batch.pos.shape[0]
 

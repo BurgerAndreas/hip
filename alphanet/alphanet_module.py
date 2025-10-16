@@ -30,8 +30,6 @@ from alphanet.utils import average_over_batch_metrics, pretty_print
 import alphanet.utils as diff_utils
 from alphanet.models.alphanet import AlphaNet
 
-from nets.prediction_utils import compute_extra_props
-
 LR_SCHEDULER = {
     "cos": CosineAnnealingWarmRestarts,
     "step": StepLR,
@@ -130,7 +128,7 @@ class PotentialModule(LightningModule):
 
     @torch.enable_grad()
     def compute_loss(self, batch):
-        batch = compute_extra_props(batch, pos_require_grad=self.pos_require_grad)
+        batch.pos.requires_grad_()
         hat_ae, hat_forces = self.potential.forward(
             batch.to(self.device),
         )

@@ -16,6 +16,29 @@ from torch.utils.data import Dataset
 
 # from torch_geometric.data import Batch
 
+GLOBAL_ATOM_NUMBERS = torch.tensor([1, 6, 7, 8])
+GLOBAL_ATOM_SYMBOLS = np.array(["H", "C", "N", "O"])
+Z_TO_ATOM_SYMBOL = {
+    1: "H",
+    6: "C",
+    7: "N",
+    8: "O",
+}
+
+
+def onehot_convert(atomic_numbers, device):
+    """
+    Convert a list of atomic numbers into an one-hot matrix
+    """
+    encoder = {
+        1: [1, 0, 0, 0, 0],
+        6: [0, 1, 0, 0, 0],
+        7: [0, 0, 1, 0, 0],
+        8: [0, 0, 0, 1, 0],
+    }
+    onehot = [encoder[i] for i in atomic_numbers]
+    return torch.tensor(onehot, dtype=torch.int64, device=device)
+
 
 class LmdbDataset(Dataset):
     r"""Dataset class to load from LMDB files containing relaxation
@@ -103,6 +126,9 @@ class LmdbDataset(Dataset):
             data_object = self.transform(data_object)
 
         data_object.dataset_idx = torch.tensor(idx)
+
+        indices = data_object.one_hot.long().argmax(dim=1)
+        data_object.z = GLOBAL_ATOM_NUMBERS.to(data_object.pos.device)[indices.to(data_object.pos.device)]
 
         return data_object
 
