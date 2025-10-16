@@ -189,6 +189,8 @@ class EquiformerV2_OC20(BaseModel):
         cutoff_hessian=100.0,
         hessian_no_attn_weights=False,  # messages without attention weights
         attn_wo_sigmoid=False,  # do not apply sigmoid to attention weights
+        hessian_drop_path_rate=0.0,
+        hessian_proj_drop=0.0,
         # not used, for compatibilit with old  with legacy ckpt
         name=None,
         num_targets=None,
@@ -566,9 +568,9 @@ class EquiformerV2_OC20(BaseModel):
                 self.use_grid_mlp,
                 self.use_sep_s2_act,
                 self.norm_type,
-                self.hessian_alpha_drop,
-                self.drop_path_rate,
-                self.proj_drop,
+                alpha_drop=self.hessian_alpha_drop,
+                drop_path_rate=self.hessian_drop_path_rate,
+                proj_drop=self.hessian_proj_drop,
             )
             self.hessian_layers.append(hessian_block)
         # copied from force prediction head
