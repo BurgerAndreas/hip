@@ -358,7 +358,7 @@ class PotentialModule(LightningModule):
                     params=muon_params,
                     use_muon=True,
                     lr=self.optimizer_config.get("lr_muon", 0.02),
-                    weight_decay=self.optimizer_config.get("weight_decay", 0.01),
+                    weight_decay=self.optimizer_config.get("weight_decay_muon", 0.01),
                 ),
                 # Adam
                 dict(
@@ -371,8 +371,11 @@ class PotentialModule(LightningModule):
                     # **self.optimizer_config
                 ),
             ]
-            self.num_muon_params = len(muon_params)
+            self.num_muon_params = np.sum([_p.numel() for _p in muon_params])
+            self.num_adam_params = np.sum([_p.numel() for _p in adam_params])
             print(f"Number of muon parameters: {self.num_muon_params}")
+            print(f"Number of adam parameters: {self.num_adam_params}")
+            print(f"Percentage of muon parameters: {self.num_muon_params / (self.num_muon_params + self.num_adam_params) * 100:.2f}%")
             optimizer = MuonWithAuxAdam(param_groups)
         else:
             raise ValueError(f"Unknown optimizer: {optim_type}")

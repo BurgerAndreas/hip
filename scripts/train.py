@@ -205,13 +205,16 @@ def setup_training(cfg: DictConfig):
     cfg_dict = OmegaConf.to_container(cfg, resolve=True, throw_on_missing=False)
     cfg_dict["checkpoint_name"] = checkpoint_name
 
-    wandb_logger = WandbLogger(
-        project=cfg.project,
-        log_model=False,
-        name=run_name,
-        config=cfg_dict,
-        **wandb_kwargs,
-    )
+    if cfg.use_wandb:
+        wandb_logger = WandbLogger(
+            project=cfg.project,
+            log_model=False,
+            name=run_name,
+            config=cfg_dict,
+            **wandb_kwargs,
+        )
+    else:
+        wandb_logger = None
 
     print("Initializing trainer")
     trainer = pl.Trainer(
@@ -223,6 +226,7 @@ def setup_training(cfg: DictConfig):
         callbacks=callbacks,
         # path for logs and weights when no logger/ckpt_callback passed
         default_root_dir=ckpt_output_path,
+        enable_checkpointing=cfg.ckpt_do_save,
         logger=wandb_logger,
         gradient_clip_val=cfg.pltrainer.gradient_clip_val,
         gradient_clip_algorithm=cfg.pltrainer.gradient_clip_algorithm,
@@ -243,11 +247,12 @@ def setup_training(cfg: DictConfig):
     print("Trainer initialized")
 
     # Set WandB run ID on the model for future checkpoints
-    if hasattr(wandb_logger.experiment, "id") and wandb_logger.experiment.id:
-        pm.set_wandb_run_id(wandb_logger.experiment.id)
-        print(f"Set WandB run ID on model: {wandb_logger.experiment.id}")
-    else:
-        print("No WandB run ID found")
+    if wandb_logger is not None:
+        if hasattr(wandb_logger.experiment, "id") and wandb_logger.experiment.id:
+            pm.set_wandb_run_id(wandb_logger.experiment.id)
+            print(f"Set WandB run ID on model: {wandb_logger.experiment.id}")
+        else:
+            print("No WandB run ID found")
 
     return trainer, pm
 

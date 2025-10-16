@@ -34,6 +34,8 @@ optimizer:
   beta2: null
   weight_decay: 1e-5 # 0.01, 1e-5
   amsgrad: false # true
+  weight_decay_muon: 0.01 # 0.01, 1e-5
+  lr_muon: 0.02 # 0.02, 3e-4
 
 # Training configuration  
 training:

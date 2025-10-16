@@ -16,7 +16,10 @@ scratch/
 .matplotlib/
 outputs/
 outslurm/
+checkpoint
 wandb
+scaling
+scaling2
 
 # results*/
 logs
