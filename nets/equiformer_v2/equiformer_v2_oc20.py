@@ -64,7 +64,6 @@ _AVG_DEGREE = 23.395238876342773  # IS2RE: 100k, max_radius = 5, max_neighbors =
 # Number of edges: 176.7360948021343
 # Number of edges (hessian): 186.7841774653667
 # Number of atoms: 13.919938540433833
-# _AVG_DEGREE_HESSIAN = 13.4184627987
 # _AVG_DEGREE = 12.6966145927
 
 
@@ -176,16 +175,9 @@ class EquiformerV2_OC20(BaseModel):
         weight_init="normal",
         avg_degree=_AVG_DEGREE,  # rescale factor for edge_degree_embedding
         # added for hessian prediction
-        avg_degree_hessian=_AVG_DEGREE,
         avg_num_nodes=None,
         hessian_alpha_drop=0.0,
         num_layers_hessian=0,
-        share_atom_edge_embedding_hessian=False,
-        # if to also use atom type embedding or just relative distances for edge features
-        # in edge_distance
-        use_atom_edge_embedding_hessian=True,
-        reuse_source_target_embedding_hessian=True,
-        reinit_edge_degree_embedding_hessian=False,
         cutoff_hessian=100.0,
         hessian_no_attn_weights=False,  # messages without attention weights
         attn_wo_sigmoid=False,  # do not apply sigmoid to attention weights
@@ -446,20 +438,6 @@ class EquiformerV2_OC20(BaseModel):
 
         self.cutoff_hessian = cutoff_hessian
         self.hessian_module_list = []
-        # if to also use atom type embedding or just relative distances for edge features
-        # in edge_distance
-        self.use_atom_edge_embedding_hessian = use_atom_edge_embedding_hessian
-        # if False, every transformer block has their own atom type embedding (default True)
-        self.share_atom_edge_embedding_hessian = share_atom_edge_embedding_hessian
-        if self.share_atom_edge_embedding_hessian:
-            assert self.use_atom_edge_embedding_hessian
-            self.block_use_atom_edge_embedding_hessian = False
-        else:
-            # True in HORM
-            # every transformer block will create their own atom number embedding
-            self.block_use_atom_edge_embedding_hessian = (
-                self.use_atom_edge_embedding_hessian
-            )
 
         # Initialize the module that compute WignerD matrices and other values for spherical harmonic calculations
         self.SO3_rotation_hessian = torch.nn.ModuleList()
@@ -480,58 +458,7 @@ class EquiformerV2_OC20(BaseModel):
             int(self.distance_expansion_hessian.num_output)
         ] + [self.edge_channels] * 2
 
-        self.reuse_source_target_embedding_hessian = (
-            reuse_source_target_embedding_hessian
-        )
-        if reuse_source_target_embedding_hessian:
-            # if we are using the same embedding modules
-            # make sure we use the same embedding settings as the backbone
-            assert (
-                self.share_atom_edge_embedding_hessian == self.share_atom_edge_embedding
-            )
-            assert self.use_atom_edge_embedding_hessian == self.use_atom_edge_embedding
-            self.source_embedding_hessian = self.source_embedding
-            self.target_embedding_hessian = self.target_embedding
-        else:
-            # Initialize atom edge embedding
-            if (
-                self.share_atom_edge_embedding_hessian
-                and self.use_atom_edge_embedding_hessian
-            ):
-                self.source_embedding_hessian = torch.nn.Embedding(
-                    self.max_num_elements, self.edge_channels_list[-1]
-                )
-                self.target_embedding_hessian = torch.nn.Embedding(
-                    self.max_num_elements, self.edge_channels_list[-1]
-                )
-                self.edge_channels_list_hessian[0] = (
-                    self.edge_channels_list_hessian[0]
-                    + 2 * self.edge_channels_list_hessian[-1]
-                )
-                self.hessian_module_list.append("source_embedding_hessian")
-                self.hessian_module_list.append("target_embedding_hessian")
-            else:
-                self.source_embedding_hessian, self.target_embedding_hessian = (
-                    None,
-                    None,
-                )
-
-        self.avg_degree_hessian = avg_degree_hessian
-        self.reinit_edge_degree_embedding_hessian = reinit_edge_degree_embedding_hessian
-        # only used if reinit_edge_degree_embedding_hessian is True
-        # Edge-degree embedding for initializing node features
-        self.edge_degree_embedding_hessian = EdgeDegreeEmbedding(
-            self.sphere_channels,
-            self.lmax_list,
-            self.mmax_list,
-            self.SO3_rotation_hessian,
-            self.mappingReduced,
-            self.max_num_elements,
-            self.edge_channels_list_hessian,
-            self.block_use_atom_edge_embedding_hessian,
-            rescale_factor=avg_degree_hessian,
-        )
-        self.hessian_module_list.append("edge_degree_embedding_hessian")
+        # we are using the same embedding modules as the backbone
 
         self.hessian_module_list += [
             "hessian_layers",
@@ -558,7 +485,7 @@ class EquiformerV2_OC20(BaseModel):
                 self.SO3_grid,
                 self.max_num_elements,
                 self.edge_channels_list_hessian,
-                self.block_use_atom_edge_embedding_hessian,
+                self.use_atom_edge_embedding,
                 self.use_m_share_rad,
                 self.attn_activation,
                 self.use_s2_act_attn,
@@ -593,7 +520,7 @@ class EquiformerV2_OC20(BaseModel):
             # Whether to use atomic embedding for edge scalar features
             # or just relative distance
             # different: use_atom_edge_embedding vs block_use_atom_edge_embedding
-            use_atom_edge_embedding=self.block_use_atom_edge_embedding_hessian,
+            use_atom_edge_embedding=self.use_atom_edge_embedding,
             use_m_share_rad=self.use_m_share_rad,
             activation=self.attn_activation,
             use_s2_act_attn=self.use_s2_act_attn,  # ?
@@ -909,8 +836,8 @@ class EquiformerV2_OC20(BaseModel):
                 edge_distance_hessian
             )
             if (
-                self.share_atom_edge_embedding_hessian
-                and self.use_atom_edge_embedding_hessian
+                self.share_atom_edge_embedding
+                and self.use_atom_edge_embedding
             ):
                 source_element = atomic_numbers[
                     edge_index_hessian[0]
@@ -918,19 +845,15 @@ class EquiformerV2_OC20(BaseModel):
                 target_element = atomic_numbers[
                     edge_index_hessian[1]
                 ]  # Target atom atomic number
-                source_embedding = self.source_embedding_hessian(source_element)
-                target_embedding = self.target_embedding_hessian(target_element)
+                source_embedding = self.source_embedding(source_element)
+                target_embedding = self.target_embedding(target_element)
                 edge_distance_hessian = torch.cat(
                     (edge_distance_hessian, source_embedding, target_embedding), dim=1
                 )
-
-            if self.reinit_edge_degree_embedding_hessian:
-                # Edge-degree embedding for initializing node features
-                edge_degree_hessian = self.edge_degree_embedding_hessian(
-                    atomic_numbers, edge_distance_hessian, edge_index_hessian
-                )
-                x.embedding = x.embedding + edge_degree_hessian.embedding
-
+            else:
+                # will be constructed in each transformer block
+                pass
+            
             for i in range(self.num_layers_hessian):
                 x = self.hessian_layers[i](
                     x,  # SO3_Embedding
