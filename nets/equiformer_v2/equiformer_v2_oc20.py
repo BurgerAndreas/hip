@@ -223,6 +223,8 @@ class EquiformerV2_OC20(BaseModel):
         do_hessian=None,
         num_gaussians_distance_hessian=None,
         hessian_build_method=None,
+        hessian_drop_path_rate=0.05,
+        hessian_proj_drop=0.0,
         device=None,
         **kwargs,
     ):
@@ -283,6 +285,8 @@ class EquiformerV2_OC20(BaseModel):
         self.drop_path_rate = drop_path_rate
         self.proj_drop = proj_drop
         self.hessian_alpha_drop = hessian_alpha_drop
+        self.hessian_drop_path_rate = hessian_drop_path_rate
+        self.hessian_proj_drop = hessian_proj_drop
         self.hessian_no_attn_weights = hessian_no_attn_weights
         self.attn_wo_sigmoid = attn_wo_sigmoid
 
@@ -573,8 +577,8 @@ class EquiformerV2_OC20(BaseModel):
                 self.use_sep_s2_act,
                 self.norm_type,
                 self.hessian_alpha_drop,
-                self.drop_path_rate,
-                self.proj_drop,
+                self.hessian_drop_path_rate,
+                self.hessian_proj_drop,
             )
             self.hessian_layers.append(hessian_block)
         # copied from force prediction head

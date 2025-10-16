@@ -424,19 +424,19 @@ def eigendecomp_batchsize_benchmark(
                 }
             )
 
-            # Time GPU sparse block (LOBPCG on block-diagonal)
-            time_gpu_sp_blk, mem_gpu_sp_blk = time_forward_pass_with_frequency_analysis_batch(
-                model, batch, "cuda", method="lobpcg"
-            )
-            results.append(
-                {
-                    "method": "lobpcg",
-                    "time": time_gpu_sp_blk,
-                    "memory": mem_gpu_sp_blk,
-                    "batch_size": bsz,
-                    "avg_natoms": batch.natoms.float().mean().item(),
-                }
-            )
+            # # Time GPU sparse block (LOBPCG on block-diagonal)
+            # time_gpu_sp_blk, mem_gpu_sp_blk = time_forward_pass_with_frequency_analysis_batch(
+            #     model, batch, "cuda", method="lobpcg"
+            # )
+            # results.append(
+            #     {
+            #         "method": "lobpcg",
+            #         "time": time_gpu_sp_blk,
+            #         "memory": mem_gpu_sp_blk,
+            #         "batch_size": bsz,
+            #         "avg_natoms": batch.natoms.float().mean().item(),
+            #     }
+            # )
 
             # Clear memory
             torch.cuda.empty_cache()
@@ -475,7 +475,7 @@ def eigendecomp_batchsize_benchmark(
             msg = f"Bz={bsz}, avg natoms={batch.natoms.clone().to(torch.float32).mean():.1f}"
             msg += f", gpu={time_gpu:.1f} ms"
             msg += f", gpu_pad={time_gpu_pad:.1f} ms"
-            msg += f", sp_blk={time_gpu_sp_blk:.1f} ms"
+            # msg += f", sp_blk={time_gpu_sp_blk:.1f} ms"
             msg += f", cpu={time_cpu:.1f} ms"
             msg += f", cpu_par={time_cpu_par:.1f} ms"
             print(msg)
