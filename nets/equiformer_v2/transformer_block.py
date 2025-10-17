@@ -20,6 +20,7 @@ from .layer_norm import (
     EquivariantLayerNormArraySphericalHarmonics,
     EquivariantRMSNormArraySphericalHarmonics,
     get_normalization_layer,
+    get_activation_function,
 )
 from .so2_ops import SO2_Convolution, SO2_Linear
 from .so3 import SO3_Embedding, SO3_Linear, SO3_LinearV2
@@ -427,7 +428,7 @@ class FeedForwardNetwork(torch.nn.Module):
         lmax_list,
         mmax_list,
         SO3_grid,
-        activation="scaled_silu",
+        activation="silu",
         use_gate_act=False,
         use_grid_mlp=False,
         use_sep_s2_act=True,
@@ -456,15 +457,15 @@ class FeedForwardNetwork(torch.nn.Module):
                     nn.Linear(
                         self.sphere_channels_all, self.hidden_channels, bias=True
                     ),
-                    nn.SiLU(),
+                    get_activation_function(activation),
                 )
             else:
                 self.scalar_mlp = None
             self.grid_mlp = nn.Sequential(
                 nn.Linear(self.hidden_channels, self.hidden_channels, bias=False),
-                nn.SiLU(),
+                get_activation_function(activation),
                 nn.Linear(self.hidden_channels, self.hidden_channels, bias=False),
-                nn.SiLU(),
+                get_activation_function(activation),
                 nn.Linear(self.hidden_channels, self.hidden_channels, bias=False),
             )
         else:
