@@ -14,13 +14,13 @@ from .activation import (
     GateActivation,
     SeparableS2Activation,
     S2Activation,
+    get_activation_function,
 )
 from .layer_norm import (
     EquivariantLayerNormArray,
     EquivariantLayerNormArraySphericalHarmonics,
     EquivariantRMSNormArraySphericalHarmonics,
     get_normalization_layer,
-    get_activation_function,
 )
 from .so2_ops import SO2_Convolution, SO2_Linear
 from .so3 import SO3_Embedding, SO3_Linear, SO3_LinearV2
