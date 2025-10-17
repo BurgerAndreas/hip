@@ -486,7 +486,6 @@ def test_hessian_utils():
 
         # Move batch to device
         batch = batch.to(device)
-        
 
         #############################################################
         # compute Hessian eigenvalues and eigenvectors in postselect way
@@ -558,7 +557,7 @@ def test_hessian_utils():
         if i > max_batches:
             break
         batch = batch.to(device)
-        
+
         # batch.pos.requires_grad_(True)
         energy, forces, out = model.potential.forward(batch)
     t1 = time.time()
@@ -569,7 +568,7 @@ def test_hessian_utils():
         if i > max_batches:
             break
         batch = batch.to(device)
-        
+
         # batch.pos.requires_grad_(True)
         energy, forces, out = model.potential.forward(batch)
         # compute Hessian in postselect way
@@ -587,7 +586,7 @@ def test_hessian_utils():
         if i > max_batches:
             break
         batch = batch.to(device)
-        
+
         # batch.pos.requires_grad_(True)
         energy, forces, out = model.potential.forward(batch)
         # compute Hessian in batchwise way
@@ -603,7 +602,7 @@ def test_hessian_utils():
         if i > max_batches:
             break
         batch = batch.to(device)
-        
+
         # batch.pos.requires_grad_(True)
         energy, forces, out = model.potential.forward(batch)
         # compute Hessian in parallel
@@ -619,14 +618,14 @@ def test_hessian_utils():
         if i > max_batches:
             break
         batch = batch.to(device)
-        
+
         seigvals, seigvecs = predict_eigen_from_batch(batch, model)
     t1 = time.time()
     print(f"Time taken for predict_eigen_from_batch: {t1 - t0:.2f} seconds")
 
     batch = next(iter(dataloader))
     batch = batch.to(device)
-    
+
     # batch.pos.requires_grad_(True)
     energy, forces, out = model.potential.forward(batch)
     # compute Hessian in parallel
@@ -653,7 +652,7 @@ def test_hessian_utils():
             dataloader = TGDataLoader(dataset, batch_size=batch_size, shuffle=False)
             for i, batch in enumerate(dataloader):
                 batch = batch.to(device)
-                
+
                 # batch.pos.requires_grad_(True)
                 energy, forces, out = model.potential.forward(batch)
                 # Try to compute Hessian in the batchwise way
@@ -680,7 +679,7 @@ def test_hessian_utils():
             dataloader = TGDataLoader(dataset, batch_size=batch_size, shuffle=False)
             for i, batch in enumerate(dataloader):
                 batch = batch.to(device)
-                
+
                 energy, forces, out = model.potential.forward(batch)
                 # Try to compute Hessian in the postselect way
                 full_hessian = compute_full_hessian(

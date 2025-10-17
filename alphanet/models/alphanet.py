@@ -13,6 +13,7 @@ from torch_geometric.nn.conv import MessagePassing
 from nets.scatter_utils import scatter, segment_coo, segment_csr
 from nets.prediction_utils import remove_mean_batch
 
+
 def get_max_neighbors_mask(natoms, index, atom_distance, max_num_neighbors_threshold):
     """
     Give a mask that filters out edges so that each atom has at most

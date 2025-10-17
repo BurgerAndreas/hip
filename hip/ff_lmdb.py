@@ -128,7 +128,9 @@ class LmdbDataset(Dataset):
         data_object.dataset_idx = torch.tensor(idx)
 
         indices = data_object.one_hot.long().argmax(dim=1)
-        data_object.z = GLOBAL_ATOM_NUMBERS.to(data_object.pos.device)[indices.to(data_object.pos.device)]
+        data_object.z = GLOBAL_ATOM_NUMBERS.to(data_object.pos.device)[
+            indices.to(data_object.pos.device)
+        ]
 
         return data_object
 

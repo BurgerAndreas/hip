@@ -85,6 +85,7 @@ def get_scalar_from_embedding(embedding, data, avg_num_nodes=None):
         avg_num_nodes = torch.sum(data.natoms) / len(data.natoms)
     return scalars / avg_num_nodes
 
+
 def remove_mean_batch(x, indices):
     mean = scatter_mean(x, indices, dim=0)
     x = x - mean[indices]
@@ -756,7 +757,7 @@ class EquiformerV2_OC20(BaseModel):
                 hessian: (B*N*3*N*3)
         """
         data.pos = remove_mean_batch(data.pos, data.batch)
-        
+
         self.batch_size = len(data.natoms)
         self.dtype = data.pos.dtype
         self.device = data.pos.device

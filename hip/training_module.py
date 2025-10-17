@@ -336,7 +336,9 @@ class PotentialModule(LightningModule):
         # else:
         #     parameters = model.parameters()
         if optim_type.lower() == "adamw":
-            optimizer_config = {k: v for k, v in self.optimizer_config.items() if "muon" not in k}
+            optimizer_config = {
+                k: v for k, v in self.optimizer_config.items() if "muon" not in k
+            }
             optimizer = torch.optim.AdamW(trainable_params, **optimizer_config)
         elif optim_type.lower() == "muon":
             assert not self.training_config.get("train_hessian_only", False)
@@ -376,7 +378,9 @@ class PotentialModule(LightningModule):
             self.num_adam_params = np.sum([_p.numel() for _p in adam_params])
             print(f"Number of muon parameters: {self.num_muon_params}")
             print(f"Number of adam parameters: {self.num_adam_params}")
-            print(f"Percentage of muon parameters: {self.num_muon_params / (self.num_muon_params + self.num_adam_params) * 100:.2f}%")
+            print(
+                f"Percentage of muon parameters: {self.num_muon_params / (self.num_muon_params + self.num_adam_params) * 100:.2f}%"
+            )
             optimizer = MuonWithAuxAdam(param_groups)
         else:
             raise ValueError(f"Unknown optimizer: {optim_type}")
