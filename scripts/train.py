@@ -27,7 +27,7 @@ except ImportError:
 from hip.training_module import PotentialModule
 from hip.path_config import CHECKPOINT_PATH_EQUIFORMER_HORM
 from hip.logging_utils import name_from_config, find_latest_checkpoint
-# from hip.custom_strategy import flexible_load_optimizer_state_dict
+from hip.custom_strategy import flexible_load_optimizer_state_dict
 
 
 def setup_training(cfg: DictConfig):
@@ -242,10 +242,10 @@ def setup_training(cfg: DictConfig):
     )
 
     # # Monkey-patch the strategy to use flexible optimizer loading
-    # import types
-    # trainer.strategy.load_optimizer_state_dict = types.MethodType(
-    #     flexible_load_optimizer_state_dict, trainer.strategy
-    # )
+    import types
+    trainer.strategy.load_optimizer_state_dict = types.MethodType(
+        flexible_load_optimizer_state_dict, trainer.strategy
+    )
 
     print("Trainer initialized")
 
