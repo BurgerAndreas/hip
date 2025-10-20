@@ -36,6 +36,29 @@ def flexible_load_optimizer_state_dict(self, checkpoint: Mapping[str, Any]) -> N
     for optimizer, opt_state in zip(self.optimizers, optimizer_states):
         # Check if parameter groups match
         if len(optimizer.param_groups) != len(opt_state["param_groups"]):
+            print(f"Some parameter groups are missing: loaded {len(opt_state['param_groups'])} groups, but current has {len(optimizer.param_groups)} groups")
+            for i in range(len(optimizer.param_groups)):
+                if i not in opt_state["param_groups"]:
+                    print(f"Group {i} is missing")
+            for i in range(len(opt_state["param_groups"])):
+                if i not in optimizer.param_groups:
+                    print(f"Group {i} is missing in current optimizer")
+        print()
+        # Check if parameter groups match in count
+        groups_match = len(optimizer.param_groups) == len(opt_state["param_groups"])
+        
+        # Also check if parameters within each group match in count
+        params_match = True
+        if groups_match:
+            for i, (current_group, loaded_group) in enumerate(
+                zip(optimizer.param_groups, opt_state["param_groups"])
+            ):
+                if len(current_group["params"]) != len(loaded_group["params"]):
+                    params_match = False
+                    break
+        
+        # Use flexible loading if there's any mismatch
+        if not groups_match or not params_match:
             warnings.warn(
                 f"\nOptimizer parameter group mismatch:\n"
                 f"  Checkpoint has {len(opt_state['param_groups'])} parameter groups\n"

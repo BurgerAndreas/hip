@@ -241,7 +241,7 @@ def setup_training(cfg: DictConfig):
         # val_check_interval=cfg.pltrainer.get('val_check_interval', None),
     )
 
-    # # Monkey-patch the strategy to use flexible optimizer loading
+    # Monkey-patch the strategy to use flexible optimizer loading
     import types
     trainer.strategy.load_optimizer_state_dict = types.MethodType(
         flexible_load_optimizer_state_dict, trainer.strategy
