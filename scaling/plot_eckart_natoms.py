@@ -27,7 +27,7 @@ sns.set_context("poster")
 base_dir = "scaling/plots/natoms_scaling"
 os.makedirs(base_dir, exist_ok=True)
 
-force_download = True
+force_download = False
 
 # Check if parquet file exists
 parquet_file = "wandb_natoms_scaling.parquet"
@@ -49,6 +49,10 @@ else:
             or run.config["training"]["split"] != "size"
         ):
             continue
+        
+        if run.config["pltrainer"]["limit_val_batches"] == 200 and run.config["training"]["hessian_loss_weight"] > 0:
+            continue
+
         # .summary contains the output keys/values for metrics like accuracy.
         #  We call ._json_dict to omit large files
         summary_dict = run.summary._json_dict
@@ -110,9 +114,13 @@ else:
         #         print(f"-> No non-NaN values found for {c}")
         # print(" min_history", min_history)
         
-        history = run.history(samples=5_000, keys=keys, x_axis='_step', pandas=True, stream='default')
+        history = run.history(samples=50_000, keys=keys, x_axis='_step', pandas=True, stream='default')
         # get the minimum value for each key using pandas
         min_history = {k: float(history[k].min()) for k in keys}
+        # for cosine sim use the max value
+        for k in keys:
+            if "Cosine Sim" in k:
+                min_history[k] = float(history[k].max())
         
         # over write last value with min value
         summary_dict.update(min_history)
@@ -140,20 +148,25 @@ loss_labels_axis = {
     "Loss E": "Energy MAE [eV]", "Loss F": "Force MAE [eV/A]", "MAE Hessian": "Hessian MAE [eV/A^2]",
     "Abs Cosine Sim v1 Eckart": "Hessian Cosine Sim v1 (Eckart)",
     "MAE Eigvals Eckart": "Hessian Eigenvalue MAE (Eckart)",
+    "MAE Val1 Eckart": "Hessian Val1 MAE (Eckart)",
 }
 loss_labels = {
     "Loss E": "Energy MAE", "Loss F": "Force MAE", "MAE Hessian": "Hessian MAE",
     "Abs Cosine Sim v1 Eckart": "Hessian Cosine Sim v1 (Eckart)",
     "MAE Eigvals Eckart": "Hessian Eigenvalue MAE (Eckart)",
+    "MAE Val1 Eckart": "Hessian Val1 MAE (Eckart)",
 }
 
 # Filter to keep only columns containing loss types
 for loss_type in [
     "Loss E", "Loss F", 
-    "MAE Hessian",
-    "Abs Cosine Sim v1 Eckart",
     "MAE Eigvals Eckart",
+    # "MAE Hessian",
+    # "Abs Cosine Sim v1 Eckart",
+    # "MAE Val1 Eckart",
 ]:
+    print("-"*100)
+    print(f"Plotting {loss_type}")
     df = runs_df.copy()
     matching_cols = [col for col in df.columns if loss_type in col]
 
@@ -162,9 +175,9 @@ for loss_type in [
     df = df[columns_to_keep]
     
 
-    print(f"\nDataFrame shape: {df.shape}")
-    print("\nFirst few rows:")
-    print(df.head())
+    # print(f"\nDataFrame shape: {df.shape}")
+    # print("\nFirst few rows:")
+    # print(df.head())
     # map training.equal_samples_per_size nan to False
     df["training.equal_samples_per_size"] = (
         df["training.equal_samples_per_size"].fillna(False).infer_objects(copy=False)
@@ -269,7 +282,7 @@ for loss_type in [
     # training.hessian_loss_weight < 0.1 as dashed lines
     # color by "Split Size", label by "Method"
     
-    if "hessian" not in loss_type.lower():
+    if "hessian" not in loss_type.lower() and "eckart" not in loss_type.lower():
     
         plt.figure(figsize=(12, 8))
         
@@ -409,6 +422,7 @@ for loss_type in [
         plt.close()
 
     ##########################################################
+    # stratified vs random sampling
     # Plot only specific split sizes
     # training.equal_samples_per_size == True as solid lines
     # training.equal_samples_per_size == False as dashed lines
@@ -432,7 +446,7 @@ for loss_type in [
     # Filter to only include rows where training.hessian_loss_weight > 0
     df_filtered = df_filtered[df_filtered["training.hessian_loss_weight"] > 0]
 
-    # Use all available x values instead of filtering
+    # Use all available x values 
     eval_cols = [col for col in df_filtered.columns if "eval_" in col and loss_type in col]
     if not eval_cols:
         print(f"No eval columns found for {loss_type}")
@@ -494,40 +508,44 @@ for loss_type in [
     if plot_data:
         plot_df = pd.DataFrame(plot_data)
 
+        # Get all unique split sizes and create consistent color mapping
+        all_split_sizes = sorted(plot_df["Split Size"].unique())
+        colors = plt.cm.viridis(np.linspace(0, 1, len(all_split_sizes)))
+        split_size_to_color = dict(zip(all_split_sizes, colors))
+
         # Plot solid lines first (Unequal samples) - color by Split Size only
         solid_df = plot_df[plot_df["Line Style"] == "Solid"]
         if not solid_df.empty:
-            sns.lineplot(
-                data=solid_df,
-                x="X Value",
-                y="Value",
-                hue="Split Size",
-                marker="o",
-                linewidth=2,
-                markersize=4,
-                palette="viridis",
-                linestyle="-",
-            )
+            for split_size in all_split_sizes:
+                split_data = solid_df[solid_df["Split Size"] == split_size]
+                if not split_data.empty:
+                    plt.plot(
+                        split_data["X Value"],
+                        split_data["Value"],
+                        linestyle="-",
+                        color=split_size_to_color[split_size],
+                        linewidth=2,
+                        marker="o",
+                        markersize=4,
+                        label=f"{split_size}",
+                    )
 
         # Plot dotted lines (Equal samples) with matching colors but single legend entry for linestyle
         dotted_df = plot_df[plot_df["Line Style"] == "Dotted"]
         if not dotted_df.empty:
-            unique_split_sizes = dotted_df["Split Size"].unique()
-            colors = plt.cm.viridis(np.linspace(0, 1, len(unique_split_sizes)))
-            split_size_to_color = dict(zip(unique_split_sizes, colors))
-
-            for split_size in unique_split_sizes:
+            for split_size in all_split_sizes:
                 split_data = dotted_df[dotted_df["Split Size"] == split_size]
-                plt.plot(
-                    split_data["X Value"],
-                    split_data["Value"],
-                    linestyle=":",
-                    color=split_size_to_color[split_size],
-                    linewidth=2,
-                    marker="o",
-                    markersize=4,
-                    label=None,
-                )
+                if not split_data.empty:
+                    plt.plot(
+                        split_data["X Value"],
+                        split_data["Value"],
+                        linestyle=":",
+                        color=split_size_to_color[split_size],
+                        linewidth=2,
+                        marker="o",
+                        markersize=4,
+                        label=None,
+                    )
 
             # Add a single dummy legend entry to indicate dotted = equal samples
             plt.plot([], [], linestyle=":", color="gray", linewidth=2, label="Stratified")
