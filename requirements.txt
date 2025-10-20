@@ -55,4 +55,4 @@ lmdb==1.5.1
 h5py>=3.10.0
 # JAX 
 # jax[cuda12]==0.6.2
-# git+https://github.com/KellerJordan/Muon
+git+https://github.com/KellerJordan/Muon

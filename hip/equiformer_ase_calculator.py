@@ -104,18 +104,6 @@ class EquiformerASECalculator(ASECalculator):
         """Reset the calculator."""
         self.results = {}
 
-    def forward(self, atoms, hessian=False):
-        """
-        Forward pass for the Equiformer calculator.
-        If hessian is True, it will compute the Hessian via autograd and eigenvalues/eigenvectors.
-        Otherwise, it will only compute the energy and forces.
-        """
-        properties = ["energy", "forces"]
-        if hessian:
-            properties += ["hessian", "eigen"]
-        self.calculate(atoms, properties=properties)
-        return self.results
-
     def calculate(
         self,
         atoms=None,
@@ -138,7 +126,6 @@ class EquiformerASECalculator(ASECalculator):
 
         if hessian_method is None:
             hessian_method = self.hessian_method
-        do_autograd = (hessian_method == "autodiff") and ("hessian" in properties)
 
         # ocpmodels/common/relaxation/ase_utils.py
         # data_object = self.a2g.convert(atoms)
@@ -149,52 +136,38 @@ class EquiformerASECalculator(ASECalculator):
         batch = ase_atoms_to_torch_geometric(atoms)
         batch = batch.to(self.device)
 
-        if properties is None:
-            properties = []
-
         # Store results
         self.results = {}
 
         # Run prediction
-        if "hessian" in properties:
-            if hessian_method == "autograd":
-                # Compute energy and forces with autograd
-                with torch.enable_grad():
-                    batch.pos.requires_grad = True
-                    energy, forces, _ = self.potential.forward(
-                        batch,
-                        otf_graph=True,
-                    )
-                    # Use autograd to compute hessian
-                    hessian = compute_hessian(
-                        coords=batch.pos,
-                        energy=energy,
-                        forces=forces,  # allow_unused=True
-                    )
+        if hessian_method == "autograd":
+            # Compute energy and forces with autograd
+            with torch.enable_grad():
+                batch.pos.requires_grad = True
+                energy, forces, _ = self.potential.forward(
+                    batch,
+                    otf_graph=True,
+                )
+                # Use autograd to compute hessian
+                hessian = compute_hessian(
+                    coords=batch.pos,
+                    energy=energy,
+                    forces=forces,  # allow_unused=True
+                )
 
-            elif hessian_method == "predict":
-                with torch.no_grad():
-                    energy, forces, out = self.potential.forward(
-                        batch,
-                        otf_graph=True,
-                    )
-                    hessian = out["hessian"]
-
-            else:
-                raise ValueError(f"Invalid hessian method: {hessian_method}")
-
-            N = batch.pos.shape[0]
-            self.results["hessian"] = (
-                hessian.detach().cpu().numpy().reshape(N * 3, N * 3)
-            )
+        elif hessian_method == "predict":
+            with torch.no_grad():
+                energy, forces, out = self.potential.forward(
+                    batch,
+                    otf_graph=True,
+                )
+                hessian = out["hessian"]
 
         else:
-            # just predict energy and forces
-            energy, forces, _ = self.potential.forward(
-                batch,
-                otf_graph=False,
-                hessian=False,
-            )
+            raise ValueError(f"Invalid hessian method: {hessian_method}")
+
+        N = batch.pos.shape[0]
+        self.results["hessian"] = hessian.detach().cpu().numpy().reshape(N * 3, N * 3)
 
         # Energy is per molecule, extract scalar value
         self.results["energy"] = float(energy.detach().cpu().item())
