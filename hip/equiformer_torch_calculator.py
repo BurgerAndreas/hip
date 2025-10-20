@@ -94,7 +94,6 @@ class EquiformerTorchCalculator:
         """Predict one or multiple samples"""
         if hessian_method is None:
             hessian_method = self.hessian_method
-        do_autograd = (hessian_method == "autograd") and (do_hessian)
 
         if batch is None:
             assert coords is not None and atomic_nums is not None, (

@@ -9,17 +9,17 @@ from ase import Atoms
 
 def torch_example(checkpoint_path, dataset_path, device):
     print("\n", "=" * 20 + " Torch Calculator " + "=" * 20, "\n")
-    calculator = EquiformerTorchCalculator(
+    torch_calculator = EquiformerTorchCalculator(
         checkpoint_path=checkpoint_path,
         hessian_method="predict",
         device=device,
     )
 
     dataloader = get_dataloader(
-        dataset_path, calculator.potential, batch_size=1, shuffle=False
+        dataset_path, torch_calculator.potential, batch_size=1, shuffle=False
     )
     batch = next(iter(dataloader))
-    results = calculator.predict(batch)
+    results = torch_calculator.predict(batch)
     print("Example 1:")
     print(f"  Energy: {results['energy'].shape}")
     print(f"  Forces: {results['forces'].shape}")
@@ -30,7 +30,7 @@ def torch_example(checkpoint_path, dataset_path, device):
     elements = torch.tensor([1, 6, 7, 8])  # H, C, N, O
     pos = torch.randn(n_atoms, 3)  # (N, 3)
     atomic_nums = elements[torch.randint(0, 4, (n_atoms,))]  # (N,)
-    results = calculator.predict(coords=pos, atomic_nums=atomic_nums)
+    results = torch_calculator.predict(coords=pos, atomic_nums=atomic_nums)
     print("\nExample 2:")
     print(f"  Energy: {results['energy'].shape}")
     print(f"  Forces: {results['forces'].shape}")
@@ -48,7 +48,7 @@ def torch_example(checkpoint_path, dataset_path, device):
 def ase_example(checkpoint_path, device):
     # Let's try the ASE calculator
     print("\n", "=" * 20 + " ASE Calculator " + "=" * 20, "\n")
-    calculator = EquiformerASECalculator(
+    ase_calculator = EquiformerASECalculator(
         checkpoint_path=checkpoint_path,
         hessian_method="predict",
         device=device,
@@ -64,11 +64,11 @@ def ase_example(checkpoint_path, device):
     )
 
     # Attach calculator to atoms
-    atoms.calc = calculator
+    atoms.calc = ase_calculator
 
     # Calculate energy and forces
-    calculator.calculate(atoms)
-    results = calculator.results
+    ase_calculator.calculate(atoms)
+    results = ase_calculator.results
     energy = results["energy"]
     forces = results["forces"]
 
@@ -77,8 +77,8 @@ def ase_example(checkpoint_path, device):
     print(f"Forces:\n{forces}")
 
     # To get hessian, we need to explicitly calculate it through the calculator
-    calculator.calculate(atoms, properties=["energy", "forces", "hessian"])
-    hessian = calculator.results["hessian"]
+    ase_calculator.calculate(atoms, properties=["energy", "forces", "hessian"])
+    hessian = ase_calculator.results["hessian"]
     print(f"Hessian shape: {hessian.shape}")
 
     # Or all at once

@@ -59,7 +59,8 @@ def evaluate(
     wandb_kwargs={},
     redo=False,
 ):
-    ckpt = torch.load(checkpoint_path, weights_only=False)
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+    ckpt = torch.load(checkpoint_path, weights_only=False, map_location=device)
     model_name = ckpt["hyper_parameters"]["model_config"]["name"]
     model_config = ckpt["hyper_parameters"]["model_config"]
     print(f"Model name: {model_name}")
@@ -92,7 +93,7 @@ def evaluate(
     model = PotentialModule.load_from_checkpoint(
         checkpoint_path,
         strict=False,
-    ).potential.to("cuda")
+    ).potential.to(device)
     model.eval()
 
     do_autograd = hessian_method == "autograd"
@@ -136,7 +137,7 @@ def evaluate(
         for _i, batch in tqdm(enumerate(dataloader), desc="Warmup", total=10):
             if _i >= 10:
                 break
-            batch = batch.to("cuda")
+            batch = batch.to(device)
 
             n_atoms = batch.pos.shape[0]
 
@@ -177,7 +178,7 @@ def evaluate(
         start_event_all.record()
 
         for batch in tqdm(dataloader, desc="Evaluating", total=n_total_samples):
-            batch = batch.to("cuda")
+            batch = batch.to(device)
 
             n_atoms = batch.pos.shape[0]
 

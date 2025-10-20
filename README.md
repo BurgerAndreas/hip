@@ -1,6 +1,14 @@
-# Molecular Hessians Without Derivatives
+# HIP: Hessian Interatomic Potentials Without Derivatives
 
-A machine learning force field (interactomic potential) to directly predict the Hessian.
+
+<p align="center">
+<a href="https://arxiv.org/abs/2509.21624"><img src="https://img.shields.io/badge/arXiv-b31b1b?style=for-the-badge&logo=arxiv" alt="arXiv"/></a>
+<!-- <a href="https://github.com/plainerman/variational-doob"><img src="https://img.shields.io/badge/python-3670A0?style=for-the-badge&logo=python&logoColor=ffdd54" alt="Python"/></a> -->
+<a href="https://colab.research.google.com/drive/1H_e9eABIutVTT6Q6LfV6ku0Mqp_Uzm8M?usp=sharing"><img src="https://img.shields.io/badge/Colab-e37e3d.svg?style=for-the-badge&logo=googlecolab&logoColor=white" alt="Jupyter"/></a>
+<a href="https://github.com/BurgerAndreas/hip"><img src="https://img.shields.io/badge/library-PyTorch-5f0964?style=for-the-badge" alt="PyTorch"/></a>
+</p>
+
+A machine learning interatomic potential to directly predict the Hessian.
 Trained on the [HORM Hessian dataset](https://github.com/deepprinciple/HORM), which consists of off-equilibrium geometries of small, neutral organic molecules, contained H, C, N, O, based on the T1x and RGD1 datasets, at the $\omega$B97X/6-31G(d) level of theory.
 
 Compared to autograd Hessians:

@@ -349,6 +349,8 @@ def test_hessian_utils():
     from hip.training_module import PotentialModule
     from hip.ff_lmdb import LmdbDataset
 
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+
     batch_size = 2
 
     # Paths
@@ -380,7 +382,7 @@ def test_hessian_utils():
     print(f"Loading model from: {checkpoint_path}")
 
     # Load checkpoint to get model info
-    ckpt = torch.load(checkpoint_path, weights_only=False, map_location="cpu")
+    ckpt = torch.load(checkpoint_path, weights_only=False, map_location=device)
     model_name = ckpt["hyper_parameters"]["model_config"]["name"]
     print(f"Model type: {model_name}")
 
@@ -391,7 +393,6 @@ def test_hessian_utils():
     )
 
     # Move to GPU if available
-    device = "cuda" if torch.cuda.is_available() else "cpu"
     model = model.to(device)
     model.eval()
 

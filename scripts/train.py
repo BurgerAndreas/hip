@@ -75,7 +75,7 @@ def setup_training(cfg: DictConfig):
     # ckpt_model_path
     # only loads the model weights, not the trainer state
     # like optimizer, learning rate scheduler, epoch/step, RNG state, etc.
-
+    device = "cuda" if torch.cuda.is_available() else "cpu"
     # pm = EigenPotentialModule(model_config, optimizer_config, training_config)
     # pm = hydra.utils.instantiate(cfg.potential_module_class, model_config, optimizer_config, training_config)
     pm = eval(cfg.potential_module_class)(
@@ -85,7 +85,7 @@ def setup_training(cfg: DictConfig):
         print(f"Not loading model checkpoint from {cfg.ckpt_model_path}")
     elif cfg.ckpt_model_path == "horm":
         ckpt = torch.load(
-            CHECKPOINT_PATH_EQUIFORMER_HORM, map_location="cuda", weights_only=True
+            CHECKPOINT_PATH_EQUIFORMER_HORM, map_location=device, weights_only=True
         )
         print(f"Checkpoint keys: {ckpt.keys()}")
         print(f"Checkpoint state_dict keys: {len(ckpt['state_dict'].keys())}")

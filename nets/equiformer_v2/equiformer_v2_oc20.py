@@ -223,7 +223,7 @@ class EquiformerV2_OC20(BaseModel):
         **kwargs,
     ):
         super().__init__()
-        
+
         # H, C, N, O
         self.atom_numbers = torch.tensor([1, 6, 7, 8])
 

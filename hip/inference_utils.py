@@ -8,7 +8,7 @@ from hip.training_module import SchemaUniformDataset
 
 
 def get_model_from_checkpoint(checkpoint_path, device):
-    ckpt = torch.load(checkpoint_path, weights_only=False)
+    ckpt = torch.load(checkpoint_path, weights_only=False, map_location=device)
     model_name = ckpt["hyper_parameters"]["model_config"]["name"]
     model = PotentialModule.load_from_checkpoint(
         checkpoint_path,
