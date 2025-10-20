@@ -466,7 +466,7 @@ class EquiformerV2_OC20(BaseModel):
         ] + [self.edge_channels] * 2
 
         self.avg_degree_hessian = avg_degree_hessian
-        
+
         # not used?
         # Edge-degree embedding for initializing node features
         self.edge_degree_embedding_hessian = EdgeDegreeEmbedding(

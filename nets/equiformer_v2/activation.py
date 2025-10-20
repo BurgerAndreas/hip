@@ -4,6 +4,7 @@ import torch.nn.functional as F
 
 # from .linear import Linear_gaussian_init
 
+
 def get_activation_function(activation):
     if activation.lower() == "silu":
         return nn.SiLU()
@@ -15,6 +16,7 @@ def get_activation_function(activation):
         return nn.ReLU()
     else:
         raise ValueError(f"Activation function {activation} not supported")
+
 
 class ScaledSiLU(nn.Module):
     def __init__(self, inplace=False):

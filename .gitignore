@@ -46,6 +46,7 @@ rgd1_raw/
 *.trj
 logs_gad
 logs_hormtssearch
+playground
 
 *.whl
 *env
