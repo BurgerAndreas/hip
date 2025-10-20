@@ -13,7 +13,8 @@ def get_model_from_checkpoint(checkpoint_path, device):
     model = PotentialModule.load_from_checkpoint(
         checkpoint_path,
         strict=False,
-    ).potential.to(device)
+        map_location=device,
+    ).potential
     model.eval()
     model.name = model_name
     return model
