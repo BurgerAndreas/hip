@@ -382,6 +382,43 @@ class PotentialModule(LightningModule):
                 f"Percentage of muon parameters: {self.num_muon_params / (self.num_muon_params + self.num_adam_params) * 100:.2f}%"
             )
             optimizer = MuonWithAuxAdam(param_groups)
+        elif optim_type.lower() == "kls":
+            # use same config kwargs as for muon
+            # optimize the same weights as with muon
+            assert not self.training_config.get("train_hessian_only", False)
+            from hip.kls import KLSWithAuxAdam
+            kls_params, adam_params = self.potential.get_muon_param_groups(
+                **self.optimizer_config
+            )
+            param_groups = [
+                dict(
+                    params=kls_params,
+                    use_kls=True,
+                    lr=self.optimizer_config["lr_kls"],
+                    weight_decay=self.optimizer_config["weight_decay_kls"],
+                    betas=self.optimizer_config["betas_kls"],
+                ),
+                # Adam
+                dict(
+                    params=adam_params,
+                    use_kls=False,
+                    lr=self.optimizer_config.get("lr", 0.0005),
+                    betas=self.optimizer_config.get("betas", (0.9, 0.999)),
+                    eps=self.optimizer_config.get("eps", 1e-12),
+                    weight_decay=self.optimizer_config.get("weight_decay", 0.01),
+                    # **self.optimizer_config
+                ),
+            ]
+            self.num_kls_params = np.sum([_p.numel() for _p in kls_params])
+            self.num_adam_params = np.sum([_p.numel() for _p in adam_params])
+            print(f"Number of kls parameters: {self.num_kls_params}")
+            print(f"Number of adam parameters: {self.num_adam_params}")
+            print(
+                f"Percentage of kls parameters: {self.num_kls_params / (self.num_kls_params + self.num_adam_params) * 100:.2f}%"
+            )
+            optimizer = KLSWithAuxAdam(
+                param_groups
+            )
         else:
             raise ValueError(f"Unknown optimizer: {optim_type}")
 
