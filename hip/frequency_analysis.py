@@ -177,33 +177,12 @@ def eigval_to_wavenumber(ev):
     w2nu = np.sign(ev) * np.sqrt(np.abs(ev)) * conv
     return w2nu
 
-
-def load_hessian_h5(h5_path):
-    with h5py.File(h5_path, "r") as handle:
-        atoms = [atom.capitalize() for atom in handle.attrs["atoms"]]
-        coords3d = handle["coords3d"][:]  # Bohr
-        energy = handle.attrs["energy"]  # Hartree
-        cart_hessian = handle["hessian"][:]  # Hartree/Bohr^2
-    return cart_hessian, atoms, coords3d, energy
-
-
 def analyze_frequencies(
     hessian: np.ndarray | str,  # Hartree/Bohr^2
     cart_coords: np.ndarray,  # Bohr
     atomsymbols: list[str],
     ev_thresh: float = -1e-6,
 ):
-    if isinstance(hessian, str):
-        _file = hessian
-        hessian, atoms, coords3d, energy = load_hessian_h5(
-            hessian
-        )  # Bohr and Hartree/Bohr^2
-        # geom: Geometry = geom_from_hessian(hessian) # Bohr and Hartree/Bohr^2
-        # assert np.allclose(geom.coords3d, cart_coords)
-        assert np.allclose(cart_coords, coords3d), (
-            f"XYZ and Hessian coordinates do not match\n {np.abs(cart_coords - coords3d).max():.1e}\n {np.abs(cart_coords - (coords3d / ANG2BOHR)).max():.1e}\n {_file}"
-        )
-
     proj_hessian = eckart_projection_notmw(hessian, cart_coords, atomsymbols)
     eigvals, eigvecs = np.linalg.eigh(proj_hessian)
     sorted_inds = np.argsort(eigvals)
