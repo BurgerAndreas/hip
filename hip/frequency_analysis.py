@@ -290,12 +290,15 @@ def get_trans_rot_vectors_torch(cart_coords, masses, rot_thresh=1e-6):
 def get_trans_rot_projector_torch(cart_coords, masses, full=False):
     tr_vecs = get_trans_rot_vectors_torch(cart_coords, masses=masses)
     if full:
+        # use full-space projector P_vib=VV^T (3N×3N)
         n = tr_vecs.size(1)
         P = torch.eye(n, dtype=tr_vecs.dtype, device=tr_vecs.device)
         for tr_vec in tr_vecs:
             P = P - torch.outer(tr_vec, tr_vec)
         return P
     else:
+        # U[:, 6:] are the columns spanning the vibrational subspace 
+        # = the vibrational basis V with shape (3N, 3N-6)
         U, S, _ = torch.linalg.svd(tr_vecs.T, full_matrices=True)
         P = U[:, S.numel() :].T
         return P
@@ -325,6 +328,7 @@ def eckart_projection_notmw_torch(
     cart_coords: torch.Tensor,
     atomsymbols: list[str],
     ev_thresh: float = -1e-6,
+    return_basis: bool = False,
 ):
     """Eckart projection starting from not-mass-weighted Hessian (torch).
 
@@ -332,6 +336,8 @@ def eckart_projection_notmw_torch(
     cart_coords: torch.Tensor (N*3)
     atomsymbols: list[str] (N)
     """
+    cart_coords = cart_coords.reshape(-1).to(hessian.device)
+    hessian = hessian.reshape(cart_coords.numel(), cart_coords.numel())
     masses_t = torch.tensor(
         [MASS_DICT[atom.lower()] for atom in atomsymbols],
         dtype=torch.float64,
@@ -339,10 +345,12 @@ def eckart_projection_notmw_torch(
     )
     masses3d_t = masses_t.repeat_interleave(3)
 
-    mw_hessian_t = mass_weigh_hessian_torch(hessian, masses3d_t)
-    P_t = get_trans_rot_projector_torch(cart_coords, masses=masses_t, full=False)
+    mw_hessian_t = mass_weigh_hessian_torch(hessian, masses3d_t) # (3N, 3N)
+    P_t = get_trans_rot_projector_torch(cart_coords, masses=masses_t, full=False) # (3N-6, 3N)
     proj_hessian_t = P_t @ mw_hessian_t @ P_t.T
     proj_hessian_t = (proj_hessian_t + proj_hessian_t.T) / 2.0
+    if return_basis:
+        return proj_hessian_t, P_t.T # (3N, 3N-6)
     return proj_hessian_t
 
 

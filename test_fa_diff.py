@@ -1,195 +1,13 @@
 # Adapted from pysisyphus
 
 import numpy as np
-import scipy.constants as spc
 import torch
 
-from hip.masses import MASS_DICT
 from nets.prediction_utils import Z_TO_ATOM_SYMBOL
 
-# Bohr radius in m
-BOHR2M = spc.value("Bohr radius")
-# Bohr -> Å conversion factor
-BOHR2ANG = BOHR2M * 1e10
-# Å -> Bohr conversion factor
-ANG2BOHR = 1 / BOHR2ANG
-# Hartree to J
-AU2J = spc.value("Hartree energy")
-# Speed of light in m/s
-C = spc.c
-NA = spc.Avogadro
+from hip.frequency_analysis import eckart_projection_notmw_torch, analyze_frequencies_torch
 
-
-def _to_torch_double(array_like, device=None):
-    if isinstance(array_like, torch.Tensor):
-        return array_like.to(dtype=torch.float64, device=device)
-    return torch.as_tensor(array_like, dtype=torch.float64, device=device)
-
-
-def inertia_tensor_torch(coords3d, masses):
-    """Inertia tensor using torch."""
-    coords3d_t = _to_torch_double(coords3d)
-    masses_t = _to_torch_double(masses)
-    x, y, z = coords3d_t.T
-    squares = torch.sum(coords3d_t**2 * masses_t[:, None], dim=0)
-    I_xx = squares[1] + squares[2]
-    I_yy = squares[0] + squares[2]
-    I_zz = squares[0] + squares[1]
-    I_xy = -torch.sum(masses_t * x * y)
-    I_xz = -torch.sum(masses_t * x * z)
-    I_yz = -torch.sum(masses_t * y * z)
-    return torch.stack(
-        [
-            torch.stack([I_xx, I_xy, I_xz]),
-            torch.stack([I_xy, I_yy, I_yz]),
-            torch.stack([I_xz, I_yz, I_zz]),
-        ]
-    )
-
-
-def get_trans_rot_vectors_torch(cart_coords, masses, rot_thresh=1e-6):
-    """Torch version of get_trans_rot_vectors."""
-    cart_coords_t = _to_torch_double(cart_coords)
-    masses_t = _to_torch_double(masses)
-
-    coords3d = cart_coords_t.reshape(-1, 3)
-    total_mass = torch.sum(masses_t)
-    com = (coords3d * masses_t[:, None]).sum(dim=0) / total_mass
-    coords3d_centered = coords3d - com[None, :]
-
-    _, Iv = torch.linalg.eigh(inertia_tensor_torch(coords3d, masses_t))
-    Iv = Iv.T  # rows are eigenvectors
-
-    masses_rep = masses_t.repeat_interleave(3)
-    sqrt_masses = torch.sqrt(masses_rep)
-    num = masses_t.numel()
-
-    # Translation vectors (mass-weighted unit vectors along axes)
-    trans_vecs = []  # (3, 3N)
-    device = cart_coords_t.device
-    for vec in ((1.0, 0.0, 0.0), (0.0, 1.0, 0.0), (0.0, 0.0, 1.0)):
-        tiled = _to_torch_double(vec, device=device).repeat(num)
-        v = sqrt_masses * tiled
-        trans_vecs.append(v / torch.linalg.norm(v))  # (3N,)
-
-    # Rotation vectors
-    rot_vecs = torch.zeros(
-        (3, cart_coords_t.numel()), dtype=torch.float64, device=device
-    )
-    for i in range(masses_t.size(0)):
-        p_vec = Iv @ coords3d_centered[i]
-        for ix in range(3):
-            rot_vecs[0, 3 * i + ix] = Iv[2, ix] * p_vec[1] - Iv[1, ix] * p_vec[2]
-            rot_vecs[1, 3 * i + ix] = Iv[2, ix] * p_vec[0] - Iv[0, ix] * p_vec[2]
-            rot_vecs[2, 3 * i + ix] = Iv[0, ix] * p_vec[1] - Iv[1, ix] * p_vec[0]
-    rot_vecs = rot_vecs * sqrt_masses[None, :]  # (3, 3N)
-
-    # Drop vectors with vanishing norms
-    norms = torch.linalg.norm(rot_vecs, dim=1)  # (3)
-    keep = norms > rot_thresh
-    rot_vecs = rot_vecs[keep]  # (3, 3N)
-
-    trans_vecs = torch.stack(trans_vecs)  # (3, 3N)
-    tr_vecs = torch.cat([trans_vecs, rot_vecs], dim=0)  # (6, 3N)
-    Q, _ = torch.linalg.qr(tr_vecs.T)
-    return Q.T  # (6, 3N)
-
-
-def get_trans_rot_projector_torch(cart_coords, masses, full=False):
-    tr_vecs = get_trans_rot_vectors_torch(cart_coords, masses=masses)
-    if full:
-        n = tr_vecs.size(1)
-        P = torch.eye(n, dtype=tr_vecs.dtype, device=tr_vecs.device)
-        for tr_vec in tr_vecs:
-            P = P - torch.outer(tr_vec, tr_vec)
-        return P
-    else:
-        U, S, _ = torch.linalg.svd(tr_vecs.T, full_matrices=True)
-        P = U[:, S.numel() :].T
-        return P
-
-
-def mass_weigh_hessian_torch(hessian, masses3d):
-    """mass-weighted hessian M^(-1/2) H M^(-1/2) using torch."""
-    h_t = _to_torch_double(hessian, device=hessian.device)
-    m_t = _to_torch_double(masses3d, device=hessian.device)
-    mm_sqrt_inv = torch.diag(
-        1.0 / torch.sqrt(m_t),
-    )
-    return mm_sqrt_inv @ h_t @ mm_sqrt_inv
-
-
-def unweight_mw_hessian_torch(mw_hessian, masses3d):
-    h_t = _to_torch_double(mw_hessian, device=mw_hessian.device)
-    m_t = _to_torch_double(masses3d, device=mw_hessian.device)
-    mm_sqrt = torch.diag(
-        torch.sqrt(m_t),
-    )
-    return mm_sqrt @ h_t @ mm_sqrt
-
-
-def eckart_projection_notmw_torch(
-    hessian: torch.Tensor,
-    cart_coords: torch.Tensor,
-    atomsymbols: list[str],
-    ev_thresh: float = -1e-6,
-):
-    """Eckart projection starting from not-mass-weighted Hessian (torch).
-
-    hessian: torch.Tensor (N*3, N*3)
-    cart_coords: torch.Tensor (N*3)
-    atomsymbols: list[str] (N)
-    """
-    masses_t = torch.tensor(
-        [MASS_DICT[atom.lower()] for atom in atomsymbols],
-        dtype=torch.float64,
-        device=hessian.device,
-    )
-    masses3d_t = masses_t.repeat_interleave(3)
-
-    mw_hessian_t = mass_weigh_hessian_torch(hessian, masses3d_t)
-    P_t = get_trans_rot_projector_torch(cart_coords, masses=masses_t, full=False)
-    proj_hessian_t = P_t @ mw_hessian_t @ P_t.T
-    proj_hessian_t = (proj_hessian_t + proj_hessian_t.T) / 2.0
-    return proj_hessian_t
-
-
-def analyze_frequencies_torch(
-    hessian: torch.Tensor,  # eV/Angstrom^2
-    cart_coords: torch.Tensor,  # Angstrom
-    atomsymbols: list[str],
-    ev_thresh: float = -1e-6,
-):
-    cart_coords = cart_coords.reshape(-1, 3).to(hessian.device)
-    hessian = hessian.reshape(cart_coords.numel(), cart_coords.numel())
-
-    if isinstance(atomsymbols[0], torch.Tensor):
-        atomsymbols = atomsymbols.tolist()
-    if not isinstance(atomsymbols[0], str):
-        # atomic numbers were passed instead of symbols
-        atomsymbols = [Z_TO_ATOM_SYMBOL[z] for z in atomsymbols]
-
-    proj_hessian = eckart_projection_notmw_torch(hessian, cart_coords, atomsymbols)
-    eigvals, eigvecs = torch.linalg.eigh(proj_hessian)
-
-    neg_inds = eigvals < ev_thresh
-    neg_eigvals = eigvals[neg_inds]
-    neg_num = sum(neg_inds)
-    # # eigval_str = np.array2string(eigvals[:10], precision=4)
-    # if neg_num > 0:
-    #     wavenumbers = eigval_to_wavenumber(neg_eigvals)
-    #     # wavenum_str = np.array2string(wavenumbers, precision=2)
-    # else:
-    #     wavenumbers = None
-    return {
-        "eigvals": eigvals,
-        "eigvecs": eigvecs,
-        # "wavenumbers": wavenumbers,
-        "neg_eigvals": neg_eigvals,
-        "neg_num": neg_num,
-        "natoms": len(atomsymbols),
-    }
-
+####################################################################################################################
 
 def compute_smallest_eigenvalues_product_gradient(
     hessian: torch.Tensor,  # (N*3, N*3) - requires grad
@@ -374,6 +192,9 @@ if __name__ == "__main__":
         print(f"Negative eigenvalues: {result['neg_eigvals']}")
     
     # Example: Compute gradient of product of two smallest eigenvalues
+    print(f"\n" + "="*50)
+    print("Product of smallest eigenvalues from Equiformer model example:")
+    print("="*50)
     print(f"\nGradient computation example:")
     grad_result = compute_smallest_eigenvalues_product_gradient(
         hessian_torch, coords_torch, atoms
