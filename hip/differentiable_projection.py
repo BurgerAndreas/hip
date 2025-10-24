@@ -77,7 +77,7 @@ def eckart_B_massweighted_torch(cart_coords, masses, eps=1e-12):
     return B  # columns span translations+rotations in MW metric
 
 
-def eckart_projector_massweighted_torch(cart_coords, masses, eps=1e-10):
+def eckartprojection_torch(cart_coords, masses, eps=1e-10):
     """
     Return the vibrational projector P \in R^{3N x 3N} in the *mass-weighted* space.
     P = I - B (B^T B + eps I)^{-1} B^T
@@ -99,7 +99,7 @@ def eckart_projector_massweighted_torch(cart_coords, masses, eps=1e-10):
 
 # ---- use this function ----------------------------
 
-def differentiable_eckart_projection_notmw_torch(
+def differentiable_massweigh_and_eckartprojection_torch(
     hessian: torch.Tensor,
     cart_coords: torch.Tensor,
     atomsymbols: list[str],
@@ -123,7 +123,7 @@ def differentiable_eckart_projection_notmw_torch(
     H_mw = mass_weigh_hessian_torch(hessian, masses3d_t)             # (3N,3N)
 
     # 2) projector in the MW space
-    P = eckart_projector_massweighted_torch(cart_coords, masses_t)   # (3N,3N)
+    P = eckartprojection_torch(cart_coords, masses_t)   # (3N,3N)
 
     # 3) project and symmetrize
     H_proj = P @ H_mw @ P
@@ -277,7 +277,7 @@ if __name__ == "__main__":
         # Convert atomic numbers to symbols
         atomsymbols = [Z_TO_ATOM_SYMBOL[z] for z in atomic_nums]
         hessian = hessian.reshape(coords.numel(), coords.numel())
-        hessian_proj = differentiable_eckart_projection_notmw_torch(hessian, coords.reshape(-1, 3), atomsymbols)
+        hessian_proj = differentiable_massweigh_and_eckartprojection_torch(hessian, coords.reshape(-1, 3), atomsymbols)
 
         # Compute eigenvalues and eigenvectors
         eigvals, eigvecs = torch.linalg.eigh(hessian_proj)
