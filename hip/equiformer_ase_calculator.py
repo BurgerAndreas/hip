@@ -20,7 +20,7 @@ from ase.calculators.calculator import Calculator as ASECalculator
 
 from hip.hessian_utils import compute_hessian
 from hip.inference_utils import get_model_from_checkpoint, get_dataloader
-from hip.frequency_analysis import analyze_frequencies, eckart_projection_notmw
+from hip.frequency_analysis import analyze_frequencies_np, massweigh_and_eckartprojection_np
 
 
 def ase_atoms_to_torch_geometric(atoms):
@@ -247,7 +247,7 @@ if __name__ == "__main__":
     print(f"Results: {results.keys()}")
 
     # Analyze frequencies
-    frequency_analysis = analyze_frequencies(hessian, atoms.positions, atoms.symbols)
+    frequency_analysis = analyze_frequencies_np(hessian, atoms.positions, atoms.symbols)
     print(f"eigvals: {frequency_analysis['eigvals'].shape}")
     print(f"eigvecs: {frequency_analysis['eigvecs'].shape}")
     print(f"neg_num: {frequency_analysis['neg_num']}")

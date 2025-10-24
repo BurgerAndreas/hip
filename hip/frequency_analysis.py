@@ -142,7 +142,7 @@ def unweight_mw_hessian(mw_hessian, masses3d):
     return mm_sqrt.dot(mw_hessian).dot(mm_sqrt)
 
 
-def eckart_projection_notmw(hessian, cart_coords, atomsymbols):
+def massweigh_and_eckartprojection_np(hessian, cart_coords, atomsymbols):
     """Do Eckart projection starting from not-mass-weighted Hessian.
     hessian: np.array (N*3, N*3)
     cart_coords: np.array (N*3)
@@ -151,15 +151,6 @@ def eckart_projection_notmw(hessian, cart_coords, atomsymbols):
     masses = np.array([MASS_DICT[atom.lower()] for atom in atomsymbols])
     masses3d = np.repeat(masses, 3)
     mw_hessian = mass_weigh_hessian(hessian, masses3d)
-    P = get_trans_rot_projector(cart_coords, masses=masses, full=False)
-    proj_hessian = P.dot(mw_hessian).dot(P.T)
-    # Projection seems to slightly break symmetry (sometimes?). Resymmetrize.
-    return (proj_hessian + proj_hessian.T) / 2
-
-
-def eckart_projection_mw(mw_hessian, cart_coords, atomsymbols):
-    """Do Eckart projection starting from mass-weighted Hessian."""
-    masses = np.array([MASS_DICT[atom.lower()] for atom in atomsymbols])
     P = get_trans_rot_projector(cart_coords, masses=masses, full=False)
     proj_hessian = P.dot(mw_hessian).dot(P.T)
     # Projection seems to slightly break symmetry (sometimes?). Resymmetrize.
@@ -176,13 +167,13 @@ def eigval_to_wavenumber(ev):
     w2nu = np.sign(ev) * np.sqrt(np.abs(ev)) * conv
     return w2nu
 
-def analyze_frequencies(
+def analyze_frequencies_np(
     hessian: np.ndarray | str,  # Hartree/Bohr^2
     cart_coords: np.ndarray,  # Bohr
     atomsymbols: list[str],
     ev_thresh: float = -1e-6,
 ):
-    proj_hessian = eckart_projection_notmw(hessian, cart_coords, atomsymbols)
+    proj_hessian = massweigh_and_eckartprojection_np(hessian, cart_coords, atomsymbols)
     eigvals, eigvecs = np.linalg.eigh(proj_hessian)
     sorted_inds = np.argsort(eigvals)
     eigvals = eigvals[sorted_inds]
@@ -301,7 +292,7 @@ def get_trans_rot_projector_torch(cart_coords, masses, full=False):
         return P
 
 
-def mass_weigh_hessian_torch(hessian, masses3d):
+def massweigh_hessian_torch(hessian, masses3d):
     """mass-weighted hessian M^(-1/2) H M^(-1/2) using torch."""
     h_t = _to_torch_double(hessian, device=hessian.device)
     m_t = _to_torch_double(masses3d, device=hessian.device)
@@ -320,7 +311,7 @@ def unweight_mw_hessian_torch(mw_hessian, masses3d):
     return mm_sqrt @ h_t @ mm_sqrt
 
 
-def eckart_projection_notmw_torch(
+def massweigh_and_eckartprojection_torch(
     hessian: torch.Tensor,
     cart_coords: torch.Tensor,
     atomsymbols: list[str],
@@ -339,7 +330,7 @@ def eckart_projection_notmw_torch(
     )
     masses3d_t = masses_t.repeat_interleave(3)
 
-    mw_hessian_t = mass_weigh_hessian_torch(hessian, masses3d_t)
+    mw_hessian_t = massweigh_hessian_torch(hessian, masses3d_t)
     P_t = get_trans_rot_projector_torch(cart_coords, masses=masses_t, full=False)
     proj_hessian_t = P_t @ mw_hessian_t @ P_t.T
     proj_hessian_t = (proj_hessian_t + proj_hessian_t.T) / 2.0
@@ -361,7 +352,7 @@ def analyze_frequencies_torch(
         # atomic numbers were passed instead of symbols
         atomsymbols = [Z_TO_ATOM_SYMBOL[z] for z in atomsymbols]
 
-    proj_hessian = eckart_projection_notmw_torch(hessian, cart_coords, atomsymbols)
+    proj_hessian = massweigh_and_eckartprojection_torch(hessian, cart_coords, atomsymbols)
     eigvals, eigvecs = torch.linalg.eigh(proj_hessian)
 
     neg_inds = eigvals < ev_thresh
@@ -400,7 +391,7 @@ if __name__ == "__main__":
     masses = np.array([MASS_DICT[a.lower()] for a in atoms])
     masses3d = np.repeat(masses, 3)
     mw_np = mass_weigh_hessian(hessian.copy(), masses3d)
-    mw_torch = mass_weigh_hessian_torch(hessian.copy(), masses3d)
+    mw_torch = massweigh_hessian_torch(hessian.copy(), masses3d)
     mw_torch_np = mw_torch.detach().cpu().numpy()
     ok_mw = np.allclose(mw_np, mw_torch_np, rtol=1e-6, atol=1e-8)
     print(
@@ -423,8 +414,8 @@ if __name__ == "__main__":
     assert ok_tr
 
     # 3) Test full Eckart pipeline via eigenvalues of projected Hessian
-    np_proj = eckart_projection_notmw(hessian.copy(), cc.copy(), atoms)
-    torch_proj = eckart_projection_notmw_torch(hessian.copy(), cc.copy(), atoms)
+    np_proj = massweigh_and_eckartprojection_np(hessian.copy(), cc.copy(), atoms)
+    torch_proj = massweigh_and_eckartprojection_torch(hessian.copy(), cc.copy(), atoms)
     torch_proj_np = torch_proj.detach().cpu().numpy()
     ok_proj = np.allclose(np_proj, torch_proj_np, rtol=1e-6, atol=1e-8)
     print(

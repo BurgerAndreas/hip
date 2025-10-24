@@ -17,7 +17,7 @@ from hip.ff_lmdb import LmdbDataset
 from hip.path_config import fix_dataset_path
 from nets.prediction_utils import Z_TO_ATOM_SYMBOL
 
-from hip.frequency_analysis import analyze_frequencies
+from hip.frequency_analysis import analyze_frequencies_np
 
 
 def _get_derivatives(x, y, retain_graph=None, create_graph=False):
@@ -280,7 +280,7 @@ def evaluate(
             # Mass weighted + Eckart projection
             ########################
 
-            true_freqs = analyze_frequencies(
+            true_freqs = analyze_frequencies_np(
                 hessian=hessian_true.detach().cpu().numpy(),
                 cart_coords=batch.pos.detach().cpu().numpy(),
                 atomsymbols=[Z_TO_ATOM_SYMBOL[z.item()] for z in batch.z],
@@ -289,7 +289,7 @@ def evaluate(
             true_eigvecs_eckart = torch.tensor(true_freqs["eigvecs"])
             true_eigvals_eckart = torch.tensor(true_freqs["eigvals"])
 
-            freqs_model = analyze_frequencies(
+            freqs_model = analyze_frequencies_np(
                 hessian=hessian_model.detach().cpu().numpy(),
                 cart_coords=batch.pos.detach().cpu().numpy(),
                 atomsymbols=[Z_TO_ATOM_SYMBOL[z.item()] for z in batch.z],

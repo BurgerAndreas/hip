@@ -2,7 +2,7 @@ import os
 import torch
 from hip.equiformer_torch_calculator import EquiformerTorchCalculator
 from hip.inference_utils import get_dataloader
-from hip.frequency_analysis import analyze_frequencies_torch, analyze_frequencies
+from hip.frequency_analysis import analyze_frequencies_torch, analyze_frequencies_np
 from hip.equiformer_ase_calculator import EquiformerASECalculator
 from ase import Atoms
 
@@ -85,7 +85,7 @@ def ase_example(checkpoint_path, device):
     print(f"Results: {results.keys()}")
 
     # Analyze frequencies
-    frequency_analysis = analyze_frequencies(hessian, atoms.positions, atoms.symbols)
+    frequency_analysis = analyze_frequencies_np(hessian, atoms.positions, atoms.symbols)
     print(f"eigvals: {frequency_analysis['eigvals'].shape}")
     print(f"eigvecs: {frequency_analysis['eigvecs'].shape}")
     print(f"neg_num: {frequency_analysis['neg_num']}")
