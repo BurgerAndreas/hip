@@ -2,7 +2,6 @@ import torch
 
 from hip.masses import MASS_DICT
 from nets.prediction_utils import Z_TO_ATOM_SYMBOL
-from hip.frequency_analysis import eckart_projection_notmw_torch as projection_not_differentiable
 
 # ---- helpers --------------------------------------------------------------
 
@@ -98,7 +97,7 @@ def eckart_projector_massweighted_torch(cart_coords, masses, eps=1e-10):
     return P
 
 
-# ---- your top-level function (differentiable) ----------------------------
+# ---- use this function ----------------------------
 
 def differentiable_eckart_projection_notmw_torch(
     hessian: torch.Tensor,
@@ -234,8 +233,8 @@ if __name__ == "__main__":
     from torch_geometric.data import Batch as TGBatch
     from torch_geometric.data import Data as TGData
     from hip.inference_utils import get_model_from_checkpoint
-    from nets.prediction_utils import Z_TO_ATOM_SYMBOL
     import os
+    from hip.frequency_analysis import eckart_projection_notmw_torch as projection_not_differentiable
     
     # Load model with the specified checkpoint
     project_root = os.path.dirname(os.path.dirname(__file__))
