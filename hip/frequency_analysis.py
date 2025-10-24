@@ -2,7 +2,6 @@
 
 import numpy as np
 import scipy.constants as spc
-import h5py
 import torch
 
 from hip.masses import MASS_DICT
