@@ -24,6 +24,8 @@ model:
   hessian_no_attn_weights: True # build Hessian off-diagonal elements from raw messages without attention weights
   attn_wo_sigmoid: False # do not apply sigmoid to attention weights
 
+  residual: null # "00" or None
+
 
 # Optimizer configuration
 optimizer:

@@ -57,6 +57,9 @@ REPLACE_HUMAN = {
     "num_layers_hessian": "l",
     "symmetric": "sym",
     "bz=128": "",
+    "bz_val=64": "",
+    "optimizer": "",
+    "weight_decay": "wd",
 }
 
 

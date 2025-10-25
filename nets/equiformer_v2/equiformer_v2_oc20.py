@@ -191,6 +191,7 @@ class EquiformerV2_OC20(BaseModel):
         cutoff_hessian=100.0,
         hessian_no_attn_weights=False,  # messages without attention weights
         attn_wo_sigmoid=False,  # do not apply sigmoid to attention weights
+        residual=None,  # residual connection type
         # not used, for compatibilit with old  with legacy ckpt
         name=None,
         num_targets=None,
@@ -283,6 +284,7 @@ class EquiformerV2_OC20(BaseModel):
         self.proj_drop = proj_drop
         self.hessian_no_attn_weights = hessian_no_attn_weights
         self.attn_wo_sigmoid = attn_wo_sigmoid
+        self.residual = residual
 
         self.weight_init = weight_init
         assert self.weight_init in ["normal", "uniform"]
@@ -802,6 +804,10 @@ class EquiformerV2_OC20(BaseModel):
         )
         x.embedding = x.embedding + edge_degree.embedding
 
+        # Store initial embeddings for residual connection
+        if self.residual in ["00", "01"]:
+            x_initial = x.embedding.clone()
+
         ###############################################################
         # Update spherical node embeddings
         ###############################################################
@@ -814,6 +820,14 @@ class EquiformerV2_OC20(BaseModel):
                 edge_index,
                 batch=data.batch,  # for GraphDropPath
             )
+            
+            # Add residual connection before the last layer if specified
+            if self.residual == "01" and i == self.num_layers - 1:
+                x.embedding = x.embedding + x_initial
+
+        # Add residual connection if specified (for "00" case)
+        if self.residual == "00":
+            x.embedding = x.embedding + x_initial
 
         # Final layer norm
         x.embedding = self.norm(x.embedding)

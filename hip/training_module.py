@@ -36,7 +36,7 @@ from ocpmodels.hessian_graph_transform import (
 )
 
 from hip.ff_lmdb import LmdbDataset
-from hip.utils import average_over_batch_metrics, pretty_print
+from hip.utils import average_over_batch_metrics
 
 # import hip.utils as diff_utils
 import yaml

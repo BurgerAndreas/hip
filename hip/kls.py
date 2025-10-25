@@ -39,9 +39,10 @@ class KLSWithAuxAdam(torch.optim.Optimizer):
     def __init__(
         self,
         param_groups,
-        lr: float = 3e-3, #tune this
-        betas=(0.9, 0.98), #tune this
-        weight_decay: float = 0.01, #tune this
+    ):
+        # lr: float = 3e-3, #tune this
+        # betas=(0.9, 0.98), #tune this
+        # weight_decay: float = 0.01, #tune this
         #####################
         eps: float = 1e-10, #optional (must set using_damping to True before tuning this)
         using_damping: bool = False, #optional
@@ -53,16 +54,6 @@ class KLSWithAuxAdam(torch.optim.Optimizer):
         debias_ema: bool = False, #do not change this
         using_shampoo_init: bool = False, #do not change this
         shampoo_beta: float= -1, #do not change this
-    ):
-        defaults = {
-            "lr": lr,
-            "betas": betas,
-            "shampoo_beta": shampoo_beta,
-            "eps": eps,
-            "weight_decay": weight_decay,
-            "precondition_frequency": precondition_frequency,
-            "normalize_grads": normalize_grads,
-        }
         self.cast_dtype = cast_dtype
         self.using_shampoo_init = using_shampoo_init
         self.init_factor = init_factor
@@ -85,14 +76,15 @@ class KLSWithAuxAdam(torch.optim.Optimizer):
             assert "use_kls" in group
             if group["use_kls"]:
                 group["params"] = sorted(group["params"], key=lambda x: x.size(), reverse=True)
-                # defaults
-                group["lr"] = group.get("lr", defaults["lr"])
-                group["betas"] = group.get("betas", defaults["betas"])
-                group["shampoo_beta"] = group.get("shampoo_beta", defaults["shampoo_beta"])
-                group["eps"] = group.get("eps", defaults["eps"])
-                group["weight_decay"] = group.get("weight_decay", defaults["weight_decay"])
-                group["precondition_frequency"] = group.get("precondition_frequency", defaults["precondition_frequency"])
-                group["normalize_grads"] = group.get("normalize_grads", defaults["normalize_grads"])
+                # tune these
+                # group["lr"] = group["lr"]
+                # group["betas"] = group["betas"]
+                # group["weight_decay"] = group["weight_decay"]
+                # fixed defaults
+                group["shampoo_beta"] = shampoo_beta
+                group["eps"] = eps
+                group["precondition_frequency"] = precondition_frequency
+                group["normalize_grads"] = normalize_grads
                 assert set(group.keys()) == set(["params", "lr", "betas", "shampoo_beta", "eps", "weight_decay", "precondition_frequency", "normalize_grads", "use_kls"])
             else:
                 # defaults for Adam
