@@ -137,6 +137,7 @@ class EquiformerV2_OC20(BaseModel):
         alpha_drop (float):         Dropout rate for attention weights
         drop_path_rate (float):     Drop path rate
         proj_drop (float):          Dropout rate for outputs of attention and FFN in Transformer blocks
+        residual_mlp (bool):        If True, use MLP to combine residuals instead of simple addition
 
         weight_init (str):          ['normal', 'uniform'] initialization of weights of linear layers except those in radial functions
     """
@@ -192,6 +193,7 @@ class EquiformerV2_OC20(BaseModel):
         hessian_no_attn_weights=False,  # messages without attention weights
         attn_wo_sigmoid=False,  # do not apply sigmoid to attention weights
         residual=None,  # residual connection type
+        residual_mlp=False,  # use MLP to combine residuals instead of sum
         # not used, for compatibilit with old  with legacy ckpt
         name=None,
         num_targets=None,
@@ -285,6 +287,7 @@ class EquiformerV2_OC20(BaseModel):
         self.hessian_no_attn_weights = hessian_no_attn_weights
         self.attn_wo_sigmoid = attn_wo_sigmoid
         self.residual = residual
+        self.residual_mlp = residual_mlp
 
         self.weight_init = weight_init
         assert self.weight_init in ["normal", "uniform"]
@@ -568,6 +571,14 @@ class EquiformerV2_OC20(BaseModel):
         )
         self._get_hessian_from_features = l012_features_to_hessian
 
+        # MLP for combining residuals when residual_mlp=True
+        if self.residual_mlp:
+            self.residual_combiner = SO3_LinearV2(
+                in_features=self.sphere_channels * 2,  # concatenated residuals
+                out_features=self.sphere_channels,
+                lmax=max(self.lmax_list),
+            )
+
         self.apply(self._init_weights)
         self.apply(self._uniform_init_rad_func_linear_weights)
 
@@ -822,13 +833,60 @@ class EquiformerV2_OC20(BaseModel):
                 batch=data.batch,  # for GraphDropPath
             )
             
+            # Store output of layer 1 for "10" residual connection
+            if self.residual == "10" and i == 0:
+                x_layer1 = x.embedding.clone()
+            
             # Add residual connection before the last layer if specified
             if self.residual == "01" and i == self.num_layers - 1:
-                x.embedding = x.embedding + x_initial
+                if self.residual_mlp:
+                    # Concatenate residuals and apply MLP
+                    combined_residual = torch.cat([x.embedding, x_initial], dim=-1)
+                    x.embedding = self.residual_combiner(
+                        SO3_Embedding(
+                            length=combined_residual.shape[0],
+                            lmax_list=self.lmax_list,
+                            num_channels=combined_residual.shape[-1],
+                            device=self.device,
+                            dtype=self.dtype,
+                        ).set_embedding(combined_residual)
+                    ).embedding
+                else:
+                    x.embedding = x.embedding + x_initial
 
         # Add residual connection if specified (for "00" case)
         if self.residual == "00":
-            x.embedding = x.embedding + x_initial
+            if self.residual_mlp:
+                # Concatenate residuals and apply MLP
+                combined_residual = torch.cat([x.embedding, x_initial], dim=-1)
+                x.embedding = self.residual_combiner(
+                    SO3_Embedding(
+                        length=combined_residual.shape[0],
+                        lmax_list=self.lmax_list,
+                        num_channels=combined_residual.shape[-1],
+                        device=self.device,
+                        dtype=self.dtype,
+                    ).set_embedding(combined_residual)
+                ).embedding
+            else:
+                x.embedding = x.embedding + x_initial
+        
+        # Add residual connection if specified (for "10" case)
+        if self.residual == "10":
+            if self.residual_mlp:
+                # Concatenate residuals and apply MLP
+                combined_residual = torch.cat([x.embedding, x_layer1], dim=-1)
+                x.embedding = self.residual_combiner(
+                    SO3_Embedding(
+                        length=combined_residual.shape[0],
+                        lmax_list=self.lmax_list,
+                        num_channels=combined_residual.shape[-1],
+                        device=self.device,
+                        dtype=self.dtype,
+                    ).set_embedding(combined_residual)
+                ).embedding
+            else:
+                x.embedding = x.embedding + x_layer1
 
         # Final layer norm
         x.embedding = self.norm(x.embedding)
