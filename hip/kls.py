@@ -1,6 +1,6 @@
 import torch
-import torch.nn as nn
-import torch.optim as optim
+# import torch.nn as nn
+# import torch.optim as optim
 from itertools import chain
 
 def adam_update(grad, buf1, buf2, step, betas, eps):
@@ -44,16 +44,16 @@ class KLSWithAuxAdam(torch.optim.Optimizer):
         # betas=(0.9, 0.98), #tune this
         # weight_decay: float = 0.01, #tune this
         #####################
-        eps: float = 1e-10, #optional (must set using_damping to True before tuning this)
-        using_damping: bool = False, #optional
-        precondition_frequency: int=10, #(it may perform better when using a smaller freq such as precondition_frequency=5)
-        cast_dtype = torch.float32, #change this if you want to use bfloat16
-        init_factor: float = 0.1, #optional
+        eps: float = 1e-10 #optional (must set using_damping to True before tuning this)
+        using_damping: bool = False #optional
+        precondition_frequency: int=10 #(it may perform better when using a smaller freq such as precondition_frequency=5)
+        cast_dtype = torch.float32 #change this if you want to use bfloat16
+        init_factor: float = 0.1 #optional
         #####################
-        normalize_grads: bool = False, #do not change this
-        debias_ema: bool = False, #do not change this
-        using_shampoo_init: bool = False, #do not change this
-        shampoo_beta: float= -1, #do not change this
+        normalize_grads: bool = False #do not change this
+        debias_ema: bool = False #do not change this
+        using_shampoo_init: bool = False #do not change this
+        shampoo_beta: float= -1 #do not change this
         self.cast_dtype = cast_dtype
         self.using_shampoo_init = using_shampoo_init
         self.init_factor = init_factor
