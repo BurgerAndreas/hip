@@ -138,6 +138,7 @@ class EquiformerV2_OC20(BaseModel):
         drop_path_rate (float):     Drop path rate
         proj_drop (float):          Dropout rate for outputs of attention and FFN in Transformer blocks
         residual_mlp (bool):        If True, use MLP to combine residuals instead of simple addition
+        residual_weightedsum (bool): If True, use learnable scalar weight for residual sum
 
         weight_init (str):          ['normal', 'uniform'] initialization of weights of linear layers except those in radial functions
     """
@@ -192,8 +193,10 @@ class EquiformerV2_OC20(BaseModel):
         cutoff_hessian=100.0,
         hessian_no_attn_weights=False,  # messages without attention weights
         attn_wo_sigmoid=False,  # do not apply sigmoid to attention weights
+        # https://snimu.github.io/2025/10/19/modded-nanogpt-backout.html
         residual=None,  # residual connection type
         residual_mlp=False,  # use MLP to combine residuals instead of sum
+        residual_weightedsum=False,  # use learnable scalar weight for residual sum
         # not used, for compatibilit with old  with legacy ckpt
         name=None,
         num_targets=None,
@@ -288,9 +291,14 @@ class EquiformerV2_OC20(BaseModel):
         self.attn_wo_sigmoid = attn_wo_sigmoid
         self.residual = residual
         self.residual_mlp = residual_mlp
+        self.residual_weightedsum = residual_weightedsum
 
         self.weight_init = weight_init
         assert self.weight_init in ["normal", "uniform"]
+        
+        # Ensure only one residual method is used at a time
+        residual_methods = [self.residual_mlp, self.residual_weightedsum]
+        assert sum(residual_methods) <= 1, "Only one of residual_mlp or residual_weightedsum can be True"
 
         self.device = torch.cuda.current_device()
 
@@ -579,6 +587,10 @@ class EquiformerV2_OC20(BaseModel):
                 lmax=max(self.lmax_list),
             )
 
+        # Learnable scalar weight for weighted sum when residual_weightedsum=True
+        if self.residual_weightedsum:
+            self.residual_weight = torch.nn.Parameter(torch.tensor(1.0))
+
         self.apply(self._init_weights)
         self.apply(self._uniform_init_rad_func_linear_weights)
 
@@ -851,6 +863,9 @@ class EquiformerV2_OC20(BaseModel):
                             dtype=self.dtype,
                         ).set_embedding(combined_residual)
                     ).embedding
+                elif self.residual_weightedsum:
+                    # Use learnable scalar weight for weighted sum
+                    x.embedding = x.embedding + self.residual_weight * x_initial
                 else:
                     x.embedding = x.embedding + x_initial
 
@@ -868,6 +883,9 @@ class EquiformerV2_OC20(BaseModel):
                         dtype=self.dtype,
                     ).set_embedding(combined_residual)
                 ).embedding
+            elif self.residual_weightedsum:
+                # Use learnable scalar weight for weighted sum
+                x.embedding = x.embedding + self.residual_weight * x_initial
             else:
                 x.embedding = x.embedding + x_initial
         
@@ -885,6 +903,9 @@ class EquiformerV2_OC20(BaseModel):
                         dtype=self.dtype,
                     ).set_embedding(combined_residual)
                 ).embedding
+            elif self.residual_weightedsum:
+                # Use learnable scalar weight for weighted sum
+                x.embedding = x.embedding + self.residual_weight * x_layer1
             else:
                 x.embedding = x.embedding + x_layer1
 
