@@ -1,6 +1,7 @@
 import torch
 from typing import Optional
 
+
 # https://github.com/deepprinciple/HORM/blob/eval/eval.py
 def _get_derivatives_not_none(
     x: torch.Tensor,
@@ -45,4 +46,3 @@ def compute_hessian(
     # stack hessian
     hessian = torch.stack(hess)
     return hessian.reshape(n_comp, -1)
-

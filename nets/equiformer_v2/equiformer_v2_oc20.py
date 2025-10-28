@@ -703,7 +703,7 @@ class EquiformerV2_OC20(BaseModel):
             outputs (Optional):
                 hessian: (B*N*3*N*3)
         """
-        
+
         # I know we are equivariant, but this improves accuracy a tiny bit
         data.pos = remove_mean_batch(data.pos, data.batch)
 

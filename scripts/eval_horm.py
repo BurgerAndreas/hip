@@ -494,6 +494,12 @@ def plot_accuracy_vs_natoms(df_results, name):
     plt.show()
 
 
+"""
+uv run python scripts/eval_horm.py -c ckpt/eqv2.ckpt -d ts1x-val.lmdb -m 1000 -r True
+uv run python scripts/eval_horm.py -c ckpt/hesspred_v1.ckpt -d ts1x-val.lmdb -m 1000 -r True -hm predict
+uv run python scripts/eval_horm.py -c ckpt/hip_v2.ckpt -d ts1x-val.lmdb -m 1000 -r True -hm predict
+uv run python scripts/eval_horm.py -c ckpt/hip_v3.ckpt -d ts1x-val.lmdb -m 1000 -r True -hm predict
+"""
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Evaluate HORM model on dataset")
     parser.add_argument(
@@ -511,9 +517,11 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--hessian_method",
+        "-hm",
+        choices=["autograd", "predict"],
         type=str,
         default="autograd",
-        help="Hessian computation method",
+        help="Hessian computation method: autograd, predict",
     )
     parser.add_argument(
         "--dataset",
@@ -560,4 +568,4 @@ if __name__ == "__main__":
     )
 
     # Plot accuracy over Natoms
-    plot_accuracy_vs_natoms(df_results, name)
+    # plot_accuracy_vs_natoms(df_results, name)

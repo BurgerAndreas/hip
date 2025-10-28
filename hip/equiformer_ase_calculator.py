@@ -20,7 +20,10 @@ from ase.calculators.calculator import Calculator as ASECalculator
 
 from hip.hessian_utils import compute_hessian
 from hip.inference_utils import get_model_from_checkpoint, get_dataloader
-from hip.frequency_analysis import analyze_frequencies_np, massweigh_and_eckartprojection_np
+from hip.frequency_analysis import (
+    analyze_frequencies_np,
+    massweigh_and_eckartprojection_np,
+)
 
 
 def ase_atoms_to_torch_geometric(atoms):

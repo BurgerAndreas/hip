@@ -407,7 +407,6 @@ class PotentialModule(LightningModule):
         return optimizer
 
     def setup(self, stage: Optional[str] = None):
-        # Add SLURM job ID to config if it exists in environment
         print("Setting up dataset")
         if stage == "fit":
             # train dataset
