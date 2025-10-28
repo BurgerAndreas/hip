@@ -60,9 +60,6 @@ LR_SCHEDULER = {
 GLOBAL_ATOM_NUMBERS = torch.tensor([1, 6, 7, 8])
 
 
-
-
-
 # from ocpmodels
 def add_weight_decay(model, weight_decay=1e-5, skip_list=()):
     decay = []
@@ -235,25 +232,27 @@ class PotentialModule(LightningModule):
         elif loss_type == "l2":
             self.loss_fn = nn.MSELoss()
         elif loss_type == "huber":
-            self.loss_fn = nn.HuberLoss(delta=self.training_config.get("loss_width", 1.0))
+            self.loss_fn = nn.HuberLoss(
+                delta=self.training_config.get("loss_width", 1.0)
+            )
         elif loss_type == "asinh":
             a = self.training_config.get("loss_width", 1.0)
-            self.loss_fn = AsinhLoss(a=a) 
+            self.loss_fn = AsinhLoss(a=a)
         else:
-            raise ValueError(
-                f"Invalid loss type: {loss_type}"
-            )
-        
+            raise ValueError(f"Invalid loss type: {loss_type}")
+
         # Hessian loss
-        if self.training_config.get("hessian_loss_type", "mae") == "mse":
+        hessian_loss_type = self.training_config.get("hessian_loss_type", "mae")
+        if hessian_loss_type == "mse":
             self.loss_fn_hessian = torch.nn.MSELoss()
             # self.loss_fn_hessian = torch.nn.functional.mse_loss
-        elif self.training_config.get("hessian_loss_type", "mae") == "mae":
+        elif hessian_loss_type == "mae":
             self.loss_fn_hessian = torch.nn.L1Loss()
+        elif loss_type == "asinh":
+            a = self.training_config.get("loss_width", 1.0)
+            self.loss_fn_hessian = AsinhLoss(a=a)
         else:
-            raise ValueError(
-                f"Invalid Hessian loss type: {self.model_config['hessian_loss_type']}"
-            )
+            raise ValueError(f"Invalid Hessian loss type: {hessian_loss_type}")
 
         self.do_eigen_loss = False
         if "eigen_loss" in self.training_config:
@@ -616,28 +615,31 @@ class PotentialModule(LightningModule):
         info = {}
         # batch.pos.requires_grad_()
 
+        do_hessian = (
+            self.training_config["hessian_loss_weight"] > 0.0 or self.do_eigen_loss
+        )
+
         hat_ae, hat_forces, outputs = self.potential.forward(
             batch.to(self.device),
-            hessian=True,
+            hessian=do_hessian,
             otf_graph=self.training_config["otfgraph_in_model"],
         )
 
-        hessian_pred = outputs["hessian"].to(self.device)
-        hessian_true = batch.hessian.to(self.device)
-
-        if self.training_config["hessian_loss_weight"] > 0.0:
+        if do_hessian:
+            hessian_pred = outputs["hessian"].to(self.device)
+            hessian_true = batch.hessian.to(self.device)
             hessian_loss = self.loss_fn_hessian(hessian_pred, hessian_true)
             loss += hessian_loss * self.training_config["hessian_loss_weight"]
             info["Loss Hessian"] = hessian_loss.detach().item()
 
-        if self.do_eigen_loss:
-            eigen_loss = self.loss_fn_eigen(
-                pred=hessian_pred,
-                target=hessian_true,
-                data=batch,
-            )
-            loss += eigen_loss
-            info["Loss Eigen"] = eigen_loss.detach().item()
+            if self.do_eigen_loss:
+                eigen_loss = self.loss_fn_eigen(
+                    pred=hessian_pred,
+                    target=hessian_true,
+                    data=batch,
+                )
+                loss += eigen_loss
+                info["Loss Eigen"] = eigen_loss.detach().item()
 
         if not self.training_config["train_hessian_only"]:
             # energy
@@ -678,25 +680,26 @@ class PotentialModule(LightningModule):
         hat_ae, hat_forces, outputs = efh
         eval_metrics = {}
 
-        hessian_true = batch.hessian
-        hessian_pred = outputs["hessian"].detach()
+        if "hessian" in outputs:
+            hessian_true = batch.hessian
+            hessian_pred = outputs["hessian"].detach()
 
-        # MSE Hessian
-        eval_metrics["MSE Hessian"] = (
-            (hessian_pred.squeeze() - hessian_true.squeeze()).pow(2).mean().item()
-        )
-        eval_metrics["MAE Hessian"] = (
-            (hessian_pred.squeeze() - hessian_true.squeeze()).abs().mean().item()
-        )
+            # MSE Hessian
+            eval_metrics["MSE Hessian"] = (
+                (hessian_pred.squeeze() - hessian_true.squeeze()).pow(2).mean().item()
+            )
+            eval_metrics["MAE Hessian"] = (
+                (hessian_pred.squeeze() - hessian_true.squeeze()).abs().mean().item()
+            )
 
-        # Eigenvalue, Eigenvector metrics
-        eig_metrics = get_eigval_eigvec_metrics(
-            hessian_true.to("cpu"),
-            hessian_pred.to("cpu"),
-            batch.to("cpu"),
-            prefix=f"{prefix}-step{self.global_step}-epoch{self.current_epoch}",
-        )
-        eval_metrics.update(eig_metrics)
+            # Eigenvalue, Eigenvector metrics
+            eig_metrics = get_eigval_eigvec_metrics(
+                hessian_true.to("cpu"),
+                hessian_pred.to("cpu"),
+                batch.to("cpu"),
+                prefix=f"{prefix}-step{self.global_step}-epoch{self.current_epoch}",
+            )
+            eval_metrics.update(eig_metrics)
 
         return eval_metrics
 
@@ -716,17 +719,21 @@ class PotentialModule(LightningModule):
         for k, v in eval_info.items():
             info_prefix[f"{prefix}-{k}"] = v
 
-        info_prefix[f"{prefix}-totloss"] = (
-            info["Loss Hessian"]
-            + info["Loss E"]
-            + info["Loss F"]
-            + eval_info["MAE Eigvals Eckart"]
-            + (-1 * eval_info["Abs Cosine Sim v1 Eckart"] / 20)
-        )
+        info_prefix[f"{prefix}-totloss"] = info["Loss E"] + info["Loss F"]
+        print(f"{prefix}-totloss", "=", info_prefix[f"{prefix}-totloss"])
+        print(f"{prefix}-Loss E", "=", info["Loss E"])
+        print(f"{prefix}-Loss F", "=", info["Loss F"])
 
-        # del info
-        # if torch.cuda.is_available():
-        #     torch.cuda.empty_cache()
+        do_hessian = (
+            self.training_config["hessian_loss_weight"] > 0.0 or self.do_eigen_loss
+        )
+        if do_hessian:
+            info_prefix[f"{prefix}-totloss"] += info["Loss Hessian"]
+            info_prefix[f"{prefix}-totloss"] += eval_info["MAE Eigvals Eckart"]
+            info_prefix[f"{prefix}-totloss"] += (
+                -1 * eval_info["Abs Cosine Sim v1 Eckart"] / 20
+            )
+
         return info_prefix
 
     def validation_step(self, batch, batch_idx, *args):
