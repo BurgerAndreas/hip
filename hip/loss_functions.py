@@ -333,11 +333,14 @@ class AsinhLoss(torch.nn.Module):
         # Compute δU = δε / a
         delta_U = delta_epsilon / self.a
 
-        # Compute s(x) = √(1 + x²)
-        s_delta_U = torch.sqrt(1 + delta_U**2)
+        # # Compute s(x) = √(1 + x²)
+        # s_delta_U = torch.sqrt(1.0 + delta_U**2)
 
-        # Compute L_Asinh(δε) = a²(1 - s(δU) + δU * ln[δU + s(δU)])
-        loss = self.a**2 * (1 - s_delta_U + delta_U * torch.log(delta_U + s_delta_U))
+        # # Compute L_Asinh(δε) = a²(1 - s(δU) + δU * ln[δU + s(δU)])
+        # loss = self.a**2 * (1.0 - s_delta_U + delta_U * torch.log(delta_U + s_delta_U))
+        
+        s_delta_U = torch.sqrt(1 + delta_U**2)
+        loss = self.a**2 * (1 - s_delta_U + delta_U * torch.asinh(delta_U))
 
         # Take mean over all dimensions (batch for energies, batch and atoms for forces)
         return loss.mean()
