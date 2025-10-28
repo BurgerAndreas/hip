@@ -295,10 +295,12 @@ class EquiformerV2_OC20(BaseModel):
 
         self.weight_init = weight_init
         assert self.weight_init in ["normal", "uniform"]
-        
+
         # Ensure only one residual method is used at a time
         residual_methods = [self.residual_mlp, self.residual_weightedsum]
-        assert sum(residual_methods) <= 1, "Only one of residual_mlp or residual_weightedsum can be True"
+        assert sum(residual_methods) <= 1, (
+            "Only one of residual_mlp or residual_weightedsum can be True"
+        )
 
         self.device = torch.cuda.current_device()
 
@@ -844,11 +846,11 @@ class EquiformerV2_OC20(BaseModel):
                 edge_index,
                 batch=data.batch,  # for GraphDropPath
             )
-            
+
             # Store output of layer 1 for "10" residual connection
             if self.residual == "10" and i == 0:
                 x_layer1 = x.embedding.clone()
-            
+
             # Add residual connection before the last layer if specified
             if self.residual == "01" and i == self.num_layers - 1:
                 if self.residual_mlp:
@@ -888,7 +890,7 @@ class EquiformerV2_OC20(BaseModel):
                 x.embedding = x.embedding + self.residual_weight * x_initial
             else:
                 x.embedding = x.embedding + x_initial
-        
+
         # Add residual connection if specified (for "10" case)
         if self.residual == "10":
             if self.residual_mlp:

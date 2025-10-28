@@ -297,3 +297,47 @@ def get_eigval_eigvec_metrics(hessian_true, hessian_pred, data, prefix=""):
     for key in metrics:
         metrics[key] = torch.stack(metrics[key]).mean().detach().cpu().item()
     return metrics
+
+
+class AsinhLoss(torch.nn.Module):
+    """
+    Asinh loss function based on the mathematical formulation:
+    δU ≡ δε / a
+    s(x) ≡ √(1 + x²)
+    L_Asinh(δε) ≡ a²(1 - s(δU) + δU * ln[δU + s(δU)])
+    
+    https://pubs.aip.org/aip/jcp/article/163/13/134108/3365379/Improved-loss-functions-for-machine-learned-atomic
+    
+    For forces, the loss is computed element-wise and then averaged over atoms and batch.
+    For energies, the loss is computed element-wise and then averaged over batch.
+    """
+    
+    def __init__(self, a: float = 1.0):
+        super(AsinhLoss, self).__init__()
+        self.a = a
+    
+    def forward(self, pred: torch.Tensor, target: torch.Tensor) -> torch.Tensor:
+        """
+        Compute Asinh loss between predictions and targets.
+        
+        Args:
+            pred: Predicted values (energies or forces)
+            target: Target values (energies or forces)
+            
+        Returns:
+            Scalar loss value
+        """
+        # Compute energy difference (δε)
+        delta_epsilon = pred - target
+        
+        # Compute δU = δε / a
+        delta_U = delta_epsilon / self.a
+        
+        # Compute s(x) = √(1 + x²)
+        s_delta_U = torch.sqrt(1 + delta_U**2)
+        
+        # Compute L_Asinh(δε) = a²(1 - s(δU) + δU * ln[δU + s(δU)])
+        loss = self.a**2 * (1 - s_delta_U + delta_U * torch.log(delta_U + s_delta_U))
+        
+        # Take mean over all dimensions (batch for energies, batch and atoms for forces)
+        return loss.mean()

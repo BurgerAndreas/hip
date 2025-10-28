@@ -52,6 +52,8 @@ training:
   energy_loss_weight: 1.0
   force_loss_weight: 25.0
   hessian_loss_type: "mae"
+  loss_type: "l1" # l1 or l2 or huber or asinh
+  loss_width: 1.0
 
   follow_batch: ["diag_ij", "edge_index", "message_idx_ij"]
 
@@ -95,7 +97,7 @@ early_stopping:
 use_wandb: true
 
 run_name: null # used for wandb and checkpointing
-ckpt_base_dir: "checkpoint/hip"
+ckpt_base_dir: "checkpoint/com"
 ckpt_model_path: null # horm for finetuning
 # Checkpoint that contains model weights and optimizerstate , lr state, etc. 
 ckpt_trainer_path: null

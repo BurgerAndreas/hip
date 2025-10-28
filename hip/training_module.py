@@ -48,6 +48,7 @@ from hip.loss_functions import (
     # BatchHessianLoss,
     # L1HessianLoss,
     # L2HessianLoss,
+    AsinhLoss,
 )
 
 LR_SCHEDULER = {
@@ -57,6 +58,9 @@ LR_SCHEDULER = {
     "plateau": ReduceLROnPlateau,
 }
 GLOBAL_ATOM_NUMBERS = torch.tensor([1, 6, 7, 8])
+
+
+
 
 
 # from ocpmodels
@@ -224,8 +228,22 @@ class PotentialModule(LightningModule):
         # Allow non-strict checkpoint loading for transfer learning
         self.strict_loading = False
 
-        # energy and force loss
-        self.loss_fn = nn.L1Loss()
+        # Energy and force loss
+        loss_type = self.training_config.get("loss_type", "l1")
+        if loss_type == "l1":
+            self.loss_fn = nn.L1Loss()
+        elif loss_type == "l2":
+            self.loss_fn = nn.MSELoss()
+        elif loss_type == "huber":
+            self.loss_fn = nn.HuberLoss(delta=self.training_config.get("loss_width", 1.0))
+        elif loss_type == "asinh":
+            a = self.training_config.get("loss_width", 1.0)
+            self.loss_fn = AsinhLoss(a=a) 
+        else:
+            raise ValueError(
+                f"Invalid loss type: {loss_type}"
+            )
+        
         # Hessian loss
         if self.training_config.get("hessian_loss_type", "mae") == "mse":
             self.loss_fn_hessian = torch.nn.MSELoss()
@@ -387,6 +405,7 @@ class PotentialModule(LightningModule):
             # optimize the same weights as with muon
             assert not self.training_config.get("train_hessian_only", False)
             from hip.kls import KLSWithAuxAdam
+
             kls_params, adam_params = self.potential.get_muon_param_groups(
                 **self.optimizer_config
             )
@@ -416,9 +435,7 @@ class PotentialModule(LightningModule):
             print(
                 f"Percentage of kls parameters: {self.num_kls_params / (self.num_kls_params + self.num_adam_params) * 100:.2f}%"
             )
-            optimizer = KLSWithAuxAdam(
-                param_groups
-            )
+            optimizer = KLSWithAuxAdam(param_groups)
         else:
             raise ValueError(f"Unknown optimizer: {optim_type}")
 
