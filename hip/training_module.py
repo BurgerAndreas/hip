@@ -248,8 +248,12 @@ class PotentialModule(LightningModule):
             # self.loss_fn_hessian = torch.nn.functional.mse_loss
         elif hessian_loss_type == "mae":
             self.loss_fn_hessian = torch.nn.L1Loss()
+        elif hessian_loss_type == "huber":
+            self.loss_fn_hessian = nn.HuberLoss(
+                delta=self.training_config.get("loss_width_hessian", 1.0)
+            )
         elif loss_type == "asinh":
-            a = self.training_config.get("loss_width", 1.0)
+            a = self.training_config.get("loss_width_hessian", 1.0)
             self.loss_fn_hessian = AsinhLoss(a=a)
         else:
             raise ValueError(f"Invalid Hessian loss type: {hessian_loss_type}")

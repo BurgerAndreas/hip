@@ -54,6 +54,7 @@ training:
   hessian_loss_type: "mae"
   loss_type: "l1" # l1 or l2 or huber or asinh
   loss_width: 1.0
+  loss_width_hessian: 1.0
 
   follow_batch: ["diag_ij", "edge_index", "message_idx_ij"]
 
