@@ -301,6 +301,9 @@ class EquiformerV2_OC20(BaseModel):
         assert sum(residual_methods) <= 1, (
             "Only one of residual_mlp or residual_weightedsum can be True"
         )
+        assert self.residual in ["00", "01", "10", None], (
+            "Invalid residual connection type. Valid types are: 00, 01, 10, None"
+        )
 
         self.device = torch.cuda.current_device()
 
