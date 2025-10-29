@@ -16,6 +16,8 @@ def adam_update(grad, buf1, buf2, step, betas, eps):
 class KLSWithAuxAdam(torch.optim.Optimizer):
     """
     KLS
+    
+    Mimicks https://github.com/KellerJordan/Muon/blob/master/muon.py MuonWithAuxAdam
 
     Parameters:
         params (`Iterable[nn.parameter.Parameter]`):
