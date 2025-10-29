@@ -44,6 +44,8 @@ class KLSWithAuxAdam(torch.optim.Optimizer):
     def __init__(
         self,
         param_groups,
+        # using_damping: bool = False  # optional
+        using_damping,
     ):
         # lr: float = 3e-3, #tune this
         # betas=(0.9, 0.98), #tune this
@@ -52,7 +54,6 @@ class KLSWithAuxAdam(torch.optim.Optimizer):
         eps: float = (
             1e-10  # optional (must set using_damping to True before tuning this)
         )
-        using_damping: bool = False  # optional
         precondition_frequency: int = 10  # (it may perform better when using a smaller freq such as precondition_frequency=5)
         cast_dtype = torch.float32  # change this if you want to use bfloat16
         init_factor: float = 0.1  # optional

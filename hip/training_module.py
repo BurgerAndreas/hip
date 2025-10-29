@@ -240,6 +240,8 @@ class PotentialModule(LightningModule):
             self.loss_fn = AsinhLoss(a=a)
         else:
             raise ValueError(f"Invalid loss type: {loss_type}")
+        
+        self.val_loss_fn = nn.L1Loss()
 
         # Hessian loss
         hessian_loss_type = self.training_config.get("hessian_loss_type", "mae")
@@ -438,7 +440,10 @@ class PotentialModule(LightningModule):
             print(
                 f"Percentage of kls parameters: {self.num_kls_params / (self.num_kls_params + self.num_adam_params) * 100:.2f}%"
             )
-            optimizer = KLSWithAuxAdam(param_groups)
+            optimizer = KLSWithAuxAdam(
+                param_groups,
+                using_damping=self.optimizer_config["damping_kls"],
+            )
         else:
             raise ValueError(f"Unknown optimizer: {optim_type}")
 
@@ -683,6 +688,10 @@ class PotentialModule(LightningModule):
         """Compute comprehensive evaluation metrics for eigenvalues and eigenvectors."""
         hat_ae, hat_forces, outputs = efh
         eval_metrics = {}
+        
+        # Energy and Force MAE
+        eval_metrics["MAE E"] = self.val_loss_fn(hat_ae, batch.ae).item()
+        eval_metrics["MAE F"] = self.val_loss_fn(hat_forces, batch.forces).item()
 
         if "hessian" in outputs:
             hessian_true = batch.hessian

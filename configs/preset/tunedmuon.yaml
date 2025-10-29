@@ -19,6 +19,11 @@ optimizer:
   beta2: 0.965
   lr: 0.00044
   weight_decay: 2e-05
+  # kls
+  kls_lr: 1e-3
+  weight_decay_kls: 1e-4
+  betas_kls: [0.9, 0.999]
+  damping_kls: False
 
 pltrainer:
   gradient_clip_algorithm: norm
