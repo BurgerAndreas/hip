@@ -248,7 +248,6 @@ def _loop_diagonal_to_blockdiagonal_hessian(
     return hessian
 
 
-# support function that can be moved to dataloader
 def _get_node_diagonal_1d_indexadd_indices(
     N: int, device: torch.device
 ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
@@ -389,6 +388,10 @@ def add_graph_batch(
     This combines the responsibilities of generating the Hessian graph (per-sample)
     and producing message/diagonal indices that directly index into the final
     flattened Hessian of length sum_b (N_b*3)^2.
+    
+    We will have:
+    - flattened indices mapping each edge's 3x3 block to off-diagonal positions (i,j) and (j,i) in the 1D Hessian.
+    - flattened indices mapping each node's 3x3 block to diagonal positions in the 1D Hessian.
 
     Expects `data` to contain at least:
       - pos: (sum_b N_b, 3)
@@ -555,7 +558,6 @@ if __name__ == "__main__":
         )
 
         # Precompute edge message indices for offdiagonal entries in the hessian
-        # TODO: only works for a single sample, not for a batch
         N = data.natoms.sum().item()  # Number of atoms
         indices_ij, indices_ji = (
             _get_indexadd_offdiagonal_to_flat_hessian_message_indices(
@@ -567,7 +569,6 @@ if __name__ == "__main__":
         data.message_idx_ji = indices_ji
 
         # Precompute node message indices for diagonal entries in the hessian
-        # TODO: only works for a single sample, not for a batch
         diag_ij, diag_ji, node_transpose_idx = _get_node_diagonal_1d_indexadd_indices(
             N=N, device=data.pos.device
         )
