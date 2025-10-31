@@ -732,10 +732,7 @@ class PotentialModule(LightningModule):
         for k, v in eval_info.items():
             info_prefix[f"{prefix}-{k}"] = v
 
-        info_prefix[f"{prefix}-totloss"] = info["Loss E"] + info["Loss F"]
-        print(f"{prefix}-totloss", "=", info_prefix[f"{prefix}-totloss"])
-        print(f"{prefix}-Loss E", "=", info["Loss E"])
-        print(f"{prefix}-Loss F", "=", info["Loss F"])
+        info_prefix[f"{prefix}-totloss"] = eval_info["MAE E"] + eval_info["MAE F"]
 
         do_hessian = (
             self.training_config["hessian_loss_weight"] > 0.0 or self.do_eigen_loss

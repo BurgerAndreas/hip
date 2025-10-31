@@ -221,8 +221,8 @@ def eigenspectrum_loss(
 
 
 def get_eigval_eigvec_metrics(hessian_true, hessian_pred, data, prefix=""):
-    """We can't normalize concatenated vectors, so we process each vector separately.
-    Returns a scalar of similarity averaged over batches.
+    """We can't decompose Hessians of different shapes into their eigenspectrum as a batch, so we process each Hessian matrix separately.
+    Returns a dictonary of scalars, averaged over the samples in the batch.
     data should be a torch_geometric.data.Batch object.
     Warning: detach() is used to avoid memory leaks. Do not use for training!
     """
@@ -244,6 +244,7 @@ def get_eigval_eigvec_metrics(hessian_true, hessian_pred, data, prefix=""):
         "MAE Val1 Eckart": [],
         "MAE Val2 Eckart": [],
         "MAE Eigvals Eckart": [],
+        "Neg Eigvals Match": [],
     }
     for _b in range(B):
         _start = ptr_hessian[_b].item()
@@ -281,6 +282,10 @@ def get_eigval_eigvec_metrics(hessian_true, hessian_pred, data, prefix=""):
         metrics["MAE Eigvals Eckart"].append(
             torch.mean(torch.abs(eigvals_true_b - eigvals_pred_b))
         )
+        # same number of negative eigenvalues (frequency analysis, classification)
+        n_neg_true = (eigvals_true_b < 0).sum().float()
+        n_neg_pred = (eigvals_pred_b < 0).sum().float()
+        metrics["Neg Eigvals Match"].append((n_neg_true == n_neg_pred).float())
         # eigenvectors
         v1_true = eigvecs_true_b[:, 0].reshape(-1)
         v1_pred = eigvecs_pred_b[:, 0].reshape(-1)
@@ -301,7 +306,7 @@ def get_eigval_eigvec_metrics(hessian_true, hessian_pred, data, prefix=""):
 
 class AsinhLoss(torch.nn.Module):
     """
-    Asinh loss function based on the mathematical formulation:
+    Asinh loss function:
     δU ≡ δε / a
     s(x) ≡ √(1 + x²)
     L_Asinh(δε) ≡ a²(1 - s(δU) + δU * ln[δU + s(δU)])
