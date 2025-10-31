@@ -36,8 +36,14 @@ optimizer:
   beta2: null
   weight_decay: 1e-5 # 0.01, 1e-5
   amsgrad: false # true
+  # muon
   weight_decay_muon: 0.01 # 0.01, 1e-5
   lr_muon: 0.02 # 0.02, 3e-4
+  # kls
+  lr_kls: 1e-3
+  weight_decay_kls: 1e-4
+  betas_kls: [0.9, 0.999]
+  damping_kls: True
 
 # Training configuration  
 training:
