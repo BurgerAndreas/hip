@@ -342,7 +342,7 @@ def unweight_mw_hessian_torch(mw_hessian, masses3d):
     return mm_sqrt @ h_t @ mm_sqrt
 
 
-def eckart_projection_notmw_torch(
+def massweigh_and_eckartprojection_torch(
     hessian: torch.Tensor,
     cart_coords: torch.Tensor,
     atomsymbols: list[str],
@@ -383,7 +383,7 @@ def analyze_frequencies_torch(
         # atomic numbers were passed instead of symbols
         atomsymbols = [Z_TO_ATOM_SYMBOL[z] for z in atomsymbols]
 
-    proj_hessian = eckart_projection_notmw_torch(hessian, cart_coords, atomsymbols)
+    proj_hessian = massweigh_and_eckartprojection_torch(hessian, cart_coords, atomsymbols)
     eigvals, eigvecs = torch.linalg.eigh(proj_hessian)
 
     neg_inds = eigvals < ev_thresh
@@ -446,7 +446,7 @@ if __name__ == "__main__":
 
     # 3) Test full Eckart pipeline via eigenvalues of projected Hessian
     np_proj = eckart_projection_notmw(hessian.copy(), cc.copy(), atoms)
-    torch_proj = eckart_projection_notmw_torch(hessian.copy(), cc.copy(), atoms)
+    torch_proj = massweigh_and_eckartprojection_torch(hessian.copy(), cc.copy(), atoms)
     torch_proj_np = torch_proj.detach().cpu().numpy()
     ok_proj = np.allclose(np_proj, torch_proj_np, rtol=1e-6, atol=1e-8)
     print(

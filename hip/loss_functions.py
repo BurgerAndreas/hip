@@ -1,7 +1,7 @@
 import torch
 from collections.abc import Iterable
 
-from hip.frequency_analysis import eckart_projection_notmw_torch
+from hip.frequency_analysis import massweigh_and_eckartprojection_torch
 
 # from hip.masses import MASS_DICT
 from nets.prediction_utils import Z_TO_ATOM_SYMBOL
@@ -261,10 +261,10 @@ def get_eigval_eigvec_metrics(hessian_true, hessian_pred, data, prefix=""):
         # mass weight and Eckart project
         cart_coords = all_pos[idx_atoms]
         atomsymbols = [Z_TO_ATOM_SYMBOL[z] for z in data.z[data.batch == _b].tolist()]
-        hessian_pred_b = eckart_projection_notmw_torch(
+        hessian_pred_b = massweigh_and_eckartprojection_torch(
             hessian_pred_b, cart_coords, atomsymbols
         )
-        hessian_true_b = eckart_projection_notmw_torch(
+        hessian_true_b = massweigh_and_eckartprojection_torch(
             hessian_true_b, cart_coords, atomsymbols
         )
 

@@ -11,7 +11,7 @@ from hip.hessian_utils import compute_hessian
 from hip.inference_utils import get_model_from_checkpoint, get_dataloader
 from hip.frequency_analysis import (
     analyze_frequencies_torch,
-    eckart_projection_notmw_torch,
+    massweigh_and_eckartprojection_torch,
     get_trans_rot_projector_torch,
     mass_weigh_hessian_torch,
 )
