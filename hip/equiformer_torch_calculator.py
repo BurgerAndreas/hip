@@ -108,7 +108,7 @@ class EquiformerTorchCalculator:
         # Store results
         self.results = {}
 
-        # Prepare batch on calculator device 
+        # Prepare batch on calculator device
         batch = batch.to(self.device)
 
         # Run prediction

@@ -48,7 +48,9 @@ def _random_rotation(device, dtype):
     return Q
 
 
-@pytest.mark.skipif(not torch.cuda.is_available(), reason="CUDA required for model init")
+@pytest.mark.skipif(
+    not torch.cuda.is_available(), reason="CUDA required for model init"
+)
 def test_equivariance_energy_forces_hessian():
     cfg = _compose_cfg()
     pm, batch_base = _get_pm_and_batch(cfg)
@@ -68,14 +70,18 @@ def test_equivariance_energy_forces_hessian():
     # Energy invariance
     e_err_abs = torch.abs(e1 - e2)
     e_err_rel = e_err_abs / (torch.abs(e1) + 1e-12)
-    print(f"Energy invariance: abs_err={e_err_abs.item():.2e}, rel_err={e_err_rel.item():.2e}")
+    print(
+        f"Energy invariance: abs_err={e_err_abs.item():.2e}, rel_err={e_err_rel.item():.2e}"
+    )
     assert torch.allclose(e1, e2, rtol=1e-4, atol=1e-4)
 
     # Force equivariance: f1 == f2 @ R.T
     f2_rot = f2 @ R.T
     f_err_abs = torch.norm(f1 - f2_rot)
     f_err_rel = f_err_abs / (torch.norm(f1) + 1e-12)
-    print(f"Force equivariance: abs_err={f_err_abs.item():.2e}, rel_err={f_err_rel.item():.2e}")
+    print(
+        f"Force equivariance: abs_err={f_err_abs.item():.2e}, rel_err={f_err_rel.item():.2e}"
+    )
     assert torch.allclose(f1, f2 @ R.T, rtol=1e-3, atol=1e-3)
 
     # Hessian equivariance: H1 == (I kron R) @ H2 @ (I kron R).T
@@ -86,11 +92,15 @@ def test_equivariance_energy_forces_hessian():
     H2_transformed = R_big @ H2 @ R_big.T
     H_err_abs = torch.norm(H1 - H2_transformed)
     H_err_rel = H_err_abs / (torch.norm(H1) + 1e-12)
-    print(f"Hessian equivariance: abs_err={H_err_abs.item():.2e}, rel_err={H_err_rel.item():.2e}")
+    print(
+        f"Hessian equivariance: abs_err={H_err_abs.item():.2e}, rel_err={H_err_rel.item():.2e}"
+    )
     assert torch.allclose(H1, R_big @ H2 @ R_big.T, rtol=2e-3, atol=2e-3)
 
 
-@pytest.mark.skipif(not torch.cuda.is_available(), reason="CUDA required for model init")
+@pytest.mark.skipif(
+    not torch.cuda.is_available(), reason="CUDA required for model init"
+)
 def test_hessian_symmetry():
     cfg = _compose_cfg()
     pm, batch = _get_pm_and_batch(cfg)
@@ -100,7 +110,7 @@ def test_hessian_symmetry():
     # Symmetry: H == H.T
     H_sym_err_abs = torch.norm(H - H.T)
     H_sym_err_rel = H_sym_err_abs / (torch.norm(H) + 1e-12)
-    print(f"Hessian symmetry: abs_err={H_sym_err_abs.item():.2e}, rel_err={H_sym_err_rel.item():.2e}")
+    print(
+        f"Hessian symmetry: abs_err={H_sym_err_abs.item():.2e}, rel_err={H_sym_err_rel.item():.2e}"
+    )
     assert torch.allclose(H, H.T, rtol=1e-5, atol=1e-5)
-
-

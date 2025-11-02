@@ -40,7 +40,9 @@ def _get_first_sample_batch(cfg):
     return batch
 
 
-@pytest.mark.skipif(not torch.cuda.is_available(), reason="CUDA required for model init")
+@pytest.mark.skipif(
+    not torch.cuda.is_available(), reason="CUDA required for model init"
+)
 def test_hessian_graph_shrinks_with_smaller_radius():
     cfg_small, cfg_large = _compose_cfgs()
 
@@ -71,5 +73,3 @@ def test_hessian_graph_shrinks_with_smaller_radius():
 
     assert nedges_small <= nedges_large
     assert (nedges_large - nedges_small) > 0
-
-

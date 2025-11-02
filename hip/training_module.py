@@ -226,7 +226,7 @@ class PotentialModule(LightningModule):
         # energy and force loss
         self.loss_fn = torch.nn.L1Loss()
         self.loss_fn_val = torch.nn.L1Loss()
-        
+
         # Hessian loss
         self.do_hessian = self.training_config.get("hessian_loss_weight", 0.0) > 0.0
         if self.do_hessian:
@@ -240,7 +240,9 @@ class PotentialModule(LightningModule):
 
         self.do_eigen_loss = False
         if "eigen_loss" in self.training_config:
-            self.loss_fn_eigen = get_hessian_eigen_loss_fn(**training_config["eigen_loss"])
+            self.loss_fn_eigen = get_hessian_eigen_loss_fn(
+                **training_config["eigen_loss"]
+            )
             _alpha = self.training_config["eigen_loss"]["alpha"]
             if isinstance(_alpha, Iterable) or (
                 isinstance(_alpha, float) and _alpha > 0.0
@@ -623,9 +625,13 @@ class PotentialModule(LightningModule):
         """Compute comprehensive evaluation metrics for eigenvalues and eigenvectors."""
         hat_ae, hat_forces, outputs = efh
         eval_metrics = {}
-        
-        eval_metrics["MAE E"] = self.loss_fn_val(hat_ae, batch.ae).abs().mean().detach().item()
-        eval_metrics["MAE F"] = self.loss_fn_val(hat_forces, batch.forces).abs().mean().detach().item()
+
+        eval_metrics["MAE E"] = (
+            self.loss_fn_val(hat_ae, batch.ae).abs().mean().detach().item()
+        )
+        eval_metrics["MAE F"] = (
+            self.loss_fn_val(hat_forces, batch.forces).abs().mean().detach().item()
+        )
 
         if self.do_hessian:
             hessian_true = batch.hessian
@@ -667,7 +673,7 @@ class PotentialModule(LightningModule):
             info_prefix[f"{prefix}-{k}"] = v
 
         info_prefix[f"{prefix}-totloss"] = eval_info["MAE E"] + eval_info["MAE F"]
-        
+
         if self.do_hessian:
             info_prefix[f"{prefix}-totloss"] += eval_info["MAE Hessian"]
             # info_prefix[f"{prefix}-totloss"] += eval_info["MAE Eigvals Eckart"]

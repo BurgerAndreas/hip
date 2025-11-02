@@ -47,7 +47,7 @@ def test_torch_calculator_loads_without_gpu(monkeypatch):
     if not ckpt_path.exists():
         pytest.skip(f"Checkpoint not found: {ckpt_path}")
 
-    # Force CPU explicitly 
+    # Force CPU explicitly
     calc = EquiformerTorchCalculator(
         checkpoint_path=str(ckpt_path),
         hessian_method="predict",
@@ -64,5 +64,3 @@ def test_torch_calculator_loads_without_gpu(monkeypatch):
     # Sanity: energy and forces are returned
     assert "energy" in results and "forces" in results
     assert results["forces"].ndim == 2 and results["forces"].shape[1] == 3
-
-

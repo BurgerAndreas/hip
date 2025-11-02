@@ -182,7 +182,7 @@ def eigenspectrum_loss(
 
 
 def get_eigval_eigvec_metrics(hessian_true, hessian_pred, data, prefix=""):
-    """We can't decompose Hessians of different shapes into their eigenspectrum as a batch, 
+    """We can't decompose Hessians of different shapes into their eigenspectrum as a batch,
     so we process each Hessian matrix separately.
     Returns a dictonary of scalars, averaged over the samples in the batch.
     data should be a torch_geometric.data.Batch object.

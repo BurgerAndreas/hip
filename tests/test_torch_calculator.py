@@ -107,4 +107,3 @@ def test_torch_calculator_gpu_energy_forces_mae():
     print(f"Torch GPU: Energy MAE: {e_mae:.2e}, Forces MAE: {f_mae:.2e}")
     assert e_mae < 0.5, f"Energy MAE: {e_mae:.2e}"
     assert f_mae < 0.1, f"Forces MAE: {f_mae:.2e}"
-
