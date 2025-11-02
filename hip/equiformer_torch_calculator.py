@@ -74,7 +74,8 @@ class EquiformerTorchCalculator:
         if model is None:
             model = get_model_from_checkpoint(checkpoint_path, device)
 
-        self.potential = model
+        # Ensure model resides on the requested device
+        self.potential = model.to(self.device)
 
         self.hessian_method = hessian_method
 
@@ -107,8 +108,8 @@ class EquiformerTorchCalculator:
         # Store results
         self.results = {}
 
-        # Prepare batch with extra properties
-        batch = batch.to(self.potential.device)
+        # Prepare batch on calculator device 
+        batch = batch.to(self.device)
 
         # Run prediction
         if do_hessian:

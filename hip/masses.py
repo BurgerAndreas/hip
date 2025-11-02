@@ -1,8 +1,3 @@
-import itertools as it
-
-import numpy as np
-
-
 # Taken from periodictable-1.5.0
 MASS_DICT = {
     "x": 1.0,  # dummy atom

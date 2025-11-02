@@ -7,14 +7,16 @@ model:
 
 training:
   hessian_loss_type: "mae"
-
-  # lr_schedule_type: "cosine"
-  lr_schedule_config:
-    T_max: 300 # Maximum number of epochs.
-    eta_min: 7e-5 # Minimum learning rate. Default: 0.
-    warmup_epochs: 10          # number of epochs to warm up (0 disables)
+  eigen_loss:
+    k: 8
+    alpha: 1.0
 
 optimizer:
+  # muon
+  optimizer: "muon"
+  lr_muon: 1e-3
+  weight_decay_muon: 0.001
+  # adamw
   amsgrad: False
   beta1: 0.965
   beta2: 0.965
@@ -24,3 +26,4 @@ optimizer:
 pltrainer:
   gradient_clip_algorithm: norm
   gradient_clip_val: 7
+  

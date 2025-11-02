@@ -49,7 +49,7 @@ def setup_training(cfg: DictConfig):
     # Add SLURM job ID to config if it exists in environment
     if "SLURM_JOB_ID" in os.environ:
         cfg.slurm_job_id = os.environ["SLURM_JOB_ID"]
-    print(f"SLURM job ID: {cfg.slurm_job_id}")
+        print(f"SLURM job ID: {cfg.slurm_job_id}")
 
     ###########################################
     # Get configs
@@ -101,7 +101,6 @@ def setup_training(cfg: DictConfig):
         )
     else:
         print(f"Not loading model checkpoint from {cfg.ckpt_model_path}")
-    print(f"{cfg.potential_module_class} initialized")
 
     ###########################################
     # Trainer checkpoint loading
@@ -146,19 +145,20 @@ def setup_training(cfg: DictConfig):
     ckpt_output_path = f"{cfg.ckpt_base_dir}/{checkpoint_name}"
     print(f"Checkpoint output path: {ckpt_output_path}")
 
+    callbacks = [
+        TQDMProgressBar(),
+    ]
     early_stopping_callback = EarlyStopping(
         monitor=cfg.early_stopping.monitor,
         patience=cfg.early_stopping.patience,
         mode=cfg.early_stopping.mode,
         verbose=cfg.early_stopping.verbose,
     )
+    callbacks.append(early_stopping_callback)
 
-    lr_monitor = LearningRateMonitor(logging_interval="step")
-    callbacks = [
-        early_stopping_callback,
-        TQDMProgressBar(),
-        lr_monitor,
-    ]
+    if cfg.use_wandb:
+        lr_monitor = LearningRateMonitor(logging_interval="step")
+        callbacks.append(lr_monitor)
 
     if cfg.ckpt_do_save:
         checkpoint_callback = ModelCheckpoint(
@@ -218,7 +218,7 @@ def setup_training(cfg: DictConfig):
             **wandb_kwargs,
         )
     else:
-        wandb_logger = None
+        wandb_logger = False
 
     print("Initializing trainer")
     trainer = pl.Trainer(
@@ -242,10 +242,8 @@ def setup_training(cfg: DictConfig):
         # val_check_interval=cfg.pltrainer.get('val_check_interval', None),
     )
 
-    print("Trainer initialized")
-
     # Set WandB run ID on the model for future checkpoints
-    if wandb_logger is not None:
+    if wandb_logger:
         if hasattr(wandb_logger.experiment, "id") and wandb_logger.experiment.id:
             pm.set_wandb_run_id(wandb_logger.experiment.id)
             print(f"Set WandB run ID on model: {wandb_logger.experiment.id}")

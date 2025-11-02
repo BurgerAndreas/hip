@@ -54,12 +54,10 @@ training:
   follow_batch: ["diag_ij", "edge_index", "message_idx_ij"]
 
   eigen_loss:
-    loss_name: "eigenspectrum"
-    loss_type: "eigen" # eigen or wa
     k: null
     alpha: null
-    dist: "mae" # frosq or mae recommended
 
+  # if true, freezes the backbone and only trains the Hessian head
   train_hessian_only: false
 
   otfgraph_in_model: true

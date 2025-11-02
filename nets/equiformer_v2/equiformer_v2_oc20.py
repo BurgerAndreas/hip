@@ -1,8 +1,6 @@
 import logging
-import time
 import math
 import torch
-import einops
 
 from torch.autograd import grad
 from ocpmodels.common.registry import registry
@@ -235,7 +233,7 @@ class EquiformerV2_OC20(BaseModel):
         self.cutoff = max_radius
         if cutoff is not None:
             print(
-                f"{self.__class__.__name__}: got cutoff {cutoff} and radius {max_radius}"
+                f"{self.__class__.__name__}: got cutoff {cutoff} and radius {max_radius}. Using radius {max_radius}."
             )
         self.max_num_elements = max_num_elements
         self.avg_degree = avg_degree
@@ -287,7 +285,11 @@ class EquiformerV2_OC20(BaseModel):
         self.weight_init = weight_init
         assert self.weight_init in ["normal", "uniform"]
 
-        self.device = torch.cuda.current_device()
+        # self.device = torch.cuda.current_device()
+        if torch.cuda.is_available():
+            self.device = torch.device("cuda", index=torch.cuda.current_device())
+        else:
+            self.device = torch.device("cpu")
 
         self.grad_forces = False
         self.num_resolutions = len(self.lmax_list)
@@ -1002,9 +1004,8 @@ class EquiformerV2_OC20(BaseModel):
         **kwargs,
     ):
         """
-        Build parameter groups for MuonWithAuxAdam with a strict scope:
-
-        - Muon group (use_muon=True): ONLY parameters with ndim >= 2 inside
+        Build parameter groups for MuonWithAuxAdam:
+        - Muon group (use_muon=True): only parameters with ndim >= 2 inside hidden layers
           `blocks`.
         - Aux Adam group (use_muon=False): every other parameter in the model
           (embeddings, heads, biases/gains, blocks, etc.).

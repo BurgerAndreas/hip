@@ -95,7 +95,8 @@ class EquiformerASECalculator(ASECalculator):
             # Load model
             model = get_model_from_checkpoint(checkpoint_path, device)
 
-        self.potential = model
+        # Ensure model resides on the requested device
+        self.potential = model.to(self.device)
 
         # Set implemented properties
         # # standard properties: ‘energy’, ‘forces’, ‘stress’, ‘dipole’, ‘charges’, ‘magmom’ and ‘magmoms’.

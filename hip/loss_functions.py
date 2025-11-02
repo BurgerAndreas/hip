@@ -17,13 +17,8 @@ def tensor_info(t):
 # predicting the full Hessian matrix
 
 
-def get_hessian_loss_fn(loss_name: str, **kwargs):
-    if loss_name == "eigenspectrum":
-        return BatchHessianLoss(eigenspectrum_loss, **kwargs)
-    elif loss_name.lower() in ["mse", "l2"]:
-        return torch.nn.MSELoss()  # F.mse_loss
-    else:
-        raise ValueError(f"Invalid loss name: {loss_name}")
+def get_hessian_eigen_loss_fn(**kwargs):
+    return BatchHessianLoss(eigenspectrum_loss, **kwargs)
 
 
 ##############################################################################
@@ -134,32 +129,12 @@ class BatchHessianLoss(torch.nn.Module):
         return batch_hessian_loss(pred, target, data, self.loss_fn, **_kwargs)
 
 
-def _reduce_diff(diff, dist):
-    dist = str(dist).lower()
-    if dist == "mse":
-        return diff.pow(2).mean()
-    elif dist == "mae":
-        return diff.abs().mean()
-    elif dist == "frosq":
-        return torch.linalg.norm(diff, ord="fro") ** 2
-    elif dist == "fro":
-        return torch.linalg.norm(diff, ord="fro")
-    elif dist == "1":
-        return torch.linalg.norm(diff, ord=1)
-    elif dist == "2":
-        return torch.linalg.norm(diff, ord=2)
-    else:
-        raise ValueError(f"Invalid distance: {dist}")
-
-
 def eigenspectrum_loss(
     hessian_pred,
     hessian_true,
     N,
     k=None,
     alpha=1.0,
-    loss_type="eigen",
-    dist="mse",  # MAE, MSE, frosq
     **kwargs,
 ):
     """Compute the eigenspectrum loss for a single Hessian matrix.
@@ -194,29 +169,15 @@ def eigenspectrum_loss(
         if k_i is None:
             # easy case: use all eigenvalues/vectors
             diff = (evecs_true.T @ (hessian_pred @ evecs_true)) - torch.diag(evals_true)
-            loss += alpha_i * _reduce_diff(diff, dist)
+            loss += alpha_i * diff.abs().mean()
         else:
             # use a subspace (subset) of the smallest eigenvalues/vectors
             evecs_true_k = evecs_true[:, :k_i]  # (N*3, k)
             evals_true_k = evals_true[:k_i]
-            if loss_type == "wa":  # wavefunction alignment loss
-                for i in range(k_i):
-                    evec_true_i = evecs_true_k[:, i].reshape(N * 3, 1)  # (N*3, 1)
-                    eval_true_i = evals_true_k[i]
-                    # (1, N*3) @ (N*3, N*3) @ (N*3, 1) = (1, 1)
-                    diff = (
-                        evec_true_i.T @ (hessian_pred @ evec_true_i)
-                    ) - eval_true_i  # (1)
-                    # TODO: how was wa loss in the original paper computed?
-                    loss += alpha_i * diff.squeeze().squeeze() ** 2
-                    # loss += alpha_i * _reduce_diff(diff, dist)
-            elif loss_type == "eigen":  # same as luca's loss
-                diff = (evecs_true_k.T @ (hessian_pred @ evecs_true_k)) - torch.diag(
-                    evals_true_k
-                )  # (3N, 3N)
-                loss += alpha_i * _reduce_diff(diff, dist)
-            else:
-                raise ValueError(f"Invalid loss type: {loss_type}")
+            diff = (evecs_true_k.T @ (hessian_pred @ evecs_true_k)) - torch.diag(
+                evals_true_k
+            )  # (3N, 3N)
+            loss += alpha_i * diff.abs().mean()
     return loss
 
 
