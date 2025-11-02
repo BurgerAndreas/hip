@@ -6,6 +6,7 @@ from tqdm import tqdm
 import wandb
 import pandas as pd
 import matplotlib.pyplot as plt
+import seaborn as sns
 import os
 from torch_geometric.loader import DataLoader as TGDataLoader
 
@@ -18,6 +19,7 @@ from hip.path_config import fix_dataset_path
 from nets.prediction_utils import Z_TO_ATOM_SYMBOL
 
 from hip.frequency_analysis import analyze_frequencies
+from hip.t1x_dft_dataloader import get_molecular_reference_energy
 
 
 def _get_derivatives(x, y, retain_graph=None, create_graph=False):
@@ -73,32 +75,6 @@ def evaluate(
         _name += "_" + hessian_method
     _name += "_" + str(max_samples)
 
-    if wandb_run_id is None:
-        wandb.init(
-            project="horm",
-            name=_name,
-            config={
-                "checkpoint": checkpoint_path,
-                "dataset": lmdb_path,
-                "max_samples": max_samples,
-                "model_name": model_name,
-                "config_path": config_path,
-                "hessian_method": hessian_method,
-                "model_config": model_config,
-            },
-            tags=["hormmetrics"],
-            **wandb_kwargs,
-        )
-
-    model = PotentialModule.load_from_checkpoint(
-        checkpoint_path,
-        strict=False,
-    ).potential.to(device)
-    model.eval()
-
-    do_autograd = hessian_method == "autograd"
-    print(f"do_autograd: {do_autograd}")
-
     # Create results file path
     dataset_name = lmdb_path.split("/")[-1].split(".")[0]
     results_dir = "results_evalhorm"
@@ -115,13 +91,40 @@ def evaluate(
     if os.path.exists(results_file) and not redo:
         print(f"Loading existing results from {results_file}")
         df_results = pd.read_csv(results_file)
+        aggregated_results = compute_aggregated_results(df_results)
+        return df_results, aggregated_results
 
     else:
+        if wandb_run_id is None:
+            wandb.init(
+                project="horm",
+                name=_name,
+                config={
+                    "checkpoint": checkpoint_path,
+                    "dataset": lmdb_path,
+                    "max_samples": max_samples,
+                    "model_name": model_name,
+                    "config_path": config_path,
+                    "hessian_method": hessian_method,
+                    "model_config": model_config,
+                },
+                tags=["hormmetrics"],
+                **wandb_kwargs,
+            )
+
+        model = PotentialModule.load_from_checkpoint(
+            checkpoint_path,
+            strict=False,
+        ).potential.to(device)
+        model.eval()
+
+        do_autograd = hessian_method == "autograd"
+        print(f"do_autograd: {do_autograd}")
+        
         torch.manual_seed(42)
         np.random.seed(42)
 
         dataset = LmdbDataset(fix_dataset_path(lmdb_path))
-        # dataset = LmdbDataset(fix_dataset_path(lmdb_path))
         dataloader = TGDataLoader(dataset, batch_size=1, shuffle=True)
 
         # Initialize metrics collection for per-sample DataFrame
@@ -132,6 +135,8 @@ def evaluate(
             n_total_samples = min(max_samples, len(dataloader))
         else:
             n_total_samples = len(dataloader)
+
+        print("Keys in the first batch: ", next(iter(dataloader)).keys())
 
         # Warmup
         for _i, batch in tqdm(enumerate(dataloader), desc="Warmup", total=10):
@@ -181,6 +186,7 @@ def evaluate(
             batch = batch.to(device)
 
             n_atoms = batch.pos.shape[0]
+            n_heavy_atoms = int((batch.z > 1).sum().item())
 
             torch.cuda.reset_peak_memory_stats()
             start_event = torch.cuda.Event(enable_timing=True)
@@ -225,8 +231,32 @@ def evaluate(
             # Compute hessian eigenspectra
             eigvals_model, eigvecs_model = torch.linalg.eigh(hessian_model)
 
-            # Compute errors
-            e_error = torch.mean(torch.abs(energy_model.squeeze() - batch.ae))
+            # Get true energy from dataset (check for .ae first, then .energy)
+            if hasattr(batch, "ae") and batch.ae is not None:
+                energy_true = batch.ae.item()
+                e_error = abs(energy_model.squeeze().item() - energy_true)
+                e_error_raw = e_error  # no atomization energy correction
+            elif hasattr(batch, "energy") and batch.energy is not None:
+                energy_true = batch.energy.item()
+                # Model outputs atomization energy (model is trained to predict atomization energies)
+                atomic_numbers = batch.z.cpu().numpy().tolist()
+                # HORM was not published with atomization energies for RGD1
+                # here we use the reference energies from the T1x dataset
+                # and assume that they are off by a constant amount per atom
+                molecular_reference_energy = get_molecular_reference_energy(
+                    atomic_numbers,
+                    # heuristic number comparing the RGD1 dataset to the T1x dataset
+                    constant_per_atom=-3.911, 
+                    constant=-0.686,
+                )
+                e_error = abs(
+                    energy_model.squeeze().item()
+                    - (energy_true - molecular_reference_energy)
+                )
+                e_error_raw = abs(energy_model.squeeze().item() - energy_true)
+            else:
+                raise ValueError("Neither batch.ae nor batch.energy is available")
+
             f_error = torch.mean(torch.abs(force_model - batch.forces))
 
             # Reshape true hessian
@@ -260,7 +290,9 @@ def evaluate(
             sample_data = {
                 "sample_idx": n_samples,
                 "natoms": n_atoms,
-                "energy_error": e_error.item(),
+                "n_heavy_atoms": n_heavy_atoms,
+                "energy_error": e_error,
+                "energy_error_raw": e_error_raw,
                 "forces_error": f_error.item(),
                 "hessian_error": h_error.item(),
                 "asymmetry_error": asymmetry_error.item(),
@@ -334,6 +366,7 @@ def evaluate(
                 torch.dot(eigvecs_model_eckart[:, 1], true_eigvecs_eckart[:, 1])
             )
 
+            sample_data = {k: v.item() if isinstance(v, torch.Tensor) else v for k, v in sample_data.items()}
             sample_metrics.append(sample_data)
             n_samples += 1
 
@@ -347,7 +380,7 @@ def evaluate(
         torch.cuda.synchronize()
 
         time_taken_all = start_event_all.elapsed_time(end_event_all)  # ms
-
+        
         # Create DataFrame from collected metrics
         df_results = pd.DataFrame(sample_metrics)
 
@@ -355,77 +388,51 @@ def evaluate(
         df_results.to_csv(results_file, index=False)
         print(f"Saved results to {results_file}")
 
+        aggregated_results = compute_aggregated_results(df_results)
+        if time_taken_all is not None:
+            # ms per forward pass
+            aggregated_results["time_incltransform"] = time_taken_all / n_total_samples
+
+        wandb.log(aggregated_results)
+
+        if wandb_run_id is None:
+            wandb.finish()
+
+        return df_results, aggregated_results
+
+def compute_aggregated_results(df_results):
     aggregated_results = {
-        "energy_mae": df_results["energy_error"].mean(),
-        "forces_mae": df_results["forces_error"].mean(),
-        "hessian_mae": df_results["hessian_error"].mean(),
-        "asymmetry_mae": df_results["asymmetry_error"].mean(),
-        "true_asymmetry_mae": df_results["true_asymmetry_error"].mean(),
-        "eigval_mae": df_results["eigval_mae"].mean(),
-        "eigval1_mae": df_results["eigval1_mae"].mean(),
-        "eigval2_mae": df_results["eigval2_mae"].mean(),
-        "eigvec1_mae": df_results["eigvec1_mae"].mean(),
-        "eigvec2_mae": df_results["eigvec2_mae"].mean(),
-        "eigvec1_cos": df_results["eigvec1_cos"].mean(),
-        "eigvec2_cos": df_results["eigvec2_cos"].mean(),
-        # Eckart projection
-        "eigval_mae_eckart": df_results["eigval_mae_eckart"].mean(),
-        "eigval1_mae_eckart": df_results["eigval1_mae_eckart"].mean(),
-        "eigval2_mae_eckart": df_results["eigval2_mae_eckart"].mean(),
-        "eigvec1_mae_eckart": df_results["eigvec1_mae_eckart"].mean(),
-        "eigvec2_mae_eckart": df_results["eigvec2_mae_eckart"].mean(),
-        "eigvec1_cos_eckart": df_results["eigvec1_cos_eckart"].mean(),
-        "eigvec2_cos_eckart": df_results["eigvec2_cos_eckart"].mean(),
-        # Frequencies
-        "neg_num_agree": df_results["neg_num_agree"].mean(),
-        "true_neg_num": df_results["true_neg_num"].mean(),
-        "model_neg_num": df_results["model_neg_num"].mean(),
-        "true_is_ts": df_results["true_is_ts"].mean(),
-        "true_is_minima": df_results["true_is_minima"].mean(),
-        "true_is_ts_order2": df_results["true_is_ts_order2"].mean(),
-        "true_is_higher_order": df_results["true_is_higher_order"].mean(),
-        "model_is_ts": df_results["model_is_ts"].mean(),
-        "model_is_minima": df_results["model_is_minima"].mean(),
-        "model_is_ts_order2": df_results["model_is_ts_order2"].mean(),
-        "model_is_higher_order": df_results["model_is_higher_order"].mean(),
-        "is_ts_agree": (df_results["model_is_ts"] == df_results["true_is_ts"]).mean(),
-        # Speed
-        "time": df_results["time"].mean(),  # ms
-        "memory": df_results["memory"].mean(),
+        k: v.mean() for k, v in df_results.items()
     }
-    if time_taken_all is not None:
-        # ms per forward pass
-        aggregated_results["time_incltransform"] = time_taken_all / n_total_samples
+    return aggregated_results
 
-    # print(f"\nResults for {dataset_name}:")
-    # print(f"Energy MAE: {aggregated_results['energy_mae']:.6f}")
-    # print(f"Forces MAE: {aggregated_results['forces_mae']:.6f}")
-    # print(f"Hessian MAE: {aggregated_results['hessian_mae']:.6f}")
-    # print(f"Asymmetry MAE: {aggregated_results['asymmetry_mae']:.6f}")
-    # print(f"True Asymmetry MAE: {aggregated_results['true_asymmetry_mae']:.6f}")
-    # print(f"Eigenvalue MAE: {aggregated_results['eigval_mae']:.6f} eV/Angstrom^2")
-    # print(f"Eigenvalue 1 MAE: {aggregated_results['eigval1_mae']:.6f}")
-    # print(f"Eigenvalue 2 MAE: {aggregated_results['eigval2_mae']:.6f}")
-    # print(f"Eigenvector 1 MAE: {aggregated_results['eigvec1_mae']:.6f}")
-    # print(f"Eigenvector 2 MAE: {aggregated_results['eigvec2_mae']:.6f}")
-    # print(f"Eigenvector 1 Cosine: {aggregated_results['eigvec1_cos']:.6f}")
-    # print(f"Eigenvector 2 Cosine: {aggregated_results['eigvec2_cos']:.6f}")
+def fit_linear_function(df_results):
+    # Fit linear function to energy MAE vs natoms
+    if "energy_error" in df_results.columns and "natoms" in df_results.columns:
+        x = df_results["natoms"].values
+        y = df_results["energy_error"].values
+        
+        # Fit linear function: y = slope * x + intercept
+        slope, intercept = np.polyfit(x, y, 1)
+        
+        print(f"\nLinear fit for Energy MAE vs Number of Atoms:")
+        print(f"  Energy MAE = {slope:.6f} * natoms + {intercept:.6f}")
+        print(f"  Slope: {slope:.6f} eV/atom")
+        print(f"  Intercept: {intercept:.6f} eV")
+    
+    if "energy_error_raw" in df_results.columns and "natoms" in df_results.columns:
+        x = df_results["natoms"].values
+        y = df_results["energy_error_raw"].values
+        
+        # Fit linear function: y = slope * x + intercept
+        slope, intercept = np.polyfit(x, y, 1)
+        
+        print(f"\nLinear fit for Energy MAE (Raw) vs Number of Atoms:")
+        print(f"  Energy MAE (Raw) = {slope:.6f} * natoms + {intercept:.6f}")
+        print(f"  Slope: {slope:.6f} eV/atom")
+        print(f"  Intercept: {intercept:.6f} eV")
 
-    # # Frequencies
-    # print(f"True Neg Num: {aggregated_results['true_neg_num']:.6f}")
-    # print(f"Model Neg Num: {aggregated_results['model_neg_num']:.6f}")
-    # print(f"Neg Num Agree: {aggregated_results['neg_num_agree']:.6f}")
-    # print(f"True Is TS: {aggregated_results['true_is_ts']:.6f}")
-    # print(f"Model Is TS: {aggregated_results['model_is_ts']:.6f}")
-    # print(f"Is TS Agree: {aggregated_results['is_ts_agree']:.6f}")
-
-    wandb.log(aggregated_results)
-
-    if wandb_run_id is None:
-        wandb.finish()
-
-    return df_results, aggregated_results
-
+    return slope, intercept
 
 def plot_accuracy_vs_natoms(df_results, name):
     """Plot accuracy metrics over number of atoms"""
@@ -490,10 +497,45 @@ def plot_accuracy_vs_natoms(df_results, name):
     plt.savefig(plot_filename, dpi=300, bbox_inches="tight")
     print(f"Saved plot to {plot_filename}")
 
-    # Show plot
-    plt.show()
+
+def plot_metrics_vs_natoms_seaborn(df_results, name):
+    """Plot energy/forces/hessian MAE vs number of atoms with SD using seaborn."""
+    plot_dir = "plots/eval_horm"
+    os.makedirs(plot_dir, exist_ok=True)
+
+    metrics = [
+        ("energy_error", "Energy MAE", "energy_mae"),
+        ("energy_error_raw", "Energy MAE Raw", "energy_mae_raw"),
+        ("forces_error", "Forces MAE", "forces_mae"),
+        ("hessian_error", "Hessian MAE", "hessian_mae"),
+        ("eigvec1_cos_eckart", "Eigenvector 1 Cosine", "eigvec1_cos_eckart"),
+        ("eigval1_mae", "Eigenvalue 1 MAE", "eigval1_mae_eckart"),
+        ("eigval_mae", "Eigenvalue MAE", "eigval_mae_eckart"),
+    ]
+
+    sns.set_theme(style="whitegrid")
+
+    for metric, title, short in metrics:
+        if metric not in df_results.columns:
+            print(f"Metric {metric} not found in df_results")
+            continue
+        plt.figure(figsize=(7, 5))
+        ax = sns.lineplot(
+            data=df_results, x="natoms", y=metric, errorbar="sd", marker="o"
+        )
+        ax.set_xlabel("Number of Atoms")
+        ax.set_ylabel(title)
+        ax.set_title(f"{title} vs Number of Atoms")
+        plt.tight_layout()
+        out_path = f"{plot_dir}/{short}_vs_natoms_{name}.png"
+        plt.savefig(out_path, dpi=300, bbox_inches="tight")
+        print(f"Saved plot to {out_path}")
+        plt.close()
 
 
+"""
+uv run scripts/eval_horm.py -c ckpt/hip_v2.ckpt -d RGD1.lmdb -hm predict -m 1000 -r true
+"""
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Evaluate HORM model on dataset")
     parser.add_argument(
@@ -511,8 +553,9 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--hessian_method",
+        "-hm",
         type=str,
-        default="autograd",
+        default="predict",
         help="Hessian computation method",
     )
     parser.add_argument(
@@ -561,3 +604,5 @@ if __name__ == "__main__":
 
     # Plot accuracy over Natoms
     plot_accuracy_vs_natoms(df_results, name)
+    # Seaborn plots with standard deviation
+    plot_metrics_vs_natoms_seaborn(df_results, name)
