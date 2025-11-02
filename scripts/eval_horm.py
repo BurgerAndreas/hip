@@ -120,7 +120,7 @@ def evaluate(
 
         do_autograd = hessian_method == "autograd"
         print(f"do_autograd: {do_autograd}")
-        
+
         torch.manual_seed(42)
         np.random.seed(42)
 
@@ -246,7 +246,7 @@ def evaluate(
                 molecular_reference_energy = get_molecular_reference_energy(
                     atomic_numbers,
                     # heuristic number comparing the RGD1 dataset to the T1x dataset
-                    constant_per_atom=-3.911, 
+                    constant_per_atom=-3.911,
                     constant=-0.686,
                 )
                 e_error = abs(
@@ -366,7 +366,10 @@ def evaluate(
                 torch.dot(eigvecs_model_eckart[:, 1], true_eigvecs_eckart[:, 1])
             )
 
-            sample_data = {k: v.item() if isinstance(v, torch.Tensor) else v for k, v in sample_data.items()}
+            sample_data = {
+                k: v.item() if isinstance(v, torch.Tensor) else v
+                for k, v in sample_data.items()
+            }
             sample_metrics.append(sample_data)
             n_samples += 1
 
@@ -380,7 +383,7 @@ def evaluate(
         torch.cuda.synchronize()
 
         time_taken_all = start_event_all.elapsed_time(end_event_all)  # ms
-        
+
         # Create DataFrame from collected metrics
         df_results = pd.DataFrame(sample_metrics)
 
@@ -400,39 +403,40 @@ def evaluate(
 
         return df_results, aggregated_results
 
+
 def compute_aggregated_results(df_results):
-    aggregated_results = {
-        k: v.mean() for k, v in df_results.items()
-    }
+    aggregated_results = {k: v.mean() for k, v in df_results.items()}
     return aggregated_results
+
 
 def fit_linear_function(df_results):
     # Fit linear function to energy MAE vs natoms
     if "energy_error" in df_results.columns and "natoms" in df_results.columns:
         x = df_results["natoms"].values
         y = df_results["energy_error"].values
-        
+
         # Fit linear function: y = slope * x + intercept
         slope, intercept = np.polyfit(x, y, 1)
-        
+
         print(f"\nLinear fit for Energy MAE vs Number of Atoms:")
         print(f"  Energy MAE = {slope:.6f} * natoms + {intercept:.6f}")
         print(f"  Slope: {slope:.6f} eV/atom")
         print(f"  Intercept: {intercept:.6f} eV")
-    
+
     if "energy_error_raw" in df_results.columns and "natoms" in df_results.columns:
         x = df_results["natoms"].values
         y = df_results["energy_error_raw"].values
-        
+
         # Fit linear function: y = slope * x + intercept
         slope, intercept = np.polyfit(x, y, 1)
-        
+
         print(f"\nLinear fit for Energy MAE (Raw) vs Number of Atoms:")
         print(f"  Energy MAE (Raw) = {slope:.6f} * natoms + {intercept:.6f}")
         print(f"  Slope: {slope:.6f} eV/atom")
         print(f"  Intercept: {intercept:.6f} eV")
 
     return slope, intercept
+
 
 def plot_accuracy_vs_natoms(df_results, name):
     """Plot accuracy metrics over number of atoms"""

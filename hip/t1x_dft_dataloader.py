@@ -15,7 +15,9 @@ REFERENCE_ENERGIES = {
 def get_molecular_reference_energy(atomic_numbers, constant_per_atom=0.0, constant=0.0):
     molecular_reference_energy = constant
     for atomic_number in atomic_numbers:
-        molecular_reference_energy += REFERENCE_ENERGIES[atomic_number] + constant_per_atom
+        molecular_reference_energy += (
+            REFERENCE_ENERGIES[atomic_number] + constant_per_atom
+        )
     return molecular_reference_energy
 
 
