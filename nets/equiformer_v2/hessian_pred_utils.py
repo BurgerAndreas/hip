@@ -388,7 +388,7 @@ def add_graph_batch(
     This combines the responsibilities of generating the Hessian graph (per-sample)
     and producing message/diagonal indices that directly index into the final
     flattened Hessian of length sum_b (N_b*3)^2.
-    
+
     We will have:
     - flattened indices mapping each edge's 3x3 block to off-diagonal positions (i,j) and (j,i) in the 1D Hessian.
     - flattened indices mapping each node's 3x3 block to diagonal positions in the 1D Hessian.

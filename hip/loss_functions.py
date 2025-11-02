@@ -343,7 +343,7 @@ class AsinhLoss(torch.nn.Module):
 
         # # Compute L_Asinh(δε) = a²(1 - s(δU) + δU * ln[δU + s(δU)])
         # loss = self.a**2 * (1.0 - s_delta_U + delta_U * torch.log(delta_U + s_delta_U))
-        
+
         s_delta_U = torch.sqrt(1 + delta_U**2)
         loss = self.a**2 * (1 - s_delta_U + delta_U * torch.asinh(delta_U))
 

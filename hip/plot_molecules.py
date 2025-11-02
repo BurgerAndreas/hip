@@ -1,36 +1,39 @@
 import torch
-from torch_geometric.data import Batch
-from torch_geometric.data import Data as TGData
 import numpy as np
 import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
+
+# from mpl_toolkits.mplot3d import Axes3D
 from rdkit import Chem
-from rdkit.Chem.Draw import rdMolDraw2D
-from rdkit.Chem.rdchem import Mol
-from rdkit.Chem.rdMolAlign import AlignMol
-from rdkit.Chem.rdMolAlign import GetBestRMS
-from rdkit.Chem import rdDepictor
+
+# from rdkit.Chem.Draw import rdMolDraw2D
+# from rdkit.Chem.rdchem import Mol
+# from rdkit.Chem.rdMolAlign import AlignMol
+# from rdkit.Chem.rdMolAlign import GetBestRMS
+# from rdkit.Chem import rdDepictor
 from rdkit.Chem import rdDetermineBonds
 
 # from rdkit.Chem.Draw.IPythonConsole import drawMol3D  # draws a single molecule in 3D using py3Dmol
-from rdkit.Chem.rdmolops import GetFormalCharge
+# from rdkit.Chem.rdmolops import GetFormalCharge
 
+# from torch_geometric.data import Batch
+# from torch_geometric.data import Data as TGData
 
-import io
-import base64
-from IPython.display import Image
+# import io
+# import base64
+# from IPython.display import Image
 import os
 import py3Dmol
-import webbrowser
-import plotly.io as pio
+
+# import webbrowser
+# import plotly.io as pio
 import seaborn as sns
 
 # pio.renderers.default = "browser"
 
-from hip.ff_lmdb import LmdbDataset
-from hip.equiformer_torch_calculator import EquiformerTorchCalculator
-from hip.align_unordered_mols import compute_rmsd
-from ocpmodels.units import ELEMENT_TO_ATOMIC_NUMBER, ATOMIC_NUMBER_TO_ELEMENT
+# from hip.ff_lmdb import LmdbDataset
+# from hip.equiformer_torch_calculator import EquiformerTorchCalculator
+# from hip.align_unordered_mols import compute_rmsd
+from hip.units import ELEMENT_TO_ATOMIC_NUMBER, ATOMIC_NUMBER_TO_ELEMENT
 
 # # Set global font size for all plots
 # plt.rcParams.update({

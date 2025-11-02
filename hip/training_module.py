@@ -240,7 +240,7 @@ class PotentialModule(LightningModule):
             self.loss_fn = AsinhLoss(a=a)
         else:
             raise ValueError(f"Invalid loss type: {loss_type}")
-        
+        del loss_type
         self.val_loss_fn = nn.L1Loss()
 
         # Hessian loss
@@ -259,6 +259,7 @@ class PotentialModule(LightningModule):
             self.loss_fn_hessian = AsinhLoss(a=a)
         else:
             raise ValueError(f"Invalid Hessian loss type: {hessian_loss_type}")
+        del hessian_loss_type
 
         self.do_eigen_loss = False
         if "eigen_loss" in self.training_config:
@@ -688,7 +689,7 @@ class PotentialModule(LightningModule):
         """Compute comprehensive evaluation metrics for eigenvalues and eigenvectors."""
         hat_ae, hat_forces, outputs = efh
         eval_metrics = {}
-        
+
         # Energy and Force MAE
         eval_metrics["MAE E"] = self.val_loss_fn(hat_ae, batch.ae).item()
         eval_metrics["MAE F"] = self.val_loss_fn(hat_forces, batch.forces).item()

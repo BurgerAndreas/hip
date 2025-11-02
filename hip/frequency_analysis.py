@@ -383,7 +383,9 @@ def analyze_frequencies_torch(
         # atomic numbers were passed instead of symbols
         atomsymbols = [Z_TO_ATOM_SYMBOL[z] for z in atomsymbols]
 
-    proj_hessian = massweigh_and_eckartprojection_torch(hessian, cart_coords, atomsymbols)
+    proj_hessian = massweigh_and_eckartprojection_torch(
+        hessian, cart_coords, atomsymbols
+    )
     eigvals, eigvecs = torch.linalg.eigh(proj_hessian)
 
     neg_inds = eigvals < ev_thresh
