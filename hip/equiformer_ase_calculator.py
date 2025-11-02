@@ -24,6 +24,7 @@ from hip.hessian_utils import compute_hessian
 from hip.inference_utils import get_model_from_checkpoint, get_dataloader
 from hip.frequency_analysis import analyze_frequencies, eckart_projection_notmw
 
+
 def ase_atoms_to_torch_geometric(atoms):
     """
     Convert ASE Atoms object to torch_geometric Data format expected by Equiformer.
@@ -147,9 +148,7 @@ class EquiformerASECalculator(ASECalculator):
 
         # Convert ASE atoms to torch_geometric format
         # adds graph and Hessian indices
-        batch = ase_atoms_to_torch_geometric(
-            atoms
-        )
+        batch = ase_atoms_to_torch_geometric(atoms)
         batch = batch.to(self.device)
 
         if properties is None:
@@ -166,10 +165,10 @@ class EquiformerASECalculator(ASECalculator):
             if hessian_method == "autograd":
                 # Compute energy and forces with autograd
                 with torch.enable_grad():
-                    batch.pos.requires_grad = True 
+                    batch.pos.requires_grad = True
                     energy, forces, _ = self.potential.forward(
                         batch,
-                        otf_graph=True, 
+                        otf_graph=True,
                     )
                     # Use autograd to compute hessian
                     hessian = compute_hessian(

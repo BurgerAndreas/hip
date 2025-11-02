@@ -24,81 +24,89 @@ from hip.colours import HESSIAN_METHOD_TO_COLOUR
 PLOTLY_TEMPLATE = "plotly_white"
 
 
-def time_forward_pass_with_frequency_analysis(model, batch, device="cuda", method="gpu"):
+def time_forward_pass_with_frequency_analysis(
+    model, batch, device="cuda", method="gpu"
+):
     """Times forward pass and frequency analysis on specified device."""
     torch.cuda.reset_peak_memory_stats() if device == "cuda" else None
     start_time = time.time()
-    
+
     with torch.no_grad():
         # Forward pass always on GPU
         ener, force, out = model.forward(
-            batch.to("cuda"), otf_graph=True, hessian=True,
+            batch.to("cuda"),
+            otf_graph=True,
+            hessian=True,
         )
-        
+
         # Get hessian from output
         hessian = out.get("hessian")
-        
+
         # Convert coordinates and atomic numbers for frequency analysis
         cart_coords = batch.pos
         atomsymbols = [Z_TO_ATOM_SYMBOL[z.item()] for z in batch.z]
-        
+
         # Perform frequency analysis
         if device == "cuda":
             # Use torch version for GPU
             freq_results = analyze_frequencies_torch(
-                hessian=hessian,
-                cart_coords=cart_coords,
-                atomsymbols=atomsymbols
+                hessian=hessian, cart_coords=cart_coords, atomsymbols=atomsymbols
             )
         else:
             # Use CPU
             freq_results = analyze_frequencies_torch(
                 hessian=hessian.detach().cpu(),
                 cart_coords=cart_coords.detach().cpu(),
-                atomsymbols=atomsymbols
+                atomsymbols=atomsymbols,
             )
-    
+
     end_time = time.time()
     time_taken = (end_time - start_time) * 1000  # Convert to ms
-    
+
     if device == "cuda":
         memory_usage = torch.cuda.max_memory_allocated() / 1e6  # Convert to MB
     else:
         memory_usage = 0  # CPU doesn't have GPU memory tracking
-    
+
     return time_taken, memory_usage, freq_results
 
 
-def time_forward_pass_with_frequency_analysis_batch(model, batch, device="cuda", method="gpu", max_workers=12):
+def time_forward_pass_with_frequency_analysis_batch(
+    model, batch, device="cuda", method="gpu", max_workers=12
+):
     """Times forward pass and frequency analysis for a batch on specified device."""
     torch.cuda.reset_peak_memory_stats() if device == "cuda" else None
     start_time = time.time()
-    
+
     with torch.no_grad():
         # Forward pass always on GPU
         ener, force, out = model.forward(
-            batch.to("cuda"), otf_graph=True, hessian=True,
+            batch.to("cuda"),
+            otf_graph=True,
+            hessian=True,
         )
-        
+
         # Get hessian from output
         hessian = out.get("hessian")
-        
+
         # Process each sample in the batch individually
         B = batch.batch.max() + 1
         natoms = batch.natoms
         # all_pos = batch.pos.reshape(-1, 3).to(hessian.device)
-        
+
         # Calculate pointer for hessian matrices
         numels = batch.natoms.pow(2).mul(9)
-        ptr_hessian = torch.cat([torch.tensor([0], device=numels.device), numels], dim=0)
+        ptr_hessian = torch.cat(
+            [torch.tensor([0], device=numels.device), numels], dim=0
+        )
         ptr_hessian = torch.cumsum(ptr_hessian, dim=0)
         hessian = hessian.view(-1)
-        
+
         # Output containers for min eigenvalues and corresponding eigenvectors
         # Keep eigenvalues as a fixed-size tensor [B]; eigenvectors as a list of length-B tensors
         min_eigs = torch.empty(B, dtype=hessian.dtype, device="cpu")
         min_vecs = [None] * B
-        
+
         if method == "gpu":
             for _b in range(B):
                 _start = ptr_hessian[_b].item()
@@ -129,12 +137,14 @@ def time_forward_pass_with_frequency_analysis_batch(model, batch, device="cuda",
                 _end = _numel + _start
                 hessian_b = hessian[_start:_end].reshape(ND, ND)
                 # Allocate padded matrix
-                H_pad = torch.zeros((ND_MAX, ND_MAX), dtype=hessian_b.dtype, device=hessian_b.device)
+                H_pad = torch.zeros(
+                    (ND_MAX, ND_MAX), dtype=hessian_b.dtype, device=hessian_b.device
+                )
                 H_pad[:ND, :ND] = hessian_b
                 w, V = torch.linalg.eigh(H_pad)
                 # Restrict to original ND rows to avoid padded-only eigenvectors
                 V_head = V[:ND, :]
-                valid = (V_head.norm(dim=0) > eps)
+                valid = V_head.norm(dim=0) > eps
                 if valid.any():
                     w_valid = w[valid]
                     idx_valid = torch.nonzero(valid, as_tuple=False).view(-1)
@@ -183,21 +193,23 @@ def time_forward_pass_with_frequency_analysis_batch(model, batch, device="cuda",
 
             workers = max_workers or os.cpu_count() or 1
             with ThreadPoolExecutor(max_workers=workers) as ex:
-                futures = [(i, ex.submit(torch.linalg.eigh, cpu_mats[i])) for i in range(B)]
+                futures = [
+                    (i, ex.submit(torch.linalg.eigh, cpu_mats[i])) for i in range(B)
+                ]
                 for i, f in futures:
                     w, v = f.result()
                     ND = natoms[i] * 3
                     min_eigs[i] = w[0]
                     min_vecs[i] = v[:, 0]
-    
+
     end_time = time.time()
     time_taken = (end_time - start_time) * 1000  # Convert to ms
-    
+
     if device == "cuda":
         memory_usage = torch.cuda.max_memory_allocated() / 1e6  # Convert to MB
     else:
         memory_usage = 0  # CPU doesn't have GPU memory tracking
-    
+
     return time_taken, memory_usage
 
 
@@ -234,6 +246,7 @@ def eigendecomp_benchmark(
     else:
         print(f"Indices file not found. Generating new indices for {dataset_name}")
         from scripts.speed_comparison import save_idx_by_natoms
+
         results = save_idx_by_natoms({"dataset_path": dataset_name})
         indices_by_natoms = results["small_idx"]
 
@@ -244,7 +257,9 @@ def eigendecomp_benchmark(
     # Warm up the model
     print("Warming up model...")
     loader = TGDataLoader(
-        dataset, batch_size=1, shuffle=False, 
+        dataset,
+        batch_size=1,
+        shuffle=False,
     )
     for i, sample in enumerate(loader):
         batch = sample.to(device)
@@ -266,15 +281,19 @@ def eigendecomp_benchmark(
 
         subset = Subset(dataset, indices_to_test)
         loader = TGDataLoader(
-            subset, batch_size=1, shuffle=False, 
+            subset,
+            batch_size=1,
+            shuffle=False,
         )
 
         for _batch in tqdm(loader, desc=f"N={n_atoms}", leave=False):
             batch = _batch.clone()
 
             # Time GPU version
-            time_gpu, mem_gpu, freq_results_gpu = time_forward_pass_with_frequency_analysis(
-                model, batch, "cuda", method="gpu"
+            time_gpu, mem_gpu, freq_results_gpu = (
+                time_forward_pass_with_frequency_analysis(
+                    model, batch, "cuda", method="gpu"
+                )
             )
             results.append(
                 {
@@ -292,8 +311,10 @@ def eigendecomp_benchmark(
             torch.cuda.empty_cache()
 
             # Time CPU version
-            time_cpu, mem_cpu, freq_results_cpu = time_forward_pass_with_frequency_analysis(
-                model, batch, "cpu", method="cpu"
+            time_cpu, mem_cpu, freq_results_cpu = (
+                time_forward_pass_with_frequency_analysis(
+                    model, batch, "cpu", method="cpu"
+                )
             )
             results.append(
                 {
@@ -309,7 +330,7 @@ def eigendecomp_benchmark(
 
             # # Clear memory
             # torch.cuda.empty_cache()
-            
+
             # # Time CPU-parallel version
             # time_cpu, mem_cpu, freq_results_cpu = time_forward_pass_with_frequency_analysis(
             #     model, batch, "cpu", method="cpu_parallel"
@@ -363,7 +384,9 @@ def eigendecomp_batchsize_benchmark(
 
     # Light warm-up
     warm_loader = TGDataLoader(
-        dataset, batch_size=1, shuffle=True, 
+        dataset,
+        batch_size=1,
+        shuffle=True,
     )
     for i, sample in enumerate(warm_loader):
         batch = sample.to(device)
@@ -375,7 +398,7 @@ def eigendecomp_batchsize_benchmark(
 
     results = []
     dataset_len = len(dataset)
-    
+
     for bsz in batch_sizes:
         print(f"\n# Batch size: {bsz}")
         # Prepare a subset with random indices
@@ -386,9 +409,7 @@ def eigendecomp_batchsize_benchmark(
             low=0, high=dataset_len, size=(num_needed,), dtype=torch.long
         ).tolist()
         subset = Subset(dataset, rand_idx)
-        loader = TGDataLoader(
-            subset, batch_size=bsz, shuffle=True
-        )
+        loader = TGDataLoader(subset, batch_size=bsz, shuffle=True)
 
         torch.cuda.empty_cache() if device == "cuda" else None
 
@@ -494,7 +515,7 @@ def eigendecomp_batchsize_benchmark(
 def plot_eigendecomp_comparison(results_df, output_dir):
     """Plot GPU vs CPU comparison for eigendecomposition."""
     output_dir = Path(output_dir)
-    
+
     # Plot results for speed
     avg_times = results_df.groupby(["n_atoms", "device"])["time"].mean().unstack()
 
@@ -556,10 +577,10 @@ def plot_eigendecomp_comparison(results_df, output_dir):
 def plot_eigendecomp_batchsize(results_df, output_dir):
     """Plot eigendecomposition speed vs batch size."""
     output_dir = Path(output_dir)
-    
+
     # Plot total time vs batch size
     avg_times = results_df.groupby(["batch_size", "method"])["time"].mean().unstack()
-    
+
     fig = go.Figure()
     for method in avg_times.columns:
         fig.add_trace(
@@ -697,7 +718,7 @@ if __name__ == "__main__":
         output_dir
         / f"{args.dataset}_eigendecomp_results_{ckpt_name}_{args.max_samples_per_n}.csv"
     )
-    
+
     if not redo:
         if output_path.exists():
             results_df = pd.read_csv(output_path)
@@ -720,12 +741,12 @@ if __name__ == "__main__":
     ##############################################################
     # Batch size benchmark
     print("\nStarting batch size benchmark...")
-    
+
     output_path_batchsize = (
         output_dir
         / f"{args.dataset}_eigendecomp_batchsize_results_{ckpt_name}_{args.max_samples_per_n}.csv"
     )
-    
+
     if output_path_batchsize.exists() and not args.redobz:
         bz_results_df = pd.read_csv(output_path_batchsize)
         print(f"Loaded existing batch size results from {output_path_batchsize}")

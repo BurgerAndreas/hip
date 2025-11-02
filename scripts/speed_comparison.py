@@ -207,7 +207,9 @@ def speed_comparison(
     # do a couple of forward passes to warm up the model
     # populate caches, jit, load cuda kernels, and what not
     loader = TGDataLoader(
-        dataset, batch_size=1, shuffle=False, 
+        dataset,
+        batch_size=1,
+        shuffle=False,
         # follow_batch=FOLLOW_BATCH
     )
     for i, sample in enumerate(loader):
@@ -233,7 +235,9 @@ def speed_comparison(
 
         subset = Subset(dataset, indices_to_test)
         loader = TGDataLoader(
-            subset, batch_size=1, shuffle=False, 
+            subset,
+            batch_size=1,
+            shuffle=False,
             # follow_batch=FOLLOW_BATCH
         )
 
@@ -242,9 +246,7 @@ def speed_comparison(
             batch = compute_extra_props(batch, pos_require_grad=False)
 
             # Time hip (with hessian)
-            time_hip, mem_hip = time_hessian_computation(
-                model, batch, "hip"
-            )
+            time_hip, mem_hip = time_hessian_computation(model, batch, "hip")
             results.append(
                 {
                     "n_atoms": n_atoms,
@@ -389,7 +391,9 @@ def hip_batchsize_benchmark(
 
     # Light warm-up
     warm_loader = TGDataLoader(
-        dataset, batch_size=1, shuffle=True, 
+        dataset,
+        batch_size=1,
+        shuffle=True,
         # follow_batch=FOLLOW_BATCH
     )
     for i, sample in enumerate(warm_loader):
@@ -429,9 +433,7 @@ def hip_batchsize_benchmark(
             batch = compute_extra_props(batch, pos_require_grad=False)
 
             # Time hip
-            time_hip, mem_hip = time_hessian_computation(
-                model, batch, "hip"
-            )
+            time_hip, mem_hip = time_hessian_computation(model, batch, "hip")
             results.append(
                 {
                     # "n_atoms": n_atoms,
@@ -582,8 +584,7 @@ def plot_hip_batchsize(results_df, output_dir, logy=False):
     # fig.write_html(output_path)
     # print(f"Plot saved to \n{output_path}")
     output_path = (
-        output_dir
-        / f"hip_batchsize_time_per_sample{'_logy' if logy else ''}.png"
+        output_dir / f"hip_batchsize_time_per_sample{'_logy' if logy else ''}.png"
     )
     fig.write_image(output_path, scale=2)
     print(f"Plot saved to \n{output_path}")
@@ -612,7 +613,9 @@ def plot_combined_speed_memory_batchsize(
     std_memory = results_df.groupby(["n_atoms", "method"])["memory"].std().unstack()
 
     # Aggregation for hip vs batch size (per-sample)
-    no_hessian_results_df = bz_results_df[bz_results_df["method"] == "no_hessian"].copy()
+    no_hessian_results_df = bz_results_df[
+        bz_results_df["method"] == "no_hessian"
+    ].copy()
     pred_results_df = bz_results_df[bz_results_df["method"] == "hip"].copy()
     # Compute per-sample time first, then aggregate mean/std
     pred_results_df["time_per_sample"] = pred_results_df["time"] / pred_results_df[
@@ -672,9 +675,7 @@ def plot_combined_speed_memory_batchsize(
     for method in avg_memory.columns:
         color = _color_for_method(method)
         display_name = (
-            "hip (ours)"
-            if str(method).lower() == "hip"
-            else str(method).capitalize()
+            "hip (ours)" if str(method).lower() == "hip" else str(method).capitalize()
         )
         _err_kwargs = {}
         if show_std and (method in std_memory.columns):
@@ -696,7 +697,6 @@ def plot_combined_speed_memory_batchsize(
             row=1,
             col=2,
         )
-
 
     # Col 3: hip vs Batch Size (per-sample)
     # Ensure strictly positive values for log scale
@@ -877,9 +877,7 @@ def plot_combined_speed_memory_batchsize(
     )
     speed_pred_text = (
         # f"<b>{round(final_vals_speed['hip'])} ms</b>"
-        f"{round(final_vals_speed['hip'])} ms"
-        if "hip" in final_vals_speed
-        else ""
+        f"{round(final_vals_speed['hip'])} ms" if "hip" in final_vals_speed else ""
     )
     # Manual label positions (domain coordinates) for subplot 1
     speed_tail_label_x = 0.9
@@ -939,9 +937,7 @@ def plot_combined_speed_memory_batchsize(
     )
     memory_pred_text = (
         # f"<b>{round(final_vals_memory['hip'])} MB</b>"
-        f"{round(final_vals_memory['hip'])} MB"
-        if "hip" in final_vals_memory
-        else ""
+        f"{round(final_vals_memory['hip'])} MB" if "hip" in final_vals_memory else ""
     )
     # Manual label positions (domain coordinates) for subplot 2
     memory_tail_label_x = 0.83
@@ -1139,9 +1135,7 @@ if __name__ == "__main__":
     )
     if output_path_speedbz.exists() and not args.redobz:
         bz_results_df = pd.read_csv(output_path_speedbz)
-        print(
-            f"Loaded existing hip batch-size results from {output_path_speedbz}"
-        )
+        print(f"Loaded existing hip batch-size results from {output_path_speedbz}")
     else:
         bz_results_df = hip_batchsize_benchmark(
             checkpoint_path=args.ckpt_path,
@@ -1154,7 +1148,11 @@ if __name__ == "__main__":
 
     # Combined side-by-side plot
     plot_combined_speed_memory_batchsize(
-        results_df, bz_results_df, output_dir=output_dir, show_std=args.show_std, _name=ckpt_name
+        results_df,
+        bz_results_df,
+        output_dir=output_dir,
+        show_std=args.show_std,
+        _name=ckpt_name,
     )
 
     print("\nDone!")

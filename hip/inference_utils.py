@@ -23,7 +23,5 @@ def get_dataloader(dataset_name, model, batch_size=1, shuffle=False):
     # Prepare dataset and dataloader
     dataset = LmdbDataset(fix_dataset_path(dataset_name))
     dataset = SchemaUniformDataset(dataset)
-    loader = TGDataLoader(
-        dataset, batch_size=batch_size, shuffle=shuffle
-    )
+    loader = TGDataLoader(dataset, batch_size=batch_size, shuffle=shuffle)
     return loader

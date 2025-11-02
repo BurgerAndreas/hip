@@ -17,45 +17,53 @@ def print_model_info(model):
     print("=" * 80)
     print("MODEL STRUCTURE")
     print("=" * 80)
-    
+
     # Print model architecture
     print(f"Model type: {type(model).__name__}")
     print(f"Total parameters: {sum(p.numel() for p in model.parameters()):,}")
-    print(f"Trainable parameters: {sum(p.numel() for p in model.parameters() if p.requires_grad):,}")
+    print(
+        f"Trainable parameters: {sum(p.numel() for p in model.parameters() if p.requires_grad):,}"
+    )
     print()
-    
+
     # Print module hierarchy
     print("MODULE HIERARCHY:")
     print("-" * 40)
     for name, module in model.named_modules():
         if name:  # Skip the root module
-            indent = "  " * (name.count('.') + 1)
+            indent = "  " * (name.count(".") + 1)
             print(f"{indent}{name}: {type(module).__name__}")
-    
+
     print("\n" + "=" * 80)
     print("WEIGHT SHAPES")
     print("=" * 80)
-    
+
     # Print weight shapes
     for name, param in model.named_parameters():
         print(f"{name}: {list(param.shape)} ({param.numel():,} parameters)")
-    
+
     print("\n" + "=" * 80)
     print("MODULE DETAILS")
     print("=" * 80)
-    
+
     # Print detailed module information
     for name, module in model.named_modules():
         if name:  # Skip the root module
-            if name.startswith("blocks.0."): # only print first transformer layer
+            if name.startswith("blocks.0."):  # only print first transformer layer
                 print(f"\n{name} ({type(module).__name__}):")
-                if hasattr(module, 'weight') and module.weight is not None:
+                if hasattr(module, "weight") and module.weight is not None:
                     print(f"  Weight shape: {list(module.weight.shape)}")
-                if hasattr(module, 'bias') and module.bias is not None:
+                if hasattr(module, "bias") and module.bias is not None:
                     print(f"  Bias shape: {list(module.bias.shape)}")
-                
+
                 # Print other attributes that might be interesting
-                interesting_attrs = ['in_features', 'out_features', 'num_heads', 'hidden_size', 'embed_dim']
+                interesting_attrs = [
+                    "in_features",
+                    "out_features",
+                    "num_heads",
+                    "hidden_size",
+                    "embed_dim",
+                ]
                 for attr in interesting_attrs:
                     if hasattr(module, attr):
                         print(f"  {attr}: {getattr(module, attr)}")
@@ -64,17 +72,17 @@ def print_model_info(model):
 def setup_model(cfg: DictConfig):
     """Initialize the model with the given configuration."""
     print("Initializing model...")
-    
+
     # Get configs
     model_config = cfg.model
     optimizer_config = dict(cfg.optimizer)
     training_config = dict(cfg.training)
-    
+
     # Initialize the potential module
     pm = eval(cfg.potential_module_class)(
         model_config, optimizer_config, training_config
     )
-    
+
     # Load checkpoint if specified
     if cfg.ckpt_model_path in [None, "None", "null"]:
         print(f"Not loading model checkpoint from {cfg.ckpt_model_path}")
@@ -97,7 +105,7 @@ def setup_model(cfg: DictConfig):
         print("Checkpoint loaded successfully")
     else:
         print(f"Not loading model checkpoint from {cfg.ckpt_model_path}")
-    
+
     print(f"{cfg.potential_module_class} initialized")
     return pm
 
@@ -106,10 +114,10 @@ def setup_model(cfg: DictConfig):
 def main(cfg: DictConfig) -> None:
     """Main function to initialize and inspect the model."""
     torch.set_float32_matmul_precision("high")
-    
+
     # Initialize the model
     pm = setup_model(cfg)
-    
+
     # Ensure output directory exists and dump all prints to a txt file
     out_dir = "outputs"
     os.makedirs(out_dir, exist_ok=True)
@@ -117,7 +125,7 @@ def main(cfg: DictConfig) -> None:
     with open(out_path, "w") as f, redirect_stdout(f):
         print(pm.potential)
         print_model_info(pm.potential)
-    
+
 
 if __name__ == "__main__":
     """Try:

@@ -83,10 +83,18 @@ def add_weight_decay(model, weight_decay=1e-5, skip_list=()):
         {"params": decay, "weight_decay": weight_decay},
     ]
 
-def get_datasplit(dataset, dataset_name: str, split: str, splitsize: str | int, splitseed: int, equal_samples_per_size: bool = False):
+
+def get_datasplit(
+    dataset,
+    dataset_name: str,
+    split: str,
+    splitsize: str | int,
+    splitseed: int,
+    equal_samples_per_size: bool = False,
+):
     """
     Split dataset based on specified strategy.
-    
+
     Args:
         dataset: The dataset to split (can be SchemaUniformDataset or LmdbDataset)
         dataset_name: Name of the dataset (e.g., "ts1x_hess_train_big")
@@ -94,24 +102,24 @@ def get_datasplit(dataset, dataset_name: str, split: str, splitsize: str | int, 
         splitsize: Size of split - integer for count, "unseen" for unseen formulas, or max atoms for size split
         splitseed: Random seed for reproducibility
         equal_samples_per_size: If True and split is "size", get equal number of samples for each atom count
-    
+
     Returns:
         Subset of the dataset based on split strategy
     """
     from torch.utils.data import Subset
-    
+
     if split is None or split == "none":
         return dataset
-    
+
     # Get total dataset size
     dataset_size = len(dataset)
     all_indices = list(range(dataset_size))
-    
+
     if split == "random":
         # Random split - select random subset of samples
         rng = np.random.RandomState(splitseed)
         rng.shuffle(all_indices)
-        
+
         if splitsize < 1.0:
             # If splitsize is a fraction (e.g., 0.5 for 50%)
             n_samples = int(float(splitsize) * dataset_size)
@@ -119,169 +127,215 @@ def get_datasplit(dataset, dataset_name: str, split: str, splitsize: str | int, 
         else:
             splitsize = int(splitsize)
             selected_indices = all_indices[:splitsize]
-        
-        print(f"Random split: selected {len(selected_indices)} samples from {dataset_size}")
+
+        print(
+            f"Random split: selected {len(selected_indices)} samples from {dataset_size}"
+        )
         return Subset(dataset, selected_indices)
-    
+
     elif split == "formula":
         # Formula-based split
         # Load metadata file with formula information
         metadata_file = f"metadata/dataset_metadata_{dataset_name}.parquet"
-        
+
         if not os.path.exists(metadata_file):
             raise FileNotFoundError(f"Metadata file {metadata_file} not found.")
-        
+
         df_metadata = pd.read_parquet(metadata_file)
-        
+
         if splitsize == "unseen":
             # Use unseen formula split - load precomputed unique training formulas
             unseen_file = f"metadata/unique_training_indices.parquet"
-            
+
             if not os.path.exists(unseen_file):
-                raise FileNotFoundError(f"Warning: Unseen formula file {unseen_file} not found. Returning full dataset.")
-            
+                raise FileNotFoundError(
+                    f"Warning: Unseen formula file {unseen_file} not found. Returning full dataset."
+                )
+
             df_unseen = pd.read_parquet(unseen_file)
-            selected_indices = df_unseen['index'].tolist()
-            
-            print(f"Unseen formula split: selected {len(selected_indices)} samples with formulas not in validation set")
-        
+            selected_indices = df_unseen["index"].tolist()
+
+            print(
+                f"Unseen formula split: selected {len(selected_indices)} samples with formulas not in validation set"
+            )
+
         else:
             # Random formula subset split
             # Select a random subset of formulas, then get all samples with those formulas
-            unique_formulas = df_metadata['formula'].unique()
+            unique_formulas = df_metadata["formula"].unique()
             n_unique_formulas = len(unique_formulas)
-            
+
             rng = np.random.RandomState(splitseed)
-            
+
             if isinstance(splitsize, int):
                 # splitsize is number of formulas to select
                 n_formulas_to_select = min(splitsize, n_unique_formulas)
             else:
                 # splitsize is fraction of formulas
                 n_formulas_to_select = int(float(splitsize) * n_unique_formulas)
-            
-            selected_formulas = rng.choice(unique_formulas, size=n_formulas_to_select, replace=False)
-            selected_indices = df_metadata[df_metadata['formula'].isin(selected_formulas)]['index'].tolist()
-            
-            print(f"Formula subset split: selected {n_formulas_to_select} formulas ({len(selected_indices)} samples) from {n_unique_formulas} unique formulas")
-        
+
+            selected_formulas = rng.choice(
+                unique_formulas, size=n_formulas_to_select, replace=False
+            )
+            selected_indices = df_metadata[
+                df_metadata["formula"].isin(selected_formulas)
+            ]["index"].tolist()
+
+            print(
+                f"Formula subset split: selected {n_formulas_to_select} formulas ({len(selected_indices)} samples) from {n_unique_formulas} unique formulas"
+            )
+
         return Subset(dataset, selected_indices)
-    
+
     elif split == "size":
         # Size-based split - filter by maximum number of atoms
         # Load metadata file with atom count information
         metadata_file = f"metadata/dataset_metadata_{dataset_name}.parquet"
-        
+
         if not os.path.exists(metadata_file):
             raise FileNotFoundError(f"Metadata file {metadata_file} not found.")
-        
+
         df_metadata = pd.read_parquet(metadata_file)
-        
+
         # Filter by maximum number of atoms
         max_atoms = int(splitsize)
-        size_filtered = df_metadata[df_metadata['natoms'] <= max_atoms]
-        
+        size_filtered = df_metadata[df_metadata["natoms"] <= max_atoms]
+
         if equal_samples_per_size:
             # Equal sampling: get equal number of samples for each atom count
             rng = np.random.RandomState(splitseed)
             selected_indices = []
-            
+
             # Get samples for each atom count from 8 to max_atoms
             for atom_count in range(8, max_atoms + 1):
-                atom_samples = size_filtered[size_filtered['natoms'] == atom_count]
+                atom_samples = size_filtered[size_filtered["natoms"] == atom_count]
                 if len(atom_samples) > 0:
                     # Calculate how many samples to take per atom count
                     # Use the minimum available across all atom counts to ensure equal distribution
                     if atom_count == 8:
                         # First pass: find the minimum count across all atom counts
-                        min_count = min([len(size_filtered[size_filtered['natoms'] == ac]) for ac in range(8, max_atoms + 1)])
+                        min_count = min(
+                            [
+                                len(size_filtered[size_filtered["natoms"] == ac])
+                                for ac in range(8, max_atoms + 1)
+                            ]
+                        )
                         samples_per_size = min_count
-                        print(f"Equal sampling: {samples_per_size} samples per atom count")
-                    
+                        print(
+                            f"Equal sampling: {samples_per_size} samples per atom count"
+                        )
+
                     # Sample the calculated number of samples for this atom count
                     if len(atom_samples) >= samples_per_size:
-                        atom_indices = rng.choice(atom_samples['index'].tolist(), size=samples_per_size, replace=False).tolist()
+                        atom_indices = rng.choice(
+                            atom_samples["index"].tolist(),
+                            size=samples_per_size,
+                            replace=False,
+                        ).tolist()
                     else:
                         # If we don't have enough samples, take all available
-                        atom_indices = atom_samples['index'].tolist()
-                        print(f"Warning: Only {len(atom_indices)} samples available for {atom_count} atoms (requested {samples_per_size})")
-                    
+                        atom_indices = atom_samples["index"].tolist()
+                        print(
+                            f"Warning: Only {len(atom_indices)} samples available for {atom_count} atoms (requested {samples_per_size})"
+                        )
+
                     selected_indices.extend(atom_indices)
                     print(f"  - {atom_count} atoms: {len(atom_indices)} samples")
-            
-            print(f"Equal size split (max {max_atoms} atoms): selected {len(selected_indices)} samples from {len(df_metadata)} total")
+
+            print(
+                f"Equal size split (max {max_atoms} atoms): selected {len(selected_indices)} samples from {len(df_metadata)} total"
+            )
             print(f"  - Equal distribution across atom counts 8-{max_atoms}")
-            
+
         else:
             # Original behavior: random sampling with baseline cap
-            selected_indices = size_filtered['index'].tolist()
-            
+            selected_indices = size_filtered["index"].tolist()
+
             # Get the baseline count (samples with <= 8 atoms) for consistent dataset size
-            baseline_count = len(df_metadata[df_metadata['natoms'] <= 8])
-            
+            baseline_count = len(df_metadata[df_metadata["natoms"] <= 8])
+
             # If we have more samples than the baseline, randomly sample to match baseline size
             if len(selected_indices) > baseline_count:
                 rng = np.random.RandomState(splitseed)
-                selected_indices = rng.choice(selected_indices, size=baseline_count, replace=False).tolist()
-            
-            print(f"Size split (max {max_atoms} atoms): selected {len(selected_indices)} samples from {len(df_metadata)} total")
-            print(f"  - Samples with <= 8 atoms: {len(df_metadata[df_metadata['natoms'] <= 8])}")
-            print(f"  - Samples with <= {max_atoms} atoms: {len(df_metadata[df_metadata['natoms'] <= max_atoms])}")
-            print(f"  - Final selected: {len(selected_indices)} (capped at baseline size)")
-        
+                selected_indices = rng.choice(
+                    selected_indices, size=baseline_count, replace=False
+                ).tolist()
+
+            print(
+                f"Size split (max {max_atoms} atoms): selected {len(selected_indices)} samples from {len(df_metadata)} total"
+            )
+            print(
+                f"  - Samples with <= 8 atoms: {len(df_metadata[df_metadata['natoms'] <= 8])}"
+            )
+            print(
+                f"  - Samples with <= {max_atoms} atoms: {len(df_metadata[df_metadata['natoms'] <= max_atoms])}"
+            )
+            print(
+                f"  - Final selected: {len(selected_indices)} (capped at baseline size)"
+            )
+
         return Subset(dataset, selected_indices)
-    
+
     else:
         print(f"Warning: Unknown split type '{split}'. Returning full dataset.")
         raise ValueError(f"Unknown split type '{split}'")
 
 
-def get_eval_sets_by_atom_count(dataset, dataset_name: str, max_atoms: int, splitseed: int, max_samples_per_size: int = 32):
+def get_eval_sets_by_atom_count(
+    dataset,
+    dataset_name: str,
+    max_atoms: int,
+    splitseed: int,
+    max_samples_per_size: int = 32,
+):
     """
     Create eval sets grouped by atom count for size-based evaluation.
-    
+
     Args:
         dataset: The dataset to split (can be SchemaUniformDataset or LmdbDataset)
         dataset_name: Name of the dataset (e.g., "ts1x_hess_train_big")
         max_atoms: Maximum number of atoms to consider (creates sets for 8 to max_atoms)
         splitseed: Random seed for reproducibility
         max_samples_per_size: Maximum samples per atom count to avoid memory issues
-    
+
     Returns:
         Dictionary with keys as atom counts (8 to max_atoms) and values as Subset datasets
     """
     from torch.utils.data import Subset
-    
+
     # Load metadata file with atom count information
     metadata_file = f"metadata/dataset_metadata_{dataset_name}.parquet"
-    
+
     if not os.path.exists(metadata_file):
         raise FileNotFoundError(f"Metadata file {metadata_file} not found.")
-    
+
     df_metadata = pd.read_parquet(metadata_file)
-    
+
     eval_sets = {}
     rng = np.random.RandomState(splitseed)
-    
+
     # Create eval sets for each atom count from 8 to max_atoms
     for atom_count in range(8, max_atoms + 1):
         # Filter samples with exactly this atom count
-        atom_filtered = df_metadata[df_metadata['natoms'] == atom_count]
-        
+        atom_filtered = df_metadata[df_metadata["natoms"] == atom_count]
+
         if len(atom_filtered) > 0:
-            selected_indices = atom_filtered['index'].tolist()
-            
+            selected_indices = atom_filtered["index"].tolist()
+
             # If we have too many samples, randomly sample a subset for efficiency
             if len(selected_indices) > max_samples_per_size:
-                selected_indices = rng.choice(selected_indices, size=max_samples_per_size, replace=False).tolist()
-            
+                selected_indices = rng.choice(
+                    selected_indices, size=max_samples_per_size, replace=False
+                ).tolist()
+
             eval_sets[atom_count] = Subset(dataset, selected_indices)
             print(f"Eval set for {atom_count} atoms: {len(selected_indices)} samples")
         else:
             print(f"No samples found with exactly {atom_count} atoms")
             eval_sets[atom_count] = Subset(dataset, [])  # Empty subset
-    
+
     return eval_sets
+
 
 class SchemaUniformDataset:
     """Wrapper that ensures all datasets have the same attributes.
@@ -452,10 +506,13 @@ class PotentialModule(LightningModule):
         self.save_hyperparameters(logger=False)
 
         self.use_hessian_graph_transform = True
-        if "otfgraph_in_model" in self.training_config and self.training_config["otfgraph_in_model"]:
+        if (
+            "otfgraph_in_model" in self.training_config
+            and self.training_config["otfgraph_in_model"]
+        ):
             # no need because we will compute graph during forward pass
             self.use_hessian_graph_transform = False
-        
+
         self.do_hessian = self.training_config.get("hessian_loss_weight", 1.0) > 0.0
 
     def set_wandb_run_id(self, run_id: str) -> None:
@@ -626,7 +683,7 @@ class PotentialModule(LightningModule):
                         **self.training_config,
                     )
                     wrapped_dataset = SchemaUniformDataset(base_dataset)
-                    
+
                     # Apply split if configured
                     dataset_name = Path(path).stem
                     split_dataset = get_datasplit(
@@ -635,11 +692,15 @@ class PotentialModule(LightningModule):
                         split=self.training_config.get("split", None),
                         splitsize=self.training_config.get("splitsize", None),
                         splitseed=self.training_config.get("splitseed", 0),
-                        equal_samples_per_size=self.training_config.get("equal_samples_per_size", False),
+                        equal_samples_per_size=self.training_config.get(
+                            "equal_samples_per_size", False
+                        ),
                     )
-                    
+
                     datasets.append(split_dataset)
-                    print(f"Loaded dataset from {path} with {len(split_dataset)} samples (after split)")
+                    print(
+                        f"Loaded dataset from {path} with {len(split_dataset)} samples (after split)"
+                    )
 
                 # Combine all datasets into a single concatenated dataset
                 if ("data_weight" in self.training_config) and (
@@ -672,7 +733,7 @@ class PotentialModule(LightningModule):
                         **self.training_config,
                     )
                 )
-                
+
                 # Apply split if configured
                 dataset_name = Path(self.training_config["trn_path"]).stem
                 self.train_dataset = get_datasplit(
@@ -681,7 +742,9 @@ class PotentialModule(LightningModule):
                     split=self.training_config.get("split", None),
                     splitsize=self.training_config.get("splitsize", None),
                     splitseed=self.training_config.get("splitseed", 0),
-                    equal_samples_per_size=self.training_config.get("equal_samples_per_size", False),
+                    equal_samples_per_size=self.training_config.get(
+                        "equal_samples_per_size", False
+                    ),
                 )
             # val dataset
             transform = None
@@ -699,11 +762,12 @@ class PotentialModule(LightningModule):
                     **self.training_config,
                 )
             )
-            
+
             # Create eval sets by atom count if split is size and create_eval_sets is enabled
             self.eval_datasets = None
-            if (self.training_config.get("split") == "size" and 
-                self.training_config.get("create_eval_sets", True)):
+            if self.training_config.get("split") == "size" and self.training_config.get(
+                "create_eval_sets", True
+            ):
                 print("Creating eval sets by atom count...")
                 # Use the same transform as validation dataset
                 val_base_dataset = SchemaUniformDataset(
@@ -713,20 +777,24 @@ class PotentialModule(LightningModule):
                         **self.training_config,
                     )
                 )
-                
+
                 # Get max atoms from config
                 max_atoms = int(self.training_config.get("max_eval_atoms", 20))
                 dataset_name = Path(self.training_config["val_path"]).stem
-                
+
                 self.eval_datasets = get_eval_sets_by_atom_count(
                     dataset=val_base_dataset,
                     dataset_name=dataset_name,
                     max_atoms=max_atoms,
                     splitseed=self.training_config.get("splitseed", 0),
-                    max_samples_per_size=self.training_config.get("max_samples_per_eval_size", 32),
+                    max_samples_per_size=self.training_config.get(
+                        "max_samples_per_eval_size", 32
+                    ),
                 )
-                print(f"Created eval datasets for atom counts: {list(self.eval_datasets.keys())}")
-            
+                print(
+                    f"Created eval datasets for atom counts: {list(self.eval_datasets.keys())}"
+                )
+
             print("Number of training samples: ", len(self.train_dataset))
             print("Number of validation samples: ", len(self.val_dataset))
             num_train_batches = len(self.train_dataset) // self.training_config["bz"]
@@ -817,40 +885,42 @@ class PotentialModule(LightningModule):
                         follow_batch=self.training_config["follow_batch"],
                         drop_last=False,  # Don't drop last for eval sets
                     )
-        
+
         eval_metrics = {}
-        
+
         for atom_count, dataloader in eval_dataloaders.items():
             if len(dataloader.dataset) == 0:
                 continue  # Skip empty datasets
-                
+
             atom_metrics = []
-            
+
             # Evaluate on all batches for this atom count
             for batch_idx, batch in enumerate(dataloader):
                 with torch.no_grad():
                     loss, info, efh = self.compute_loss(batch, return_efh=True)
-                    
+
                     # Compute eval metrics
-                    eval_info = self.compute_eval_loss(batch, prefix=f"eval_{atom_count}", efh=efh)
-                    
+                    eval_info = self.compute_eval_loss(
+                        batch, prefix=f"eval_{atom_count}", efh=efh
+                    )
+
                     # Combine loss info and eval info
                     batch_metrics = {}
                     for k, v in info.items():
                         batch_metrics[f"eval_{atom_count}-{k}"] = v
                     for k, v in eval_info.items():
                         batch_metrics[f"eval_{atom_count}-{k}"] = v
-                    
+
                     # Add total loss
                     batch_metrics[f"eval_{atom_count}-totloss"] = loss.item()
-                    
+
                     atom_metrics.append(batch_metrics)
-            
+
             # Average metrics across batches for this atom count
             if atom_metrics:
                 avg_metrics = average_over_batch_metrics(atom_metrics)
                 eval_metrics.update(avg_metrics)
-                
+
         return eval_metrics
 
     @torch.enable_grad()
@@ -865,7 +935,6 @@ class PotentialModule(LightningModule):
             hessian=self.do_hessian,
             otf_graph=self.training_config["otfgraph_in_model"],
         )
-
 
         if self.do_hessian:
             hessian_pred = outputs["hessian"].to(self.device)
@@ -962,14 +1031,13 @@ class PotentialModule(LightningModule):
         for k, v in eval_info.items():
             info_prefix[f"{prefix}-{k}"] = v
 
-        info_prefix[f"{prefix}-totloss"] = (
-            + info["Loss E"]
-            + info["Loss F"]
-        )
+        info_prefix[f"{prefix}-totloss"] = +info["Loss E"] + info["Loss F"]
         if "Loss Hessian" in info:
             info_prefix[f"{prefix}-totloss"] += info["Loss Hessian"]
             info_prefix[f"{prefix}-totloss"] += eval_info["MAE Eigvals Eckart"]
-            info_prefix[f"{prefix}-totloss"] += (-1 * eval_info["Abs Cosine Sim v1 Eckart"] / 20)
+            info_prefix[f"{prefix}-totloss"] += (
+                -1 * eval_info["Abs Cosine Sim v1 Eckart"] / 20
+            )
 
         # del info
         # if torch.cuda.is_available():
@@ -989,12 +1057,15 @@ class PotentialModule(LightningModule):
         val_epoch_metrics = average_over_batch_metrics(self.val_step_outputs)
 
         # Evaluate eval sets if they exist and are enabled
-        if (self.eval_datasets is not None and 
-            self.training_config.get("eval_sets_in_validation", True)):
+        if self.eval_datasets is not None and self.training_config.get(
+            "eval_sets_in_validation", True
+        ):
             print("Evaluating eval sets by atom count...")
             eval_metrics = self.evaluate_eval_sets()
             val_epoch_metrics.update(eval_metrics)
-            print(f"Eval set metrics logged for atom counts: {list(set([k.split('-')[0].replace('eval_', '') for k in eval_metrics.keys() if k.startswith('eval_')]))}")
+            print(
+                f"Eval set metrics logged for atom counts: {list(set([k.split('-')[0].replace('eval_', '') for k in eval_metrics.keys() if k.startswith('eval_')]))}"
+            )
 
         val_epoch_metrics.update({"epoch": self.current_epoch})
         for k, v in val_epoch_metrics.items():

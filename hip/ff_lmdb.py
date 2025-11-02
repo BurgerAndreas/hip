@@ -46,6 +46,7 @@ def remove_mean_batch(x, indices):
     x = x - mean[indices]
     return x
 
+
 class LmdbDataset(Dataset):
     r"""Dataset class to load from LMDB files containing relaxation
     trajectories or single point computations.
@@ -134,9 +135,11 @@ class LmdbDataset(Dataset):
         # where the fifth is unused, likely a padding or None class
         # corresponds to H, C, N, O, None
         indices = data_object.one_hot.long().argmax(dim=1)
-        data_object.z = GLOBAL_ATOM_NUMBERS.to(data_object.pos.device)[indices.to(data_object.pos.device)]
+        data_object.z = GLOBAL_ATOM_NUMBERS.to(data_object.pos.device)[
+            indices.to(data_object.pos.device)
+        ]
         # data_object.pos = remove_mean_batch(data_object.pos, data_object.batch)
-        
+
         if self.transform is not None:
             data_object = self.transform(data_object)
 

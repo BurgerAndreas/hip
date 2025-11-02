@@ -43,6 +43,8 @@ def write_output(results: dict[int, int], output_path: Path | None) -> None:
 uv run scripts/count_formulas_per_natoms.py /ssd/Code/hip/metadata/dataset_metadata_ts1x-val.csv --out /ssd/Code/hip/metadata/dataset_metadata_ts1x-val_formulas_per_natoms.csv
 uv run scripts/count_formulas_per_natoms.py /ssd/Code/hip/metadata/dataset_metadata_ts1x_hess_train_big.csv --out /ssd/Code/hip/metadata/dataset_metadata_ts1x_hess_train_big_formulas_per_natoms.csv
 """
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(
         description=(
@@ -69,5 +71,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-
-

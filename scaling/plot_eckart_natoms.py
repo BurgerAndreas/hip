@@ -7,6 +7,7 @@ import seaborn as sns
 from tqdm import tqdm
 import time
 
+
 def flatten_dict(d, parent_key="", sep="."):
     """Recursively flatten a nested dictionary."""
     items = []
@@ -49,8 +50,11 @@ else:
             or run.config["training"]["split"] != "size"
         ):
             continue
-        
-        if run.config["pltrainer"]["limit_val_batches"] == 200 and run.config["training"]["hessian_loss_weight"] > 0:
+
+        if (
+            run.config["pltrainer"]["limit_val_batches"] == 200
+            and run.config["training"]["hessian_loss_weight"] > 0
+        ):
             continue
 
         # .summary contains the output keys/values for metrics like accuracy.
@@ -58,7 +62,7 @@ else:
         summary_dict = run.summary._json_dict
         # Keep only columns containing "val"
         summary_dict = {k: v for k, v in summary_dict.items() if "val" in k}
-        
+
         # .config contains the hyperparameters.
         #  We remove special values that start with _.
         config_dict = {k: v for k, v in run.config.items() if not k.startswith("_")}
@@ -66,41 +70,43 @@ else:
         config_dict = flatten_dict(config_dict)
         # Keep only columns containing "weight" or "split"
         config_dict = {
-            k: v for k, v in config_dict.items() if "weight" in k or "split" in k or "equal_samples_per_size" in k
+            k: v
+            for k, v in config_dict.items()
+            if "weight" in k or "split" in k or "equal_samples_per_size" in k
         }
 
         if "eval_8-Loss E" not in summary_dict:
             # old runs
             continue
-        
+
         print("Found:", run.name)
 
         # try to find minimal value in history
         # Returns: An iterable collection over history records (dict)
-        keys = ['val-Loss E', 'val-Loss F']
+        keys = ["val-Loss E", "val-Loss F"]
         if config_dict["training.hessian_loss_weight"] > 0:
             if "val-MAE Val1 Eckart" not in summary_dict:
                 continue
             keys += [
-                f'val-Abs Cosine Sim v1 Eckart',
-                f'val-MAE Eigvals Eckart',
-                f'val-MAE Val1 Eckart',
-                f'val-MAE Hessian'
+                f"val-Abs Cosine Sim v1 Eckart",
+                f"val-MAE Eigvals Eckart",
+                f"val-MAE Val1 Eckart",
+                f"val-MAE Hessian",
             ]
             for natoms in range(8, 21):
                 # eval_18-Abs Cosine Sim v1 Eckart
                 keys += [
-                    f'eval_{natoms}-Abs Cosine Sim v1 Eckart',
-                    f'eval_{natoms}-MAE Eigvals Eckart',
-                    f'eval_{natoms}-MAE Val1 Eckart',
-                    f'eval_{natoms}-MAE Hessian',
+                    f"eval_{natoms}-Abs Cosine Sim v1 Eckart",
+                    f"eval_{natoms}-MAE Eigvals Eckart",
+                    f"eval_{natoms}-MAE Val1 Eckart",
+                    f"eval_{natoms}-MAE Hessian",
                 ]
         # print(f" keys for {run.name}", keys)
         summary_keys = list(summary_dict.keys())
         for k in keys:
             if k not in summary_keys:
                 print("", k)
-                
+
         # history = run.scan_history(keys=keys)
         # tqdm.write("Got history")
         # # Compute minima per metric column
@@ -113,15 +119,17 @@ else:
         #     else:
         #         print(f"-> No non-NaN values found for {c}")
         # print(" min_history", min_history)
-        
-        history = run.history(samples=50_000, keys=keys, x_axis='_step', pandas=True, stream='default')
+
+        history = run.history(
+            samples=50_000, keys=keys, x_axis="_step", pandas=True, stream="default"
+        )
         # get the minimum value for each key using pandas
         min_history = {k: float(history[k].min()) for k in keys}
         # for cosine sim use the max value
         for k in keys:
             if "Cosine Sim" in k:
                 min_history[k] = float(history[k].max())
-        
+
         # over write last value with min value
         summary_dict.update(min_history)
 
@@ -145,13 +153,17 @@ print("DataFrame columns:")
 print(runs_df.columns.tolist())
 
 loss_labels_axis = {
-    "Loss E": "Energy MAE [eV]", "Loss F": "Force MAE [eV/A]", "MAE Hessian": "Hessian MAE [eV/A^2]",
+    "Loss E": "Energy MAE [eV]",
+    "Loss F": "Force MAE [eV/A]",
+    "MAE Hessian": "Hessian MAE [eV/A^2]",
     "Abs Cosine Sim v1 Eckart": "Hessian Cosine Sim v1 (Eckart)",
     "MAE Eigvals Eckart": "Hessian Eigenvalue MAE (Eckart)",
     "MAE Val1 Eckart": "Hessian Val1 MAE (Eckart)",
 }
 loss_labels = {
-    "Loss E": "Energy MAE", "Loss F": "Force MAE", "MAE Hessian": "Hessian MAE",
+    "Loss E": "Energy MAE",
+    "Loss F": "Force MAE",
+    "MAE Hessian": "Hessian MAE",
     "Abs Cosine Sim v1 Eckart": "Hessian Cosine Sim v1 (Eckart)",
     "MAE Eigvals Eckart": "Hessian Eigenvalue MAE (Eckart)",
     "MAE Val1 Eckart": "Hessian Val1 MAE (Eckart)",
@@ -159,21 +171,26 @@ loss_labels = {
 
 # Filter to keep only columns containing loss types
 for loss_type in [
-    "Loss E", "Loss F", 
+    "Loss E",
+    "Loss F",
     "MAE Eigvals Eckart",
     # "MAE Hessian",
     # "Abs Cosine Sim v1 Eckart",
     # "MAE Val1 Eckart",
 ]:
-    print("-"*100)
+    print("-" * 100)
     print(f"Plotting {loss_type}")
     df = runs_df.copy()
     matching_cols = [col for col in df.columns if loss_type in col]
 
     # Keep only loss-related columns plus name and hessian weight
-    columns_to_keep = ["name", "training.splitsize", "training.hessian_loss_weight", "training.equal_samples_per_size"] + matching_cols
+    columns_to_keep = [
+        "name",
+        "training.splitsize",
+        "training.hessian_loss_weight",
+        "training.equal_samples_per_size",
+    ] + matching_cols
     df = df[columns_to_keep]
-    
 
     # print(f"\nDataFrame shape: {df.shape}")
     # print("\nFirst few rows:")
@@ -235,7 +252,9 @@ for loss_type in [
                         "Value": float(val),
                         "Split Size": splitsize,
                         "Method": row["name"],
-                        "Equal Samples Per Size": bool(row["training.equal_samples_per_size"]),
+                        "Equal Samples Per Size": bool(
+                            row["training.equal_samples_per_size"]
+                        ),
                     }
                 )
 
@@ -273,33 +292,33 @@ for loss_type in [
     plt.cla()
     plt.clf()
     plt.close()
-    
-    
+
     ##########################################################
     # E+F+H vs no Hessian
     # Plot only specific split sizes
     # training.hessian_loss_weight > 0 as solid lines
     # training.hessian_loss_weight < 0.1 as dashed lines
     # color by "Split Size", label by "Method"
-    
+
     if "hessian" not in loss_type.lower() and "eckart" not in loss_type.lower():
-    
         plt.figure(figsize=(12, 8))
-        
+
         # Filter for specific split sizes
         target_split_sizes = [10, 14, 18]
         df_filtered = df[df["training.splitsize"].isin(target_split_sizes)]
-        
+
         if df_filtered.empty:
             print(f"No data found for target split sizes {target_split_sizes}")
             continue
-        
+
         # Use all available x values
-        eval_cols = [col for col in df_filtered.columns if "eval_" in col and loss_type in col]
+        eval_cols = [
+            col for col in df_filtered.columns if "eval_" in col and loss_type in col
+        ]
         if not eval_cols:
             print(f"No eval columns found for {loss_type}")
             continue
-        
+
         # Extract x values from column names
         x_values = []
         for col in eval_cols:
@@ -308,21 +327,23 @@ for loss_type in [
                 x_values.append(x_val)
             except (IndexError, ValueError):
                 continue
-        
+
         if not x_values:
             print(f"Could not extract x values for {loss_type}")
             continue
-        
+
         # Sort columns by x value
         sorted_cols = sorted(zip(x_values, eval_cols))
         x_vals = [x for x, _ in sorted_cols]
         sorted_eval_cols = [col for _, col in sorted_cols]
-        
+
         # Prepare data for both hessian > 0 and hessian == 0
         plot_data = []
-        
+
         # Data for hessian > 0 (solid lines)
-        df_hessian_positive = df_filtered[df_filtered["training.hessian_loss_weight"] > 0]
+        df_hessian_positive = df_filtered[
+            df_filtered["training.hessian_loss_weight"] > 0
+        ]
         for idx, row in df_hessian_positive.iterrows():
             splitsize = row.get("training.splitsize", f"Split {idx}")
             for i, col in enumerate(sorted_eval_cols):
@@ -335,10 +356,12 @@ for loss_type in [
                             "Split Size": splitsize,
                             "Method": row["name"],
                             "Line Style": "Solid",
-                            "Equal Samples Per Size": bool(row["training.equal_samples_per_size"]),
+                            "Equal Samples Per Size": bool(
+                                row["training.equal_samples_per_size"]
+                            ),
                         }
                     )
-        
+
         # Data for hessian < 0.1 (dashed lines)
         df_hessian_zero = df_filtered[df_filtered["training.hessian_loss_weight"] < 0.1]
         for idx, row in df_hessian_zero.iterrows():
@@ -353,13 +376,15 @@ for loss_type in [
                             "Split Size": splitsize,
                             "Method": row["name"],
                             "Line Style": "Dashed",
-                            "Equal Samples Per Size": bool(row["training.equal_samples_per_size"]),
+                            "Equal Samples Per Size": bool(
+                                row["training.equal_samples_per_size"]
+                            ),
                         }
                     )
-        
+
         if plot_data:
             plot_df = pd.DataFrame(plot_data)
-            
+
             # Plot solid lines first (hessian > 0) - color by Split Size only
             solid_df = plot_df[plot_df["Line Style"] == "Solid"]
             solid_df = solid_df[~solid_df["Equal Samples Per Size"]]
@@ -373,9 +398,9 @@ for loss_type in [
                     linewidth=2,
                     markersize=4,
                     palette="viridis",
-                    linestyle="-"
+                    linestyle="-",
                 )
-            
+
             # Plot dashed lines (hessian == 0) with correct colors but single legend entry
             dashed_df = plot_df[plot_df["Line Style"] == "Dashed"]
             dashed_df = dashed_df[~dashed_df["Equal Samples Per Size"]]
@@ -385,7 +410,7 @@ for loss_type in [
                 unique_split_sizes = dashed_df["Split Size"].unique()
                 colors = plt.cm.viridis(np.linspace(0, 1, len(unique_split_sizes)))
                 split_size_to_color = dict(zip(unique_split_sizes, colors))
-                
+
                 # Plot each dashed line with its correct color
                 for split_size in unique_split_sizes:
                     split_data = dashed_df[dashed_df["Split Size"] == split_size]
@@ -397,12 +422,12 @@ for loss_type in [
                         linewidth=2,
                         marker="o",
                         markersize=4,
-                        label=None  # No label for individual lines
+                        label=None,  # No label for individual lines
                     )
-                
+
                 # Add a single dummy "E+F" entry to the legend
                 plt.plot([], [], linestyle="--", color="gray", linewidth=2, label="E+F")
-        
+
         plt.xlabel("Number of atoms during validation")
         plt.ylabel(f"{loss_labels_axis[loss_type]}")
         plt.xlim(x_vals[0], x_vals[-1])
@@ -410,7 +435,7 @@ for loss_type in [
         plt.legend(title="Training Atoms", frameon=True, edgecolor="none")
         plt.grid(True, alpha=0.3)
         plt.tight_layout(pad=0.0)
-        
+
         # Save the plot
         filename = os.path.join(
             base_dir, f"natoms_eval_{loss_type.replace(' ', '_').lower()}_ef_plot.png"
@@ -435,7 +460,9 @@ for loss_type in [
     df_eq_true = df[df["training.equal_samples_per_size"]]
     # Filter to only include rows where training.hessian_loss_weight > 0
     df_eq_true = df_eq_true[df_eq_true["training.hessian_loss_weight"] > 0]
-    target_split_sizes = sorted(df_eq_true["training.splitsize"].dropna().unique().tolist())
+    target_split_sizes = sorted(
+        df_eq_true["training.splitsize"].dropna().unique().tolist()
+    )
 
     if len(target_split_sizes) == 0:
         print("No data found where training.equal_samples_per_size == True")
@@ -446,8 +473,10 @@ for loss_type in [
     # Filter to only include rows where training.hessian_loss_weight > 0
     df_filtered = df_filtered[df_filtered["training.hessian_loss_weight"] > 0]
 
-    # Use all available x values 
-    eval_cols = [col for col in df_filtered.columns if "eval_" in col and loss_type in col]
+    # Use all available x values
+    eval_cols = [
+        col for col in df_filtered.columns if "eval_" in col and loss_type in col
+    ]
     if not eval_cols:
         print(f"No eval columns found for {loss_type}")
         continue
@@ -474,7 +503,9 @@ for loss_type in [
     plot_data = []
 
     # Dotted: equal_samples_per_size == True
-    for idx, row in df_filtered[df_filtered["training.equal_samples_per_size"]].iterrows():
+    for idx, row in df_filtered[
+        df_filtered["training.equal_samples_per_size"]
+    ].iterrows():
         splitsize = row.get("training.splitsize", f"Split {idx}")
         for i, col in enumerate(sorted_eval_cols):
             val = row[col]
@@ -490,7 +521,9 @@ for loss_type in [
                 )
 
     # Solid: equal_samples_per_size == False (but only those split sizes that exist for True)
-    for idx, row in df_filtered[~df_filtered["training.equal_samples_per_size"]].iterrows():
+    for idx, row in df_filtered[
+        ~df_filtered["training.equal_samples_per_size"]
+    ].iterrows():
         splitsize = row.get("training.splitsize", f"Split {idx}")
         for i, col in enumerate(sorted_eval_cols):
             val = row[col]
@@ -548,19 +581,24 @@ for loss_type in [
                     )
 
             # Add a single dummy legend entry to indicate dotted = equal samples
-            plt.plot([], [], linestyle=":", color="gray", linewidth=2, label="Stratified")
+            plt.plot(
+                [], [], linestyle=":", color="gray", linewidth=2, label="Stratified"
+            )
 
     plt.xlabel("Number of atoms during validation")
     plt.ylabel(f"{loss_labels_axis[loss_type]}")
     plt.xlim(x_vals[0], x_vals[-1])
-    plt.title(f"{loss_labels[loss_type]} per size (random vs equal-samples-per-size splits)")
+    plt.title(
+        f"{loss_labels[loss_type]} per size (random vs equal-samples-per-size splits)"
+    )
     plt.legend(title="Training Atoms", frameon=True, edgecolor="none")
     plt.grid(True, alpha=0.3)
     plt.tight_layout(pad=0.0)
 
     # Save the plot
     filename = os.path.join(
-        base_dir, f"natoms_eval_{loss_type.replace(' ', '_').lower()}_equalsamplesizes_plot.png"
+        base_dir,
+        f"natoms_eval_{loss_type.replace(' ', '_').lower()}_equalsamplesizes_plot.png",
     )
     plt.savefig(filename, dpi=300, bbox_inches="tight")
     print(f"Saved plot: {filename}")
@@ -572,7 +610,11 @@ for loss_type in [
     # Plot "val-{loss_type}" vs "training.splitsize"
     plt.figure(figsize=(12, 8))
     sns.lineplot(
-        data=df_ef, x="training.splitsize", y=f"val-{loss_type}", marker="o", linewidth=0
+        data=df_ef,
+        x="training.splitsize",
+        y=f"val-{loss_type}",
+        marker="o",
+        linewidth=0,
     )
     plt.xlabel("Max number of atoms during training")
     plt.ylabel(f"{loss_labels_axis[loss_type]}")
@@ -590,4 +632,3 @@ for loss_type in [
     plt.cla()
     plt.clf()
     plt.close()
-    

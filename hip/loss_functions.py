@@ -6,6 +6,7 @@ from hip.frequency_analysis import eckart_projection_notmw_torch
 from hip.masses import MASS_DICT
 from nets.prediction_utils import Z_TO_ATOM_SYMBOL
 
+
 def tensor_info(t):
     if not isinstance(t, torch.Tensor):
         return f"{type(t)}"

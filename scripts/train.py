@@ -185,14 +185,17 @@ def setup_training(cfg: DictConfig):
             checkpoint = torch.load(
                 cfg.ckpt_trainer_path, map_location="cpu", weights_only=False
             )
-            # Look for wandb_run_id 
+            # Look for wandb_run_id
             for key, value in checkpoint["hyper_parameters"].items():
                 if key == "wandb_run_id" and value is not None:
                     wandb_run_id = value
                     print(f"Found WandB run ID in checkpoint: {wandb_run_id}")
                     break
             if wandb_run_id is None:
-                print("No WandB run ID found in checkpoint:", checkpoint["hyper_parameters"])
+                print(
+                    "No WandB run ID found in checkpoint:",
+                    checkpoint["hyper_parameters"],
+                )
         except Exception as e:
             print(f"Could not extract WandB run ID from checkpoint: {e}")
 
@@ -234,8 +237,8 @@ def setup_training(cfg: DictConfig):
         limit_train_batches=cfg.pltrainer.limit_train_batches,
         limit_val_batches=cfg.pltrainer.limit_val_batches,
         log_every_n_steps=cfg.pltrainer.log_every_n_steps,
-        check_val_every_n_epoch=cfg.pltrainer.get('check_val_every_n_epoch', None),
-        val_check_interval=cfg.pltrainer.get('val_check_interval', None),
+        check_val_every_n_epoch=cfg.pltrainer.get("check_val_every_n_epoch", None),
+        val_check_interval=cfg.pltrainer.get("val_check_interval", None),
     )
     print("Trainer initialized")
 

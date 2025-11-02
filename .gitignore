@@ -32,6 +32,7 @@ _docs/*
 plots/
 plots_*/
 metadata/*.csv
+checkpoint
 
 tmp_quacc*/
 vib
