@@ -360,10 +360,13 @@ class PotentialModule(LightningModule):
         # else:
         #     parameters = model.parameters()
         if optim_type.lower() == "adamw":
-            optimizer_config = {
-                k: v for k, v in self.optimizer_config.items() if "muon" not in k
-            }
-            optimizer = torch.optim.AdamW(trainable_params, **optimizer_config)
+            optimizer = torch.optim.AdamW(
+                trainable_params,
+                lr=self.optimizer_config.get("lr", 0.0005),
+                betas=self.optimizer_config.get("betas", (0.9, 0.999)),
+                eps=self.optimizer_config.get("eps", 1e-12),
+                weight_decay=self.optimizer_config.get("weight_decay", 0.01),
+            )
         elif optim_type.lower() == "muon":
             assert not self.training_config.get("train_hessian_only", False)
             # Muon is an optimizer for the hidden weights of a neural network.
@@ -445,6 +448,41 @@ class PotentialModule(LightningModule):
                 param_groups,
                 using_damping=self.optimizer_config["damping_kls"],
             )
+        elif optim_type.lower() == "manifold_muon":
+            # optimize the same weights as with muon
+            assert not self.training_config.get("train_hessian_only", False)
+            from hip.manifold_muon import ManifoldMuonWithAuxAdam
+
+            mm_params_2d, adam_params = self.potential.get_muon_param_groups(
+                only_2d_muon=True, **self.optimizer_config
+            )
+            # Restrict manifold-muon to 2D matrix weights; route others to AdamW
+            param_groups = [
+                dict(
+                    params=mm_params_2d,
+                    use_manifold_muon=True,
+                    lr=self.optimizer_config.get("lr_muon", 0.02),
+                    steps=self.optimizer_config.get("mm_steps", 10),
+                    alpha=self.optimizer_config.get("mm_alpha", 0.01),
+                    tol=self.optimizer_config.get("mm_tol", 1e-6),
+                ),
+                dict(
+                    params=adam_params,
+                    use_manifold_muon=False,
+                    lr=self.optimizer_config.get("lr", 0.0005),
+                    betas=self.optimizer_config.get("betas", (0.9, 0.999)),
+                    eps=self.optimizer_config.get("eps", 1e-12),
+                    weight_decay=self.optimizer_config.get("weight_decay", 0.01),
+                ),
+            ]
+            self.num_muon_params = np.sum([_p.numel() for _p in mm_params_2d])
+            self.num_adam_params = np.sum([_p.numel() for _p in adam_params])
+            print(f"Number of manifold-muon parameters: {self.num_muon_params}")
+            print(f"Number of adam parameters: {self.num_adam_params}")
+            print(
+                f"Percentage of manifold-muon parameters: {self.num_muon_params / (self.num_muon_params + self.num_adam_params) * 100:.2f}%"
+            )
+            optimizer = ManifoldMuonWithAuxAdam(param_groups)
         else:
             raise ValueError(f"Unknown optimizer: {optim_type}")
 

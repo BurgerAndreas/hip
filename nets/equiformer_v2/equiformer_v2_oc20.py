@@ -1,4 +1,5 @@
 import logging
+
 # import time
 import math
 import torch
@@ -1096,6 +1097,8 @@ class EquiformerV2_OC20(BaseModel):
 
     def get_muon_param_groups(
         self,
+        # Optional flag: select only exactly-2D parameters for the muon group
+        only_2d_muon=False,
         **kwargs,
     ):
         """
@@ -1114,7 +1117,10 @@ class EquiformerV2_OC20(BaseModel):
 
         for name, param in self.named_parameters():
             if name.startswith("blocks.") and param.ndim >= 2:
-                muon_params.append(param)
+                if only_2d_muon and param.ndim != 2:
+                    adam_params.append(param)
+                else:
+                    muon_params.append(param)
             else:
                 adam_params.append(param)
 

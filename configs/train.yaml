@@ -39,6 +39,7 @@ optimizer:
   # muon
   weight_decay_muon: 0.01 # 0.01, 1e-5
   lr_muon: 0.02 # 0.02, 3e-4
+  only_2d_muon: false
   # kls
   lr_kls: 1e-3
   weight_decay_kls: 1e-4
