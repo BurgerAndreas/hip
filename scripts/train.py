@@ -24,9 +24,8 @@ except ImportError:
     from lightning.loggers import WandbLogger
     import lightning as pl
 
-from hip.training_module import (
-    PotentialModule,
-)  # needed for eval(cfg.potential_module_class)
+# needed for eval(cfg.potential_module_class)
+from hip.training_module import PotentialModule
 from hip.path_config import CHECKPOINT_PATH_EQUIFORMER_HORM
 from hip.logging_utils import name_from_config, find_latest_checkpoint
 

@@ -12,17 +12,17 @@ from hip.training_module import SchemaUniformDataset
 from hip.path_config import fix_dataset_path
 
 
-def _compose_cfgs():
+def _compose_cfgs(r1, r2):
     cfg_dir = "/ssd/Code/hip/configs"
     # Compose both configs within a single Hydra context for cleanliness
     with hydra.initialize_config_dir(config_dir=cfg_dir, version_base=None):
         cfg_small = hydra.compose(
             config_name="train",
-            overrides=["experiment=debug", "model.max_radius=3.0", "run_name=pytest"],
+            overrides=["experiment=debug", f"model.max_radius={r1}", "run_name=pytest"],
         )
         cfg_large = hydra.compose(
             config_name="train",
-            overrides=["experiment=debug", "model.max_radius=100.0", "run_name=pytest"],
+            overrides=["experiment=debug", f"model.max_radius={r2}", "run_name=pytest"],
         )
     # Avoid Hydra interpolation fields that require a Hydra runtime
     for _cfg in (cfg_small, cfg_large):
@@ -44,15 +44,17 @@ def _get_first_sample_batch(cfg):
     not torch.cuda.is_available(), reason="CUDA required for model init"
 )
 def test_hessian_graph_shrinks_with_smaller_radius():
-    cfg_small, cfg_large = _compose_cfgs()
+    r1 = 3.0
+    r2 = 12.0
+    cfg_small, cfg_large = _compose_cfgs(r1, r2)
 
     # Build modules/models as in training
     _, pm_small = setup_training(cfg_small)
     _, pm_large = setup_training(cfg_large)
 
     # Sanity: cutoff follows max_radius
-    assert pm_small.potential.cutoff == pytest.approx(3.0)
-    assert pm_large.potential.cutoff == pytest.approx(100.0)
+    assert pm_small.potential.cutoff == pytest.approx(r1)
+    assert pm_large.potential.cutoff == pytest.approx(r2)
 
     # Use the exact same first sample for both runs
     batch_small = _get_first_sample_batch(cfg_small)
@@ -71,5 +73,10 @@ def test_hessian_graph_shrinks_with_smaller_radius():
     nedges_small = int(batch_small.nedges_hessian[0].item())
     nedges_large = int(batch_large.nedges_hessian[0].item())
 
-    assert nedges_small <= nedges_large
-    assert (nedges_large - nedges_small) > 0
+    print(f"Small graph has {nedges_small} edges, large graph has {nedges_large} edges")
+    assert nedges_small < nedges_large, (
+        f"Small graph has {nedges_small} edges, large graph has {nedges_large} edges"
+    )
+    assert (nedges_large - nedges_small) > 0, (
+        f"Small graph has {nedges_small} edges, large graph has {nedges_large} edges"
+    )
