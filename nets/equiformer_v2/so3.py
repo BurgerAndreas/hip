@@ -432,7 +432,7 @@ class SO3_Rotation(torch.nn.Module):
 
     def set_wigner(self, rot_mat3x3):
         self.device, self.dtype = rot_mat3x3.device, rot_mat3x3.dtype
-        length = len(rot_mat3x3)
+        # length = len(rot_mat3x3)
         # [E, L, L]
         # lmax=4 -> l=25
         self.wigner = self.RotationToWignerDMatrix(rot_mat3x3, 0, self.lmax)

@@ -179,7 +179,13 @@ class EquiformerASECalculator(ASECalculator):
         """Return energy using ASE's property caching."""
         return self.get_property("energy", atoms)
 
-    def get_potential_energy(self, atoms) -> float:
+    def get_potential_energy(self, atoms, force_consistent=False) -> float:
+        """Return potential energy using ASE's property caching.
+
+        Args:
+            atoms: ASE Atoms object
+            force_consistent: Ignored, kept for ASE compatibility
+        """
         return self.get_property("energy", atoms)
 
     def get_forces(self, atoms) -> np.ndarray:
