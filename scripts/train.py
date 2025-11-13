@@ -26,7 +26,10 @@ except ImportError:
 
 # needed for eval(cfg.potential_module_class)
 from hip.training_module import PotentialModule
-from hip.path_config import CHECKPOINT_PATH_EQUIFORMER_HORM
+from hip.path_config import (
+    CHECKPOINT_PATH_EQUIFORMER_HORM,
+    CHECKPOINT_PATH_EQUIFORMER_ORIG,
+)
 from hip.logging_utils import name_from_config, find_latest_checkpoint
 
 
@@ -85,6 +88,17 @@ def setup_training(cfg: DictConfig):
     elif cfg.ckpt_model_path == "horm":
         ckpt = torch.load(
             CHECKPOINT_PATH_EQUIFORMER_HORM, map_location=device, weights_only=True
+        )
+        print(f"Checkpoint keys: {ckpt.keys()}")
+        print(f"Checkpoint state_dict keys: {len(ckpt['state_dict'].keys())}")
+        # keys all start with `potential.`
+        state_dict = {
+            k.replace("potential.", ""): v for k, v in ckpt["state_dict"].items()
+        }
+        pm.potential.load_state_dict(state_dict, strict=False)
+    elif cfg.ckpt_model_path == "orig":
+        ckpt = torch.load(
+            CHECKPOINT_PATH_EQUIFORMER_ORIG, map_location="cuda", weights_only=True
         )
         print(f"Checkpoint keys: {ckpt.keys()}")
         print(f"Checkpoint state_dict keys: {len(ckpt['state_dict'].keys())}")

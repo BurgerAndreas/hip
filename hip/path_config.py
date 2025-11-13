@@ -31,19 +31,15 @@ DATASET_FILES_HORM = [
 
 DATA_PATH_HORM_SAMPLE = os.path.join(ROOT_DIR, "data/sample_100.lmdb")
 
-# RGD1 dataset
-DATASET_DIR_RGD1 = os.path.join(ROOT_DIR, "../Datastore/rgd1")
-
-# Transition1x dataset
-DATASET_DIR_T1X = os.path.join(ROOT_DIR, "../Datastore/Transition1x/data")
-
-# Noised T1x dataset
-DATASET_DIR_T1X_NOISED = os.path.join(ROOT_DIR, "../Datastore/t1x/")
-
+# https://figshare.com/articles/dataset/_b_Hessian_QM9_Dataset_b_/26363959?file=49271011
+DATASET_DIR_QM9HESSIAN = os.path.join(
+    ROOT_DIR, "../Datastore/qm9hessian/hessian_qm9_DatasetDict"
+)
 
 # Checkpoint directory
 CHECKPOINT_DIR = os.path.join(ROOT_DIR, "ckpt")
 CHECKPOINT_PATH_EQUIFORMER_HORM = os.path.join(CHECKPOINT_DIR, "eqv2.ckpt")
+CHECKPOINT_PATH_EQUIFORMER_ORIG = os.path.join(CHECKPOINT_DIR, "eqv2_orig.ckpt")
 
 #########################################################################################################
 
