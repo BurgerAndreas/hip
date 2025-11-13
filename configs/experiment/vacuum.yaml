@@ -1,0 +1,9 @@
+# @package _global_
+
+# QM9 Hessian
+
+training:
+  trn_path: "vacuum"
+  val_path: "vacuum"
+
+experiment_name: "vacuum"

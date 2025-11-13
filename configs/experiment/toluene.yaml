@@ -1,0 +1,9 @@
+# @package _global_
+
+# QM9 Hessian
+
+training:
+  trn_path: "toluene"
+  val_path: "toluene"
+
+experiment_name: "toluene"

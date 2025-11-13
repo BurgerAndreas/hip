@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 from omegaconf import ListConfig
 
 
@@ -31,11 +32,11 @@ DATASET_FILES_HORM = [
 
 DATA_PATH_HORM_SAMPLE = os.path.join(ROOT_DIR, "data/sample_100.lmdb")
 
-DATASET_DIR_RGD1 = os.path.join(ROOT_DIR, "../Datastore/rgd1")
+DATASET_DIR_RGD1: str = str(Path(ROOT_DIR, "../Datastore/rgd1").resolve())
 
 # https://figshare.com/articles/dataset/_b_Hessian_QM9_Dataset_b_/26363959?file=49271011
-DATASET_DIR_QM9HESSIAN = os.path.join(
-    ROOT_DIR, "../Datastore/qm9hessian/hessian_qm9_DatasetDict"
+DATASET_DIR_QM9HESSIAN: str = str(
+    Path(ROOT_DIR, "../Datastore/qm9hessian/hessian_qm9_DatasetDict").resolve()
 )
 
 # Checkpoint directory
@@ -67,7 +68,7 @@ def remove_dir_recursively(path):
 
 
 def fix_dataset_path(_path):
-    def _fix_dataset_path_single(_path):
+    def _fix_dataset_path_single(_path, strict=False):
         horm_path = os.path.join(DATASET_DIR_HORM_EIGEN, _path)
         rgd1_path = os.path.join(DATASET_DIR_RGD1, _path)
         if os.path.exists(_path):
@@ -77,10 +78,18 @@ def fix_dataset_path(_path):
             return horm_path
         elif os.path.exists(rgd1_path):
             return rgd1_path
+        elif _path in ["vacuum", "thf", "toluene", "water"]:
+            return DATASET_DIR_QM9HESSIAN + ":" + _path
         else:
-            raise FileNotFoundError(
-                f"Dataset path {_path} not found in \n{horm_path} \n{rgd1_path}"
-            )
+            # sometimes we get a path from a ckpt from a different machine
+            # so we try again once to automatically fix the path
+            if strict:
+                raise FileNotFoundError(
+                    f"Dataset path {_path} not found in \n{horm_path} \n{rgd1_path}"
+                )
+            else:
+                _path_end = _path.split("/")[-1]
+                return _fix_dataset_path_single(_path_end, strict=True)
 
     if (
         isinstance(_path, list)

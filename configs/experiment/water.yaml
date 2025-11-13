@@ -1,0 +1,9 @@
+# @package _global_
+
+# QM9 Hessian
+
+training:
+  trn_path: "water"
+  val_path: "water"
+
+experiment_name: "water"

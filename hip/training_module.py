@@ -369,7 +369,7 @@ class PotentialModule(LightningModule):
                 # The split can be specified in the path with a colon separator
                 self.train_dataset = QM9HessianDataset(
                     dataset_path=self.training_config["trn_path"],
-                    split=None,  # Split will be extracted from path if present
+                    split="train",  # Split will be extracted from path if present
                     transform=None,
                     **self.training_config,
                 )
@@ -395,7 +395,7 @@ class PotentialModule(LightningModule):
                 # The split can be specified in the path with a colon separator
                 self.val_dataset = QM9HessianDataset(
                     dataset_path=self.training_config["val_path"],
-                    split=None,  # Split will be extracted from path if present
+                    split="test",  # Split will be extracted from path if present
                     transform=None,
                     **self.training_config,
                 )

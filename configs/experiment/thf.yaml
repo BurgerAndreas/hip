@@ -1,0 +1,9 @@
+# @package _global_
+
+# QM9 Hessian
+
+training:
+  trn_path: "thf"
+  val_path: "thf"
+
+experiment_name: "thf"

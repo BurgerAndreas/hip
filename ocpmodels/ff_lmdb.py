@@ -124,16 +124,6 @@ class LmdbDataset(Dataset):
             self.env.close()
 
 
-def remove_hessian_transform(data):
-    # Remove 'hessian' if present as attribute
-    if hasattr(data, "hessian"):
-        delattr(data, "hessian")
-    # Remove 'hessian' if present as key (for dict-like)
-    # if isinstance(data, dict) and 'hessian' in data:
-    #     del data['hessian']
-    return data
-
-
 if __name__ == "__main__":
     import os
 
@@ -148,22 +138,16 @@ if __name__ == "__main__":
     lmdb_path = os.path.join(dataset_dir, dataset_files[0])
     lmdb_dataset = LmdbDataset(lmdb_path)
     print("length of lmdb_dataset:", len(lmdb_dataset))
-    print("first element of lmdb_dataset:", lmdb_dataset[0])
-    print("first element of lmdb_dataset.pos:", lmdb_dataset[0].pos)
-    print("first element of lmdb_dataset.ae:", lmdb_dataset[0].ae)
     first_elem = lmdb_dataset[0]
     print("")
-    print("hasattr(first_elem, 'hessian'):", hasattr(first_elem, "hessian"))
-    print("'hessian' in first_elem:", "hessian" in first_elem)
-
-    # Test with transform that removes hessian
-    lmdb_dataset_no_hessian = LmdbDataset(lmdb_path, transform=remove_hessian_transform)
-    first_elem = lmdb_dataset_no_hessian[0]
-    print("")
-    print("hasattr(first_elem, 'hessian'):", hasattr(first_elem, "hessian"))
-    print("'hessian' in first_elem:", "hessian" in first_elem)
-
-    for fname in dataset_files:
-        path = os.path.join(dataset_dir, fname)
-        ds = LmdbDataset(path)
-        print(f"Size of {fname}: {len(ds)}")
+    for k, v in first_elem.items():
+        print(k, v.shape)
+    # pos torch.Size([16, 3])
+    # rxn torch.Size([])
+    # energy torch.Size([])
+    # ae torch.Size([])
+    # forces torch.Size([16, 3])
+    # charges torch.Size([16])
+    # one_hot torch.Size([16, 5])
+    # natoms torch.Size([])
+    # hessian torch.Size([2304])
