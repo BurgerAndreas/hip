@@ -24,7 +24,7 @@ class QM9HessianDataset(TorchDataset):
 
     Args:
         dataset_path: Path to the HuggingFace dataset directory or dataset name
-        split: Dataset split name (e.g., 'vacuum_train', 'thf_test')
+        split: Dataset split name (None for all data, "train" for train split, "test" for test split)
         transform: Optional transform to apply to data objects
     """
 

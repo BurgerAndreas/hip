@@ -6,4 +6,9 @@ training:
   trn_path: "water"
   val_path: "water"
 
+pltrainer:
+  limit_train_batches: 1.0 # 37k samples / bz64 ~ 580 batches
+  limit_val_batches: 1.0 # 4k samples / bz64 ~ 62 batches 
+  check_val_every_n_epoch: 6
+
 experiment_name: "water"

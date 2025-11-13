@@ -31,10 +31,11 @@ def onehot_convert(atomic_numbers, device):
     Convert a list of atomic numbers into an one-hot matrix
     """
     encoder = {
-        1: [1, 0, 0, 0, 0],
-        6: [0, 1, 0, 0, 0],
-        7: [0, 0, 1, 0, 0],
-        8: [0, 0, 0, 1, 0],
+        1: [1, 0, 0, 0, 0], # H
+        6: [0, 1, 0, 0, 0], # C
+        7: [0, 0, 1, 0, 0], # N
+        8: [0, 0, 0, 1, 0], # O
+        9: [0, 0, 0, 0, 1], # F
     }
     onehot = [encoder[i] for i in atomic_numbers]
     return torch.tensor(onehot, dtype=torch.int64, device=device)
