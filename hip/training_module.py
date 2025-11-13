@@ -371,7 +371,7 @@ class PotentialModule(LightningModule):
                     dataset_path=self.training_config["trn_path"],
                     split="train",  # Split will be extracted from path if present
                     transform=None,
-                    **self.training_config,
+                    keep_fluorine=self.training_config["keep_fluorine"],
                 )
             else:
                 transform = None
@@ -397,7 +397,7 @@ class PotentialModule(LightningModule):
                     dataset_path=self.training_config["val_path"],
                     split="test",  # Split will be extracted from path if present
                     transform=None,
-                    **self.training_config,
+                    keep_fluorine=self.training_config["keep_fluorine"],
                 )
             else:
                 if self.use_hessian_graph_transform:
@@ -410,7 +410,7 @@ class PotentialModule(LightningModule):
                 self.val_dataset = LmdbDataset(
                     Path(self.training_config["val_path"]),
                     transform=transform,
-                    **self.training_config,
+                    keep_fluorine=self.training_config["keep_fluorine"],
                 )
             print("Number of training samples: ", len(self.train_dataset))
             print("Number of validation samples: ", len(self.val_dataset))

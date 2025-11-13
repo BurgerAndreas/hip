@@ -29,7 +29,7 @@ class QM9HessianDataset(TorchDataset):
     """
 
     def __init__(
-        self, dataset_path: str, split: Optional[str] = None, transform=None, **kwargs
+        self, dataset_path: str, split: Optional[str] = None, transform=None, keep_fluorine: bool = True, **kwargs
     ):
         super(QM9HessianDataset, self).__init__()
 
@@ -44,6 +44,16 @@ class QM9HessianDataset(TorchDataset):
         # Load the dataset
         dataset: DatasetDict = load_from_disk(dataset_path)
         dataset: HuggingFaceDataset = dataset[solvent]
+
+        # Filter out samples containing Fluorine (z=9)
+        if keep_fluorine is False:
+            dataset = dataset.filter(
+                lambda x: 9 not in x["atomic_numbers"],
+                num_proc=8, # use 8 processes to filter the dataset
+                # batched=True,
+                # batch_size=1000,
+                # keep_in_memory=True,
+            )
 
         if split is not None:
             split_ds = dataset.train_test_split(test_size=0.1, seed=42)
