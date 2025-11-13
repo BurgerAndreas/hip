@@ -13,9 +13,8 @@ from alphanet.models.alphanet import AlphaNet
 from leftnet.model.leftnet import LEFTNet
 
 from hip.training_module import PotentialModule
-from hip.ff_lmdb import LmdbDataset
+from hip.ff_lmdb import LmdbDataset, Z_TO_ATOM_SYMBOL
 from hip.path_config import fix_dataset_path
-from nets.prediction_utils import Z_TO_ATOM_SYMBOL
 
 from hip.frequency_analysis import analyze_frequencies_np
 

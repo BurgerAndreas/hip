@@ -4,9 +4,8 @@ import os
 import numpy as np
 from torch_geometric.loader import DataLoader as TGDataLoader
 
-from hip.ff_lmdb import LmdbDataset
+from hip.ff_lmdb import LmdbDataset, Z_TO_ATOM_SYMBOL
 from hip.path_config import fix_dataset_path
-from nets.prediction_utils import Z_TO_ATOM_SYMBOL
 
 try:
     from rdkit import Chem

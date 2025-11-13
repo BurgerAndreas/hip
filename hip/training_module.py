@@ -46,7 +46,6 @@ LR_SCHEDULER = {
     "step": StepLR,
     "plateau": ReduceLROnPlateau,
 }
-GLOBAL_ATOM_NUMBERS = torch.tensor([1, 6, 7, 8])
 
 
 # from ocpmodels

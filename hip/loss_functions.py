@@ -4,7 +4,7 @@ from collections.abc import Iterable
 from hip.frequency_analysis import massweigh_and_eckartprojection_torch
 
 # from hip.masses import MASS_DICT
-from nets.prediction_utils import Z_TO_ATOM_SYMBOL
+from hip.ff_lmdb import Z_TO_ATOM_SYMBOL
 
 
 def tensor_info(t):

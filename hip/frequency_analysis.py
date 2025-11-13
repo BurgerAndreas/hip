@@ -5,7 +5,7 @@ import scipy.constants as spc
 import torch
 
 from hip.masses import MASS_DICT
-from nets.prediction_utils import Z_TO_ATOM_SYMBOL
+from hip.ff_lmdb import Z_TO_ATOM_SYMBOL
 
 """
 Adapted from 

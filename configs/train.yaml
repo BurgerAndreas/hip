@@ -44,8 +44,8 @@ training:
   num_workers: 2 # 48
   clip_grad: true
   data_weight: null
-  keep_fluorine: true 
-  
+  keep_fluorine: false 
+
   # horm used: loss = floss * 100 + eloss * 4 + hessian_loss * 4
   hessian_loss_weight: 10.0
   energy_loss_weight: 1.0

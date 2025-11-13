@@ -1,10 +1,3 @@
-"""
-Copyright (c) Facebook, Inc. and its affiliates.
-
-This source code is licensed under the MIT license found in the
-LICENSE file in the root directory of this source tree.
-"""
-
 import bisect
 import pickle
 from pathlib import Path
@@ -14,7 +7,6 @@ import numpy as np
 import torch
 from torch.utils.data import Dataset
 
-# from torch_geometric.data import Batch
 
 GLOBAL_ATOM_NUMBERS = torch.tensor([1, 6, 7, 8, 9])
 GLOBAL_ATOM_SYMBOLS = np.array(["H", "C", "N", "O", "F"])

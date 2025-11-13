@@ -12,7 +12,7 @@ from torch_geometric.data import Data
 
 from datasets import load_from_disk, DatasetDict
 from datasets import Dataset as HuggingFaceDataset
-from hip.ff_lmdb import GLOBAL_ATOM_NUMBERS, onehot_convert
+from hip.ff_lmdb import onehot_convert
 
 
 class QM9HessianDataset(TorchDataset):
@@ -29,7 +29,12 @@ class QM9HessianDataset(TorchDataset):
     """
 
     def __init__(
-        self, dataset_path: str, split: Optional[str] = None, transform=None, keep_fluorine: bool = True, **kwargs
+        self,
+        dataset_path: str,
+        split: Optional[str] = None,
+        transform=None,
+        keep_fluorine: bool = True,
+        **kwargs,
     ):
         super(QM9HessianDataset, self).__init__()
 
@@ -49,7 +54,7 @@ class QM9HessianDataset(TorchDataset):
         if keep_fluorine is False:
             dataset = dataset.filter(
                 lambda x: 9 not in x["atomic_numbers"],
-                num_proc=8, # use 8 processes to filter the dataset
+                num_proc=8,  # use 8 processes to filter the dataset
                 # batched=True,
                 # batch_size=1000,
                 # keep_in_memory=True,
