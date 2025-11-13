@@ -8,7 +8,6 @@ from torch_geometric.data import Batch as TGBatch
 from hip.equiformer_torch_calculator import EquiformerTorchCalculator
 from hip.ff_lmdb import LmdbDataset
 from hip.path_config import fix_dataset_path
-from hip.training_module import SchemaUniformDataset
 
 
 def _compose_cfg():
@@ -26,7 +25,7 @@ def _compose_cfg():
 
 def _first_val_batch(cfg):
     val_path = fix_dataset_path(cfg.training.val_path)
-    dataset = SchemaUniformDataset(LmdbDataset(Path(val_path)))
+    dataset = LmdbDataset(Path(val_path))
     data0 = dataset[0]
     batch = TGBatch.from_data_list([data0])
     return batch

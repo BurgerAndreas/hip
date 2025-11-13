@@ -8,7 +8,6 @@ from torch_geometric.data import Batch as TGBatch
 
 from scripts.train import setup_training
 from hip.ff_lmdb import LmdbDataset
-from hip.training_module import SchemaUniformDataset
 from hip.path_config import fix_dataset_path
 
 
@@ -34,7 +33,7 @@ def _compose_cfgs(r1, r2):
 
 def _get_first_sample_batch(cfg):
     trn_path = fix_dataset_path(cfg.training.trn_path)
-    dataset = SchemaUniformDataset(LmdbDataset(Path(trn_path)))
+    dataset = LmdbDataset(Path(trn_path))
     data0 = dataset[0]
     batch = TGBatch.from_data_list([data0])
     return batch

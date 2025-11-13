@@ -41,12 +41,8 @@ from hip.utils import average_over_batch_metrics
 import yaml
 from hip.path_config import find_project_root, fix_dataset_path
 from hip.loss_functions import (
-    # compute_loss_blockdiagonal_hessian,
     get_hessian_eigen_loss_fn,
     get_eigval_eigvec_metrics,
-    # BatchHessianLoss,
-    # L1HessianLoss,
-    # L2HessianLoss,
 )
 
 LR_SCHEDULER = {
@@ -80,45 +76,6 @@ def add_weight_decay(model, weight_decay=1e-5, skip_list=()):
         {"params": no_decay, "weight_decay": 0.0},
         {"params": decay, "weight_decay": weight_decay},
     ]
-
-
-class SchemaUniformDataset:
-    """Wrapper that ensures all datasets have the same attributes.
-
-    RGD1 lacks:
-    ae: <class 'torch.Tensor'> torch.Size([]) torch.float32 -> same as energy
-    rxn: <class 'torch.Tensor'> torch.Size([]) torch.int64 -> add -1 to all
-
-    All other (T1x based) datasets lack:
-    freq: <class 'torch.Tensor'> torch.Size([N*3])
-    eig_values: <class 'torch.Tensor'> torch.Size([N*3])
-    force_constant: <class 'torch.Tensor'> torch.Size([N*3])
-    -> remove these attributes from the dataset
-    """
-
-    def __init__(self, dataset):
-        self.dataset = dataset
-
-    def __len__(self):
-        return len(self.dataset)
-
-    def __getitem__(self, idx):
-        data = self.dataset[idx]
-
-        # Add missing attributes
-        if not hasattr(data, "ae"):
-            data.ae = torch.tensor(data.energy.item(), dtype=data.energy.dtype)
-        if not hasattr(data, "rxn"):
-            data.rxn = torch.tensor(-1, dtype=torch.int64)
-
-        # Remove extra attributes
-        if hasattr(data, "freq"):
-            delattr(data, "freq")
-        if hasattr(data, "eig_values"):
-            delattr(data, "eig_values")
-        if hasattr(data, "force_constant"):
-            delattr(data, "force_constant")
-        return data
 
 
 class AlphaConfig:
@@ -414,63 +371,19 @@ class PotentialModule(LightningModule):
         if stage == "fit":
             # train dataset
             print(f"Loading training dataset from {self.training_config['trn_path']}")
-            if (
-                isinstance(self.training_config["trn_path"], list)
-                or isinstance(self.training_config["trn_path"], tuple)
-                or isinstance(self.training_config["trn_path"], ListConfig)
-            ):
-                datasets = []
-                for path in self.training_config["trn_path"]:
-                    transform = None
-                    if self.use_hessian_graph_transform:
-                        transform = HessianGraphTransform(
-                            cutoff=self.potential.cutoff,
-                            cutoff_hessian=self.potential.cutoff_hessian,
-                            max_neighbors=self.potential.max_neighbors,
-                            use_pbc=self.potential.use_pbc,
-                        )
-                    base_dataset = LmdbDataset(
-                        Path(path),
-                        transform=transform,
-                        **self.training_config,
-                    )
-                    wrapped_dataset = SchemaUniformDataset(base_dataset)
-                    datasets.append(wrapped_dataset)
-                    print(
-                        f"Loaded dataset from {path} with {len(wrapped_dataset)} samples (after split)"
-                    )
-
-                # Combine all datasets into a single concatenated dataset
-                if ("data_weight" in self.training_config) and (
-                    self.training_config["data_weight"] is not None
-                ):
-                    _datasets = []
-                    for dataset, weight in zip(
-                        datasets, self.training_config["data_weight"]
-                    ):
-                        for _ in range(weight):
-                            _datasets.append(dataset)
-                    datasets = _datasets
-                self.train_dataset = ConcatDataset(datasets)
-                print(
-                    f"Combined {len(datasets)} datasets into one with {len(self.train_dataset)} total samples"
+            transform = None
+            if self.use_hessian_graph_transform:
+                transform = HessianGraphTransform(
+                    cutoff=self.potential.cutoff,
+                    cutoff_hessian=self.potential.cutoff_hessian,
+                    max_neighbors=self.potential.max_neighbors,
+                    use_pbc=self.potential.use_pbc,
                 )
-            else:
-                transform = None
-                if self.use_hessian_graph_transform:
-                    transform = HessianGraphTransform(
-                        cutoff=self.potential.cutoff,
-                        cutoff_hessian=self.potential.cutoff_hessian,
-                        max_neighbors=self.potential.max_neighbors,
-                        use_pbc=self.potential.use_pbc,
-                    )
-                self.train_dataset = SchemaUniformDataset(
-                    LmdbDataset(
-                        Path(self.training_config["trn_path"]),
-                        transform=transform,
-                        **self.training_config,
-                    )
-                )
+            self.train_dataset = LmdbDataset(
+                Path(self.training_config["trn_path"]),
+                transform=transform,
+                **self.training_config,
+            )
             # val dataset
             transform = None
             if self.use_hessian_graph_transform:
@@ -480,12 +393,10 @@ class PotentialModule(LightningModule):
                     max_neighbors=self.potential.max_neighbors,
                     use_pbc=self.potential.use_pbc,
                 )
-            self.val_dataset = SchemaUniformDataset(
-                LmdbDataset(
-                    Path(self.training_config["val_path"]),
-                    transform=transform,
-                    **self.training_config,
-                )
+            self.val_dataset = LmdbDataset(
+                Path(self.training_config["val_path"]),
+                transform=transform,
+                **self.training_config,
             )
             print("Number of training samples: ", len(self.train_dataset))
             print("Number of validation samples: ", len(self.val_dataset))
@@ -559,7 +470,7 @@ class PotentialModule(LightningModule):
         )
 
     @torch.enable_grad()
-    def compute_loss(self, batch, return_efh=False):
+    def compute_loss(self, batch):
         loss = 0.0
         info = {}
         # batch.pos.requires_grad_()
@@ -603,13 +514,10 @@ class PotentialModule(LightningModule):
             loss += floss * self.training_config["force_loss_weight"]
             info["Loss F"] = floss.detach().item()
 
-        if return_efh:
-            return loss, info, (hat_ae, hat_forces, outputs)
-        # loss = floss * 100 + eloss * 4 + hessian_loss * 4
-        return loss, info
+        return loss, info, (hat_ae, hat_forces, outputs)
 
     def training_step(self, batch, batch_idx):
-        loss, info = self.compute_loss(batch)
+        loss, info, _ = self.compute_loss(batch)
 
         # self.log("train-totloss", loss, rank_zero_only=True)
         loss_dict = {"train-totloss": loss}
@@ -618,7 +526,6 @@ class PotentialModule(LightningModule):
             # self.log(f"train-{k}", v, rank_zero_only=True)
             loss_dict[f"train-{k}"] = v
         self.log_dict(loss_dict, rank_zero_only=True)
-        del info
         return loss
 
     def compute_eval_loss(self, batch, prefix, efh):
@@ -659,7 +566,7 @@ class PotentialModule(LightningModule):
     def _shared_eval(self, batch, batch_idx, prefix, *args):
         # compute training loss on eval set
         with torch.no_grad():
-            loss, info, efh = self.compute_loss(batch, return_efh=True)
+            loss, info, efh = self.compute_loss(batch)
         detached_loss = loss.detach()
         info["trainloss"] = detached_loss.item()
 
@@ -704,16 +611,13 @@ class PotentialModule(LightningModule):
         #     )
 
         val_epoch_metrics.update({"epoch": self.current_epoch})
-        for k, v in val_epoch_metrics.items():
-            self.log(k, v, sync_dist=True, prog_bar=False)
-        if hasattr(self, "val_start_time"):
-            self.log(
-                "val-val_duration_seconds",
-                time.time() - self.val_start_time,
-                prog_bar=False,
-                rank_zero_only=True,
-                sync_dist=True,
-            )
+        self.log_dict(val_epoch_metrics, prog_bar=False)
+        self.log(
+            "val-val_duration_seconds",
+            time.time() - self.val_start_time,
+            prog_bar=False,
+            rank_zero_only=True,
+        )
 
         self.val_step_outputs.clear()
 
@@ -723,16 +627,12 @@ class PotentialModule(LightningModule):
 
     def on_train_epoch_end(self):
         """Calculate and log the time taken for the training epoch."""
-        if hasattr(self, "epoch_start_time"):
-            epoch_duration = time.time() - self.epoch_start_time
-            self.log(
-                "train-epoch_duration_seconds",
-                epoch_duration,
-                rank_zero_only=True,
-                sync_dist=True,
-            )
-            # if self.trainer.is_global_zero:
-            #     print(f"Epoch {self.current_epoch} completed in {epoch_duration:.2f} seconds")
+        epoch_duration = time.time() - self.epoch_start_time
+        self.log(
+            "train-epoch_duration_seconds",
+            epoch_duration,
+            rank_zero_only=True,
+        )
 
     def on_validation_epoch_start(self):
         """Reset the validation dataloader at the start of every epoch."""
@@ -747,7 +647,6 @@ class PotentialModule(LightningModule):
             int(self.current_epoch),
             rank_zero_only=True,
             prog_bar=False,
-            sync_dist=True,
         )
         super().on_train_start()
 

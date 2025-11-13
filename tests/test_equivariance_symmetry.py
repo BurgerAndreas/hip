@@ -5,7 +5,7 @@ from pathlib import Path
 
 from torch_geometric.data import Batch as TGBatch
 
-from hip.training_module import PotentialModule, SchemaUniformDataset
+from hip.training_module import PotentialModule
 from hip.ff_lmdb import LmdbDataset
 from hip.path_config import fix_dataset_path
 
@@ -32,7 +32,7 @@ def _get_pm_and_batch(cfg):
 
     # First training sample batch
     trn_path = fix_dataset_path(cfg.training.trn_path)
-    dataset = SchemaUniformDataset(LmdbDataset(Path(trn_path)))
+    dataset = LmdbDataset(Path(trn_path))
     data0 = dataset[0]
     batch = TGBatch.from_data_list([data0]).to(device)
     return pm, batch
