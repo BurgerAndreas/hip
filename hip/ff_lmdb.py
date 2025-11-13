@@ -16,13 +16,14 @@ from torch.utils.data import Dataset
 
 # from torch_geometric.data import Batch
 
-GLOBAL_ATOM_NUMBERS = torch.tensor([1, 6, 7, 8])
-GLOBAL_ATOM_SYMBOLS = np.array(["H", "C", "N", "O"])
+GLOBAL_ATOM_NUMBERS = torch.tensor([1, 6, 7, 8, 9])
+GLOBAL_ATOM_SYMBOLS = np.array(["H", "C", "N", "O", "F"])
 Z_TO_ATOM_SYMBOL = {
     1: "H",
     6: "C",
     7: "N",
     8: "O",
+    9: "F",
 }
 
 
@@ -31,11 +32,11 @@ def onehot_convert(atomic_numbers, device):
     Convert a list of atomic numbers into an one-hot matrix
     """
     encoder = {
-        1: [1, 0, 0, 0, 0], # H
-        6: [0, 1, 0, 0, 0], # C
-        7: [0, 0, 1, 0, 0], # N
-        8: [0, 0, 0, 1, 0], # O
-        9: [0, 0, 0, 0, 1], # F
+        1: [1, 0, 0, 0, 0],  # H
+        6: [0, 1, 0, 0, 0],  # C
+        7: [0, 0, 1, 0, 0],  # N
+        8: [0, 0, 0, 1, 0],  # O
+        9: [0, 0, 0, 0, 1],  # F
     }
     onehot = [encoder[i] for i in atomic_numbers]
     return torch.tensor(onehot, dtype=torch.int64, device=device)
