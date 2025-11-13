@@ -56,7 +56,8 @@ dependencies = [
     "networkx==3.4.2",
     "lmdb==1.5.1",
     "h5py>=3.10.0",
-    "muon-optimizer @ git+https://github.com/KellerJordan/Muon"
+    "muon-optimizer @ git+https://github.com/KellerJordan/Muon",
+    "datasets>=4.4.1",
 ]
 
 [tool.setuptools.packages.find]

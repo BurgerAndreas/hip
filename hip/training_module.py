@@ -1,7 +1,3 @@
-"""
-PyTorch Lightning module for training AlphaNet
-"""
-
 from typing import Dict, List, Optional, Tuple, Any, Mapping
 from collections.abc import Iterable
 from omegaconf import ListConfig, OmegaConf
@@ -12,8 +8,6 @@ import wandb
 import numpy as np
 
 import torch
-from torch import nn
-from torch.utils.data import ConcatDataset
 
 from torch_geometric.loader import DataLoader as TGDataLoader
 from torch.optim.lr_scheduler import (
@@ -35,6 +29,7 @@ from ocpmodels.hessian_graph_transform import (
 )
 
 from hip.ff_lmdb import LmdbDataset
+from hip.qm9_hessian_dataset import QM9HessianDataset
 from hip.utils import average_over_batch_metrics
 
 # import hip.utils as diff_utils
@@ -229,11 +224,8 @@ class PotentialModule(LightningModule):
         """
         Fix paths in the training config to be relative to the project root.
         """
-        try:
-            training_config["trn_path"] = fix_dataset_path(training_config["trn_path"])
-            training_config["val_path"] = fix_dataset_path(training_config["val_path"])
-        except Exception as e:
-            pass
+        training_config["trn_path"] = fix_dataset_path(training_config["trn_path"])
+        training_config["val_path"] = fix_dataset_path(training_config["val_path"])
         return training_config
 
     def _freeze_except_heads(self, heads_to_train: List[str]) -> None:
@@ -371,33 +363,55 @@ class PotentialModule(LightningModule):
         if stage == "fit":
             # train dataset
             print(f"Loading training dataset from {self.training_config['trn_path']}")
-            transform = None
-            if self.use_hessian_graph_transform:
-                transform = HessianGraphTransform(
-                    cutoff=self.potential.cutoff,
-                    cutoff_hessian=self.potential.cutoff_hessian,
-                    max_neighbors=self.potential.max_neighbors,
-                    use_pbc=self.potential.use_pbc,
+            if "qm9" in self.training_config["trn_path"]:
+                assert not self.use_hessian_graph_transform
+                # Path format: /path/to/dataset:split_name or just /path/to/dataset
+                # The split can be specified in the path with a colon separator
+                self.train_dataset = QM9HessianDataset(
+                    dataset_path=self.training_config["trn_path"],
+                    split=None,  # Split will be extracted from path if present
+                    transform=None,
+                    **self.training_config,
                 )
-            self.train_dataset = LmdbDataset(
-                Path(self.training_config["trn_path"]),
-                transform=transform,
-                **self.training_config,
-            )
+            else:
+                transform = None
+                if self.use_hessian_graph_transform:
+                    transform = HessianGraphTransform(
+                        cutoff=self.potential.cutoff,
+                        cutoff_hessian=self.potential.cutoff_hessian,
+                        max_neighbors=self.potential.max_neighbors,
+                        use_pbc=self.potential.use_pbc,
+                    )
+                self.train_dataset = LmdbDataset(
+                    Path(self.training_config["trn_path"]),
+                    transform=transform,
+                    **self.training_config,
+                )
             # val dataset
             transform = None
-            if self.use_hessian_graph_transform:
-                transform = HessianGraphTransform(
-                    cutoff=self.potential.cutoff,
-                    cutoff_hessian=self.potential.cutoff_hessian,
-                    max_neighbors=self.potential.max_neighbors,
-                    use_pbc=self.potential.use_pbc,
+            if "qm9" in self.training_config["val_path"]:
+                assert not self.use_hessian_graph_transform
+                # Path format: /path/to/dataset:split_name or just /path/to/dataset
+                # The split can be specified in the path with a colon separator
+                self.val_dataset = QM9HessianDataset(
+                    dataset_path=self.training_config["val_path"],
+                    split=None,  # Split will be extracted from path if present
+                    transform=None,
+                    **self.training_config,
                 )
-            self.val_dataset = LmdbDataset(
-                Path(self.training_config["val_path"]),
-                transform=transform,
-                **self.training_config,
-            )
+            else:
+                if self.use_hessian_graph_transform:
+                    transform = HessianGraphTransform(
+                        cutoff=self.potential.cutoff,
+                        cutoff_hessian=self.potential.cutoff_hessian,
+                        max_neighbors=self.potential.max_neighbors,
+                        use_pbc=self.potential.use_pbc,
+                    )
+                self.val_dataset = LmdbDataset(
+                    Path(self.training_config["val_path"]),
+                    transform=transform,
+                    **self.training_config,
+                )
             print("Number of training samples: ", len(self.train_dataset))
             print("Number of validation samples: ", len(self.val_dataset))
             num_train_batches = len(self.train_dataset) // self.training_config["bz"]

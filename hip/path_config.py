@@ -31,6 +31,8 @@ DATASET_FILES_HORM = [
 
 DATA_PATH_HORM_SAMPLE = os.path.join(ROOT_DIR, "data/sample_100.lmdb")
 
+DATASET_DIR_RGD1 = os.path.join(ROOT_DIR, "../Datastore/rgd1")
+
 # https://figshare.com/articles/dataset/_b_Hessian_QM9_Dataset_b_/26363959?file=49271011
 DATASET_DIR_QM9HESSIAN = os.path.join(
     ROOT_DIR, "../Datastore/qm9hessian/hessian_qm9_DatasetDict"
