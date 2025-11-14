@@ -91,6 +91,10 @@ class EquiformerASECalculator(ASECalculator):
             device = "cuda" if torch.cuda.is_available() else "cpu"
         self.device = device
 
+        if checkpoint_path is None:
+            project_root = os.path.dirname(os.path.dirname(__file__))
+            checkpoint_path = os.path.join(project_root, "ckpt/hip_v2.ckpt")
+
         if model is None:
             # Load model
             model = get_model_from_checkpoint(checkpoint_path, device)
@@ -217,7 +221,7 @@ if __name__ == "__main__":
 
     # Initialize calculator with default checkpoint path
     project_root = os.path.dirname(os.path.dirname(__file__))
-    checkpoint_path = os.path.join(project_root, "ckpt/hesspred_v1.ckpt")
+    checkpoint_path = os.path.join(project_root, "ckpt/hip_v2.ckpt")
 
     if not os.path.exists(checkpoint_path):
         print(f"Checkpoint not found at {checkpoint_path}")

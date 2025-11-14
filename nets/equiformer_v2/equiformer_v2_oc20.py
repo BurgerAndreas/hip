@@ -17,7 +17,7 @@ from ocpmodels.common.utils import (
     get_pbc_distances,
     radius_graph_pbc,
 )
-from torch_geometric.nn import radius_graph
+import torch_geometric.nn
 
 from .gaussian_rbf import GaussianRadialBasisLayer
 from .edge_rot_mat import init_edge_rot_mat
@@ -50,15 +50,13 @@ from .hessian_pred_utils import (
     l012_features_to_hessian,
     irreps_to_cartesian_matrix,
     add_graph_batch,
-    # _get_indexadd_offdiagonal_to_flat_hessian_message_indices,
-    # _get_node_diagonal_1d_indexadd_indices,
 )
 from nets.scatter_utils import scatter_mean
 # from torch_scatter import scatter_mean
 
 # Statistics of IS2RE 100K
 # _AVG_NUM_NODES = 77.81317
-_AVG_DEGREE = 23.395238876342773  # IS2RE: 100k, max_radius = 5, max_neighbors = 100
+_AVG_DEGREE = 23.395238876342773  # IS2RE: 100k, cutoff = 5, max_neighbors = 100
 
 # HORM T1x
 # Number of edges: 176.7360948021343
@@ -90,6 +88,18 @@ def remove_mean_batch(x, indices):
     return x
 
 
+def get_sparse_hessian(
+    edge_index: torch.Tensor,
+    data: torch_geometric.data.Batch,
+    l012_edge_features: torch.Tensor,
+    l012_node_features: torch.Tensor,
+) -> torch.Tensor:
+    """
+    Get the sparse Hessian from the edge features.
+    """
+    pass
+
+
 @registry.register_model("equiformer_v2")
 class EquiformerV2_OC20(BaseModel):
     """
@@ -100,7 +110,7 @@ class EquiformerV2_OC20(BaseModel):
         regress_forces (bool):  Compute forces
         otf_graph (bool):       Compute graph On The Fly (OTF)
         max_neighbors (int):    Maximum number of neighbors per atom
-        max_radius (float):     Maximum distance between nieghboring atoms in Angstroms
+        cutoff (float):     Maximum distance between nieghboring atoms in Angstroms
         max_num_elements (int): Maximum atomic number
 
         num_layers (int):             Number of layers in the GNN
@@ -147,8 +157,8 @@ class EquiformerV2_OC20(BaseModel):
         use_pbc=True,
         regress_forces=True,
         otf_graph=True,
-        max_neighbors=500,
-        max_radius=5.0,
+        max_neighbors=100000,
+        cutoff=5.0,
         max_num_elements=90,
         num_layers=12,
         sphere_channels=128,
@@ -197,7 +207,6 @@ class EquiformerV2_OC20(BaseModel):
         direct_forces=None,
         eps=None,
         hidden_channels=None,
-        cutoff=None,
         pos_require_grad=None,
         num_radial=None,
         use_sigmoid=None,
@@ -229,12 +238,10 @@ class EquiformerV2_OC20(BaseModel):
         self.regress_forces = regress_forces
         self.otf_graph = otf_graph
         self.max_neighbors = max_neighbors
-        self.max_radius = max_radius
-        self.cutoff = max_radius
-        if cutoff is not None:
-            print(
-                f"{self.__class__.__name__}: got cutoff {cutoff} and radius {max_radius}. Using radius {max_radius}."
-            )
+        if "max_radius" in kwargs:
+            print(f"Warning: max_radius is deprecated. Use cutoff instead.")
+            cutoff = kwargs.pop("max_radius")
+        self._cutoff = cutoff
         self.max_num_elements = max_num_elements
         self.avg_degree = avg_degree
         self.avg_num_nodes = avg_num_nodes
@@ -304,16 +311,13 @@ class EquiformerV2_OC20(BaseModel):
         assert self.distance_function in [
             "gaussian",
         ]
-        if self.distance_function == "gaussian":
-            self.distance_expansion = GaussianSmearing(
-                start=0.0,
-                stop=self.cutoff,
-                num_gaussians=600,
-                basis_width_scalar=2.0,
-            )
-            # self.distance_expansion = GaussianRadialBasisLayer(num_basis=self.num_distance_basis, cutoff=self.max_radius)
-        else:
-            raise ValueError
+        self.distance_expansion = GaussianSmearing(
+            start=0.0,
+            stop=self.cutoff,
+            num_gaussians=600,
+            basis_width_scalar=2.0,
+        )
+        # self.distance_expansion = GaussianRadialBasisLayer(num_basis=self.num_distance_basis, cutoff=self.max_radius)
 
         # Initialize the sizes of radial functions (input channels and 2 hidden channels)
         self.edge_channels_list = [int(self.distance_expansion.num_output)] + [
@@ -346,12 +350,15 @@ class EquiformerV2_OC20(BaseModel):
         self.SO3_grid = ModuleListInfo(
             f"({max(self.lmax_list)}, {max(self.lmax_list)})"
         )
-        for l in range(max(self.lmax_list) + 1):
+        for ell in range(max(self.lmax_list) + 1):
             SO3_m_grid = torch.nn.ModuleList()
             for m in range(max(self.lmax_list) + 1):
                 SO3_m_grid.append(
                     SO3_Grid(
-                        l, m, resolution=self.grid_resolution, normalization="component"
+                        ell,
+                        m,
+                        resolution=self.grid_resolution,
+                        normalization="component",
                     )
                 )
             self.SO3_grid.append(SO3_m_grid)
@@ -448,7 +455,7 @@ class EquiformerV2_OC20(BaseModel):
         # Add extra head for Hessian prediction
         ################################################################
 
-        self.cutoff_hessian = cutoff_hessian
+        self._cutoff_hessian = cutoff_hessian
         self.hessian_module_list = []
 
         # Initialize the module that compute WignerD matrices and other values for spherical harmonic calculations
@@ -460,7 +467,7 @@ class EquiformerV2_OC20(BaseModel):
         self.distance_expansion_hessian = GaussianSmearing(
             start=0.0,
             stop=self.cutoff_hessian,
-            num_gaussians=600,  # 600,
+            num_gaussians=600,
             basis_width_scalar=2.0,
         )
         # self.hessian_module_list.append("distance_expansion_hessian") # no trainable parameters
@@ -571,6 +578,52 @@ class EquiformerV2_OC20(BaseModel):
         self.apply(self._init_weights)
         self.apply(self._uniform_init_rad_func_linear_weights)
 
+    @property
+    def max_radius(self):
+        return self._cutoff
+
+    @max_radius.setter
+    def max_radius(self, value):
+        print("Warning: max_radius is deprecated. Use cutoff instead.")
+        self.cutoff = value
+
+    @property
+    def max_radius_hessian(self):
+        return self._cutoff_hessian
+
+    @max_radius_hessian.setter
+    def max_radius_hessian(self, value):
+        print("Warning: max_radius_hessian is deprecated. Use cutoff_hessian instead.")
+        self.cutoff_hessian = value
+
+    @property
+    def cutoff(self):
+        return self._cutoff
+
+    @cutoff.setter
+    def cutoff(self, value):
+        self._cutoff = value
+        self.distance_expansion = GaussianSmearing(
+            start=0.0,
+            stop=self._cutoff,
+            num_gaussians=600,
+            basis_width_scalar=2.0,
+        ).to(self.device)
+
+    @property
+    def cutoff_hessian(self):
+        return self._cutoff_hessian
+
+    @cutoff_hessian.setter
+    def cutoff_hessian(self, value):
+        self._cutoff_hessian = value
+        self.distance_expansion_hessian = GaussianSmearing(
+            start=0.0,
+            stop=self._cutoff_hessian,
+            num_gaussians=600,
+            basis_width_scalar=2.0,
+        ).to(self.device)
+
     def grad_hess_ij(self, energy, posj, posi, create_graph=True):
         """Calculating the inter-atomic part of hessian matrices.Find the cross-derivative for the coordinates
         of atom i and atom j that interact on the interaction layer.
@@ -635,7 +688,7 @@ class EquiformerV2_OC20(BaseModel):
             distance_vec = out["distance_vec"]
         else:
             if otf_graph:
-                edge_index = radius_graph(
+                edge_index = torch_geometric.nn.radius_graph(
                     data.pos,
                     r=cutoff,
                     batch=data.batch,
@@ -661,16 +714,21 @@ class EquiformerV2_OC20(BaseModel):
             neighbors,
         )
 
-    def generate_graph_nopbc(self, data, otf_graph=None, cutoff=None):
+    def generate_graph_nopbc(
+        self, data, otf_graph=None, cutoff=None, max_neighbors=None
+    ):
         """Simplified graph generation without periodic boundary conditions.
         Used by HORM.
         Not sure why, maybe it is easier to differentiate through for autograd hessian?
         """
         otf_graph = otf_graph or self.otf_graph
         cutoff = cutoff or self.cutoff
+        max_neighbors = max_neighbors or self.max_neighbors
         if otf_graph or not hasattr(data, "edge_distance"):
             pos = data.pos
-            edge_index = radius_graph(pos, r=cutoff, batch=data.batch)
+            edge_index = torch_geometric.nn.radius_graph(
+                pos, r=cutoff, batch=data.batch, max_num_neighbors=max_neighbors
+            )
             j, i = edge_index
             posj = pos[j]
             posi = pos[i]
@@ -692,6 +750,7 @@ class EquiformerV2_OC20(BaseModel):
         hessian=True,
         return_l_features=False,
         otf_graph=None,  # will default to self.otf_graph
+        return_dense_hessian=True,
         **kwargs,
     ):
         """
@@ -716,32 +775,27 @@ class EquiformerV2_OC20(BaseModel):
         atomic_numbers = data.z.long()
         num_atoms = len(atomic_numbers)
 
-        # # cell_offsets, cell_offset_distances, neighbors are not used in EquiformerV2
-        # (
-        #     edge_index,
-        #     edge_distance,
-        #     edge_distance_vec,
-        #     _,  # cell_offsets,
-        #     _,  # cell offset distances
-        #     _,  # neighbors,
-        # ) = self.generate_graph(data)
-
         (
             edge_index,  # [E, 2]
             edge_distance,  # [E]
             edge_distance_vec,  # [E, 3]
         ) = self.generate_graph_nopbc(data, otf_graph=otf_graph)
+        # store in data object
+        data.edge_index = edge_index
+        data.edge_distance = edge_distance
+        data.edge_distance_vec = edge_distance_vec
 
-        if otf_graph or not hasattr(data, "nedges_hessian"):
-            # For Hessian prediction
-            data = add_graph_batch(
-                data,
-                cutoff=self.cutoff,
-                max_neighbors=self.max_neighbors,
-                use_pbc=self.use_pbc,
-            )
-        else:
-            data = add_extra_props_for_hessian(data)
+        if hessian:
+            if otf_graph or not hasattr(data, "nedges_hessian"):
+                # For Hessian prediction
+                data = add_graph_batch(
+                    data,
+                    cutoff=self.cutoff,
+                    max_neighbors=self.max_neighbors,
+                    use_pbc=self.use_pbc,
+                )
+            else:
+                data = add_extra_props_for_hessian(data)
 
         ###############################################################
         # Initialize data structures
@@ -924,12 +978,20 @@ class EquiformerV2_OC20(BaseModel):
             # (N, 3, 3)
             l012_node_features_3x3 = irreps_to_cartesian_matrix(l012_node_features)
 
-            hessian = self._get_hessian_from_features(
-                edge_index=edge_index_hessian,
-                data=data,
-                l012_edge_features=l012_edge_features_3x3,
-                l012_node_features=l012_node_features_3x3,
-            )
+            if return_dense_hessian:
+                hessian = self._get_hessian_from_features(
+                    edge_index=edge_index_hessian,
+                    data=data,
+                    l012_edge_features=l012_edge_features_3x3,
+                    l012_node_features=l012_node_features_3x3,
+                )
+            else:
+                hessian = get_sparse_hessian(
+                    edge_index=edge_index_hessian,
+                    data=data,
+                    l012_edge_features=l012_edge_features_3x3,
+                    l012_node_features=l012_node_features_3x3,
+                )
 
             if return_l_features:
                 outputs["l012_node_features"] = l012_node_features_3x3

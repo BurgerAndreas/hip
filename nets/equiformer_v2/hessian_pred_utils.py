@@ -152,7 +152,6 @@ def _loop_offdiagonal_to_blockdiagonal_hessian(
     return hessian
 
 
-# support function that can be moved to dataloader
 def _get_indexadd_offdiagonal_to_flat_hessian_message_indices(
     N: int, edge_index: torch.Tensor
 ) -> tuple[torch.Tensor, torch.Tensor]:
@@ -186,35 +185,36 @@ def _get_indexadd_offdiagonal_to_flat_hessian_message_indices(
     return idx_ij, idx_ji
 
 
-def _indexadd_offdiagonal_to_flat_hessian(edge_index, messages, data):
+def _indexadd_offdiagonal_to_flat_hessian(
+    messages, natoms, message_idx_ij, message_idx_ji
+):
     """
     Scatter edge message blocks into a flattened Hessian using 1D index_add.
 
     Args:
         edge_index: shape (2, E_total).
         messages: Tensor, shape (E_total, 3, 3).
-        data: object with attributes
-            - natoms: shape (B,)
-            - message_idx_ij: shape (E_total*9,)
-            - message_idx_ji: shape (E_total*9,)
+        natoms: shape (B,)
+        # (E*3*3) -> (N*3*N*3)
+        message_idx_ij: shape (E_total*9,)
+        message_idx_ji: shape (E_total*9,)
 
     Returns:
         hessian1d: Tensor, shape (sum_b (N_b*3)^2,).
     """
     # do the same thing in 1d, but indexing messageflat without storing it in values
-    total_entries = int(torch.sum((data.natoms * 3) ** 2).item())
+    total_entries = int(torch.sum((natoms * 3) ** 2).item())
     hessian1d = torch.zeros(total_entries, device=messages.device, dtype=messages.dtype)
-    E = edge_index.shape[1]
+    # E = edge_index.shape[1]
+    E = messages.shape[0]
     messageflat = messages.reshape(-1)
-    indices_ij = data.message_idx_ij  # (E*3*3) -> (N*3*N*3)
-    indices_ji = data.message_idx_ji  # (E*3*3) -> (N*3*N*3)
     # Reshape messageflat to (E, 3, 3) and transpose each 3x3 matrix
     messages_3x3 = messageflat.view(E, 3, 3)
     messages_3x3_T = messages_3x3.transpose(-2, -1)  # Transpose last two dimensions
     messageflat_transposed = messages_3x3_T.reshape(-1)  # Flatten back
     # Add both contributions
-    hessian1d.index_add_(0, indices_ij, messageflat)  # i->j direct
-    hessian1d.index_add_(0, indices_ji, messageflat_transposed)  # j->i transposed
+    hessian1d.index_add_(0, message_idx_ij, messageflat)  # i->j direct
+    hessian1d.index_add_(0, message_idx_ji, messageflat_transposed)  # j->i transposed
     return hessian1d
 
 
@@ -282,7 +282,11 @@ def _get_node_diagonal_1d_indexadd_indices(
 
 
 def _indexadd_diagonal_to_flat_hessian(
-    hessianflat: torch.Tensor, l012_node_features: torch.Tensor, data: torch.Tensor
+    hessianflat: torch.Tensor,
+    l012_node_features: torch.Tensor,
+    diag_ij: torch.Tensor,
+    diag_ji: torch.Tensor,
+    node_transpose_idx: torch.Tensor,
 ) -> torch.Tensor:
     """
     Add node (3x3) features to the diagonal of a flattened Hessian using 1D
@@ -291,20 +295,18 @@ def _indexadd_diagonal_to_flat_hessian(
     Args:
         hessianflat: Tensor, shape (sum_b (N_b*3)^2,).
         l012_node_features: Tensor, shape (sum_b N_b, 3, 3).
-        data: object with attributes
-            - diag_ij: shape (sum_b N_b*9,)
-            - diag_ji: shape (sum_b N_b*9,)
-            - node_transpose_idx: shape (sum_b N_b*9,)
+        - diag_ij: shape (sum_b N_b*9,)
+        - diag_ji: shape (sum_b N_b*9,)
+        - node_transpose_idx: shape (sum_b N_b*9,) # (N*3*3) -> (N*3*3)
 
     Returns:
         hessianflat: Tensor, shape (sum_b (N_b*3)^2,), updated and returned.
     """
-    node_transpose_idx = data.node_transpose_idx  # (N*3*3) -> (N*3*3)
     # Flatten node features for direct indexing
     l012_node_features_flat = l012_node_features.reshape(-1)  # (N*3*3)
     # Use two index_add calls: one for direct, one for transpose
-    hessianflat.index_add_(0, data.diag_ij, l012_node_features_flat)
-    hessianflat.index_add_(0, data.diag_ji, l012_node_features_flat[node_transpose_idx])
+    hessianflat.index_add_(0, diag_ij, l012_node_features_flat)
+    hessianflat.index_add_(0, diag_ji, l012_node_features_flat[node_transpose_idx])
     # # V2
     # # Flatten node features and create transposed flatten via gather using precomputed permutation
     # l012_node_features_flat = l012_node_features.reshape(-1)#.contiguous()
@@ -330,10 +332,13 @@ def l012_features_to_hessian(
 
     Args:
         edge_index: shape (2, E_total).
-        data: object with attributes required by `_indexadd_offdiagonal_to_flat_hessian` and
-            `_indexadd_diagonal_to_flat_hessian` (see their docstrings), including
-            `natoms`, `message_idx_ij`, `message_idx_ji`, `diag_ij`, `diag_ji`,
-            and `node_transpose_idx`.
+        data: object with attributes:
+            natoms: shape (B,)
+            message_idx_ij: shape (E_total*9,)
+            message_idx_ji: shape (E_total*9,)
+            diag_ij: shape (sum_b N_b*9,)
+            diag_ji: shape (sum_b N_b*9,)
+            node_transpose_idx: shape (sum_b N_b*9,) # (N*3*3) -> (N*3*3)
         l012_edge_features: Tensor, shape (E_total, 3, 3).
         l012_node_features: Tensor, shape (sum_b N_b, 3, 3).
 
@@ -342,9 +347,18 @@ def l012_features_to_hessian(
     """
     # fast
     hessian = _indexadd_offdiagonal_to_flat_hessian(
-        edge_index, l012_edge_features, data
+        messages=l012_edge_features,
+        natoms=data.natoms,
+        message_idx_ij=data.message_idx_ij,
+        message_idx_ji=data.message_idx_ji,
     )
-    hessian = _indexadd_diagonal_to_flat_hessian(hessian, l012_node_features, data)
+    hessian = _indexadd_diagonal_to_flat_hessian(
+        hessianflat=hessian,
+        l012_node_features=l012_node_features,
+        diag_ij=data.diag_ij,
+        diag_ji=data.diag_ji,
+        node_transpose_idx=data.node_transpose_idx,
+    )
     return hessian
 
 
@@ -379,8 +393,8 @@ def l012_features_to_hessian_loops(
 
 def add_graph_batch(
     data: TGBatch,
-    cutoff: float = 100.0,
-    max_neighbors: int = 32,
+    cutoff: float,
+    max_neighbors: int = 100000,
     use_pbc: bool = False,
 ) -> TGBatch:
     """
@@ -421,7 +435,7 @@ def add_graph_batch(
         max_neighbors=max_neighbors,
         use_pbc=use_pbc,
     )
-
+    # store in data object
     data.edge_index_hessian = edge_index_hessian
     data.edge_distance_hessian = edge_distance_hessian
     data.edge_distance_vec_hessian = edge_distance_vec_hessian
@@ -538,7 +552,7 @@ if __name__ == "__main__":
         ) = generate_graph(
             data,
             cutoff=100.0,
-            max_neighbors=32,
+            max_neighbors=100000,
             use_pbc=False,
         )
 

@@ -17,11 +17,11 @@ def _compose_cfgs(r1, r2):
     with hydra.initialize_config_dir(config_dir=cfg_dir, version_base=None):
         cfg_small = hydra.compose(
             config_name="train",
-            overrides=["experiment=debug", f"model.max_radius={r1}", "run_name=pytest"],
+            overrides=["experiment=debug", f"model.cutoff={r1}", "run_name=pytest"],
         )
         cfg_large = hydra.compose(
             config_name="train",
-            overrides=["experiment=debug", f"model.max_radius={r2}", "run_name=pytest"],
+            overrides=["experiment=debug", f"model.cutoff={r2}", "run_name=pytest"],
         )
     # Avoid Hydra interpolation fields that require a Hydra runtime
     for _cfg in (cfg_small, cfg_large):
@@ -51,7 +51,7 @@ def test_hessian_graph_shrinks_with_smaller_radius():
     _, pm_small = setup_training(cfg_small)
     _, pm_large = setup_training(cfg_large)
 
-    # Sanity: cutoff follows max_radius
+    # Sanity: cutoff follows cutoff
     assert pm_small.potential.cutoff == pytest.approx(r1)
     assert pm_large.potential.cutoff == pytest.approx(r2)
 

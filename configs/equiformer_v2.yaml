@@ -11,7 +11,7 @@ model:
   regress_forces:           True
   otf_graph:                True
   max_neighbors:            20
-  max_radius:               12.0
+  cutoff:               12.0
   max_num_elements:         90
 
   # avg_num_nodes:            77.81317

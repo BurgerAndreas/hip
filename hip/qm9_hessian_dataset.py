@@ -65,7 +65,10 @@ class QM9HessianDataset(TorchDataset):
             dataset = split_ds[split]
         self.dataset: HuggingFaceDataset = dataset
 
-        self.transform = transform
+        if transform is not None:
+            self.transform = transform
+        else:
+            self.transform = lambda x: x
         self.num_samples = len(self.dataset)
 
     def __len__(self):
@@ -118,8 +121,7 @@ class QM9HessianDataset(TorchDataset):
         )
 
         # Apply transform if provided
-        if self.transform is not None:
-            data = self.transform(data)
+        data = self.transform(data)
 
         return data
 

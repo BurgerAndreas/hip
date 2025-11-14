@@ -17,8 +17,8 @@ model:
   hessian_alpha_drop: 0.0
   num_layers_hessian: 1
 
-  max_radius: 5.0
-  max_neighbors: 32
+  cutoff: 5.0
+  max_neighbors: 100000
   cutoff_hessian: 100.0
 
   hessian_no_attn_weights: True # build Hessian off-diagonal elements from raw messages without attention weights
@@ -28,7 +28,7 @@ model:
 # Optimizer configuration
 optimizer:
   optimizer: "adamw" # adamw or muon, but muon has only ~20 2d params 
-  lr: 3e-4  # paper says 3e-4, code uses 5e-4
+  lr: 3e-4  
   betas: [0.8, 0.95] # [0.9, 0.999], [0.9, 0.95], [0.8, 0.95]
   beta1: null
   beta2: null
