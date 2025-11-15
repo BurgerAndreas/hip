@@ -18,6 +18,7 @@ pubchem_103350	119	sdf	pubchem_mols
 pubchem_105300	127	sdf	pubchem_mols
 pubchem_104750	133	sdf	pubchem_mols
 pubchem_105500	176	sdf	pubchem_mols
+pubchem_15000100	199	sdf	pubchem_mols
 1GCN	246	pdb	pdb_structures
 1A0M	284	pdb	pdb_structures
 1CRN	327	pdb	pdb_structures

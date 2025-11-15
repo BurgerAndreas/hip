@@ -179,12 +179,14 @@ def search_pubchem_by_atom_count(
                 )
 
             info = get_pubchem_compound_info(cid)
-            if info and info.get("atom_count"):
-                atom_count = info["atom_count"]
-                if min_atoms <= atom_count <= max_atoms:
-                    mw = info.get("molecular_weight", 0)
-                    found_compounds.append((cid, atom_count))
-                    print(f"  ✓ Found CID {cid}: {atom_count} atoms, MW={mw:.2f}")
+            if info:
+                estimated = info.get("estimated_atom_count")
+                heavy_atoms = info.get("heavy_atom_count")
+                mw = info.get("molecular_weight", 0)
+                # Use estimated count for filtering, but we'll verify with actual download
+                if estimated and min_atoms <= estimated <= max_atoms * 1.5:
+                    found_compounds.append((cid, estimated))
+                    print(f"  ✓ Found CID {cid}: ~{estimated} atoms (est), {heavy_atoms} heavy, MW={mw:.2f}")
 
             time.sleep(0.1)  # Rate limiting
 

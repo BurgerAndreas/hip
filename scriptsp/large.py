@@ -279,6 +279,7 @@ def speed_comparison(
     maxnatoms,
     maxnatoms_fc,  # fully connected
     maxnatoms_ad,  # autograd
+    largerepeat=1,  # number of times to repeat large molecule samples
 ):
     """Compares the speed of autograd vs prediction for Hessian computation."""
     # Load existing results if available
@@ -488,20 +489,35 @@ def speed_comparison(
     print("\nProcessing large molecules...")
     large_molecules = load_large_molecules(maxnatoms=maxnatoms)
     if large_molecules:
+        # Track which large molecules (n_atoms > 100) have been processed per method
+        # Since there's only one sample per n_atoms for large molecules, we just check if it exists
+        processed_large_natoms = defaultdict(set)
+        if output_path.exists():
+            existing_df = pd.read_csv(output_path)
+            for _, row in existing_df.iterrows():
+                n_atoms = int(row["n_atoms"])
+                if n_atoms > 100:  # Large molecule
+                    method = row["method"]
+                    processed_large_natoms[method].add(n_atoms)
+
         pbar = tqdm(large_molecules.items(), desc="Processing large molecules")
         for n_atoms, batches in pbar:
             n_atoms = int(n_atoms)
+            # For large molecules, there's only one batch per n_atoms
+            _batch = batches[0]
 
             # Check which methods still need processing
             needs_prediction = (
-                n_atoms < maxnatoms and n_atoms not in processed_natoms["prediction"]
+                n_atoms < maxnatoms
+                and n_atoms not in processed_large_natoms["prediction"]
             )
             needs_prediction_fc = (
                 n_atoms < maxnatoms_fc
-                and n_atoms not in processed_natoms["prediction_fc"]
+                and n_atoms not in processed_large_natoms["prediction_fc"]
             )
             needs_autograd = (
-                n_atoms < maxnatoms_ad and n_atoms not in processed_natoms["autograd"]
+                n_atoms < maxnatoms_ad
+                and n_atoms not in processed_large_natoms["autograd"]
             )
 
             # Skip if all applicable methods are already processed
@@ -513,13 +529,16 @@ def speed_comparison(
 
             pbar.set_description(f"Processing large molecules (N={n_atoms})")
             natoms_results = []
-            for _batch in tqdm(batches, desc=f"Large N={n_atoms}", leave=False):
-                print(f"N={n_atoms}", flush=True)
-                ################ Prediction ################
-                if needs_prediction:
-                    batch = _batch.clone().to(device)
-
-                    # Time prediction only (skip autograd for large molecules)
+            print(f"N={n_atoms}", flush=True)
+            
+            ################ Prediction ################
+            if needs_prediction:
+                batch = _batch.clone().to(device)
+                times = []
+                memories = []
+                
+                # Repeat computation largerepeat times
+                for _ in range(largerepeat):
                     time_prediction, mem_prediction = time_hessian_computation(
                         model,
                         batch,
@@ -527,41 +546,59 @@ def speed_comparison(
                         cutoff=cutoff,
                         cutoff_hessian=cutoff_hessian,
                     )
-                    natoms_results.append(
-                        {
-                            "n_atoms": n_atoms,
-                            "n_edges": batch.edge_index.shape[1],  # [E, 2]
-                            "method": "prediction",
-                            "time": time_prediction,
-                            "memory": mem_prediction,
-                        }
-                    )
+                    times.append(time_prediction)
+                    memories.append(mem_prediction)
+                
+                # Average results
+                avg_time = sum(times) / len(times)
+                avg_memory = sum(memories) / len(memories)
+                
+                natoms_results.append(
+                    {
+                        "n_atoms": n_atoms,
+                        "n_edges": batch.edge_index.shape[1],  # [E, 2]
+                        "method": "prediction",
+                        "time": avg_time,
+                        "memory": avg_memory,
+                    }
+                )
 
-                ################ Fully Connected ################
-                if needs_prediction_fc:
-                    # fresh batch
-                    batch = _batch.clone().to(device)
-
-                    # Time prediction
+            ################ Fully Connected ################
+            if needs_prediction_fc:
+                batch = _batch.clone().to(device)
+                times = []
+                memories = []
+                
+                # Repeat computation largerepeat times
+                for _ in range(largerepeat):
                     time_prediction, mem_prediction = time_hessian_computation(
                         model, batch, "prediction", cutoff=1e8, cutoff_hessian=1e8
                     )
-                    natoms_results.append(
-                        {
-                            "n_atoms": n_atoms,
-                            "n_edges": batch.edge_index.shape[1],  # [E, 2]
-                            "method": "prediction_fc",
-                            "time": time_prediction,
-                            "memory": mem_prediction,
-                        }
-                    )
+                    times.append(time_prediction)
+                    memories.append(mem_prediction)
+                
+                # Average results
+                avg_time = sum(times) / len(times)
+                avg_memory = sum(memories) / len(memories)
+                
+                natoms_results.append(
+                    {
+                        "n_atoms": n_atoms,
+                        "n_edges": batch.edge_index.shape[1],  # [E, 2]
+                        "method": "prediction_fc",
+                        "time": avg_time,
+                        "memory": avg_memory,
+                    }
+                )
 
-                ################ AD ################
-                if needs_autograd:
-                    # fresh batch
-                    batch = _batch.clone().to(device)
-
-                    # Time autograd
+            ################ AD ################
+            if needs_autograd:
+                batch = _batch.clone().to(device)
+                times = []
+                memories = []
+                
+                # Repeat computation largerepeat times
+                for _ in range(largerepeat):
                     time_autograd, mem_autograd = time_hessian_computation(
                         model,
                         batch,
@@ -569,15 +606,22 @@ def speed_comparison(
                         cutoff=cutoff,
                         cutoff_hessian=cutoff_hessian,
                     )
-                    natoms_results.append(
-                        {
-                            "n_atoms": n_atoms,
-                            "n_edges": batch.edge_index.shape[1],  # [E, 2]
-                            "method": "autograd",
-                            "time": time_autograd,
-                            "memory": mem_autograd,
-                        }
-                    )
+                    times.append(time_autograd)
+                    memories.append(mem_autograd)
+                
+                # Average results
+                avg_time = sum(times) / len(times)
+                avg_memory = sum(memories) / len(memories)
+                
+                natoms_results.append(
+                    {
+                        "n_atoms": n_atoms,
+                        "n_edges": batch.edge_index.shape[1],  # [E, 2]
+                        "method": "autograd",
+                        "time": avg_time,
+                        "memory": avg_memory,
+                    }
+                )
 
             # Add results for this natoms and save immediately
             results.extend(natoms_results)
@@ -912,7 +956,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--maxnatoms",
         type=int,
-        default=250,
+        default=200,
         help="Maximum number of atoms for large molecules (None = no limit). Prevents OOM errors.",
     )
     parser.add_argument(
@@ -933,6 +977,12 @@ if __name__ == "__main__":
         default=True,
         help="Log results and images to Weights & Biases.",
     )
+    parser.add_argument(
+        "--largerepeat",
+        type=int,
+        default=1,
+        help="Number of times to repeat the same large molecule sample to get an average timing.",
+    )
     """
     uv run scriptsp/large.py --redo True --maxnatoms 250 --maxnatoms_fc 170 --maxnatoms_ad 100
     """
@@ -940,20 +990,6 @@ if __name__ == "__main__":
     args = parser.parse_args()
     torch.manual_seed(42)
 
-    if args.usewandb:
-        wandb.init(
-            project="hip-speed-comparison",
-            config={
-                "dataset": args.dataset,
-                "max_samples_per_n": args.max_samples_per_n,
-                "cutoff": args.cutoff,
-                "cutoff_hessian": args.cutoff_hessian,
-                "maxnatoms": args.maxnatoms,
-                "maxnatoms_fc": args.maxnatoms_fc,
-                "maxnatoms_ad": args.maxnatoms_ad,
-                "ckpt_path": args.ckpt_path,
-            },
-        )
 
     redo = args.redo
 
@@ -981,9 +1017,10 @@ if __name__ == "__main__":
             cutoff=args.cutoff,
             cutoff_hessian=args.cutoff_hessian,
             # Maximum number of atoms for large molecules (None = no limit). Prevents OOM errors.
-            maxnatoms=250,
-            maxnatoms_fc=170,
-            maxnatoms_ad=100,
+            maxnatoms=args.maxnatoms,
+            maxnatoms_fc=args.maxnatoms_fc,
+            maxnatoms_ad=args.maxnatoms_ad,
+            largerepeat=args.largerepeat,
         )
 
     # Plot results
@@ -999,6 +1036,20 @@ if __name__ == "__main__":
     )
 
     if args.usewandb:
+        wandb.init(
+            project="hip-speed-comparison",
+            config={
+                "dataset": args.dataset,
+                "max_samples_per_n": args.max_samples_per_n,
+                "cutoff": args.cutoff,
+                "cutoff_hessian": args.cutoff_hessian,
+                "maxnatoms": args.maxnatoms,
+                "maxnatoms_fc": args.maxnatoms_fc,
+                "maxnatoms_ad": args.maxnatoms_ad,
+                "ckpt_path": args.ckpt_path,
+                "largerepeat": args.largerepeat,
+            },
+        )
         # Log results as a wandb table
         results_table = wandb.Table(dataframe=results_df)
         wandb.log({"results_table": results_table})

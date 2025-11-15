@@ -46,6 +46,8 @@ uv pip install torch-scatter -f https://data.pyg.org/whl/torch-2.7.0+cu126.html
 uv pip install torch-cluster -f https://data.pyg.org/whl/torch-2.7.0+cu126.html
 uv pip install torch-geometric
 
+uv run python -c "import plotly.io as pio; pio.get_chrome()"
+
 # Install the package in development mode
 uv pip install -e .
 ```
