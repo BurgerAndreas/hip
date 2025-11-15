@@ -54,6 +54,7 @@ training:
 
   ad_hessian: false
   hvps: 2
+  conservative_forces: false
 
   # follow_batch: ["diag_ij", "edge_index", "message_idx_ij"]
 

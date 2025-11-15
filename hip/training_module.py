@@ -462,29 +462,29 @@ class PotentialModule(LightningModule):
     ):
         """
         Compute loss between predicted and true force Jacobian (Hessian) using sampled VJPs.
-        
+
         This method assumes forces are conservative (computed via autograd from energy),
         i.e., F = -∇E. Under this assumption:
         - The force Jacobian is: J = ∂F/∂x = -∇²E = -H (negative Hessian)
         - Therefore: -J = H (the Hessian matrix)
-        
+
         What is computed: VJP (Vector-Jacobian Product), not HVP
         - This method computes VJPs using reverse-mode automatic differentiation
         - Each VJP computes: v^T @ J, where v is a one-hot vector selecting a specific
           (atom, coordinate) pair, and J = ∂F/∂x is the force Jacobian
         - When forces are conservative, J is symmetric, so: v^T @ J = (J @ v)^T
         - Each VJP extracts one row of the Jacobian matrix
-        
+
         Relationship to HVP (Hessian-Vector Product):
         - When forces are conservative: H = -J, so HVP = H @ v = -J @ v
         - Since J is symmetric: HVP = H @ v = -J @ v = -(v^T @ J)^T = -(VJP)^T
         - Therefore, VJP and HVP are related by negation and transposition
-        
+
         num_samples parameter:
         - Controls the total number of VJPs computed per batch (across all molecules)
         - Each sample selects a random (atom_index, coordinate_index) pair
         - More samples = more rows of the Jacobian are computed, but higher cost
-        
+
         Args:
             forces: Predicted forces tensor of shape (N, 3) where N is total atoms
             batch: Batch object containing molecular structure information
@@ -492,16 +492,24 @@ class PotentialModule(LightningModule):
             num_samples: Number of VJPs to compute per molecule (default: 2)
             looped: If True, use looped computation instead of vmap
             forward: Unused parameter (for compatibility)
-            
+
         Returns:
             loss: Scaled loss value comparing predicted and true Hessian entries
         """
-        natoms = batch.natoms
-        total_num_atoms = forces.shape[0]
+        natoms = batch.natoms  # shape [B], number of atoms per molecule
+        total_num_atoms = natoms.sum()  # scalar, total atoms across all molecules
+
+        # For each molecule, we call sample_with_mask(atoms_in_mol, num_samples, ...)
+        # which samples num_samples (atom_index, coordinate_index) pairs.
+        # Since we sample num_samples from EACH molecule, we must ensure:
+        #   num_samples <= min(atoms_in_mol * 3) for all molecules
+        max_samples_per_mol = (natoms * 3).min().item()
+        num_samples = min(num_samples, max_samples_per_mol)
 
         mask = torch.ones(total_num_atoms, dtype=torch.bool)
         cumulative_sums = [0] + torch.cumsum(natoms, 0).tolist()
 
+        # Compute the Hessian columns for each molecule
         by_molecule = []
         grad_outputs = torch.zeros((num_samples, total_num_atoms, 3)).to(forces.device)
         for i, atoms_in_mol in enumerate(batch.natoms):
@@ -509,9 +517,8 @@ class PotentialModule(LightningModule):
             samples = self.sample_with_mask(atoms_in_mol, num_samples, submask)
 
             by_molecule.append(samples)  # swap below and above line, crucial
-            offset_samples = (
-                samples.clone()
-            )  # Create a copy of the samples array to avoid modifying the original
+            # Create a copy of the samples array to avoid modifying the original
+            offset_samples = samples.clone()
             offset_samples[:, 0] += cumulative_sums[i]
             # Vectorized assignment to grad_outputs
             grad_outputs[
@@ -519,7 +526,7 @@ class PotentialModule(LightningModule):
                 offset_samples[:, 0],
                 offset_samples[:, 1],
             ] = 1
-            
+
         # Compute the jacobian using grad_outputs
         jac = self.get_jacobian(
             forces, batch.pos, grad_outputs, create_graph=True, looped=looped
@@ -546,13 +553,15 @@ class PotentialModule(LightningModule):
         # do the same for the student hessians
         jacs_per_mol = [
             mol_jac[:, mask, :] for mol_jac, mask in zip(jacs_per_mol, mask_per_mol)
-        ]  
+        ]
 
+        # forces synchronization to CPU
         # if torch.any(torch.isnan(jac)):
         #     raise Exception("FORCE JAC IS NAN")
 
         batch.fixed = torch.zeros(total_num_atoms)
 
+        # Get the true Hessian columns for each molecule
         true_jacs_per_mol = []
         for i, samples in enumerate(by_molecule):
             fixed_atoms = batch.fixed[cumulative_sums[i] : cumulative_sums[i + 1]]
@@ -667,6 +676,8 @@ class PotentialModule(LightningModule):
             batch.to(self.device),
             hessian=self.do_hessian and not self.training_config["ad_hessian"],
             otf_graph=self.training_config["otfgraph_in_model"],
+            conservative_forces=self.training_config["conservative_forces"],
+            retain_forces_graph=self.training_config["ad_hessian"],
         )
 
         if self.do_hessian:
