@@ -695,6 +695,10 @@ class PotentialModule(LightningModule):
         eval_metrics["MAE E"] = (
             self.loss_fn_val(hat_ae, batch.ae).abs().mean().detach().item()
         )
+        # Per-atom energy MAE
+        energy_diff = (hat_ae - batch.ae).abs() # [B]
+        per_atom_energy_mae = (energy_diff / batch.natoms).mean().detach().item()
+        eval_metrics["MAE E per atom"] = per_atom_energy_mae
         eval_metrics["MAE F"] = (
             self.loss_fn_val(hat_forces, batch.forces).abs().mean().detach().item()
         )

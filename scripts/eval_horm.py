@@ -9,8 +9,8 @@ import matplotlib.pyplot as plt
 import os
 from torch_geometric.loader import DataLoader as TGDataLoader
 
-from alphanet.models.alphanet import AlphaNet
-from leftnet.model.leftnet import LEFTNet
+# from alphanet.models.alphanet import AlphaNet
+# from leftnet.model.leftnet import LEFTNet
 
 from hip.training_module import PotentialModule
 from hip.ff_lmdb import LmdbDataset, Z_TO_ATOM_SYMBOL
