@@ -530,13 +530,13 @@ def speed_comparison(
             pbar.set_description(f"Processing large molecules (N={n_atoms})")
             natoms_results = []
             print(f"N={n_atoms}", flush=True)
-            
+
             ################ Prediction ################
             if needs_prediction:
                 batch = _batch.clone().to(device)
                 times = []
                 memories = []
-                
+
                 # Repeat computation largerepeat times
                 for _ in range(largerepeat):
                     time_prediction, mem_prediction = time_hessian_computation(
@@ -548,11 +548,11 @@ def speed_comparison(
                     )
                     times.append(time_prediction)
                     memories.append(mem_prediction)
-                
+
                 # Average results
                 avg_time = sum(times) / len(times)
                 avg_memory = sum(memories) / len(memories)
-                
+
                 natoms_results.append(
                     {
                         "n_atoms": n_atoms,
@@ -568,7 +568,7 @@ def speed_comparison(
                 batch = _batch.clone().to(device)
                 times = []
                 memories = []
-                
+
                 # Repeat computation largerepeat times
                 for _ in range(largerepeat):
                     time_prediction, mem_prediction = time_hessian_computation(
@@ -576,11 +576,11 @@ def speed_comparison(
                     )
                     times.append(time_prediction)
                     memories.append(mem_prediction)
-                
+
                 # Average results
                 avg_time = sum(times) / len(times)
                 avg_memory = sum(memories) / len(memories)
-                
+
                 natoms_results.append(
                     {
                         "n_atoms": n_atoms,
@@ -596,7 +596,7 @@ def speed_comparison(
                 batch = _batch.clone().to(device)
                 times = []
                 memories = []
-                
+
                 # Repeat computation largerepeat times
                 for _ in range(largerepeat):
                     time_autograd, mem_autograd = time_hessian_computation(
@@ -608,11 +608,11 @@ def speed_comparison(
                     )
                     times.append(time_autograd)
                     memories.append(mem_autograd)
-                
+
                 # Average results
                 avg_time = sum(times) / len(times)
                 avg_memory = sum(memories) / len(memories)
-                
+
                 natoms_results.append(
                     {
                         "n_atoms": n_atoms,
@@ -989,7 +989,6 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
     torch.manual_seed(42)
-
 
     redo = args.redo
 

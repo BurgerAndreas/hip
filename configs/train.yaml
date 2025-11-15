@@ -52,7 +52,10 @@ training:
   force_loss_weight: 25.0
   hessian_loss_type: "mae"
 
-  follow_batch: ["diag_ij", "edge_index", "message_idx_ij"]
+  ad_hessian: false
+  hvps: 2
+
+  # follow_batch: ["diag_ij", "edge_index", "message_idx_ij"]
 
   eigen_loss:
     k: null

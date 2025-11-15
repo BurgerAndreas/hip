@@ -23,10 +23,7 @@ try:
 except ImportError:
     from lightning.pytorch.utilities import grad_norm as pl_grad_norm
     from lightning import LightningModule
-from nets.equiformer_v2.equiformer_v2_oc20 import EquiformerV2_OC20
-from ocpmodels.hessian_graph_transform import (
-    HessianGraphTransform,
-)
+from nets.equiformer_v2.equiformer_v2_oc20 import EquiformerV2_OC20, remove_mean_batch
 
 from hip.ff_lmdb import LmdbDataset
 from hip.qm9_hessian_dataset import QM9HessianDataset
@@ -203,14 +200,6 @@ class PotentialModule(LightningModule):
         # Save arguments to hparams attribute for checkpointing
         self.save_hyperparameters(logger=False)
 
-        self.use_hessian_graph_transform = True
-        if (
-            "otfgraph_in_model" in self.training_config
-            and self.training_config["otfgraph_in_model"]
-        ):
-            # no need because we will compute graph during forward pass
-            self.use_hessian_graph_transform = False
-
     def set_wandb_run_id(self, run_id: str) -> None:
         """Set the WandB run ID for checkpoint continuation."""
         self.wandb_run_id = run_id
@@ -363,52 +352,30 @@ class PotentialModule(LightningModule):
             # train dataset
             print(f"Loading training dataset from {self.training_config['trn_path']}")
             if "qm9" in self.training_config["trn_path"]:
-                assert not self.use_hessian_graph_transform
                 # Path format: /path/to/dataset:split_name or just /path/to/dataset
                 # The split can be specified in the path with a colon separator
                 self.train_dataset = QM9HessianDataset(
                     dataset_path=self.training_config["trn_path"],
                     split="train",  # Split will be extracted from path if present
-                    transform=None,
                     keep_fluorine=self.training_config["keep_fluorine"],
                 )
             else:
-                transform = None
-                if self.use_hessian_graph_transform:
-                    transform = HessianGraphTransform(
-                        cutoff=self.potential.cutoff,
-                        cutoff_hessian=self.potential.cutoff_hessian,
-                        max_neighbors=self.potential.max_neighbors,
-                        use_pbc=self.potential.use_pbc,
-                    )
                 self.train_dataset = LmdbDataset(
                     Path(self.training_config["trn_path"]),
-                    transform=transform,
                     **self.training_config,
                 )
             # val dataset
-            transform = None
             if "qm9" in self.training_config["val_path"]:
-                assert not self.use_hessian_graph_transform
                 # Path format: /path/to/dataset:split_name or just /path/to/dataset
                 # The split can be specified in the path with a colon separator
                 self.val_dataset = QM9HessianDataset(
                     dataset_path=self.training_config["val_path"],
                     split="test",  # Split will be extracted from path if present
-                    transform=None,
                     keep_fluorine=self.training_config["keep_fluorine"],
                 )
             else:
-                if self.use_hessian_graph_transform:
-                    transform = HessianGraphTransform(
-                        cutoff=self.potential.cutoff,
-                        cutoff_hessian=self.potential.cutoff_hessian,
-                        max_neighbors=self.potential.max_neighbors,
-                        use_pbc=self.potential.use_pbc,
-                    )
                 self.val_dataset = LmdbDataset(
                     Path(self.training_config["val_path"]),
-                    transform=transform,
                     keep_fluorine=self.training_config["keep_fluorine"],
                 )
             print("Number of training samples: ", len(self.train_dataset))
@@ -449,6 +416,176 @@ class PotentialModule(LightningModule):
             print(f"Error logging trainable parameters: {e}")
         return
 
+    def get_jacobian(self, forces, pos, grad_outputs, create_graph=False, looped=False):
+        # This function should: take the derivatives of forces with respect to positions.
+        # Grad_outputs should be supplied. if it's none, then
+        def compute_grad(grad_output):
+            return torch.autograd.grad(
+                outputs=forces,
+                inputs=pos,
+                grad_outputs=grad_output,
+                create_graph=create_graph,
+                retain_graph=True,
+            )[0]
+
+        if not looped:
+            if len(grad_outputs.shape) == 4:
+                compute_jacobian = torch.vmap(torch.vmap(compute_grad))
+            else:
+                compute_jacobian = torch.vmap(compute_grad)
+            return compute_jacobian(grad_outputs)
+        else:
+            num_atoms = forces.shape[0]
+            if len(grad_outputs.shape) == 4:
+                full_jac = torch.zeros(grad_outputs.shape[0], 3, num_atoms, 3).to(
+                    forces.device
+                )
+                for i in range(grad_outputs.shape[0]):
+                    for j in range(3):
+                        full_jac[i, j] = compute_grad(grad_outputs[i, j])
+            else:
+                full_jac = torch.zeros(grad_outputs.shape[0], num_atoms, 3).to(
+                    forces.device
+                )
+                for i in range(grad_outputs.shape[0]):
+                    full_jac[i] = compute_grad(grad_outputs[i])
+            return full_jac
+
+    def get_force_jac_loss(
+        self,
+        forces,
+        batch,
+        hessian_label,
+        num_samples=2,
+        looped=False,
+        forward=None,
+    ):
+        natoms = batch.natoms
+        total_num_atoms = forces.shape[0]
+
+        mask = torch.ones(total_num_atoms, dtype=torch.bool)
+        cumulative_sums = [0] + torch.cumsum(natoms, 0).tolist()
+
+        by_molecule = []
+        grad_outputs = torch.zeros((num_samples, total_num_atoms, 3)).to(forces.device)
+        for i, atoms_in_mol in enumerate(batch.natoms):
+            submask = mask[cumulative_sums[i] : cumulative_sums[i + 1]]
+            samples = self.sample_with_mask(atoms_in_mol, num_samples, submask)
+
+            by_molecule.append(samples)  # swap below and above line, crucial
+            offset_samples = (
+                samples.clone()
+            )  # Create a copy of the samples array to avoid modifying the original
+            offset_samples[:, 0] += cumulative_sums[i]
+            # Vectorized assignment to grad_outputs
+            grad_outputs[
+                torch.arange(samples.shape[0]),
+                offset_samples[:, 0],
+                offset_samples[:, 1],
+            ] = 1
+        # Compute the jacobian using grad_outputs
+
+        jac = self.get_jacobian(
+            forces, batch.pos, grad_outputs, create_graph=True, looped=looped
+        )
+        # jac = self.get_jacobian_finite_difference(forces, batch, grad_outputs = grad_outputs, forward=self._forward)
+
+        # Decomposing the Jacobian tensor by molecule in a batch
+        mask_per_mol = [
+            mask[cum_sum : cum_sum + nat]
+            for cum_sum, nat in zip(cumulative_sums[:-1], natoms)
+        ]
+        num_free_atoms_per_mol = torch.tensor(
+            [sum(sub_mask) for sub_mask in mask_per_mol], device=natoms.device
+        )
+        cum_jac_indexes = [0] + torch.cumsum(
+            (num_free_atoms_per_mol * natoms) * 9, dim=0
+        ).tolist()
+
+        jacs_per_mol = [
+            jac[: len(mol_samps), cum_sum : cum_sum + nat, :]
+            for mol_samps, cum_sum, nat in zip(
+                by_molecule, cumulative_sums[:-1], natoms
+            )
+        ]
+        jacs_per_mol = [
+            mol_jac[:, mask, :] for mol_jac, mask in zip(jacs_per_mol, mask_per_mol)
+        ]  # do the same for te student hessians
+
+        if torch.any(torch.isnan(jac)):
+            raise Exception("FORCE JAC IS NAN")
+
+        batch.fixed = torch.zeros(total_num_atoms)
+
+        true_jacs_per_mol = []
+        for i, samples in enumerate(by_molecule):
+            fixed_atoms = batch.fixed[cumulative_sums[i] : cumulative_sums[i + 1]]
+            fixed_cumsum = torch.cumsum(fixed_atoms, dim=0)
+            num_free_atoms = num_free_atoms_per_mol[i]
+            curr = hessian_label[cum_jac_indexes[i] : cum_jac_indexes[i + 1]].reshape(
+                num_free_atoms, 3, natoms[i], 3
+            )
+            curr = curr[:, :, mask_per_mol[i], :]  # filter out the masked columns
+            subsampled_curr = curr[
+                (samples[:, 0] - fixed_cumsum[samples[:, 0]]).long(), samples[:, 1]
+            ]  # get the sampled rows
+            true_jacs_per_mol.append(subsampled_curr)
+
+        # just copying what DDPLoss does for our special case
+        custom_loss = (
+            lambda jac, true_jac: torch.norm(jac - true_jac, p=2, dim=-1)
+            .sum(dim=1)
+            .mean(dim=0)
+        )
+        losses = [
+            custom_loss(-jac, true_jac)
+            for jac, true_jac in zip(jacs_per_mol, true_jacs_per_mol)
+        ]
+        # filter weird hessians
+        loss = sum(
+            [
+                _loss * 1e-8 if true_jac.abs().max().item() > 10000 else _loss
+                for _loss, true_jac in zip(losses, true_jacs_per_mol)
+            ]
+        )
+
+        num_samples = batch.batch.max() + 1
+        # Multiply by world size since gradients are averaged
+        # across DDP replicas
+        loss = loss / num_samples / 10
+        return loss
+
+    def sample_with_mask(self, n, num_samples, mask):
+        if mask.shape[0] != n:
+            raise ValueError(
+                "Mask length must be equal to the number of rows in the grid (n)"
+            )
+
+        # Calculate total available columns after applying the mask
+        # Only rows where mask is True are considered
+        valid_rows = torch.where(mask)[0]  # Get indices of rows that are True
+        if valid_rows.numel() == 0:
+            raise ValueError("No valid rows available according to the mask")
+
+        # Each valid row contributes 3 indices
+        valid_indices = valid_rows.repeat_interleave(3) * 3 + torch.tensor(
+            [0, 1, 2]
+        ).repeat(valid_rows.size(0)).to(mask.device)
+
+        # Sample unique indices from the valid indices
+        chosen_indices = valid_indices[
+            torch.randperm(valid_indices.size(0))[:num_samples]
+        ]
+
+        # Convert flat indices back to row and column indices
+        row_indices = chosen_indices // 3
+        col_indices = chosen_indices % 3
+
+        # Combine into 2-tuples
+        samples = torch.stack((row_indices, col_indices), dim=1)
+
+        return samples
+
     def train_dataloader(self):
         """Override to use custom collate function for Hessian batch offsetting"""
         return TGDataLoader(
@@ -456,7 +593,7 @@ class PotentialModule(LightningModule):
             batch_size=self.training_config["bz"],
             shuffle=True,
             num_workers=self.training_config["num_workers"],
-            follow_batch=self.training_config["follow_batch"],
+            # follow_batch=self.training_config["follow_batch"],
             drop_last=self.training_config["drop_last"],
         )
 
@@ -467,7 +604,7 @@ class PotentialModule(LightningModule):
             batch_size=self.training_config["bz_val"],
             shuffle=False,
             num_workers=self.training_config["num_workers"],
-            follow_batch=self.training_config["follow_batch"],
+            # follow_batch=self.training_config["follow_batch"],
             drop_last=self.training_config["drop_last"],
         )
 
@@ -478,7 +615,7 @@ class PotentialModule(LightningModule):
             batch_size=self.training_config["bz_val"],
             shuffle=False,
             num_workers=self.training_config["num_workers"],
-            follow_batch=self.training_config["follow_batch"],
+            # follow_batch=self.training_config["follow_batch"],
             drop_last=self.training_config["drop_last"],
         )
 
@@ -486,19 +623,28 @@ class PotentialModule(LightningModule):
     def compute_loss(self, batch):
         loss = 0.0
         info = {}
-        # batch.pos.requires_grad_()
 
+        if self.training_config["ad_hessian"]:
+            batch.pos = remove_mean_batch(batch.pos, batch.batch)
+            batch.pos.requires_grad_()
         hat_ae, hat_forces, outputs = self.potential.forward(
             batch.to(self.device),
-            hessian=self.do_hessian,
+            hessian=self.do_hessian and not self.training_config["ad_hessian"],
             otf_graph=self.training_config["otfgraph_in_model"],
         )
 
         if self.do_hessian:
-            hessian_pred = outputs["hessian"].to(self.device)
-            hessian_true = batch.hessian.to(self.device)
-
-            hessian_loss = self.loss_fn_hessian(hessian_pred, hessian_true)
+            if self.training_config["ad_hessian"]:
+                hessian_loss = self.get_force_jac_loss(
+                    hat_forces,
+                    batch,
+                    batch.hessian,
+                    num_samples=self.training_config["hvps"],
+                )
+            else:
+                hessian_pred = outputs["hessian"].to(self.device)
+                hessian_true = batch.hessian.to(self.device)
+                hessian_loss = self.loss_fn_hessian(hessian_pred, hessian_true)
             loss += hessian_loss * self.training_config["hessian_loss_weight"]
             info["Loss Hessian"] = hessian_loss.detach().item()
 
@@ -553,7 +699,7 @@ class PotentialModule(LightningModule):
             self.loss_fn_val(hat_forces, batch.forces).abs().mean().detach().item()
         )
 
-        if self.do_hessian:
+        if "hessian" in outputs:
             hessian_true = batch.hessian
             hessian_pred = outputs["hessian"].detach()
 
@@ -594,7 +740,7 @@ class PotentialModule(LightningModule):
 
         info_prefix[f"{prefix}-totloss"] = eval_info["MAE E"] + eval_info["MAE F"]
 
-        if self.do_hessian:
+        if "MAE Hessian" in eval_info:
             info_prefix[f"{prefix}-totloss"] += eval_info["MAE Hessian"]
             # info_prefix[f"{prefix}-totloss"] += eval_info["MAE Eigvals Eckart"]
             # info_prefix[f"{prefix}-totloss"] += (-1 * eval_info["Abs Cosine Sim v1 Eckart"] / 20)

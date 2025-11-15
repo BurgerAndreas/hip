@@ -1,0 +1,16 @@
+# @package _global_
+
+training:
+  bz: 64
+  bz_val: 64
+  num_workers: 2 # 48
+
+  # horm used: loss = floss * 100 + eloss * 4 + hessian_loss * 4
+  hessian_loss_weight: 4.0
+  energy_loss_weight: 4.0
+  force_loss_weight: 100.0
+  hessian_loss_type: "mae"
+
+  ad_hessian: true
+  hvps: 2
+

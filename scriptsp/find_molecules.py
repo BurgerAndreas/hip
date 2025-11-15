@@ -186,7 +186,9 @@ def search_pubchem_by_atom_count(
                 # Use estimated count for filtering, but we'll verify with actual download
                 if estimated and min_atoms <= estimated <= max_atoms * 1.5:
                     found_compounds.append((cid, estimated))
-                    print(f"  ✓ Found CID {cid}: ~{estimated} atoms (est), {heavy_atoms} heavy, MW={mw:.2f}")
+                    print(
+                        f"  ✓ Found CID {cid}: ~{estimated} atoms (est), {heavy_atoms} heavy, MW={mw:.2f}"
+                    )
 
             time.sleep(0.1)  # Rate limiting
 
