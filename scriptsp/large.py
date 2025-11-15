@@ -6,7 +6,7 @@ from tqdm import tqdm
 import pandas as pd
 import numpy as np
 import plotly.graph_objects as go
-
+import wandb
 
 import json
 from pathlib import Path
@@ -927,12 +927,33 @@ if __name__ == "__main__":
         default=100,
         help="Maximum number of atoms for autograd Hessian computation.",
     )
+    parser.add_argument(
+        "--usewandb",
+        type=bool,
+        default=True,
+        help="Log results and images to Weights & Biases.",
+    )
     """
     uv run scriptsp/large.py --redo True --maxnatoms 250 --maxnatoms_fc 170 --maxnatoms_ad 100
     """
 
     args = parser.parse_args()
     torch.manual_seed(42)
+
+    if args.usewandb:
+        wandb.init(
+            project="hip-speed-comparison",
+            config={
+                "dataset": args.dataset,
+                "max_samples_per_n": args.max_samples_per_n,
+                "cutoff": args.cutoff,
+                "cutoff_hessian": args.cutoff_hessian,
+                "maxnatoms": args.maxnatoms,
+                "maxnatoms_fc": args.maxnatoms_fc,
+                "maxnatoms_ad": args.maxnatoms_ad,
+                "ckpt_path": args.ckpt_path,
+            },
+        )
 
     redo = args.redo
 
@@ -976,5 +997,15 @@ if __name__ == "__main__":
         cutoff=args.cutoff,
         cutoff_hessian=args.cutoff_hessian,
     )
+
+    if args.usewandb:
+        # Log results as a wandb table
+        results_table = wandb.Table(dataframe=results_df)
+        wandb.log({"results_table": results_table})
+
+        # Log the generated image
+        image_path = output_dir / "speedmemorylarge.png"
+        if image_path.exists():
+            wandb.log({"speed_memory_plot": wandb.Image(str(image_path))})
 
     print("\nDone!")
