@@ -460,6 +460,42 @@ class PotentialModule(LightningModule):
         looped=False,
         forward=None,
     ):
+        """
+        Compute loss between predicted and true force Jacobian (Hessian) using sampled VJPs.
+        
+        This method assumes forces are conservative (computed via autograd from energy),
+        i.e., F = -∇E. Under this assumption:
+        - The force Jacobian is: J = ∂F/∂x = -∇²E = -H (negative Hessian)
+        - Therefore: -J = H (the Hessian matrix)
+        
+        What is computed: VJP (Vector-Jacobian Product), not HVP
+        - This method computes VJPs using reverse-mode automatic differentiation
+        - Each VJP computes: v^T @ J, where v is a one-hot vector selecting a specific
+          (atom, coordinate) pair, and J = ∂F/∂x is the force Jacobian
+        - When forces are conservative, J is symmetric, so: v^T @ J = (J @ v)^T
+        - Each VJP extracts one row of the Jacobian matrix
+        
+        Relationship to HVP (Hessian-Vector Product):
+        - When forces are conservative: H = -J, so HVP = H @ v = -J @ v
+        - Since J is symmetric: HVP = H @ v = -J @ v = -(v^T @ J)^T = -(VJP)^T
+        - Therefore, VJP and HVP are related by negation and transposition
+        
+        num_samples parameter:
+        - Controls the total number of VJPs computed per batch (across all molecules)
+        - Each sample selects a random (atom_index, coordinate_index) pair
+        - More samples = more rows of the Jacobian are computed, but higher cost
+        
+        Args:
+            forces: Predicted forces tensor of shape (N, 3) where N is total atoms
+            batch: Batch object containing molecular structure information
+            hessian_label: True Hessian values for comparison
+            num_samples: Number of VJPs to compute per molecule (default: 2)
+            looped: If True, use looped computation instead of vmap
+            forward: Unused parameter (for compatibility)
+            
+        Returns:
+            loss: Scaled loss value comparing predicted and true Hessian entries
+        """
         natoms = batch.natoms
         total_num_atoms = forces.shape[0]
 
@@ -483,12 +519,11 @@ class PotentialModule(LightningModule):
                 offset_samples[:, 0],
                 offset_samples[:, 1],
             ] = 1
+            
         # Compute the jacobian using grad_outputs
-
         jac = self.get_jacobian(
             forces, batch.pos, grad_outputs, create_graph=True, looped=looped
         )
-        # jac = self.get_jacobian_finite_difference(forces, batch, grad_outputs = grad_outputs, forward=self._forward)
 
         # Decomposing the Jacobian tensor by molecule in a batch
         mask_per_mol = [
@@ -508,12 +543,13 @@ class PotentialModule(LightningModule):
                 by_molecule, cumulative_sums[:-1], natoms
             )
         ]
+        # do the same for the student hessians
         jacs_per_mol = [
             mol_jac[:, mask, :] for mol_jac, mask in zip(jacs_per_mol, mask_per_mol)
-        ]  # do the same for te student hessians
+        ]  
 
-        if torch.any(torch.isnan(jac)):
-            raise Exception("FORCE JAC IS NAN")
+        # if torch.any(torch.isnan(jac)):
+        #     raise Exception("FORCE JAC IS NAN")
 
         batch.fixed = torch.zeros(total_num_atoms)
 
@@ -549,10 +585,10 @@ class PotentialModule(LightningModule):
             ]
         )
 
-        num_samples = batch.batch.max() + 1
+        batch_size = batch.batch.max() + 1
         # Multiply by world size since gradients are averaged
         # across DDP replicas
-        loss = loss / num_samples / 10
+        loss = loss / batch_size / 10
         return loss
 
     def sample_with_mask(self, n, num_samples, mask):
@@ -696,7 +732,7 @@ class PotentialModule(LightningModule):
             self.loss_fn_val(hat_ae, batch.ae).abs().mean().detach().item()
         )
         # Per-atom energy MAE
-        energy_diff = (hat_ae - batch.ae).abs() # [B]
+        energy_diff = (hat_ae - batch.ae).abs()  # [B]
         per_atom_energy_mae = (energy_diff / batch.natoms).mean().detach().item()
         eval_metrics["MAE E per atom"] = per_atom_energy_mae
         eval_metrics["MAE F"] = (

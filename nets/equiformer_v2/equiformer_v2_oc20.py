@@ -97,6 +97,12 @@ def get_sparse_hessian(
     """
     Get the sparse Hessian from the edge features.
     """
+    # TODO: we basically already have two lists of 3x3 matrices: l012_edge_features and l012_node_features
+    # and the corresponding indices where they are located in the full Hessian: 
+    # data.message_idx_ij / message_idx_ji and data.diag_ij / data.diag_ji
+    # we now just need to aggregate, e.g. into a COO format tensor
+    # COO (Coordinate) – torch.sparse_coo
+    # General N-D sparse format that stores explicit (indices, values)
     pass
 
 
@@ -751,6 +757,9 @@ class EquiformerV2_OC20(BaseModel):
         return_l_features=False,
         otf_graph=None,  # will default to self.otf_graph
         return_dense_hessian=True,
+        # needed for Hessian computation from conservative forces
+        conservative_forces=False,
+        retain_forces_graph=False, 
         **kwargs,
     ):
         """
@@ -890,9 +899,22 @@ class EquiformerV2_OC20(BaseModel):
         # Force estimation
         ###############################################################
 
-        forces = self.force_block(x, atomic_numbers, edge_distance, edge_index)
-        forces = forces.embedding.narrow(1, 1, 3)
-        forces = forces.view(-1, 3)
+        if conservative_forces:
+            # https://github.com/atomicarchitects/equiformer/blob/64cb7866f48b9aa156e74a9d6a2ef2663b367437/nets/graph_attention_transformer_md17.py#L317
+            # https://github.com/Open-Catalyst-Project/ocp/blob/main/ocpmodels/models/spinconv.py#L321-L328
+            forces = -1 * (
+                torch.autograd.grad(
+                    energy,
+                    data.pos,
+                    grad_outputs=torch.ones_like(energy),
+                    create_graph=True,
+                    retain_graph=retain_forces_graph, # needed for Hessian computation
+                )[0]
+            )
+        else:
+            forces = self.force_block(x, atomic_numbers, edge_distance, edge_index)
+            forces = forces.embedding.narrow(1, 1, 3)
+            forces = forces.view(-1, 3)
 
         outputs = {}
 
