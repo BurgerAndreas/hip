@@ -1,0 +1,41 @@
+# @package _global_
+
+# Configuration reconstructed from the HORM leftnet.ckpt checkpoint.
+# Metadata: {'device_count': None, 'epoch': 119, 'global_step': 192000}
+
+model:
+  name: LEFTNet
+  act_fn: "swish"
+  cutoff: 10.0
+  ff: true
+  for_conf: false
+  hidden_channels: 196
+  in_hidden_channels: 8
+  in_node_nf: 8
+  legacy: true
+  num_layers: 6
+  num_radial: 96
+  pos_grad: false
+  pos_require_grad: true
+  reflect_equiv: true
+  single_layer_output: true
+  update: true
+
+optimizer:
+  amsgrad: true
+  betas:
+    - 0.9
+    - 0.999
+  lr: 5.0e-06
+  weight_decay: 0
+
+training:
+  bz: 16
+  clip_grad: true
+  ema: false
+  gradient_clip_val: null
+  lr_schedule_type: null
+  lr_schedule_config:
+    gamma: 0.8
+    step_size: 10
+  num_workers: 4

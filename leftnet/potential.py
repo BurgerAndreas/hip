@@ -16,7 +16,7 @@ from leftnet.utils import (
     get_edges_index,
 )
 from leftnet.model import MLP, EGNN
-import pdb
+# import pdb
 
 FEATURE_MAPPING = ["pos", "one_hot", "charges"]
 
@@ -77,6 +77,7 @@ class BaseDynamics(nn.Module):
         if model is None:
             model = EGNN
         self.model = model(**model_config)
+        print(f"leftnet.potential set model {model.__class__.__name__}")
         if source is not None and "model" in source:
             self.model.load_state_dict(source["model"])
         self.dist_dim = self.model.dist_dim if hasattr(self.model, "dist_dim") else 0
@@ -250,7 +251,7 @@ class Potential(BaseDynamics):
         pos = torch.concat(
             [_xh[:, : self.pos_dim] for _xh in xh],
             dim=0,
-        )
+        )  # [N, 3]
         h = torch.concat(
             [
                 self.encoders[ii](xh[ii][:, self.pos_dim :])
@@ -283,6 +284,7 @@ class Potential(BaseDynamics):
         else:
             raise NotImplementedError  # no need to mask pos for inpainting mode.
 
+        # [N, C], [N, 3]
         node_features, forces = self.model(
             h,
             pos,
@@ -338,6 +340,7 @@ class Potential(BaseDynamics):
         self,
         pyg_batch: Data,
         conditions: Optional[Tensor] = None,
+        **kwargs
     ):
         masks = [pyg_batch.batch]
         combined_mask = torch.cat(masks)

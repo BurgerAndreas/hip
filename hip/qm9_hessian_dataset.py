@@ -89,12 +89,14 @@ class QM9HessianDataset(TorchDataset):
         energy = float(sample["energy"])
         forces = np.array(sample["forces"], dtype=np.float32)
         hessian = np.array(sample["hessian"], dtype=np.float32)
+        frequencies = np.array(sample["frequencies"], dtype=np.float32)
 
         # Convert to tensors
         pos = torch.from_numpy(positions)  # [n_atoms, 3]
         z = torch.from_numpy(atomic_numbers)
         forces = torch.from_numpy(forces)  # [n_atoms, 3]
         hessian = torch.from_numpy(hessian).reshape(-1)  # [n_atoms * 3 * n_atoms * 3]
+        frequencies = torch.from_numpy(frequencies)  # [3 * n_atoms]
 
         # Create one-hot encoding
         atomic_numbers_list = atomic_numbers.tolist()
@@ -118,6 +120,8 @@ class QM9HessianDataset(TorchDataset):
             hessian=hessian,
             natoms=natoms,
             dataset_idx=torch.tensor(idx, dtype=torch.int64),
+            # Vibrational frequencies (3N × 1) cm⁻¹ array
+            frequencies=frequencies,
         )
 
         # Apply transform if provided

@@ -1,5 +1,5 @@
 defaults:
-  - ./equiformer_v2
+  - model: equiformer_v2
   - _self_
   - lr: cosine
   # - trgt: hessian
@@ -8,7 +8,6 @@ defaults:
   - gpu: one
 
 # Model configuration
-model_type: "EquiformerV2"
 version: "0.1"
 project: "hip"
 potential_module_class: "PotentialModule"

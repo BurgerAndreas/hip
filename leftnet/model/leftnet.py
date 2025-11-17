@@ -13,6 +13,7 @@ from nets.scatter_utils import scatter, scatter_mean
 
 from leftnet.model.util_funcs import unsorted_segment_sum, cross_legacy
 from leftnet.model.core import MLP
+# import pdb
 
 EPS = 1e-6
 
@@ -837,7 +838,7 @@ class LEFTNet(torch.nn.Module):
         # assert_rot_equiv(nn_vector, dist_pad, edge_index, pos)  # for debugging
 
         x1 = (a - b) / ((torch.sqrt(torch.sum((a - b) ** 2, 1).unsqueeze(1))) + EPS)
-        y1 = torch.cross(x1, y1, dim=1)
+        y1 = torch.cross(a, b, dim=1)
         normy = (torch.sqrt(torch.sum(y1**2, 1).unsqueeze(1))) + EPS
         y1 = y1 / normy
         # assert torch.trace(torch.matmul(x1, torch.transpose(y1, 0, 1))) < EPS  # for debugging
@@ -899,12 +900,10 @@ class LEFTNet(torch.nn.Module):
 
         if self.ff:
             return s, dpos
-
         h = self.embedding_out(s)
         if node_mask is not None:
             h = h * node_mask
         edge_attr = None
-        import pdb
 
-        pdb.set_trace()
+        # pdb.set_trace()
         return h, pos, edge_attr

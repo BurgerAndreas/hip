@@ -99,7 +99,7 @@ class PotentialModule(LightningModule):
 
         if self.model_config["name"] == "EquiformerV2":
             root_dir = find_project_root()
-            config_path = os.path.join(root_dir, "configs/equiformer_v2.yaml")
+            config_path = os.path.join(root_dir, "configs/model/equiformer_v2.yaml")
             if not os.path.exists(config_path):
                 config_path = os.path.join(root_dir, "equiformer_v2.yaml")
             if not os.path.exists(config_path):
@@ -212,8 +212,12 @@ class PotentialModule(LightningModule):
         """
         Fix paths in the training config to be relative to the project root.
         """
-        training_config["trn_path"] = fix_dataset_path(training_config["trn_path"])
-        training_config["val_path"] = fix_dataset_path(training_config["val_path"])
+        training_config["trn_path"] = fix_dataset_path(
+            training_config.get("trn_path", "data/sample_100.lmdb")
+        )
+        training_config["val_path"] = fix_dataset_path(
+            training_config.get("val_path", "data/sample_100.lmdb")
+        )
         return training_config
 
     def _freeze_except_heads(self, heads_to_train: List[str]) -> None:

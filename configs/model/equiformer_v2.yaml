@@ -3,7 +3,6 @@
 
 # ocp_trainer: forces_v2
 
-
 model:
   name: EquiformerV2
 
