@@ -88,7 +88,7 @@ def fix_dataset_path(_path):
                     f"Dataset path {_path} not found in \n{horm_path} \n{rgd1_path}"
                 )
             else:
-                _path_end = _path.split("/")[-1]
+                _path_end = _path.split("/")[-1].split(":")[-1]
                 return _fix_dataset_path_single(_path_end, strict=True)
 
     if (
