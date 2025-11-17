@@ -320,27 +320,33 @@ def evaluate(
             eigvals_model, eigvecs_model = torch.linalg.eigh(hessian_model)
 
             # Compute errors
-            e_error = torch.mean(torch.abs(energy_model.squeeze() - batch.ae.squeeze()))
-            e_error_per_atom = e_error / n_atoms
-            sample_data["energy_error"] = e_error.item()
-            sample_data["energy_error_per_atom"] = e_error_per_atom.item()
-            f_error = torch.mean(torch.abs(force_model - batch.forces))
-            sample_data["forces_error"] = f_error.item()
+            if "energy" in batch:  # RGD1 dataset
+                energy_true = batch.energy
+            else:  # T1x, QM9 dataset
+                energy_true = batch.ae
+            e_mae = torch.mean(
+                torch.abs(energy_model.squeeze() - energy_true.squeeze())
+            )
+            e_mae_per_atom = e_mae / n_atoms
+            sample_data["energy_mae"] = e_mae.item()
+            sample_data["energy_mae_per_atom"] = e_mae_per_atom.item()
+            f_mae = torch.mean(torch.abs(force_model - batch.forces))
+            sample_data["forces_mae"] = f_mae.item()
 
             # Reshape true hessian
             n_atoms = batch.pos.shape[0]
             hessian_true = batch.hessian.reshape(n_atoms * 3, n_atoms * 3)
-            h_error = torch.mean(torch.abs(hessian_model - hessian_true))
-            sample_data["hessian_error"] = h_error.item()
+            h_mae = torch.mean(torch.abs(hessian_model - hessian_true))
+            sample_data["hessian_mae"] = h_mae.item()
 
             # Eigenvalue error
             eigvals_true, eigvecs_true = torch.linalg.eigh(hessian_true)
 
             # Asymmetry error
-            asymmetry_error = torch.mean(torch.abs(hessian_model - hessian_model.T))
-            true_asymmetry_error = torch.mean(torch.abs(hessian_true - hessian_true.T))
-            sample_data["asymmetry_error"] = asymmetry_error.item()
-            sample_data["true_asymmetry_error"] = true_asymmetry_error.item()
+            asymmetry_mae = torch.mean(torch.abs(hessian_model - hessian_model.T))
+            true_asymmetry_mae = torch.mean(torch.abs(hessian_true - hessian_true.T))
+            sample_data["asymmetry_mae"] = asymmetry_mae.item()
+            sample_data["true_asymmetry_mae"] = true_asymmetry_mae.item()
 
             # Additional metrics
             eigval_mae = torch.mean(
@@ -527,9 +533,9 @@ def plot_accuracy_vs_natoms(df_results, name):
 
     # Define metrics to plot and their labels
     metrics = [
-        ("energy_error", "Energy MAE", "Energy Error"),
-        ("forces_error", "Forces MAE", "Forces Error"),
-        ("hessian_error", "Hessian MAE", "Hessian Error"),
+        ("energy_mae", "Energy MAE", "Energy Error"),
+        ("forces_mae", "Forces MAE", "Forces Error"),
+        ("hessian_mae", "Hessian MAE", "Hessian Error"),
         ("eigvec1_cos", "Eigenvector 1 Cosine", "Eigenvector 1 Cosine"),
         ("eigval1_mae", "Eigenvalue 1 MAE", "Eigenvalue 1 MAE"),
         ("is_ts_agree", "Is TS Agree", "Is TS Agree"),
@@ -586,10 +592,11 @@ def plot_accuracy_vs_natoms(df_results, name):
 
 
 """
-uv run python scripts/eval_horm.py -c ckpt/eqv2.ckpt -d ts1x-val.lmdb -m 1000 -r True
-uv run python scripts/eval_horm.py -c ckpt/hesspred_v1.ckpt -d ts1x-val.lmdb -m 1000 -r True -hm predict
-uv run python scripts/eval_horm.py -c ckpt/hip_v2.ckpt -d ts1x-val.lmdb -m 1000 -r True -hm predict
-uv run python scripts/eval_horm.py -c ckpt/hip_v3.ckpt -d ts1x-val.lmdb -m 1000 -r True -hm predict
+uv run python scripts/eval.py -c ckpt/eqv2.ckpt -d RGD1.lmdb -m 1000 -r True -hm autograd
+uv run python scripts/eval.py -c ckpt/eqv2.ckpt -d ts1x-val.lmdb -m 1000 -r True -hm autograd
+uv run python scripts/eval.py -c ckpt/hesspred_v1.ckpt -d ts1x-val.lmdb -m 1000 -r True -hm predict
+uv run python scripts/eval.py -c ckpt/hip_v2.ckpt -d ts1x-val.lmdb -m 1000 -r True -hm predict
+uv run python scripts/eval.py -c ckpt/hip_v3.ckpt -d ts1x-val.lmdb -m 1000 -r True -hm predict
 """
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Evaluate HORM model on dataset")
@@ -611,7 +618,7 @@ if __name__ == "__main__":
         "-hm",
         choices=["autograd", "predict"],
         type=str,
-        default="autograd",
+        default="predict",
         help="Hessian computation method: autograd, predict",
     )
     parser.add_argument(
