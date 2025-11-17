@@ -53,7 +53,7 @@ def _get_forces(
         forces: Tensor of shape [n_atoms, 3]
     """
     with torch.no_grad():
-        _, forces, _ = model.forward(batch, otf_graph=True)
+        _, forces, _ = model.forward(batch, otf_graph=True, hessian=False)
     return forces
 
 
@@ -71,7 +71,7 @@ def _get_forces_batched(
         forces_list: List of force tensors, one per graph in the batch
     """
     with torch.no_grad():
-        _, forces, _ = model.forward(batch, otf_graph=True)
+        _, forces, _ = model.forward(batch, otf_graph=True, hessian=False)
 
     # Extract forces for each graph in the batch
     # batch.batch contains the graph index for each atom

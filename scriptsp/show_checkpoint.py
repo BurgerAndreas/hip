@@ -35,8 +35,8 @@ def main() -> None:
     # ckpt_path = project_root / "ckpt" / "left.ckpt"
     # ckpt_path = project_root / "ckpt" / "eqv2_orig.ckpt"
     # ckpt_path = project_root / "ckpt" / "eqv2.ckpt"
-    # ckpt_path = project_root / "ckpt" / "left-df.ckpt"
-    ckpt_path = project_root / "ckpt" / "alpha.ckpt"
+    ckpt_path = project_root / "ckpt" / "left-df.ckpt"
+    # ckpt_path = project_root / "ckpt" / "alpha.ckpt"
     print(f"Loading checkpoint from {ckpt_path}")
 
     checkpoint = torch.load(ckpt_path, map_location="cpu", weights_only=False)

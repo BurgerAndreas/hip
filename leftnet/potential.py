@@ -356,7 +356,7 @@ class Potential(BaseDynamics):
             )
         ]
 
-        t = torch.randint(0, self.timesteps, size=(1,)) / self.timesteps
+        # t = torch.randint(0, self.timesteps, size=(1,)) / self.timesteps
 
         ae, forces = self._forward(
             xh=xh,

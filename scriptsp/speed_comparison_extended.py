@@ -167,8 +167,6 @@ def time_hessian_computation(model, batch, hessian_method):
             compute_hessian(batch.pos, ener, force)
         else:
             with torch.no_grad():
-                # for a fair comparison
-                # compute graph and Hessian indices on the fly
                 ener, force, out = model.forward(
                     batch,
                     otf_graph=True,
@@ -190,8 +188,10 @@ def time_hessian_computation(model, batch, hessian_method):
 def time_finite_difference_hessian(model, batch, batch_size):
     """Times finite difference Hessian computation and measures memory usage."""
     torch.cuda.reset_peak_memory_stats()
-    start_event = torch.cuda.Event(enable_timing=True)
-    end_event = torch.cuda.Event(enable_timing=True)
+    start_event = torch.cuda.Event(
+        enable_timing=True, blocking=False, interprocess=False
+    )
+    end_event = torch.cuda.Event(enable_timing=True, blocking=False, interprocess=False)
 
     start_event.record()
 
@@ -271,7 +271,7 @@ def speed_comparison(
 
     # do a couple of forward passes to warm up the model
     # populate caches, jit, load cuda kernels, and what not
-    loader = TGDataLoader(dataset, batch_size=1, shuffle=False)
+    loader = TGDataLoader(dataset, batch_size=1, shuffle=True)
     for i, sample in enumerate(loader):
         batch = sample.to(device)
         time_hessian_computation(model, batch, "prediction")
@@ -303,6 +303,36 @@ def speed_comparison(
 
         for _batch in tqdm(loader, desc=f"N={n_atoms}", leave=False):
             batch = _batch.clone().to(device)
+
+            # Time finite difference with batch_size=1
+            batch = _batch.clone().to(device)
+            time_fd1, mem_fd1 = time_finite_difference_hessian(
+                model, batch, batch_size=1
+            )
+            results.append(
+                {
+                    "n_atoms": n_atoms,
+                    "method": "finite_difference_bz1",
+                    "time": time_fd1,
+                    "memory": mem_fd1,
+                }
+            )
+            torch.cuda.empty_cache()
+
+            # Time finite difference with batch_size=32
+            batch = _batch.clone().to(device)
+            time_fd32, mem_fd32 = time_finite_difference_hessian(
+                model, batch, batch_size=32
+            )
+            results.append(
+                {
+                    "n_atoms": n_atoms,
+                    "method": "finite_difference_bz32",
+                    "time": time_fd32,
+                    "memory": mem_fd32,
+                }
+            )
+            torch.cuda.empty_cache()
 
             # Time forward pass
             time_fwd, mem_fwd = time_forward_pass(model, batch)
@@ -342,36 +372,6 @@ def speed_comparison(
                     "method": "autograd",
                     "time": time_autograd,
                     "memory": mem_autograd,
-                }
-            )
-            torch.cuda.empty_cache()
-
-            # Time finite difference with batch_size=1
-            batch = _batch.clone().to(device)
-            time_fd1, mem_fd1 = time_finite_difference_hessian(
-                model, batch, batch_size=1
-            )
-            results.append(
-                {
-                    "n_atoms": n_atoms,
-                    "method": "finite_difference_bz1",
-                    "time": time_fd1,
-                    "memory": mem_fd1,
-                }
-            )
-            torch.cuda.empty_cache()
-
-            # Time finite difference with batch_size=32
-            batch = _batch.clone().to(device)
-            time_fd32, mem_fd32 = time_finite_difference_hessian(
-                model, batch, batch_size=32
-            )
-            results.append(
-                {
-                    "n_atoms": n_atoms,
-                    "method": "finite_difference_bz32",
-                    "time": time_fd32,
-                    "memory": mem_fd32,
                 }
             )
             torch.cuda.empty_cache()
@@ -416,10 +416,14 @@ def plot_combined_speed_memory(
             color = "#68c4af"  # Green-ish color
         elif "finite_difference_bz1" in method_lower:
             # Use a distinct color for FD bz=1
-            color = "#ffaaa5"  # Pink-ish color
+            # color = "#ffaaa5"
+            color = "#1b85b8"
+            color = "#d96009"
+            # color = "#5a5255"
+
         elif "finite_difference_bz32" in method_lower:
             # Use a distinct color for FD bz=32
-            color = "#ff8b94"  # Darker pink
+            color = "#ff8b94"
         else:
             # Fallback to default color mapping or a default color
             color = HESSIAN_METHOD_TO_COLOUR.get(method_lower)
@@ -459,9 +463,34 @@ def plot_combined_speed_memory(
     fig = make_subplots(
         rows=1,
         cols=2,
-        subplot_titles=("Time (Single Sample)", "Memory"),
+        subplot_titles=("Time", "Memory"),
         horizontal_spacing=0.05,
         vertical_spacing=0.0,
+    )
+
+    #########################################################
+    def _linear_scaling_line(df):
+        reference_order = ["prediction", "forward_pass", "autograd"]
+        for name in reference_order:
+            if name in df.columns:
+                series = df[name].dropna()
+                if len(series) > 0:
+                    base_x = float(series.index[0])
+                    base_y = float(series.iloc[0])
+                    if base_x > 0 and base_y > 0:
+                        x_vals = df.index.to_numpy(dtype=float)
+                        return x_vals, base_y * (x_vals / base_x)
+        return None, None
+
+    time_linear_x, time_linear_y = (
+        _linear_scaling_line(avg_times)
+        if logy_time and not avg_times.empty
+        else (None, None)
+    )
+    memory_linear_x, memory_linear_y = (
+        _linear_scaling_line(avg_memory)
+        if logy_memory and not avg_memory.empty
+        else (None, None)
     )
 
     #########################################################
@@ -475,7 +504,7 @@ def plot_combined_speed_memory(
         elif str(method).lower() == "forward_pass":
             display_name = "Forward Pass"
         elif "finite_difference_bz1" in str(method).lower():
-            display_name = "FD Hessians (bz=1)"
+            display_name = "FD Hessians"
         elif "finite_difference_bz32" in str(method).lower():
             display_name = "FD Hessians (bz=32)"
         else:
@@ -501,6 +530,19 @@ def plot_combined_speed_memory(
             row=1,
             col=1,
         )
+    # fig.add_trace(
+    #     go.Scatter(
+    #         x=time_linear_x,
+    #         y=time_linear_y,
+    #         mode="lines",
+    #         name="Linear scaling",
+    #         legend="legend",
+    #         showlegend=True,
+    #         line=dict(color="#000000", dash="dash"),
+    #     ),
+    #     row=1,
+    #     col=1,
+    # )
 
     # Col 2: Memory vs N
     for method in avg_memory.columns:
@@ -510,7 +552,7 @@ def plot_combined_speed_memory(
         elif str(method).lower() == "forward_pass":
             display_name = "Forward Pass"
         elif "finite_difference_bz1" in str(method).lower():
-            display_name = "FD Hessians (bz=1)"
+            display_name = "FD Hessians"
         elif "finite_difference_bz32" in str(method).lower():
             display_name = "FD Hessians (bz=32)"
         else:
@@ -534,6 +576,18 @@ def plot_combined_speed_memory(
             row=1,
             col=2,
         )
+    # fig.add_trace(
+    #     go.Scatter(
+    #         x=memory_linear_x,
+    #         y=memory_linear_y,
+    #         mode="lines",
+    #         name="Linear",
+    #         showlegend=False,
+    #         line=dict(color="#000000", dash="dash"),
+    #     ),
+    #     row=1,
+    #     col=2,
+    # )
 
     # derive subplot domains to place legends at the top-middle of each subplot
     dom1 = fig.layout.xaxis.domain if hasattr(fig.layout, "xaxis") else [0.0, 0.45]
@@ -544,7 +598,7 @@ def plot_combined_speed_memory(
     fig.update_xaxes(title_text="Number of Atoms (N)", title_standoff=5, row=1, col=1)
     fig.update_yaxes(title_text="Average Time (ms)", title_standoff=10, row=1, col=1)
     fig.update_xaxes(title_text="Number of Atoms (N)", title_standoff=5, row=1, col=2)
-    fig.update_yaxes(title_text="Peak Memory (MB)", title_standoff=0, row=1, col=2)
+    fig.update_yaxes(title_text="", title_standoff=0, row=1, col=2)
 
     # Build yaxis configs conditionally based on log flags
     yaxis_config = {"showgrid": True}
@@ -585,8 +639,8 @@ def plot_combined_speed_memory(
         yaxis=yaxis_config,
         yaxis2=yaxis2_config,
         legend=dict(
-            x=x2 - 0.07,
-            y=0.98,
+            x=x2 - 0.08,
+            y=0.999,
             xanchor="center",
             yanchor="top",
             orientation="v",
@@ -612,6 +666,11 @@ def plot_combined_speed_memory(
         fig.update_yaxes(
             range=[ymin_memory, ymax_memory], autorange=False, row=1, col=2
         )
+
+    # set xaxis range
+    fig.update_xaxes(range=[4.5, 21.5], autorange=False, row=1, col=2)
+    fig.update_xaxes(range=[4.5, 21.5], autorange=False, row=1, col=1)
+
     # Increase line width slightly for readability across all subplots
     fig.update_traces(line=dict(width=3))
 
@@ -626,7 +685,7 @@ def plot_combined_speed_memory(
 
     # Set subplot title fonts specifically to TITLE_FONT_SIZE
     for ann in fig.layout.annotations:
-        if ann.text in ("Time (Single Sample)", "Memory"):
+        if ann.text in ("Time", "Memory"):
             ann.update(font=dict(size=TITLE_FONT_SIZE))
 
     # Add subplot panel labels (a, b) at top-left outside each subplot
@@ -651,6 +710,18 @@ def plot_combined_speed_memory(
         xanchor="right",
         yanchor="bottom",
         font=dict(size=ANNOTATION_BOLD_FONT_SIZE),
+    )
+    fig.add_annotation(
+        x=max(dom2[0] - 0.019, 0.0),
+        y=0.5,
+        xref="paper",
+        yref="paper",
+        text="Peak Memory (MB)",
+        textangle=-90,
+        showarrow=False,
+        xanchor="center",
+        yanchor="middle",
+        font=dict(size=AXES_TITLE_FONT_SIZE),
     )
 
     _name = "speedmemory"
@@ -756,7 +827,7 @@ if __name__ == "__main__":
         show_std=args.show_std,
         show_ad=True,
         show_fd=True,
-        show_fd32=True,
+        show_fd32=False,
         show_fwd=True,
     )
     plot_combined_speed_memory(

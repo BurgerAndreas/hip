@@ -259,10 +259,6 @@ def evaluate(
                 energy_model, force_model = model.forward(batch)
                 hessian_model = compute_hessian(batch.pos, energy_model, force_model)
 
-        start_event_all = torch.cuda.Event(enable_timing=True)
-        end_event_all = torch.cuda.Event(enable_timing=True)
-        start_event_all.record()
-
         for batch in tqdm(dataloader, desc="Evaluating", total=n_total_samples):
             batch = batch.to(device)
 
@@ -392,19 +388,19 @@ def evaluate(
 
             sample_data["eigval_mae_eckart"] = torch.mean(
                 torch.abs(eigvals_model_eckart - true_eigvals_eckart)
-            )
+            ).item()
             sample_data["eigval1_mae_eckart"] = torch.mean(
                 torch.abs(eigvals_model_eckart[0] - true_eigvals_eckart[0])
-            )
+            ).item()
             sample_data["eigval2_mae_eckart"] = torch.mean(
                 torch.abs(eigvals_model_eckart[1] - true_eigvals_eckart[1])
-            )
+            ).item()
             sample_data["eigvec1_cos_eckart"] = torch.abs(
                 torch.dot(eigvecs_model_eckart[:, 0], true_eigvecs_eckart[:, 0])
-            )
+            ).item()
             sample_data["eigvec2_cos_eckart"] = torch.abs(
                 torch.dot(eigvecs_model_eckart[:, 1], true_eigvecs_eckart[:, 1])
-            )
+            ).item()
 
             ########################
             # Vibrational frequencies for QM9 Hessian dataset
@@ -489,11 +485,6 @@ def evaluate(
             if max_samples is not None and n_samples >= max_samples:
                 break
 
-        end_event_all.record()
-        torch.cuda.synchronize()
-
-        time_taken_all = start_event_all.elapsed_time(end_event_all)  # ms
-
         # Create DataFrame from collected metrics
         df_results = pd.DataFrame(sample_metrics)
 
@@ -506,15 +497,17 @@ def evaluate(
     for col in df_results.columns:
         if pd.api.types.is_numeric_dtype(df_results[col]):
             aggregated_results[col] = df_results[col].mean()
+        else:
+            print(
+                f"Skipping column {col} because it is not numeric: {df_results[col].dtype}"
+            )
+            continue
 
     # Special case: is_ts_agree computed from comparing two columns
     if "model_is_ts" in df_results.columns and "true_is_ts" in df_results.columns:
         aggregated_results["is_ts_agree"] = (
             df_results["model_is_ts"] == df_results["true_is_ts"]
         ).mean()
-    if time_taken_all is not None:
-        # ms per forward pass
-        aggregated_results["time_incltransform"] = time_taken_all / n_total_samples
 
     wandb.log(aggregated_results)
 
