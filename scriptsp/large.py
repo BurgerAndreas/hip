@@ -232,7 +232,9 @@ def compute_hessian(coords, energy, forces=None):
     return hessian.reshape(n_comp, -1)
 
 
-def time_hessian_computation(model, batch, hessian_method, cutoff, cutoff_hessian):
+def time_hessian_computation(
+    model, batch, hessian_method, cutoff, cutoff_hessian, dense_hessian=True
+):
     """Times a single hessian computation and measures memory usage."""
     do_autograd = hessian_method == "autograd"
 
@@ -255,7 +257,11 @@ def time_hessian_computation(model, batch, hessian_method, cutoff, cutoff_hessia
             # for a fair comparison
             # compute graph and Hessian indices on the fly
             ener, force, out = model.forward(
-                batch, otf_graph=True, hessian=True, add_props=True
+                batch,
+                otf_graph=True,
+                hessian=True,
+                add_props=True,
+                return_dense_hessian=dense_hessian,
             )
 
     end_event.record()
@@ -426,6 +432,7 @@ def speed_comparison(
                     "prediction",
                     cutoff=cutoff,
                     cutoff_hessian=cutoff_hessian,
+                    dense_hessian=False,
                 )
                 natoms_results.append(
                     {
@@ -444,7 +451,12 @@ def speed_comparison(
 
                 # Time prediction
                 time_prediction, mem_prediction = time_hessian_computation(
-                    model, batch, "prediction", cutoff=1e8, cutoff_hessian=1e8
+                    model,
+                    batch,
+                    "prediction",
+                    cutoff=1e8,
+                    cutoff_hessian=1e8,
+                    dense_hessian=True,
                 )
                 natoms_results.append(
                     {
@@ -533,72 +545,57 @@ def speed_comparison(
 
             ################ Prediction ################
             if needs_prediction:
-                batch = _batch.clone().to(device)
-                times = []
-                memories = []
-
                 # Repeat computation largerepeat times
                 for _ in range(largerepeat):
+                    batch = _batch.clone().to(device)
                     time_prediction, mem_prediction = time_hessian_computation(
                         model,
                         batch,
                         "prediction",
                         cutoff=cutoff,
                         cutoff_hessian=cutoff_hessian,
+                        dense_hessian=False,
                     )
-                    times.append(time_prediction)
-                    memories.append(mem_prediction)
 
-                # Average results
-                avg_time = sum(times) / len(times)
-                avg_memory = sum(memories) / len(memories)
-
-                natoms_results.append(
-                    {
-                        "n_atoms": n_atoms,
-                        "n_edges": batch.edge_index.shape[1],  # [E, 2]
-                        "method": "prediction",
-                        "time": avg_time,
-                        "memory": avg_memory,
-                    }
-                )
+                    natoms_results.append(
+                        {
+                            "n_atoms": n_atoms,
+                            "n_edges": batch.edge_index.shape[1],  # [E, 2]
+                            "method": "prediction",
+                            "time": time_prediction,
+                            "memory": mem_prediction,
+                        }
+                    )
 
             ################ Fully Connected ################
             if needs_prediction_fc:
-                batch = _batch.clone().to(device)
-                times = []
-                memories = []
-
                 # Repeat computation largerepeat times
                 for _ in range(largerepeat):
+                    batch = _batch.clone().to(device)
                     time_prediction, mem_prediction = time_hessian_computation(
-                        model, batch, "prediction", cutoff=1e8, cutoff_hessian=1e8
+                        model,
+                        batch,
+                        "prediction",
+                        cutoff=1e8,
+                        cutoff_hessian=1e8,
+                        dense_hessian=True,
                     )
-                    times.append(time_prediction)
-                    memories.append(mem_prediction)
 
-                # Average results
-                avg_time = sum(times) / len(times)
-                avg_memory = sum(memories) / len(memories)
-
-                natoms_results.append(
-                    {
-                        "n_atoms": n_atoms,
-                        "n_edges": batch.edge_index.shape[1],  # [E, 2]
-                        "method": "prediction_fc",
-                        "time": avg_time,
-                        "memory": avg_memory,
-                    }
-                )
+                    natoms_results.append(
+                        {
+                            "n_atoms": n_atoms,
+                            "n_edges": batch.edge_index.shape[1],  # [E, 2]
+                            "method": "prediction_fc",
+                            "time": time_prediction,
+                            "memory": mem_prediction,
+                        }
+                    )
 
             ################ AD ################
             if needs_autograd:
-                batch = _batch.clone().to(device)
-                times = []
-                memories = []
-
                 # Repeat computation largerepeat times
                 for _ in range(largerepeat):
+                    batch = _batch.clone().to(device)
                     time_autograd, mem_autograd = time_hessian_computation(
                         model,
                         batch,
@@ -606,22 +603,16 @@ def speed_comparison(
                         cutoff=cutoff,
                         cutoff_hessian=cutoff_hessian,
                     )
-                    times.append(time_autograd)
-                    memories.append(mem_autograd)
 
-                # Average results
-                avg_time = sum(times) / len(times)
-                avg_memory = sum(memories) / len(memories)
-
-                natoms_results.append(
-                    {
-                        "n_atoms": n_atoms,
-                        "n_edges": batch.edge_index.shape[1],  # [E, 2]
-                        "method": "autograd",
-                        "time": avg_time,
-                        "memory": avg_memory,
-                    }
-                )
+                    natoms_results.append(
+                        {
+                            "n_atoms": n_atoms,
+                            "n_edges": batch.edge_index.shape[1],  # [E, 2]
+                            "method": "autograd",
+                            "time": time_autograd,
+                            "memory": mem_autograd,
+                        }
+                    )
 
             # Add results for this natoms and save immediately
             results.extend(natoms_results)
