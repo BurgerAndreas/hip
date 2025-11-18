@@ -23,6 +23,7 @@ AU2J = spc.value("Hartree energy")
 # Speed of light in m/s
 C = spc.c
 NA = spc.Avogadro
+HARTREE2EV = spc.physical_constants["Hartree energy in eV"][0]
 
 
 def inertia_tensor(coords3d, masses):
@@ -158,6 +159,7 @@ def massweigh_and_eckartprojection_np(hessian, cart_coords, atomsymbols):
 
 
 def eigval_to_wavenumber(ev):
+    """Convert Hessian eigenvalues (Hartree/amu/bohr^2) to wavenumbers (cm^-1)."""
     # This approach seems numerically more unstable
     # conv = AU2J / (AMU2KG * BOHR2M ** 2) / (2 * np.pi * 3e10)**2
     # w2nu = np.sign(ev) * np.sqrt(np.abs(ev) * conv)
@@ -166,6 +168,12 @@ def eigval_to_wavenumber(ev):
     conv = np.sqrt(NA * AU2J * 1.0e19) / (2 * np.pi * C * BOHR2ANG)
     w2nu = np.sign(ev) * np.sqrt(np.abs(ev)) * conv
     return w2nu
+
+
+def eigval_to_vibfreq(ev):
+    """Convert mass-weighted Hessian eigenvalues in eV to vibrational frequencies (cm^-1)."""
+    ev_au = np.asarray(ev) / HARTREE2EV
+    return eigval_to_wavenumber(ev_au)
 
 
 def analyze_frequencies_np(

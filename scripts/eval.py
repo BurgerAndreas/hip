@@ -16,7 +16,7 @@ from hip.ff_lmdb import LmdbDataset, Z_TO_ATOM_SYMBOL
 from hip.path_config import fix_dataset_path
 from hip.qm9_hessian_dataset import QM9HessianDataset
 
-from hip.frequency_analysis import analyze_frequencies_np, eigval_to_wavenumber
+from hip.frequency_analysis import analyze_frequencies_np, eigval_to_vibfreq
 from pathlib import Path
 
 
@@ -178,7 +178,6 @@ def evaluate(
         f"{results_dir}/{ckpt_name}_{dataset_name}_{hessian_method}_metrics.csv"
     )
 
-    time_taken_all = None
     n_total_samples = None
 
     # Check if results already exist and redo is False
@@ -411,19 +410,19 @@ def evaluate(
             model_eigvals_np = eigvals_model_eckart.detach().cpu().numpy()
 
             # Convert to wavenumbers (cm⁻¹)
-            true_wavenumbers = eigval_to_wavenumber(true_eigvals_np)
-            model_wavenumbers = eigval_to_wavenumber(model_eigvals_np)
+            true_vibfreqs = eigval_to_vibfreq(true_eigvals_np)
+            model_vibfreqs = eigval_to_vibfreq(model_eigvals_np)
 
             # Filter for positive eigenvalues (real vibrational modes) in 400-4000 cm⁻¹ range
             # Since eigenvalues are sorted and correspond to the same modes, we can compare directly
             true_mask = (
-                (true_wavenumbers >= 400)
-                & (true_wavenumbers <= 4000)
+                (true_vibfreqs >= 400)
+                & (true_vibfreqs <= 4000)
                 & (true_eigvals_np > 0)
             )
             model_mask = (
-                (model_wavenumbers >= 400)
-                & (model_wavenumbers <= 4000)
+                (model_vibfreqs >= 400)
+                & (model_vibfreqs <= 4000)
                 & (model_eigvals_np > 0)
             )
 
@@ -431,8 +430,8 @@ def evaluate(
             combined_mask = true_mask & model_mask
 
             if combined_mask.sum() > 0:
-                true_filtered = true_wavenumbers[combined_mask]
-                model_filtered = model_wavenumbers[combined_mask]
+                true_filtered = true_vibfreqs[combined_mask]
+                model_filtered = model_vibfreqs[combined_mask]
                 freq_mae = np.mean(np.abs(model_filtered - true_filtered))
                 sample_data["freq_mae_400_4000"] = freq_mae
             else:
@@ -454,11 +453,11 @@ def evaluate(
 
                 # Filter model wavenumbers to 400-4000 cm⁻¹ range
                 model_mask_dataset = (
-                    (model_wavenumbers >= 400)
-                    & (model_wavenumbers <= 4000)
+                    (model_vibfreqs >= 400)
+                    & (model_vibfreqs <= 4000)
                     & (model_eigvals_np > 0)
                 )
-                model_filtered_dataset = model_wavenumbers[model_mask_dataset]
+                model_filtered_dataset = model_vibfreqs[model_mask_dataset]
 
                 # Compare frequencies - both arrays are sorted, so compare directly
                 # Use minimum length to ensure we compare the same number of modes
