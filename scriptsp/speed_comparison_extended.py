@@ -711,6 +711,7 @@ def plot_combined_speed_memory(
         yanchor="bottom",
         font=dict(size=ANNOTATION_BOLD_FONT_SIZE),
     )
+    # instead of the yaxis title, because this we can move around more freely
     fig.add_annotation(
         x=max(dom2[0] - 0.019, 0.0),
         y=0.5,
