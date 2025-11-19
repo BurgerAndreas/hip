@@ -174,6 +174,8 @@ def evaluate(
     results_dir = "results_evalhorm"
     os.makedirs(results_dir, exist_ok=True)
     ckpt_name = checkpoint_path.split("/")[-1].split(".")[0]
+    if len(checkpoint_path.split("/")):
+        ckpt_name += "_" + checkpoint_path.split("/")[-2]
     results_file = (
         f"{results_dir}/{ckpt_name}_{dataset_name}_{hessian_method}_metrics.csv"
     )
