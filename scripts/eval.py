@@ -116,9 +116,16 @@ def evaluate(
 
     device = "cuda" if torch.cuda.is_available() else "cpu"
     ckpt = torch.load(checkpoint_path, weights_only=False, map_location=device)
+
+    module = PotentialModule.load_from_checkpoint(
+        checkpoint_path,
+        strict=False,
+        map_location=device,
+    )
     model_name = ckpt["hyper_parameters"]["model_config"]["name"]
     model_config = ckpt["hyper_parameters"]["model_config"]
-    print(f"Model name: {model_name}")
+    trainer_config = ckpt["hyper_parameters"]["training_config"]
+    optimizer_config = ckpt["hyper_parameters"]["optimizer_config"]
 
     # Get dataset from checkpoint if not provided
     if data_path is None:
@@ -144,26 +151,27 @@ def evaluate(
     _name += "_" + str(max_samples)
 
     if wandb_run_id is None:
+        wandb_config = {
+            "checkpoint": checkpoint_path,
+            "dataset": data_path,
+            "max_samples": max_samples,
+            "model_name": model_name,
+            "config_path": config_path,
+            "hessian_method": hessian_method,
+            **{f"model.{k}": v for k, v in model_config.items()},
+            **{f"trainer.{k}": v for k, v in trainer_config.items()},
+            **{f"optimizer.{k}": v for k, v in optimizer_config.items()},
+        }
+
         wandb.init(
             project="horm",
             name=_name,
-            config={
-                "checkpoint": checkpoint_path,
-                "dataset": data_path,
-                "max_samples": max_samples,
-                "model_name": model_name,
-                "config_path": config_path,
-                "hessian_method": hessian_method,
-                "model_config": model_config,
-            },
+            config=wandb_config,
             tags=["hormmetrics"],
             **wandb_kwargs,
         )
 
-    model = PotentialModule.load_from_checkpoint(
-        checkpoint_path,
-        strict=False,
-    ).potential.to(device)
+    model = module.potential.to(device)
     model.eval()
 
     do_autograd = hessian_method == "autograd"

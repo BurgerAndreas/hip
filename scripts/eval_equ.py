@@ -118,8 +118,16 @@ def evaluate(
 
     device = "cuda" if torch.cuda.is_available() else "cpu"
     ckpt = torch.load(checkpoint_path, weights_only=False, map_location=device)
+    module = PotentialModule.load_from_checkpoint(
+        checkpoint_path,
+        strict=False,
+        map_location=device,
+    )
     model_name = ckpt["hyper_parameters"]["model_config"]["name"]
     model_config = ckpt["hyper_parameters"]["model_config"]
+    model_config = ckpt["hyper_parameters"]["model_config"]
+    trainer_config = ckpt["hyper_parameters"]["training_config"]
+    optimizer_config = ckpt["hyper_parameters"]["optimizer_config"]
     print(f"Model name: {model_name}")
 
     # Get dataset from checkpoint if not provided
@@ -157,16 +165,15 @@ def evaluate(
                 "config_path": config_path,
                 "hessian_method": hessian_method,
                 "conservative_forces": conservative_forces,
-                "model_config": model_config,
+                **{f"model.{k}": v for k, v in model_config.items()},
+                **{f"trainer.{k}": v for k, v in trainer_config.items()},
+                **{f"optimizer.{k}": v for k, v in optimizer_config.items()},
             },
             tags=["hormmetrics"],
             **wandb_kwargs,
         )
 
-    model = PotentialModule.load_from_checkpoint(
-        checkpoint_path,
-        strict=False,
-    ).potential.to(device)
+    model = module.potential.to(device)
     model.eval()
 
     do_autograd = hessian_method == "autograd"
