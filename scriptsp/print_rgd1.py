@@ -99,7 +99,9 @@ group_progress = {label: 0 for label in group_counts}
 
 print()
 # print("\\begin{tabular}{llccccc}")
-print("\\multirow{2}{*}{Hessian} & \\multirow{2}{*}{Model} & Hessian $\\downarrow$  & Eigenvalues $\\downarrow$ & CosSim $\\evec_1$ $\\uparrow$ & $\\eval_1$ $\\downarrow$ & Time $\\downarrow$ \\\\")
+print(
+    "\\multirow{2}{*}{Hessian} & \\multirow{2}{*}{Model} & Hessian $\\downarrow$  & Eigenvalues $\\downarrow$ & CosSim $\\evec_1$ $\\uparrow$ & $\\eval_1$ $\\downarrow$ & Time $\\downarrow$ \\\\"
+)
 print(" &  & eV/\\AA$^2$ & eV/\\AA$^2$ & unitless & eV/\\AA$^2$ & ms \\\\")
 print("\\hline")
 for record in df.to_dict("records"):
@@ -112,9 +114,7 @@ for record in df.to_dict("records"):
         format_metric(record[m], decimals, record["bold"])
         for m, decimals in METRIC_SPECS
     ]
-    line = " & ".join(
-        [first_col, record["Model"], *metrics_text]
-    ) + " \\\\"
+    line = " & ".join([first_col, record["Model"], *metrics_text]) + " \\\\"
     print(line)
     group_progress[h_label] += 1
     if group_progress[h_label] == group_counts[h_label]:

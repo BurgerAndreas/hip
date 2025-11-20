@@ -15,6 +15,7 @@ from hip.training_module import PotentialModule
 from hip.ff_lmdb import LmdbDataset, Z_TO_ATOM_SYMBOL
 from hip.path_config import fix_dataset_path
 from hip.qm9_hessian_dataset import QM9HessianDataset
+from hip.vibrations_torch import compute_hessian_finite_difference_batched
 
 from hip.frequency_analysis import analyze_frequencies_np, eigval_to_vibfreq
 from pathlib import Path
@@ -110,6 +111,7 @@ def evaluate(
     wandb_run_id=None,
     wandb_kwargs={},
     redo=False,
+    conservative_forces=False,
 ):
     # Auto-find checkpoint if path doesn't exist
     checkpoint_path = find_checkpoint(checkpoint_path)
@@ -154,6 +156,7 @@ def evaluate(
                 "model_name": model_name,
                 "config_path": config_path,
                 "hessian_method": hessian_method,
+                "conservative_forces": conservative_forces,
                 "model_config": model_config,
             },
             tags=["hormmetrics"],
@@ -176,9 +179,8 @@ def evaluate(
     ckpt_name = checkpoint_path.split("/")[-1].split(".")[0]
     if len(checkpoint_path.split("/")):
         ckpt_name += "_" + checkpoint_path.split("/")[-2]
-    results_file = (
-        f"{results_dir}/{ckpt_name}_{dataset_name}_{hessian_method}_metrics.csv"
-    )
+    results_file = f"{results_dir}/{ckpt_name}_{dataset_name}_{hessian_method}_{conservative_forces}_metrics.csv"
+    print(f"Results file: {results_file}")
 
     n_total_samples = None
 
@@ -214,52 +216,14 @@ def evaluate(
         # Initialize metrics collection for per-sample DataFrame
         sample_metrics = []
         n_samples = 0
+        warmup_samples = 10
 
         if max_samples is not None:
             n_total_samples = min(max_samples, len(dataloader))
         else:
             n_total_samples = len(dataloader)
 
-        # Warmup
-        for _i, batch in tqdm(enumerate(dataloader), desc="Warmup", total=10):
-            if _i >= 10:
-                break
-            batch = batch.to(device)
-
-            n_atoms = batch.pos.shape[0]
-
-            torch.cuda.reset_peak_memory_stats()
-            start_event = torch.cuda.Event(enable_timing=True)
-            end_event = torch.cuda.Event(enable_timing=True)
-            start_event.record()
-
-            # Forward pass
-            if model_name == "LEFTNet":
-                batch.pos.requires_grad_()
-                energy_model, force_model = model.forward_autograd(batch)
-                hessian_model = compute_hessian(batch.pos, energy_model, force_model)
-            elif "equiformer" in model_name.lower():
-                if do_autograd:
-                    batch.pos.requires_grad_()
-                    energy_model, force_model, out = model.forward(
-                        batch, otf_graph=False, hessian=False
-                    )
-                    hessian_model = compute_hessian(
-                        batch.pos, energy_model, force_model
-                    )
-                else:
-                    with torch.no_grad():
-                        energy_model, force_model, out = model.forward(
-                            batch,
-                            otf_graph=False,
-                        )
-                    hessian_model = out["hessian"].reshape(n_atoms * 3, n_atoms * 3)
-            else:
-                # AlphaNet
-                batch.pos.requires_grad_()
-                energy_model, force_model = model.forward(batch)
-                hessian_model = compute_hessian(batch.pos, energy_model, force_model)
-
+        i = 0
         for batch in tqdm(dataloader, desc="Evaluating", total=n_total_samples):
             batch = batch.to(device)
 
@@ -277,31 +241,96 @@ def evaluate(
             start_event.record()
 
             # Forward pass
-            if model_name == "LEFTNet":
-                batch.pos.requires_grad_()
-                energy_model, force_model = model.forward_autograd(batch)
-                hessian_model = compute_hessian(batch.pos, energy_model, force_model)
-            elif "equiformer" in model_name.lower():
-                if do_autograd:
+            if hessian_method == "none":
+                if conservative_forces:
                     batch.pos.requires_grad_()
                     energy_model, force_model, out = model.forward(
-                        batch, otf_graph=False, hessian=False
+                        batch,
+                        otf_graph=True,
+                        hessian=False,
+                        conservative_forces=conservative_forces,
                     )
-                    hessian_model = compute_hessian(
-                        batch.pos, energy_model, force_model
+                    hessian_model = batch.hessian.reshape(n_atoms * 3, n_atoms * 3)
+                else:
+                    with torch.no_grad():
+                        energy_model, force_model, out = model.forward(
+                            batch,
+                            otf_graph=True,
+                            hessian=False,
+                            conservative_forces=conservative_forces,
+                        )
+                        hessian_model = batch.hessian.reshape(n_atoms * 3, n_atoms * 3)
+
+            # finite difference
+            elif hessian_method == "fd":
+                energy_model = batch.ae
+                force_model = batch.forces
+                if conservative_forces:
+                    batch.pos.requires_grad_()
+                    hessian_model = compute_hessian_finite_difference_batched(
+                        positions=batch.pos,
+                        atomic_numbers=batch.z,
+                        model=model,
+                        device=device,
+                        indices=None,  # All atoms
+                        delta=0.01,
+                        batch_size=1,
+                        conservative_forces=conservative_forces,
+                    )
+                else:
+                    with torch.no_grad():
+                        hessian_model = compute_hessian_finite_difference_batched(
+                            positions=batch.pos,
+                            atomic_numbers=batch.z,
+                            model=model,
+                            device=device,
+                            indices=None,  # All atoms
+                            delta=0.01,
+                            batch_size=1,
+                            conservative_forces=conservative_forces,
+                        )
+                # Get energy and forces for metrics
+                if conservative_forces:
+                    batch.pos.requires_grad_()
+                    energy_model, force_model, out = model.forward(
+                        batch,
+                        otf_graph=True,
+                        hessian=False,
+                        conservative_forces=conservative_forces,
+                    )
+
+            # autograd
+            elif hessian_method == "autograd":
+                batch.pos.requires_grad_()
+                energy_model, force_model, out = model.forward(
+                    batch,
+                    otf_graph=True,
+                    hessian=False,
+                    conservative_forces=conservative_forces,
+                    retain_forces_graph=conservative_forces,
+                )
+                hessian_model = compute_hessian(batch.pos, energy_model, force_model)
+
+            # HIP
+            elif hessian_method == "predict":
+                if conservative_forces:
+                    batch.pos.requires_grad_()
+                    energy_model, force_model, out = model.forward(
+                        batch,
+                        otf_graph=True,
+                        conservative_forces=conservative_forces,
                     )
                 else:
                     with torch.no_grad():
                         energy_model, force_model, out = model.forward(
                             batch,
-                            otf_graph=False,
+                            otf_graph=True,
+                            conservative_forces=conservative_forces,
                         )
-                    hessian_model = out["hessian"]
+                hessian_model = out["hessian"].reshape(n_atoms * 3, n_atoms * 3)
+
             else:
-                # AlphaNet
-                batch.pos.requires_grad_()
-                energy_model, force_model = model.forward(batch)
-                hessian_model = compute_hessian(batch.pos, energy_model, force_model)
+                raise ValueError(f"Invalid hessian method: {hessian_method}")
 
             end_event.record()
             torch.cuda.synchronize()
@@ -310,6 +339,10 @@ def evaluate(
             memory_usage = torch.cuda.max_memory_allocated() / 1e6  # Convert to MB
             sample_data["time"] = time_taken  # ms
             sample_data["memory"] = memory_usage
+
+            i += 1
+            if i < warmup_samples:
+                continue
 
             hessian_model = hessian_model.reshape(n_atoms * 3, n_atoms * 3)
 
@@ -608,10 +641,10 @@ if __name__ == "__main__":
     parser.add_argument(
         "--hessian_method",
         "-hm",
-        choices=["autograd", "predict"],
+        choices=["autograd", "predict", "fd", "none"],
         type=str,
         default="predict",
-        help="Hessian computation method: autograd, predict",
+        help="Hessian computation method: autograd, predict, fd",
     )
     parser.add_argument(
         "--dataset",
@@ -624,7 +657,7 @@ if __name__ == "__main__":
         "--max_samples",
         "-m",
         type=int,
-        default=None,
+        default=1000,
         help="Maximum number of samples to evaluate (default: all samples)",
     )
     parser.add_argument(
@@ -633,6 +666,12 @@ if __name__ == "__main__":
         type=bool,
         default=False,
         help="Run eval from scratch even if results already exist",
+    )
+    parser.add_argument(
+        "--cf",
+        action="store_true",
+        default=False,
+        help="Use conservative forces for EquiformerV2 (requires gradients)",
     )
 
     args = parser.parse_args()
@@ -658,6 +697,7 @@ if __name__ == "__main__":
         hessian_method=hessian_method,
         max_samples=max_samples,
         redo=redo,
+        conservative_forces=args.cf,
     )
 
     # Plot accuracy over Natoms

@@ -190,8 +190,12 @@ if df_energy is not None and df_force is not None:
     plot_data_energy = df_energy.dropna(subset=["Dataset size"])
     plot_data_force = df_force.dropna(subset=["Dataset size"])
     # Filter out datapoints at 2e4 and 2e5 training samples
-    plot_data_energy = plot_data_energy[~plot_data_energy["Dataset size"].isin([20000.0, 200000.0])]
-    plot_data_force = plot_data_force[~plot_data_force["Dataset size"].isin([20000.0, 200000.0])]
+    plot_data_energy = plot_data_energy[
+        ~plot_data_energy["Dataset size"].isin([20000.0, 200000.0])
+    ]
+    plot_data_force = plot_data_force[
+        ~plot_data_force["Dataset size"].isin([20000.0, 200000.0])
+    ]
 
     # Split by EF vs EFH and sort by Dataset size
     ef_energy = plot_data_energy[plot_data_energy["ef"]].sort_values("Dataset size")
@@ -419,9 +423,15 @@ if df_energy is not None and df_force is not None and df_hessian is not None:
     plot_data_force = df_force.dropna(subset=["Dataset size"])
     plot_data_hessian = df_hessian.dropna(subset=["Dataset size"])
     # Filter out datapoints at 2e4 and 2e5 training samples
-    plot_data_energy = plot_data_energy[~plot_data_energy["Dataset size"].isin([20000.0, 200000.0])]
-    plot_data_force = plot_data_force[~plot_data_force["Dataset size"].isin([20000.0, 200000.0])]
-    plot_data_hessian = plot_data_hessian[~plot_data_hessian["Dataset size"].isin([20000.0, 200000.0])]
+    plot_data_energy = plot_data_energy[
+        ~plot_data_energy["Dataset size"].isin([20000.0, 200000.0])
+    ]
+    plot_data_force = plot_data_force[
+        ~plot_data_force["Dataset size"].isin([20000.0, 200000.0])
+    ]
+    plot_data_hessian = plot_data_hessian[
+        ~plot_data_hessian["Dataset size"].isin([20000.0, 200000.0])
+    ]
 
     # Split by EF vs EFH and sort by Dataset size
     ef_energy = plot_data_energy[plot_data_energy["ef"]].sort_values("Dataset size")
@@ -429,7 +439,9 @@ if df_energy is not None and df_force is not None and df_hessian is not None:
     ef_force = plot_data_force[plot_data_force["ef"]].sort_values("Dataset size")
     efh_force = plot_data_force[~plot_data_force["ef"]].sort_values("Dataset size")
     ef_hessian = plot_data_hessian[plot_data_hessian["ef"]].sort_values("Dataset size")
-    efh_hessian = plot_data_hessian[~plot_data_hessian["ef"]].sort_values("Dataset size")
+    efh_hessian = plot_data_hessian[~plot_data_hessian["ef"]].sort_values(
+        "Dataset size"
+    )
 
     fig = make_subplots(
         rows=1,

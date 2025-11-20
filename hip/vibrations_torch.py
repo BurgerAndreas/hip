@@ -42,6 +42,8 @@ def _create_batch(
 def _get_forces(
     model: torch.nn.Module,
     batch: TGBatch,
+    conservative_forces: bool = False,
+    retain_forces_graph: bool = False,
 ) -> torch.Tensor:
     """Call model.forward() and extract forces.
 
@@ -53,13 +55,21 @@ def _get_forces(
         forces: Tensor of shape [n_atoms, 3]
     """
     with torch.no_grad():
-        _, forces, _ = model.forward(batch, otf_graph=True, hessian=False)
+        _, forces, _ = model.forward(
+            batch,
+            otf_graph=True,
+            hessian=False,
+            conservative_forces=conservative_forces,
+            retain_forces_graph=retain_forces_graph,
+        )
     return forces
 
 
 def _get_forces_batched(
     model: torch.nn.Module,
     batch: TGBatch,
+    conservative_forces: bool = False,
+    retain_forces_graph: bool = False,
 ) -> List[torch.Tensor]:
     """Call model.forward() on a batched input and extract forces for each graph.
 
@@ -70,8 +80,25 @@ def _get_forces_batched(
     Returns:
         forces_list: List of force tensors, one per graph in the batch
     """
-    with torch.no_grad():
-        _, forces, _ = model.forward(batch, otf_graph=True, hessian=False)
+    if conservative_forces:
+        batch.pos.requires_grad_()
+        _, forces, _ = model.forward(
+            batch,
+            otf_graph=True,
+            hessian=False,
+            conservative_forces=conservative_forces,
+            retain_forces_graph=False,
+        )
+        forces = forces.detach()
+    else:
+        with torch.no_grad():
+            _, forces, _ = model.forward(
+                batch,
+                otf_graph=True,
+                hessian=False,
+                conservative_forces=False,
+                retain_forces_graph=False,
+            )
 
     # Extract forces for each graph in the batch
     # batch.batch contains the graph index for each atom
@@ -91,6 +118,8 @@ def compute_hessian_finite_difference(
     indices: Optional[torch.Tensor] = None,
     delta: float = 0.01,
     dtype: torch.dtype = torch.float32,
+    conservative_forces: bool = False,
+    retain_forces_graph: bool = False,
 ) -> torch.Tensor:
     """Compute Hessian matrix using finite differences.
 
@@ -139,13 +168,17 @@ def compute_hessian_finite_difference(
             positions_minus = positions.clone()
             positions_minus[a, i] -= delta
             batch_minus = _create_batch(positions_minus, atomic_numbers, device)
-            fminus = _get_forces(model, batch_minus)
+            fminus = _get_forces(
+                model, batch_minus, conservative_forces, retain_forces_graph
+            )
 
             # Create displaced positions for +delta
             positions_plus = positions.clone()
             positions_plus[a, i] += delta
             batch_plus = _create_batch(positions_plus, atomic_numbers, device)
-            fplus = _get_forces(model, batch_plus)
+            fplus = _get_forces(
+                model, batch_plus, conservative_forces, retain_forces_graph
+            )
 
             # Central difference formula matching vibrations.py line 392:
             # H[r] = 0.5 * (fminus - fplus)[indices].ravel() / (2 * delta)
@@ -170,6 +203,8 @@ def compute_hessian_finite_difference_batched(
     delta: float = 0.01,
     batch_size: int = 32,
     dtype: torch.dtype = torch.float32,
+    conservative_forces: bool = False,
+    retain_forces_graph: bool = False,
 ) -> torch.Tensor:
     """Compute Hessian matrix using finite differences with torch_geometric batching.
 
@@ -241,7 +276,9 @@ def compute_hessian_finite_difference_batched(
 
         # Create batch and compute forces
         batch = TGBatch.from_data_list(batch_data_list)
-        forces_list = _get_forces_batched(model, batch)
+        forces_list = _get_forces_batched(
+            model, batch, conservative_forces, retain_forces_graph
+        )
 
         # Store forces in dictionary
         for (atom_idx, coord_idx, sign), forces in zip(batch_configs, forces_list):
