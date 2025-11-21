@@ -664,7 +664,7 @@ if __name__ == "__main__":
         "--max_samples",
         "-m",
         type=int,
-        default=1000,
+        default=None,
         help="Maximum number of samples to evaluate (default: all samples)",
     )
     parser.add_argument(
