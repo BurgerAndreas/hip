@@ -54,14 +54,13 @@ TARGET_MODELS = [
 
 # E3x hardcoded results from docstring
 E3X_RESULTS = {
-    "Vacuum": (0.036, 0.035, 0.070),
-    "THF": (0.029, 0.028, 0.067),
-    "Toluene": (0.032, 0.029, 0.062),
-    "Water": (0.035, 0.028, 0.054),
+    "Vacuum": (0.035, 0.070),
+    "THF": (0.028, 0.067),
+    "Toluene": (0.029, 0.062),
+    "Water": (0.028, 0.054),
 }
 
 METRIC_SPECS = [
-    ("energy_mae_per_atom", 3),
     ("forces_mae", 3),
     ("hessian_mae", 3),
     ("eigval_mae", 3),
@@ -76,7 +75,7 @@ def extract_solvent(dataset_path: str) -> str:
         return None
     solvent = dataset_path.split(":")[-1].lower()
     # Map to proper case
-    mapping = {"vacuum": "Vacuum", "THF": "THF", "toluene": "Toluene", "water": "Water"}
+    mapping = {"vacuum": "Vacuum", "thf": "THF", "toluene": "Toluene", "water": "Water"}
     return mapping.get(solvent)
 
 
@@ -121,11 +120,10 @@ for solvent, h_label, model_name, method, is_e3x in target_rows:
         "is_e3x": is_e3x,
     }
     if is_e3x:
-        # Use hardcoded E3x values (only first 3 metrics)
+        # Use hardcoded E3x values (only first 2 metrics)
         e3x_vals = E3X_RESULTS[solvent]
-        record["energy_mae_per_atom"] = e3x_vals[0]
-        record["forces_mae"] = e3x_vals[1]
-        record["hessian_mae"] = e3x_vals[2]
+        record["forces_mae"] = e3x_vals[0]
+        record["hessian_mae"] = e3x_vals[1]
         record["eigval_mae"] = None
         record["eigvec1_cos_eckart"] = None
         record["eigval1_mae_eckart"] = None
@@ -153,13 +151,11 @@ group_counts = Counter(row[0] for row in target_rows)
 group_progress = {label: 0 for label in group_counts}
 
 print()
-print("\\begin{tabular}{lllcccccc}")
+print("\\begin{tabular}{lllccccc}")
 print(
-    "Solvent & Model & Hessian & Energy $\\downarrow$ & Forces $\\downarrow$ & Hessian $\\downarrow$  & Eigenvalues $\\downarrow$ & CosSim $\\evec_1$ $\\uparrow$ & $\\eval_1$ $\\downarrow$ \\\\"
+    "Solvent & Model & Hessian & Forces $\\downarrow$ & Hessian $\\downarrow$  & Eigenvalues $\\downarrow$ & CosSim $\\evec_1$ $\\uparrow$ & $\\eval_1$ $\\downarrow$ \\\\"
 )
-print(
-    " & & & eV/\\text{atom} & eV/\\AA & eV/\\AA$^2$ & eV/\\AA$^2$ & unitless & eV/\\AA$^2$ \\\\"
-)
+print(" & & & eV/\\AA & eV/\\AA$^2$ & eV/\\AA$^2$ & unitless & eV/\\AA$^2$ \\\\")
 print("\\hline")
 for record in df.to_dict("records"):
     solvent = record["Solvent"]
@@ -172,7 +168,6 @@ for record in df.to_dict("records"):
     for m, decimals in METRIC_SPECS:
         val = record.get(m)
         if record["is_e3x"] and m not in [
-            "energy_mae_per_atom",
             "forces_mae",
             "hessian_mae",
         ]:

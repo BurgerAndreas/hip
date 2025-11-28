@@ -446,7 +446,7 @@ if df_energy is not None and df_force is not None and df_hessian is not None:
     fig = make_subplots(
         rows=1,
         cols=3,
-        subplot_titles=("Energy", "Force", "HIP Hessian"),
+        subplot_titles=("Energy", "Force", "Hessian"),
         horizontal_spacing=0.05,
         vertical_spacing=0.0,
     )
@@ -649,7 +649,7 @@ if df_energy is not None and df_force is not None and df_hessian is not None:
 
     # Set subplot title fonts
     for ann in fig.layout.annotations:
-        if ann.text in ("Energy", "Force", "HIP Hessian"):
+        if ann.text in ("Energy", "Force", "Hessian"):
             ann.update(font=dict(size=TITLE_FONT_SIZE))
 
     # Add subplot panel labels (a, b, c)

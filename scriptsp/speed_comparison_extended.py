@@ -153,7 +153,10 @@ def time_forward_pass(model, batch):
 
 def time_hessian_computation(model, batch, hessian_method):
     """Times a single hessian computation and measures memory usage."""
-    do_autograd = hessian_method == "autograd"
+    do_autograd = (
+        hessian_method == "autograd" or hessian_method == "autograd_conservative"
+    )
+    do_conservative = hessian_method == "autograd_conservative"
     torch.cuda.reset_peak_memory_stats()
     start_event = torch.cuda.Event(enable_timing=True)
     end_event = torch.cuda.Event(enable_timing=True)
@@ -163,7 +166,16 @@ def time_hessian_computation(model, batch, hessian_method):
     if "equiformer" in model.name.lower():
         if do_autograd:
             batch.pos.requires_grad_()
-            ener, force, out = model.forward(batch, otf_graph=True, hessian=False)
+            if do_conservative:
+                ener, force, out = model.forward(
+                    batch,
+                    otf_graph=True,
+                    hessian=False,
+                    conservative_forces=True,
+                    retain_forces_graph=True,
+                )
+            else:
+                ener, force, out = model.forward(batch, otf_graph=True, hessian=False)
             compute_hessian(batch.pos, ener, force)
         else:
             with torch.no_grad():
@@ -269,24 +281,7 @@ def speed_comparison(
     # Prepare dataset and dataloader
     dataset = LmdbDataset(fix_dataset_path(dataset_name))
 
-    # do a couple of forward passes to warm up the model
-    # populate caches, jit, load cuda kernels, and what not
-    loader = TGDataLoader(dataset, batch_size=1, shuffle=True)
-    for i, sample in enumerate(loader):
-        batch = sample.to(device)
-        time_hessian_computation(model, batch, "prediction")
-        torch.cuda.empty_cache()
-        time_hessian_computation(model, batch, "autograd")
-        torch.cuda.empty_cache()
-        time_forward_pass(model, batch)
-        torch.cuda.empty_cache()
-        time_finite_difference_hessian(model, batch, batch_size=1)
-        torch.cuda.empty_cache()
-        time_finite_difference_hessian(model, batch, batch_size=32)
-        torch.cuda.empty_cache()
-        if i > 10:
-            break
-    print("Model warmed up")
+    warmup_reps = 3
 
     results = []
 
@@ -296,85 +291,131 @@ def speed_comparison(
         n_atoms = int(n_atoms)
 
         # Limit number of samples
-        indices_to_test = indices[:max_samples_per_n]
+        indices_to_test = indices[: max_samples_per_n + warmup_reps]
 
         subset = Subset(dataset, indices_to_test)
         loader = TGDataLoader(subset, batch_size=1, shuffle=False)
-
-        for _batch in tqdm(loader, desc=f"N={n_atoms}", leave=False):
-            batch = _batch.clone().to(device)
-
+        i = 0
+        for batch in tqdm(loader, desc=f"N={n_atoms}", leave=False):
             # Time finite difference with batch_size=1
-            batch = _batch.clone().to(device)
+            batch = batch.to(device)
             time_fd1, mem_fd1 = time_finite_difference_hessian(
                 model, batch, batch_size=1
             )
-            results.append(
-                {
-                    "n_atoms": n_atoms,
-                    "method": "finite_difference_bz1",
-                    "time": time_fd1,
-                    "memory": mem_fd1,
-                }
-            )
+            if i >= warmup_reps:
+                results.append(
+                    {
+                        "n_atoms": n_atoms,
+                        "method": "finite_difference_bz1",
+                        "time": time_fd1,
+                        "memory": mem_fd1,
+                    }
+                )
             torch.cuda.empty_cache()
+            i += 1
 
+        subset = Subset(dataset, indices_to_test)
+        loader = TGDataLoader(subset, batch_size=1, shuffle=False)
+        i = 0
+        for batch in tqdm(loader, desc=f"N={n_atoms}", leave=False):
             # Time finite difference with batch_size=32
-            batch = _batch.clone().to(device)
+            batch = batch.to(device)
             time_fd32, mem_fd32 = time_finite_difference_hessian(
                 model, batch, batch_size=32
             )
-            results.append(
-                {
-                    "n_atoms": n_atoms,
-                    "method": "finite_difference_bz32",
-                    "time": time_fd32,
-                    "memory": mem_fd32,
-                }
-            )
+            if i >= warmup_reps:
+                results.append(
+                    {
+                        "n_atoms": n_atoms,
+                        "method": "finite_difference_bz32",
+                        "time": time_fd32,
+                        "memory": mem_fd32,
+                    }
+                )
             torch.cuda.empty_cache()
+            i += 1
 
+        subset = Subset(dataset, indices_to_test)
+        loader = TGDataLoader(subset, batch_size=1, shuffle=False)
+        i = 0
+        for batch in tqdm(loader, desc=f"N={n_atoms}", leave=False):
+            batch = batch.to(device)
             # Time forward pass
             time_fwd, mem_fwd = time_forward_pass(model, batch)
-            results.append(
-                {
-                    "n_atoms": n_atoms,
-                    "method": "forward_pass",
-                    "time": time_fwd,
-                    "memory": mem_fwd,
-                }
-            )
+            if i >= warmup_reps:
+                results.append(
+                    {
+                        "n_atoms": n_atoms,
+                        "method": "forward_pass",
+                        "time": time_fwd,
+                        "memory": mem_fwd,
+                    }
+                )
             torch.cuda.empty_cache()
+            i += 1
 
+        subset = Subset(dataset, indices_to_test)
+        loader = TGDataLoader(subset, batch_size=1, shuffle=False)
+        i = 0
+        for batch in tqdm(loader, desc=f"N={n_atoms}", leave=False):
             # Time prediction
-            batch = _batch.clone().to(device)
+            batch = batch.clone().to(device)
             time_prediction, mem_prediction = time_hessian_computation(
                 model, batch, "prediction"
             )
-            results.append(
-                {
-                    "n_atoms": n_atoms,
-                    "method": "prediction",
-                    "time": time_prediction,
-                    "memory": mem_prediction,
-                }
-            )
+            if i >= warmup_reps:
+                results.append(
+                    {
+                        "n_atoms": n_atoms,
+                        "method": "prediction",
+                        "time": time_prediction,
+                        "memory": mem_prediction,
+                    }
+                )
             torch.cuda.empty_cache()
+            i += 1
 
+        subset = Subset(dataset, indices_to_test)
+        loader = TGDataLoader(subset, batch_size=1, shuffle=False)
+        i = 0
+        for batch in tqdm(loader, desc=f"N={n_atoms}", leave=False):
             # Time autograd
-            batch = _batch.clone().to(device)
+            batch = batch.clone().to(device)
             time_autograd, mem_autograd = time_hessian_computation(
                 model, batch, "autograd"
             )
-            results.append(
-                {
-                    "n_atoms": n_atoms,
-                    "method": "autograd",
-                    "time": time_autograd,
-                    "memory": mem_autograd,
-                }
-            )
+            if i >= warmup_reps:
+                results.append(
+                    {
+                        "n_atoms": n_atoms,
+                        "method": "autograd",
+                        "time": time_autograd,
+                        "memory": mem_autograd,
+                    }
+                )
             torch.cuda.empty_cache()
+            i += 1
+
+        subset = Subset(dataset, indices_to_test)
+        loader = TGDataLoader(subset, batch_size=1, shuffle=False)
+        i = 0
+        for batch in tqdm(loader, desc=f"N={n_atoms}", leave=False):
+            # Time autograd with conservative forces
+            batch = batch.clone().to(device)
+            time_autograd_conservative, mem_autograd_conservative = (
+                time_hessian_computation(model, batch, "autograd_conservative")
+            )
+            if i >= warmup_reps:
+                results.append(
+                    {
+                        "n_atoms": n_atoms,
+                        "method": "autograd_conservative",
+                        "time": time_autograd_conservative,
+                        "memory": mem_autograd_conservative,
+                    }
+                )
+            torch.cuda.empty_cache()
+            i += 1
 
     # Save results
     output_dir = Path(output_dir)
@@ -393,6 +434,7 @@ def plot_combined_speed_memory(
     show_fd=True,
     show_fd32=True,
     show_fwd=True,
+    show_hip=False,
     logy_time=True,
     logy_memory=True,
     ymin_time=None,
@@ -408,19 +450,22 @@ def plot_combined_speed_memory(
     def _color_for_method(method):
         method_lower = str(method).lower()
         if method_lower == "prediction":
-            color = HESSIAN_METHOD_TO_COLOUR.get("predict")
+            # color = HESSIAN_METHOD_TO_COLOUR.get("predict")
+            color = "#d96001"
         elif method_lower == "autograd":
             color = HESSIAN_METHOD_TO_COLOUR.get("autograd")
+        elif method_lower == "autograd_conservative":
+            # Use a distinct color for conservative autograd (slightly different shade)
+            color = "#9b59b6"  # Purple color to distinguish from regular autograd
         elif method_lower == "forward_pass":
             # Use a distinct color for forward pass
             color = "#68c4af"  # Green-ish color
         elif "finite_difference_bz1" in method_lower:
             # Use a distinct color for FD bz=1
-            # color = "#ffaaa5"
-            color = "#1b85b8"
-            color = "#d96009"
-            # color = "#5a5255"
-
+            color = "#ffaaa5"
+            # color = "#1b85b8"
+            color = "#5a5255"
+            # color = "#ffb482"
         elif "finite_difference_bz32" in method_lower:
             # Use a distinct color for FD bz=32
             color = "#ff8b94"
@@ -432,6 +477,23 @@ def plot_combined_speed_memory(
                 color = "#cfcfcf"
         return color
 
+    # Map method names to line dash patterns for memory subplot
+    def _dash_for_method(method):
+        """Returns dash pattern for memory subplot to distinguish overlapping lines."""
+        method_lower = str(method).lower()
+        if method_lower == "prediction":
+            # return "dot"  # HIP
+            return ""  # HIP
+        elif method_lower == "forward_pass":
+            if show_hip or show_fd:
+                return "dot"
+            else:
+                return "solid"
+        elif "finite_difference" in method_lower:
+            return "solid"
+        else:
+            return "solid"  # All others (autograd, autograd_conservative) - solid
+
     # Aggregations for speed and memory vs N
     avg_times = results_df.groupby(["n_atoms", "method"])["time"].mean().unstack()
     std_times = results_df.groupby(["n_atoms", "method"])["time"].std().unstack()
@@ -441,11 +503,13 @@ def plot_combined_speed_memory(
     # Filter methods based on flags
     def should_show_method(method_name):
         method_lower = str(method_name).lower()
-        if method_lower == "prediction":
+        if show_hip and method_lower == "prediction":
             return True  # Always show prediction (HIP)
         if show_fwd and method_lower == "forward_pass":
             return True
-        if show_ad and method_lower == "autograd":
+        if show_ad and (
+            method_lower == "autograd" or method_lower == "autograd_conservative"
+        ):
             return True
         if show_fd and "finite_difference_bz1" in method_lower:
             return True
@@ -463,7 +527,7 @@ def plot_combined_speed_memory(
     fig = make_subplots(
         rows=1,
         cols=2,
-        subplot_titles=("Time", "Memory"),
+        subplot_titles=("Time per sample (ms)", "Peak Memory (MB)"),
         horizontal_spacing=0.05,
         vertical_spacing=0.0,
     )
@@ -500,7 +564,9 @@ def plot_combined_speed_memory(
         if str(method).lower() == "prediction":
             display_name = "HIP Hessians (ours)"
         elif str(method).lower() == "autograd":
-            display_name = "AD Hessians"
+            display_name = "AD Hessians (direct force)"
+        elif str(method).lower() == "autograd_conservative":
+            display_name = "AD Hessians (conservative)"
         elif str(method).lower() == "forward_pass":
             display_name = "Forward Pass"
         elif "finite_difference_bz1" in str(method).lower():
@@ -547,8 +613,13 @@ def plot_combined_speed_memory(
     # Col 2: Memory vs N
     for method in avg_memory.columns:
         color = _color_for_method(method)
+        dash_pattern = _dash_for_method(method)
         if str(method).lower() == "prediction":
             display_name = "Prediction (ours)"
+        elif str(method).lower() == "autograd":
+            display_name = "AD Hessians"
+        elif str(method).lower() == "autograd_conservative":
+            display_name = "AD Hessians (conservative)"
         elif str(method).lower() == "forward_pass":
             display_name = "Forward Pass"
         elif "finite_difference_bz1" in str(method).lower():
@@ -562,14 +633,23 @@ def plot_combined_speed_memory(
             std_vals = std_memory[method].reindex(avg_memory.index)
             if std_vals is not None:
                 _err_kwargs = {"error_y": dict(type="data", array=std_vals.values)}
+
+        # Set mode and line based on dash_pattern
+        if dash_pattern == "":
+            mode = "markers"
+            line_dict = None
+        else:
+            mode = "lines+markers"
+            line_dict = dict(color=color, dash=dash_pattern)
+
         fig.add_trace(
             go.Scatter(
                 x=avg_memory.index,
                 y=avg_memory[method],
-                mode="lines+markers",
+                mode=mode,
                 name=display_name,
                 showlegend=False,
-                line=dict(color=color),
+                line=line_dict,
                 marker=dict(color=color),
                 **_err_kwargs,
             ),
@@ -596,7 +676,8 @@ def plot_combined_speed_memory(
 
     # Add axis titles for each subplot
     fig.update_xaxes(title_text="Number of Atoms (N)", title_standoff=5, row=1, col=1)
-    fig.update_yaxes(title_text="Average Time (ms)", title_standoff=10, row=1, col=1)
+    # fig.update_yaxes(title_text="Time per Sample (ms)", title_standoff=10, row=1, col=1)
+    fig.update_yaxes(title_text="", title_standoff=10, row=1, col=1)
     fig.update_xaxes(title_text="Number of Atoms (N)", title_standoff=5, row=1, col=2)
     fig.update_yaxes(title_text="", title_standoff=0, row=1, col=2)
 
@@ -645,7 +726,7 @@ def plot_combined_speed_memory(
             yanchor="top",
             orientation="v",
             bgcolor="rgba(255,255,255,0.6)",
-            font=dict(size=LEGEND_FONT_SIZE),
+            font=dict(size=LEGEND_FONT_SIZE - 2),
         ),
     )
 
@@ -685,7 +766,7 @@ def plot_combined_speed_memory(
 
     # Set subplot title fonts specifically to TITLE_FONT_SIZE
     for ann in fig.layout.annotations:
-        if ann.text in ("Time", "Memory"):
+        if ann.text in ("Time per sample (ms)", "Peak Memory (MB)"):
             ann.update(font=dict(size=TITLE_FONT_SIZE))
 
     # Add subplot panel labels (a, b) at top-left outside each subplot
@@ -712,18 +793,18 @@ def plot_combined_speed_memory(
         font=dict(size=ANNOTATION_BOLD_FONT_SIZE),
     )
     # instead of the yaxis title, because this we can move around more freely
-    fig.add_annotation(
-        x=max(dom2[0] - 0.019, 0.0),
-        y=0.5,
-        xref="paper",
-        yref="paper",
-        text="Peak Memory (MB)",
-        textangle=-90,
-        showarrow=False,
-        xanchor="center",
-        yanchor="middle",
-        font=dict(size=AXES_TITLE_FONT_SIZE),
-    )
+    # fig.add_annotation(
+    #     x=max(dom2[0] - 0.019, 0.0),
+    #     y=0.5,
+    #     xref="paper",
+    #     yref="paper",
+    #     text="Peak Memory (MB)",
+    #     textangle=-90,
+    #     showarrow=False,
+    #     xanchor="center",
+    #     yanchor="middle",
+    #     font=dict(size=AXES_TITLE_FONT_SIZE),
+    # )
 
     _name = "speedmemory"
     if show_ad:
@@ -741,9 +822,9 @@ def plot_combined_speed_memory(
 
 if __name__ == "__main__":
     """
-    python scriptsp/speed_comparison_extended.py --dataset RGD1.lmdb --max_samples_per_n 10 --ckpt_path ckpt/hip_v2.ckpt
-    python scriptsp/speed_comparison_extended.py --dataset ts1x-val.lmdb
-    python scriptsp/speed_comparison_extended.py --dataset ts1x_hess_train_big.lmdb
+    uv run scriptsp/speed_comparison_extended.py --dataset RGD1.lmdb --max_samples_per_n 10 --ckpt_path ckpt/hip_v2.ckpt
+    uv run scriptsp/speed_comparison_extended.py --dataset ts1x-val.lmdb 
+    uv run scriptsp/speed_comparison_extended.py --dataset ts1x_hess_train_big.lmdb
     """
     parser = argparse.ArgumentParser(description="Extended speed comparison")
 
@@ -797,7 +878,7 @@ if __name__ == "__main__":
 
     redo = args.redo
 
-    output_dir = "./results_speed"
+    output_dir = "./results_speed2"
     output_dir = Path(output_dir)
     output_path = (
         output_dir
@@ -822,6 +903,7 @@ if __name__ == "__main__":
         )
 
     # Combined side-by-side plot
+    # Plot everything (except fd32)
     plot_combined_speed_memory(
         results_df,
         output_dir=output_dir,
@@ -831,12 +913,43 @@ if __name__ == "__main__":
         show_fd32=False,
         show_fwd=True,
     )
+    # Plot forward vs HIP
     plot_combined_speed_memory(
         results_df,
         output_dir=output_dir,
         show_std=args.show_std,
         show_ad=False,
         show_fd=False,
+        show_fd32=False,
+        show_fwd=True,
+        logy_time=False,
+        logy_memory=False,
+        ymin_time=0.0,
+        ymin_memory=0.0,
+    )
+    # Plot forward vs AD
+    plot_combined_speed_memory(
+        results_df,
+        output_dir=output_dir,
+        show_std=args.show_std,
+        show_ad=True,
+        show_fd=False,
+        show_fd32=False,
+        show_fwd=True,
+        show_hip=False,
+        logy_time=False,
+        logy_memory=False,
+        ymin_time=0.0,
+        ymin_memory=0.0,
+    )
+
+    # plot forward, ad conservative, ad direct force, finite difference bz1
+    plot_combined_speed_memory(
+        results_df,
+        output_dir=output_dir,
+        show_std=args.show_std,
+        show_ad=True,
+        show_fd=True,
         show_fd32=False,
         show_fwd=True,
         logy_time=False,
@@ -876,77 +989,5 @@ if __name__ == "__main__":
     print(
         f"{'Average':<15} {avg_times['forward_pass'].mean():<20.2f} {avg_times['prediction'].mean():<15.2f} {speedups.mean():<10.2f}"
     )
-
-    #########################################################
-    # Calculate and print speedup of forward pass over AD for each N
-    #########################################################
-    if "autograd" in avg_times.columns:
-        print("\n" + "=" * 60)
-        print("Speedup: Forward Pass / AD (Autograd)")
-        print("=" * 60)
-        speedups_ad = avg_times["autograd"] / avg_times["forward_pass"]
-
-        print(
-            f"{'N (atoms)':<15} {'Forward Pass (ms)':<20} {'AD (ms)':<20} {'Speedup':<10}"
-        )
-        print("-" * 60)
-        for n_atoms in sorted(speedups_ad.index):
-            fwd_time = avg_times.loc[n_atoms, "forward_pass"]
-            ad_time = avg_times.loc[n_atoms, "autograd"]
-            speedup = speedups_ad.loc[n_atoms]
-            print(f"{n_atoms:<15} {fwd_time:<20.2f} {ad_time:<20.2f} {speedup:<10.2f}")
-
-        print("-" * 60)
-        print(
-            f"{'Average':<15} {avg_times['forward_pass'].mean():<20.2f} {avg_times['autograd'].mean():<20.2f} {speedups_ad.mean():<10.2f}"
-        )
-
-    #########################################################
-    # Calculate and print speedup of forward pass over FD (bz=1) for each N
-    #########################################################
-    if "finite_difference_bz1" in avg_times.columns:
-        print("\n" + "=" * 60)
-        print("Speedup: Forward Pass / FD (Finite Difference, bz=1)")
-        print("=" * 60)
-        speedups_fd1 = avg_times["finite_difference_bz1"] / avg_times["forward_pass"]
-
-        print(
-            f"{'N (atoms)':<15} {'Forward Pass (ms)':<20} {'FD bz=1 (ms)':<20} {'Speedup':<10}"
-        )
-        print("-" * 60)
-        for n_atoms in sorted(speedups_fd1.index):
-            fwd_time = avg_times.loc[n_atoms, "forward_pass"]
-            fd_time = avg_times.loc[n_atoms, "finite_difference_bz1"]
-            speedup = speedups_fd1.loc[n_atoms]
-            print(f"{n_atoms:<15} {fwd_time:<20.2f} {fd_time:<20.2f} {speedup:<10.2f}")
-
-        print("-" * 60)
-        print(
-            f"{'Average':<15} {avg_times['forward_pass'].mean():<20.2f} {avg_times['finite_difference_bz1'].mean():<20.2f} {speedups_fd1.mean():<10.2f}"
-        )
-
-    #########################################################
-    # Calculate and print speedup of forward pass over FD (bz=32) for each N
-    #########################################################
-    if "finite_difference_bz32" in avg_times.columns:
-        print("\n" + "=" * 60)
-        print("Speedup: Forward Pass / FD (Finite Difference, bz=32)")
-        print("=" * 60)
-        speedups_fd32 = avg_times["finite_difference_bz32"] / avg_times["forward_pass"]
-
-        print(
-            f"{'N (atoms)':<15} {'Forward Pass (ms)':<20} {'FD bz=32 (ms)':<20} {'Speedup':<10}"
-        )
-        print("-" * 60)
-        for n_atoms in sorted(speedups_fd32.index):
-            fwd_time = avg_times.loc[n_atoms, "forward_pass"]
-            fd_time = avg_times.loc[n_atoms, "finite_difference_bz32"]
-            speedup = speedups_fd32.loc[n_atoms]
-            print(f"{n_atoms:<15} {fwd_time:<20.2f} {fd_time:<20.2f} {speedup:<10.2f}")
-
-        print("-" * 60)
-        print(
-            f"{'Average':<15} {avg_times['forward_pass'].mean():<20.2f} {avg_times['finite_difference_bz32'].mean():<20.2f} {speedups_fd32.mean():<10.2f}"
-        )
 
     print("\nDone!")
