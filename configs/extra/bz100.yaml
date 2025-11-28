@@ -1,5 +1,0 @@
-# @package _global_
-
-training:
-  bz: 100
-  bz_val: 100

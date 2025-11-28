@@ -1,9 +1,0 @@
-# @package _global_
-
-# Fit on the larger training dataset (TS1x), test on TS1x
-
-training:
-  trn_path: "RGD1.lmdb"
-  val_path: "ts1x-val.lmdb"
-
-experiment_name: "rgd1"
