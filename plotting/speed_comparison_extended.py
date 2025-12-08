@@ -1,3 +1,4 @@
+from math import log
 import torch
 from torch_geometric.loader import DataLoader as TGDataLoader
 from torch.utils.data import Subset
@@ -431,6 +432,7 @@ def plot_combined_speed_memory(
     output_dir="./results_speed",
     show_std=False,
     show_ad=True,
+    show_ad_cf=True,
     show_fd=True,
     show_fd32=True,
     show_fwd=True,
@@ -439,6 +441,8 @@ def plot_combined_speed_memory(
     logy_memory=True,
     ymin_time=None,
     ymin_memory=None,
+    ymax_time=None,
+    ymax_memory=None,
 ):
     from plotly.subplots import make_subplots
 
@@ -507,9 +511,9 @@ def plot_combined_speed_memory(
             return True  # Always show prediction (HIP)
         if show_fwd and method_lower == "forward_pass":
             return True
-        if show_ad and (
-            method_lower == "autograd" or method_lower == "autograd_conservative"
-        ):
+        if show_ad and method_lower == "autograd":
+            return True
+        if show_ad_cf and method_lower == "autograd_conservative":
             return True
         if show_fd and "finite_difference_bz1" in method_lower:
             return True
@@ -730,22 +734,39 @@ def plot_combined_speed_memory(
         ),
     )
 
-    # Set y-axis minimums after layout update (for subplots, use update_yaxes with row/col)
-    if ymin_time is not None:
-        # Calculate max from data if available, otherwise use a large value
+    # Set y-axis ranges after layout update (for subplots, use update_yaxes with row/col)
+    if ymin_time is not None or ymax_time is not None:
         if len(avg_times) > 0 and not avg_times.empty:
-            ymax_time = float(avg_times.max().max()) * 1.1  # Add 10% padding
+            data_min_time = float(avg_times.min().min())
+            data_max_time = float(avg_times.max().max())
         else:
-            ymax_time = ymin_time * 10  # Fallback
-        fig.update_yaxes(range=[ymin_time, ymax_time], autorange=False, row=1, col=1)
-    if ymin_memory is not None:
-        # Calculate max from data if available, otherwise use a large value
-        if len(avg_memory) > 0 and not avg_memory.empty:
-            ymax_memory = float(avg_memory.max().max()) * 1.1  # Add 10% padding
-        else:
-            ymax_memory = ymin_memory * 10  # Fallback
+            data_min_time = ymin_time if ymin_time is not None else 1e-3
+            data_max_time = ymax_time if ymax_time is not None else data_min_time * 10
+        ymin_time_eff = (
+            ymin_time if ymin_time is not None else max(data_min_time * 0.9, 1e-9)
+        )
+        ymax_time_eff = ymax_time if ymax_time is not None else data_max_time * 1.1
         fig.update_yaxes(
-            range=[ymin_memory, ymax_memory], autorange=False, row=1, col=2
+            range=[ymin_time_eff, ymax_time_eff], autorange=False, row=1, col=1
+        )
+
+    if ymin_memory is not None or ymax_memory is not None:
+        if len(avg_memory) > 0 and not avg_memory.empty:
+            data_min_memory = float(avg_memory.min().min())
+            data_max_memory = float(avg_memory.max().max())
+        else:
+            data_min_memory = ymin_memory if ymin_memory is not None else 1e-3
+            data_max_memory = (
+                ymax_memory if ymax_memory is not None else data_min_memory * 10
+            )
+        ymin_memory_eff = (
+            ymin_memory if ymin_memory is not None else max(data_min_memory * 0.9, 1e-9)
+        )
+        ymax_memory_eff = (
+            ymax_memory if ymax_memory is not None else data_max_memory * 1.1
+        )
+        fig.update_yaxes(
+            range=[ymin_memory_eff, ymax_memory_eff], autorange=False, row=1, col=2
         )
 
     # set xaxis range
@@ -809,12 +830,24 @@ def plot_combined_speed_memory(
     _name = "speedmemory"
     if show_ad:
         _name += "_ad"
+    if show_ad_cf:
+        _name += "_ad_cf"
     if show_fd:
         _name += "_fd"
     if show_fd32:
         _name += "_fd32"
     if show_fwd:
         _name += "_fwd"
+    if show_hip:
+        _name += "_hip"
+    if ymin_time is not None:
+        _name += f"_ymin{ymin_time}"
+    if ymax_time is not None:
+        _name += f"_ymax{ymax_time}"
+    if ymin_memory is not None:
+        _name += f"_ymin{ymin_memory}"
+    if ymax_memory is not None:
+        _name += f"_ymax{ymax_memory}"
     output_path = output_dir / f"{_name}.png"
     fig.write_image(output_path, width=width, height=height, scale=2)
     print(f"Plot saved to \n {output_path}")
@@ -902,6 +935,10 @@ if __name__ == "__main__":
             cutoff_hessian=args.cutoff_hessian,
         )
 
+    #########################################################
+    # Plot results - fixed axis ranges
+    #########################################################
+
     # Combined side-by-side plot
     # Plot everything (except fd32)
     plot_combined_speed_memory(
@@ -911,7 +948,105 @@ if __name__ == "__main__":
         show_ad=True,
         show_fd=True,
         show_fd32=False,
+        show_hip=True,
         show_fwd=True,
+        ymax_time=3700,
+        ymax_memory=2100,
+        logy_time=False,
+        logy_memory=False,
+        ymin_time=0.0,
+        ymin_memory=0.0,
+    )
+    # Plot non-cf AD vs Fwd
+    plot_combined_speed_memory(
+        results_df,
+        output_dir=output_dir,
+        show_std=args.show_std,
+        show_hip=False,
+        show_ad=True,
+        show_ad_cf=False,
+        show_fd=False,
+        show_fd32=False,
+        show_fwd=True,
+        ymax_time=3700,
+        ymax_memory=2100,
+        logy_time=False,
+        logy_memory=False,
+        ymin_time=0.0,
+        ymin_memory=0.0,
+    )
+    # Plot AD vs Fwd
+    plot_combined_speed_memory(
+        results_df,
+        output_dir=output_dir,
+        show_std=args.show_std,
+        show_hip=False,
+        show_ad=True,
+        show_ad_cf=True,
+        show_fd=False,
+        show_fd32=False,
+        show_fwd=True,
+        ymax_time=3700,
+        ymax_memory=2100,
+        logy_time=False,
+        logy_memory=False,
+        ymin_time=0.0,
+        ymin_memory=0.0,
+    )
+    # Plot baselines (not HIP)
+    plot_combined_speed_memory(
+        results_df,
+        output_dir=output_dir,
+        show_std=args.show_std,
+        show_hip=False,
+        show_ad=True,
+        show_fd=True,
+        show_fd32=False,
+        show_fwd=True,
+        ymax_time=3700,
+        ymax_memory=2100,
+        logy_time=False,
+        logy_memory=False,
+        ymin_time=0.0,
+        ymin_memory=0.0,
+    )
+    # Plot forward
+    plot_combined_speed_memory(
+        results_df,
+        output_dir=output_dir,
+        show_std=args.show_std,
+        show_hip=False,
+        show_ad=False,
+        show_fd=False,
+        show_fd32=False,
+        show_fwd=True,
+        ymax_time=3700,
+        ymax_memory=2100,
+        logy_time=False,
+        logy_memory=False,
+        ymin_time=0.0,
+        ymin_memory=0.0,
+    )
+
+    #########################################################
+    # Plot results - variable axis ranges
+    #########################################################
+
+    # Plot forward
+    plot_combined_speed_memory(
+        results_df,
+        output_dir=output_dir,
+        show_std=args.show_std,
+        show_ad=False,
+        show_ad_cf=False,
+        show_hip=False,
+        show_fd=False,
+        show_fd32=False,
+        show_fwd=True,
+        logy_time=False,
+        logy_memory=False,
+        ymin_time=0.0,
+        ymin_memory=0.0,
     )
     # Plot forward vs HIP
     plot_combined_speed_memory(
@@ -919,6 +1054,7 @@ if __name__ == "__main__":
         output_dir=output_dir,
         show_std=args.show_std,
         show_ad=False,
+        show_ad_cf=False,
         show_fd=False,
         show_fd32=False,
         show_fwd=True,

@@ -742,9 +742,9 @@ class EquiformerV2_OC20(BaseModel):
             edge_distance_vec = vecs
             edge_distance = (vecs).norm(dim=-1)
         else:
-            edge_index = data.edge_index
-            edge_distance = data.edge_distance
-            edge_distance_vec = data.edge_distance_vec
+            edge_index = data.edge_index  # [E, 2]
+            edge_distance = data.edge_distance  # [E]
+            edge_distance_vec = data.edge_distance_vec  # [E, 3]
             # cell_offsets = data.cell_offsets
             # cell_offset_distances = data.cell_offset_distances
             # neighbors = data.neighbors
