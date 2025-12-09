@@ -45,6 +45,18 @@ LR_SCHEDULER = {
 }
 
 
+class RMSLoss(torch.nn.Module):
+    """Root-mean-square loss for stable rescaling."""
+
+    def __init__(self, eps: float = 1e-12):
+        super().__init__()
+        self.eps = eps
+
+    def forward(self, input: torch.Tensor, target: torch.Tensor) -> torch.Tensor:
+        diff = input - target
+        return (diff.square().mean() + self.eps).sqrt()
+
+
 # from ocpmodels
 def add_weight_decay(model, weight_decay=1e-5, skip_list=()):
     decay = []
@@ -172,19 +184,14 @@ class PotentialModule(LightningModule):
         self.strict_loading = False
 
         # energy and force loss
-        self.loss_fn = torch.nn.L1Loss()
+        self.loss_fn = self._make_loss_fn(self.training_config.get("loss_type", "l1"))
         self.loss_fn_val = torch.nn.L1Loss()
 
         # Hessian loss
         self.do_hessian = self.training_config.get("hessian_loss_weight", 0.0) > 0.0
         if self.do_hessian:
             hessian_loss_type = self.training_config.get("hessian_loss_type", "mae")
-            if hessian_loss_type == "mse":
-                self.loss_fn_hessian = torch.nn.MSELoss()
-            elif hessian_loss_type == "mae":
-                self.loss_fn_hessian = torch.nn.L1Loss()
-            else:
-                raise ValueError(f"Invalid Hessian loss type: {hessian_loss_type}")
+            self.loss_fn_hessian = self._make_loss_fn(hessian_loss_type)
 
         self.do_eigen_loss = False
         if "eigen_loss" in self.training_config:
@@ -199,6 +206,16 @@ class PotentialModule(LightningModule):
 
         # Save arguments to hparams attribute for checkpointing
         self.save_hyperparameters(logger=False)
+
+    def _make_loss_fn(self, loss_type: str) -> torch.nn.Module:
+        """Create a loss function with optional RMS rescaling."""
+        if loss_type in ("l1", "mae"):
+            return torch.nn.L1Loss()
+        if loss_type in ("l2", "mse"):
+            return torch.nn.MSELoss()
+        if loss_type in ("rmse", "rmsd"):
+            return RMSLoss()
+        raise ValueError(f"Invalid loss type: {loss_type}")
 
     def set_wandb_run_id(self, run_id: str) -> None:
         """Set the WandB run ID for checkpoint continuation."""
