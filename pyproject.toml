@@ -61,7 +61,7 @@ dependencies = [
 ]
 
 [tool.setuptools.packages.find]
-include = ["hip*", "nets*", "ocpmodels*", "alphanet*", "leftnet*", "recipes*", "scripts*"]
+include = ["hip*", "nets*", "ocpmodels*", "alphanet*", "leftnet*", "scripts*"]
 
 [tool.uv.sources]
 torch = [
