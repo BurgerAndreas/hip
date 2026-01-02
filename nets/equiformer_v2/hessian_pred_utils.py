@@ -16,21 +16,11 @@ from ocpmodels.common.utils import (
 # l1_features = x_message.embedding.narrow(dimension=1, start=1, length=3)
 # l2_features = x_message.embedding.narrow(dim=1, start=4, length=5) # length=2l+1
 def irreps_to_cartesian_matrix(irreps: torch.Tensor) -> torch.Tensor:
-    """Luca Thiede's creation.
+    """Coupled angular momentum basis to Cartesian matrix.
     irreps: torch.Tensor [N, 9] or [E, 9]
     Returns:
         torch.Tensor [N, 3, 3] or [E, 3, 3]
     """
-    # M = torch.zeros((irreps.shape[0], 3, 3), device=irreps.device, dtype=irreps.dtype)
-    # for l3 in range(3):
-    #     ClGo = o3.wigner_3j(1, 1, l3, dtype=irreps.dtype, device=irreps.device)
-    #     if l3 == 0:
-    #         features_l3 = irreps[..., :1]
-    #     elif l3 == 1:
-    #         features_l3 = irreps[..., 1:4]
-    #     elif l3 == 2:
-    #         features_l3 = irreps[..., 4:9]
-    #     M += einops.einsum(ClGo, features_l3, "m1 m2 m3, b m3 -> b m1 m2")
     return (
         einops.einsum(
             o3.wigner_3j(1, 1, 0, dtype=irreps.dtype, device=irreps.device),
@@ -377,10 +367,10 @@ def l012_features_to_hessian_loops(
     return hessian
 
 
-def add_graph_batch(
+def add_hessian_graph_batch(
     data: TGBatch,
-    cutoff: float = 100.0,
-    max_neighbors: int = 32,
+    cutoff: float = 16.0,
+    max_neighbors: int = 1_000_000,
     use_pbc: bool = False,
 ) -> TGBatch:
     """
@@ -640,7 +630,7 @@ if __name__ == "__main__":
     batch = torch_geometric.data.Batch.from_data_list(
         [copy.deepcopy(data1_base), copy.deepcopy(data2_base)]
     )
-    batch = add_graph_batch(batch)
+    batch = add_hessian_graph_batch(batch)
 
     edge_index = batch.edge_index_hessian
     # rnd_messages = torch.randn(edge_index.shape[1], 3, 3)
@@ -682,7 +672,7 @@ if __name__ == "__main__":
     print((hessian_loops2 - hessian_loops).abs().max())
 
     ##################################################################################
-    # Test 3: timings for add_graph_single_sample, add_extra_props_for_hessian, add_graph_batch
+    # Test 3: timings for add_graph_single_sample, add_extra_props_for_hessian, add_hessian_graph_batch
     ##################################################################################
     print()
 
@@ -714,12 +704,12 @@ if __name__ == "__main__":
     t_single = time_call(add_graph_single_sample, base_batch, repeats=100)
     print(f"add_graph_single_sample: {t_single:.3f} ms")
 
-    # Time add_graph_batch (single call)
-    t_batch = time_call(add_graph_batch, base_batch, repeats=100)
-    print(f"add_graph_batch: {t_batch:.3f} ms")
+    # Time add_hessian_graph_batch (single call)
+    t_batch = time_call(add_hessian_graph_batch, base_batch, repeats=100)
+    print(f"add_hessian_graph_batch: {t_batch:.3f} ms")
 
     # Time l012_features_to_hessian (assembly only)
-    batch_for_assembly = add_graph_batch(build_batch(num_atoms=32, B=4))
+    batch_for_assembly = add_hessian_graph_batch(build_batch(num_atoms=32, B=4))
     edge_index_b = batch_for_assembly.edge_index_hessian
     rnd_messages_b = torch.randn(edge_index_b.shape[1], 3, 3)
     rnd_node_features_b = torch.randn(batch_for_assembly.natoms.sum().item(), 3, 3)

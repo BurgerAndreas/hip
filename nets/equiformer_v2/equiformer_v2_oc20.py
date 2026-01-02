@@ -49,7 +49,7 @@ from .hessian_pred_utils import (
     add_extra_props_for_hessian,
     l012_features_to_hessian,
     irreps_to_cartesian_matrix,
-    add_graph_batch,
+    add_hessian_graph_batch,
     # _get_indexadd_offdiagonal_to_flat_hessian_message_indices,
     # _get_node_diagonal_1d_indexadd_indices,
 )
@@ -716,29 +716,28 @@ class EquiformerV2_OC20(BaseModel):
         atomic_numbers = data.z.long()
         num_atoms = len(atomic_numbers)
 
-        # # cell_offsets, cell_offset_distances, neighbors are not used in EquiformerV2
-        # (
-        #     edge_index,
-        #     edge_distance,
-        #     edge_distance_vec,
-        #     _,  # cell_offsets,
-        #     _,  # cell offset distances
-        #     _,  # neighbors,
-        # ) = self.generate_graph(data)
-
         (
-            edge_index,  # [E, 2]
-            edge_distance,  # [E]
-            edge_distance_vec,  # [E, 3]
-        ) = self.generate_graph_nopbc(data, otf_graph=otf_graph)
+            edge_index, # [E, 2]
+            edge_distance, # [E]
+            edge_distance_vec, # [E, 3]
+            _,  # cell_offsets,
+            _,  # cell offset distances
+            _,  # neighbors,
+        ) = self.generate_graph(data)
 
+        # (
+        #     edge_index,  # [E, 2]
+        #     edge_distance,  # [E]
+        #     edge_distance_vec,  # [E, 3]
+        # ) = self.generate_graph_nopbc(data, otf_graph=otf_graph)
+
+        # Generate graph for Hessian prediction
         if otf_graph or not hasattr(data, "nedges_hessian"):
-            # For Hessian prediction
-            data = add_graph_batch(
+            data = add_hessian_graph_batch(
                 data,
-                cutoff=self.cutoff,
-                max_neighbors=self.max_neighbors,
-                use_pbc=self.use_pbc,
+                cutoff=self.cutoff_hessian,
+                max_neighbors=1_000_000,
+                use_pbc=False,
             )
         else:
             data = add_extra_props_for_hessian(data)
