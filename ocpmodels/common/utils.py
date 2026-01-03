@@ -494,7 +494,6 @@ def save_experiment_log(args, jobs, configs):
     return log_file
 
 
-# Taken from ocpmodels/common/utils.py
 def generate_graph(
     data,
     cutoff=None,

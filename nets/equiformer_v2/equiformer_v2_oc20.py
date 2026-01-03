@@ -47,7 +47,7 @@ from .transformer_block import (
 from .input_block import EdgeDegreeEmbedding
 from .hessian_pred_utils import (
     add_extra_props_for_hessian,
-    l012_features_to_hessian,
+    blocks3x3_to_hessian,
     irreps_to_cartesian_matrix,
     add_hessian_graph_batch,
     # _get_indexadd_offdiagonal_to_flat_hessian_message_indices,
@@ -566,7 +566,7 @@ class EquiformerV2_OC20(BaseModel):
             out_features=1,
             lmax=2,
         )
-        self._get_hessian_from_features = l012_features_to_hessian
+        self._get_hessian_from_features = blocks3x3_to_hessian
 
         self.apply(self._init_weights)
         self.apply(self._uniform_init_rad_func_linear_weights)
@@ -717,9 +717,9 @@ class EquiformerV2_OC20(BaseModel):
         num_atoms = len(atomic_numbers)
 
         (
-            edge_index, # [E, 2]
-            edge_distance, # [E]
-            edge_distance_vec, # [E, 3]
+            edge_index,  # [E, 2]
+            edge_distance,  # [E]
+            edge_distance_vec,  # [E, 3]
             _,  # cell_offsets,
             _,  # cell offset distances
             _,  # neighbors,

@@ -309,7 +309,7 @@ def _indexadd_diagonal_to_flat_hessian(
 ##############################################################################################################
 
 
-def l012_features_to_hessian(
+def blocks3x3_to_hessian(
     edge_index: torch.Tensor,
     data: TGBatch,
     l012_edge_features: torch.Tensor,
@@ -338,7 +338,7 @@ def l012_features_to_hessian(
     return hessian
 
 
-def l012_features_to_hessian_loops(
+def blocks3x3_to_hessian_loops(
     edge_index: torch.Tensor,
     data: TGBatch,
     l012_edge_features: torch.Tensor,
@@ -591,10 +591,8 @@ if __name__ == "__main__":
     edge_index = batch.edge_index_hessian
     rnd_messages = torch.randn(edge_index.shape[1], 3, 3)
     rnd_node_features = torch.randn(batch.natoms.sum().item(), 3, 3)
-    hessian = l012_features_to_hessian(
-        edge_index, batch, rnd_messages, rnd_node_features
-    )
-    hessian_loops = l012_features_to_hessian_loops(
+    hessian = blocks3x3_to_hessian(edge_index, batch, rnd_messages, rnd_node_features)
+    hessian_loops = blocks3x3_to_hessian_loops(
         edge_index, batch, rnd_messages, rnd_node_features
     )
     print(hessian.shape)
@@ -635,10 +633,8 @@ if __name__ == "__main__":
     edge_index = batch.edge_index_hessian
     # rnd_messages = torch.randn(edge_index.shape[1], 3, 3)
     # rnd_node_features = torch.randn(batch.natoms.sum().item(), 3, 3)
-    hessian2 = l012_features_to_hessian(
-        edge_index, batch, rnd_messages, rnd_node_features
-    )
-    hessian_loops2 = l012_features_to_hessian_loops(
+    hessian2 = blocks3x3_to_hessian(edge_index, batch, rnd_messages, rnd_node_features)
+    hessian_loops2 = blocks3x3_to_hessian_loops(
         edge_index, batch, rnd_messages, rnd_node_features
     )
 
@@ -708,16 +704,16 @@ if __name__ == "__main__":
     t_batch = time_call(add_hessian_graph_batch, base_batch, repeats=100)
     print(f"add_hessian_graph_batch: {t_batch:.3f} ms")
 
-    # Time l012_features_to_hessian (assembly only)
+    # Time blocks3x3_to_hessian (assembly only)
     batch_for_assembly = add_hessian_graph_batch(build_batch(num_atoms=32, B=4))
     edge_index_b = batch_for_assembly.edge_index_hessian
     rnd_messages_b = torch.randn(edge_index_b.shape[1], 3, 3)
     rnd_node_features_b = torch.randn(batch_for_assembly.natoms.sum().item(), 3, 3)
 
     def _call_assembly(_):
-        return l012_features_to_hessian(
+        return blocks3x3_to_hessian(
             edge_index_b, batch_for_assembly, rnd_messages_b, rnd_node_features_b
         )
 
     t_assemble = time_call(_call_assembly, None, repeats=100)
-    print(f"l012_features_to_hessian: {t_assemble:.3f} ms")
+    print(f"blocks3x3_to_hessian: {t_assemble:.3f} ms")
