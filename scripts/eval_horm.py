@@ -225,13 +225,17 @@ def evaluate(
             eigvals_model, eigvecs_model = torch.linalg.eigh(hessian_model)
 
             # Compute errors
-            e_error = torch.mean(torch.abs(energy_model.squeeze() - batch.ae))
+            if "energy" in batch.keys():
+                e_error = torch.mean(torch.abs(energy_model.squeeze() - batch.energy))
+            else:
+                e_error = torch.mean(torch.abs(energy_model.squeeze() - batch.ae))
             f_error = torch.mean(torch.abs(force_model - batch.forces))
 
             # Reshape true hessian
             n_atoms = batch.pos.shape[0]
             hessian_true = batch.hessian.reshape(n_atoms * 3, n_atoms * 3)
             h_error = torch.mean(torch.abs(hessian_model - hessian_true))
+            h_mre = torch.mean(torch.abs(hessian_model - hessian_true) / (torch.abs(hessian_true) + 1e-8))
 
             # Eigenvalue error
             eigvals_true, eigvecs_true = torch.linalg.eigh(hessian_true)
@@ -262,6 +266,7 @@ def evaluate(
                 "energy_error": e_error.item(),
                 "forces_error": f_error.item(),
                 "hessian_error": h_error.item(),
+                "hessian_mre": h_mre.item(),
                 "asymmetry_error": asymmetry_error.item(),
                 "true_asymmetry_error": true_asymmetry_error.item(),
                 "eigval_mae": eigval_mae.item(),
@@ -313,25 +318,25 @@ def evaluate(
 
             sample_data["eigval_mae_eckart"] = torch.mean(
                 torch.abs(eigvals_model_eckart - true_eigvals_eckart)
-            )
+            ).item()
             sample_data["eigval1_mae_eckart"] = torch.mean(
                 torch.abs(eigvals_model_eckart[0] - true_eigvals_eckart[0])
-            )
+            ).item()
             sample_data["eigval2_mae_eckart"] = torch.mean(
                 torch.abs(eigvals_model_eckart[1] - true_eigvals_eckart[1])
-            )
+            ).item()
             sample_data["eigvec1_mae_eckart"] = torch.mean(
                 torch.abs(eigvecs_model_eckart[:, 0] - true_eigvecs_eckart[:, 0])
-            )
+            ).item()
             sample_data["eigvec2_mae_eckart"] = torch.mean(
                 torch.abs(eigvecs_model_eckart[:, 1] - true_eigvecs_eckart[:, 1])
-            )
+            ).item()
             sample_data["eigvec1_cos_eckart"] = torch.abs(
                 torch.dot(eigvecs_model_eckart[:, 0], true_eigvecs_eckart[:, 0])
-            )
+            ).item()
             sample_data["eigvec2_cos_eckart"] = torch.abs(
                 torch.dot(eigvecs_model_eckart[:, 1], true_eigvecs_eckart[:, 1])
-            )
+            ).item()
 
             sample_metrics.append(sample_data)
             n_samples += 1
