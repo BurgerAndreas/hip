@@ -338,6 +338,10 @@ def evaluate(
                 torch.dot(eigvecs_model_eckart[:, 1], true_eigvecs_eckart[:, 1])
             ).item()
 
+            # Global eigenvector overlap: ||abs(Q_model @ Q_true^T) - I||_F
+            M = eigvecs_model_eckart.T @ true_eigvecs_eckart
+            sample_data["eigvec_overlap_error"] = torch.norm(M.abs() - torch.eye(M.shape[0]), p="fro").item()
+
             sample_metrics.append(sample_data)
             n_samples += 1
 
