@@ -87,4 +87,8 @@ If you found this code useful, please consider citing:
 ```
 
 The training code and the dataset are based on the HORM [paper](https://arxiv.org/abs/2505.12447), [dataset](https://www.kaggle.com/datasets/yunhonghan/hessian-dataset-for-optimizing-reactive-mliphorm/data), and [code](https://github.com/deepprinciple/HORM)
-We thank the authors of from DeepPrinciple for making their code and data openly available. 
+We thank the authors of from DeepPrinciple for making their code and data openly available.
+
+## Links
+
+[![Hypercommit](https://img.shields.io/badge/Hypercommit-DB2475)](https://hypercommit.com/hip)
