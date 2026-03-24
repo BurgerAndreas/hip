@@ -95,7 +95,6 @@ class PotentialModule(LightningModule):
             "hessian_node_proj",
         ]
 
-        training_config = self.fix_paths(training_config)
         self.model_config = model_config
         self.optimizer_config = optimizer_config
         self.training_config = training_config
@@ -360,6 +359,7 @@ class PotentialModule(LightningModule):
     def setup(self, stage: Optional[str] = None):
         print("Setting up dataset")
         if stage == "fit":
+            self.training_config = self.fix_paths(self.training_config)
             # train dataset
             print(f"Loading training dataset from {self.training_config['trn_path']}")
             if "qm9" in self.training_config["trn_path"]:
