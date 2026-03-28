@@ -12,8 +12,17 @@ from typing import List
 import numpy as np
 import torch
 import torch.nn as nn
-from scipy.special import sph_harm
 from torch.nn.init import _calculate_correct_fan
+
+try:
+    from scipy.special import sph_harm as _scipy_sph_harm
+except ImportError:
+    from scipy.special import sph_harm_y as _scipy_sph_harm_y
+
+    def _scipy_sph_harm(m, n, theta, phi):
+        # `sph_harm_y` uses (n, m, theta_polar, phi_azimuth), while the
+        # deprecated `sph_harm` used (m, n, theta_azimuth, phi_polar).
+        return _scipy_sph_harm_y(n, m, phi, theta)
 
 from .activations import Act
 
@@ -265,7 +274,7 @@ class SphericalSmearing(nn.Module):
         theta_tile = np.tile(theta.reshape(len(xyz), 1), (1, len(self.m)))
         phi_tile = np.tile(phi.reshape(len(xyz), 1), (1, len(self.m)))
 
-        harm = sph_harm(m_tile, n_tile, theta_tile, phi_tile)
+        harm = _scipy_sph_harm(m_tile, n_tile, theta_tile, phi_tile)
 
         harm_mzero = harm[:, self.m == 0]
         harm_mnonzero = harm[:, self.m != 0]

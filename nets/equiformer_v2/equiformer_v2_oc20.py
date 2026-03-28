@@ -1,5 +1,6 @@
 import logging
 import math
+from contextlib import nullcontext
 import torch
 
 from torch.autograd import grad
@@ -194,7 +195,7 @@ class EquiformerV2_OC20(BaseModel):
         num_targets=None,
         output_dim=None,
         readout=None,
-        direct_forces=None,
+        direct_forces=True,
         eps=None,
         hidden_channels=None,
         cutoff=None,
@@ -227,6 +228,7 @@ class EquiformerV2_OC20(BaseModel):
 
         self.use_pbc = use_pbc
         self.regress_forces = regress_forces
+        self.direct_forces = direct_forces
         self.otf_graph = otf_graph
         self.max_neighbors = max_neighbors
         self.max_radius = max_radius
@@ -291,7 +293,7 @@ class EquiformerV2_OC20(BaseModel):
         else:
             self.device = torch.device("cpu")
 
-        self.grad_forces = False
+        self.grad_forces = self.regress_forces and not self.direct_forces
         self.num_resolutions = len(self.lmax_list)
         self.sphere_channels_all = self.num_resolutions * self.sphere_channels
 
@@ -419,7 +421,7 @@ class EquiformerV2_OC20(BaseModel):
             self.use_grid_mlp,
             self.use_sep_s2_act,
         )
-        if self.regress_forces:
+        if self.regress_forces and self.direct_forces:
             self.force_block = SO2EquivariantGraphAttention(
                 self.sphere_channels,
                 self.attn_hidden_channels,
@@ -705,239 +707,266 @@ class EquiformerV2_OC20(BaseModel):
             outputs (Optional):
                 hessian: (B*N*3*N*3)
         """
+        otf_graph = self.otf_graph if otf_graph is None else otf_graph
+        require_force_grads = self.regress_forces and not self.direct_forces
+        force_create_graph = require_force_grads and (self.training or hessian)
+        grad_context = torch.enable_grad() if require_force_grads else nullcontext()
+        original_pos = data.pos
 
-        # I know we are equivariant, but this improves accuracy a tiny bit
-        data.pos = remove_mean_batch(data.pos, data.batch)
+        with grad_context:
+            if require_force_grads:
+                original_pos = original_pos.requires_grad_(True)
 
-        self.batch_size = len(data.natoms)
-        self.dtype = data.pos.dtype
-        self.device = data.pos.device
+            # I know we are equivariant, but this improves accuracy a tiny bit
+            data.pos = remove_mean_batch(original_pos, data.batch)
 
-        atomic_numbers = data.z.long()
-        num_atoms = len(atomic_numbers)
+            self.batch_size = len(data.natoms)
+            self.dtype = data.pos.dtype
+            self.device = data.pos.device
 
-        (
-            edge_index,  # [E, 2]
-            edge_distance,  # [E]
-            edge_distance_vec,  # [E, 3]
-            _,  # cell_offsets,
-            _,  # cell offset distances
-            _,  # neighbors,
-        ) = self.generate_graph(data)
+            atomic_numbers = data.z.long()
+            num_atoms = len(atomic_numbers)
 
-        # (
-        #     edge_index,  # [E, 2]
-        #     edge_distance,  # [E]
-        #     edge_distance_vec,  # [E, 3]
-        # ) = self.generate_graph_nopbc(data, otf_graph=otf_graph)
+            (
+                edge_index,  # [E, 2]
+                edge_distance,  # [E]
+                edge_distance_vec,  # [E, 3]
+                _,  # cell_offsets,
+                _,  # cell offset distances
+                _,  # neighbors,
+            ) = self.generate_graph(data)
 
-        # Generate graph for Hessian prediction
-        if otf_graph or not hasattr(data, "nedges_hessian"):
-            data = add_hessian_graph_batch(
-                data,
-                cutoff=self.cutoff_hessian,
-                max_neighbors=1_000_000,
-                use_pbc=False,
-            )
-        else:
-            data = add_extra_props_for_hessian(data)
+            # (
+            #     edge_index,  # [E, 2]
+            #     edge_distance,  # [E]
+            #     edge_distance_vec,  # [E, 3]
+            # ) = self.generate_graph_nopbc(data, otf_graph=otf_graph)
 
-        ###############################################################
-        # Initialize data structures
-        ###############################################################
-
-        # Compute 3x3 rotation matrix per edge [E, 3, 3]
-        assert edge_distance_vec.numel() > 0, (
-            f"edge_distance_vec is empty. edge_index: {edge_index.shape}, edge_distance: {edge_distance}"
-            "You passed a data object instead of a batch. Use `from torch_geometric.data import Batch, Dataloader` to create a batch."
-        )
-        edge_rot_mat = self._init_edge_rot_mat(data, edge_index, edge_distance_vec)
-
-        # Initialize the WignerD matrices and other values for spherical harmonic calculations
-        # used in edge_degree_embedding, TransBlockV2
-        for i in range(self.num_resolutions):
-            self.SO3_rotation[i].set_wigner(edge_rot_mat)
-
-        ###############################################################
-        # Initialize node embeddings
-        ###############################################################
-
-        # Init per node representations using an atomic number based embedding
-        offset = 0
-        x = SO3_Embedding(
-            num_atoms,
-            self.lmax_list,
-            self.sphere_channels,
-            self.device,
-            self.dtype,
-        )
-
-        offset_res = 0
-        offset = 0
-        # Initialize the l = 0, m = 0 coefficients for each resolution
-        for i in range(self.num_resolutions):
-            if self.num_resolutions == 1:
-                x.embedding[:, offset_res, :] = self.sphere_embedding(atomic_numbers)
+            # Generate graph for Hessian prediction
+            if otf_graph or not hasattr(data, "nedges_hessian"):
+                data = add_hessian_graph_batch(
+                    data,
+                    cutoff=self.cutoff_hessian,
+                    max_neighbors=1_000_000,
+                    use_pbc=False,
+                )
             else:
-                x.embedding[:, offset_res, :] = self.sphere_embedding(atomic_numbers)[
-                    :, offset : offset + self.sphere_channels
-                ]
-            offset = offset + self.sphere_channels
-            offset_res = offset_res + int((self.lmax_list[i] + 1) ** 2)
+                data = add_extra_props_for_hessian(data)
 
-        # Edge encoding (distance and atom edge)
-        edge_distance = self.distance_expansion(edge_distance)
-        if self.share_atom_edge_embedding and self.use_atom_edge_embedding:
-            source_element = atomic_numbers[edge_index[0]]  # Source atom atomic number
-            target_element = atomic_numbers[edge_index[1]]  # Target atom atomic number
-            source_embedding = self.source_embedding(source_element)
-            target_embedding = self.target_embedding(target_element)
-            edge_distance = torch.cat(
-                (edge_distance, source_embedding, target_embedding), dim=1
+            ###############################################################
+            # Initialize data structures
+            ###############################################################
+
+            # Compute 3x3 rotation matrix per edge [E, 3, 3]
+            assert edge_distance_vec.numel() > 0, (
+                f"edge_distance_vec is empty. edge_index: {edge_index.shape}, edge_distance: {edge_distance}"
+                "You passed a data object instead of a batch. Use `from torch_geometric.data import Batch, Dataloader` to create a batch."
             )
-        else:
-            # will be constructed in each transformer block
-            pass
-
-        # Edge-degree embedding for initializing node features
-        edge_degree = self.edge_degree_embedding(
-            atomic_numbers, edge_distance, edge_index
-        )
-        x.embedding = x.embedding + edge_degree.embedding
-
-        ###############################################################
-        # Update spherical node embeddings
-        ###############################################################
-
-        for i in range(self.num_layers):
-            x = self.blocks[i](
-                x,  # SO3_Embedding
-                atomic_numbers,
-                edge_distance,
-                edge_index,
-                batch=data.batch,  # for GraphDropPath
-            )
-
-        # Final layer norm
-        x.embedding = self.norm(x.embedding)
-
-        ###############################################################
-        # Energy estimation
-        ###############################################################
-        node_energy = self.energy_block(x)
-        energy = get_scalar_from_embedding(
-            node_energy, data, avg_num_nodes=self.avg_num_nodes
-        )
-
-        # hessian_ij = self.grad_hess_ij(energy=energy, posj=posj, posi=posi)
-
-        ###############################################################
-        # Force estimation
-        ###############################################################
-
-        forces = self.force_block(x, atomic_numbers, edge_distance, edge_index)
-        forces = forces.embedding.narrow(1, 1, 3)
-        forces = forces.view(-1, 3)
-
-        outputs = {}
-
-        ###############################################################
-        # Hessian estimation
-        ###############################################################
-        if hessian:
-            # we are going to use a different graph here
-            # with a bigger cutoff radius
-            edge_index_hessian = data.edge_index_hessian
-            edge_distance_hessian = data.edge_distance_hessian
-            edge_distance_vec_hessian = data.edge_distance_vec_hessian
-
-            # Compute 3x3 rotation matrix per edge
-            edge_rot_mat_hessian = self._init_edge_rot_mat(
-                data, edge_index_hessian, edge_distance_vec_hessian
-            )
+            edge_rot_mat = self._init_edge_rot_mat(data, edge_index, edge_distance_vec)
 
             # Initialize the WignerD matrices and other values for spherical harmonic calculations
             # used in edge_degree_embedding, TransBlockV2
             for i in range(self.num_resolutions):
-                self.SO3_rotation_hessian[i].set_wigner(edge_rot_mat_hessian)
+                self.SO3_rotation[i].set_wigner(edge_rot_mat)
 
-            # Edge encoding (distance and atom edge)
-            edge_distance_hessian = self.distance_expansion_hessian(
-                edge_distance_hessian
+            ###############################################################
+            # Initialize node embeddings
+            ###############################################################
+
+            # Init per node representations using an atomic number based embedding
+            offset = 0
+            x = SO3_Embedding(
+                num_atoms,
+                self.lmax_list,
+                self.sphere_channels,
+                self.device,
+                self.dtype,
             )
 
-            for i in range(self.num_layers_hessian):
-                x = self.hessian_layers[i](
+            offset_res = 0
+            offset = 0
+            # Initialize the l = 0, m = 0 coefficients for each resolution
+            for i in range(self.num_resolutions):
+                if self.num_resolutions == 1:
+                    x.embedding[:, offset_res, :] = self.sphere_embedding(atomic_numbers)
+                else:
+                    x.embedding[:, offset_res, :] = self.sphere_embedding(
+                        atomic_numbers
+                    )[:, offset : offset + self.sphere_channels]
+                offset = offset + self.sphere_channels
+                offset_res = offset_res + int((self.lmax_list[i] + 1) ** 2)
+
+            # Edge encoding (distance and atom edge)
+            edge_distance = self.distance_expansion(edge_distance)
+            if self.share_atom_edge_embedding and self.use_atom_edge_embedding:
+                source_element = atomic_numbers[edge_index[0]]  # Source atom atomic number
+                target_element = atomic_numbers[edge_index[1]]  # Target atom atomic number
+                source_embedding = self.source_embedding(source_element)
+                target_embedding = self.target_embedding(target_element)
+                edge_distance = torch.cat(
+                    (edge_distance, source_embedding, target_embedding), dim=1
+                )
+            else:
+                # will be constructed in each transformer block
+                pass
+
+            # Edge-degree embedding for initializing node features
+            edge_degree = self.edge_degree_embedding(
+                atomic_numbers, edge_distance, edge_index
+            )
+            x.embedding = x.embedding + edge_degree.embedding
+
+            ###############################################################
+            # Update spherical node embeddings
+            ###############################################################
+
+            for i in range(self.num_layers):
+                x = self.blocks[i](
                     x,  # SO3_Embedding
-                    atomic_numbers=atomic_numbers,
-                    edge_distance=edge_distance_hessian,
-                    edge_index=edge_index_hessian,
+                    atomic_numbers,
+                    edge_distance,
+                    edge_index,
                     batch=data.batch,  # for GraphDropPath
                 )
 
-            # messages: SO3_Embedding (E, L, num_heads * attn_value_channels)
-            x_message = self.hessian_head(
-                x,
-                atomic_numbers=atomic_numbers,
-                edge_distance=edge_distance_hessian,
-                edge_index=edge_index_hessian,
-                return_raw_messages=self.hessian_no_attn_weights,  # messages without attention weights
-                return_attn_messages=True,
-                attn_wo_sigmoid=self.attn_wo_sigmoid,
-            )
-            # select l0, l1, l2 features
-            l012_message_emb = x_message.embedding.narrow(
-                dim=1, start=0, length=9
-            )  # length=2l+1
-            l012_edge_features = SO3_Embedding(
-                length=l012_message_emb.shape[0],
-                lmax_list=[2],
-                num_channels=l012_message_emb.shape[2],
-                device=self.device,
-                dtype=self.dtype,
-            )
-            l012_edge_features.set_embedding(
-                l012_message_emb
-            )  # (E, 9, num_heads * attn_value_channels)
-            # project channel dimension to 1
-            l012_edge_features = self.hessian_edge_message_proj(l012_edge_features)
-            l012_edge_features: torch.Tensor = l012_edge_features.embedding[:, :, 0]
-            l012_edge_features_3x3 = irreps_to_cartesian_matrix(
-                l012_edge_features
-            )  # (E, 3, 3)
-            # messages: torch.Tensor = l012_edge_features
+            # Final layer norm
+            x.embedding = self.norm(x.embedding)
 
-            # combine message with node embeddings (self-connection)
-            # node embeddings -> (N, 3, 3)
-            l012_node_tensor = x.embedding.narrow(dim=1, start=0, length=9)
-            l012_node_features = SO3_Embedding(
-                length=l012_node_tensor.shape[0],
-                lmax_list=[2],
-                num_channels=l012_node_tensor.shape[2],
-                device=self.device,
-                dtype=self.dtype,
-            )  # (N, 9, C)
-            l012_node_features.set_embedding(l012_node_tensor)
-            l012_node_features = self.hessian_node_proj(l012_node_features)
-            l012_node_features: torch.Tensor = l012_node_features.embedding[:, :, 0]
-            # (N, 3, 3)
-            l012_node_features_3x3 = irreps_to_cartesian_matrix(l012_node_features)
-
-            hessian = self._get_hessian_from_features(
-                edge_index=edge_index_hessian,
-                data=data,
-                l012_edge_features=l012_edge_features_3x3,
-                l012_node_features=l012_node_features_3x3,
+            ###############################################################
+            # Energy estimation
+            ###############################################################
+            node_energy = self.energy_block(x)
+            energy = get_scalar_from_embedding(
+                node_energy, data, avg_num_nodes=self.avg_num_nodes
             )
 
-            if return_l_features:
-                outputs["l012_node_features"] = l012_node_features_3x3
-                outputs["l012_edge_features"] = l012_edge_features_3x3
-                outputs["l012_node_features_irreps"] = l012_node_features
-                outputs["l012_edge_features_irreps"] = l012_edge_features
+            # hessian_ij = self.grad_hess_ij(energy=energy, posj=posj, posi=posi)
 
-            outputs["hessian"] = hessian
+            ###############################################################
+            # Force estimation
+            ###############################################################
 
+            if self.regress_forces:
+                if self.direct_forces:
+                    forces = self.force_block(
+                        x, atomic_numbers, edge_distance, edge_index
+                    )
+                    forces = forces.embedding.narrow(1, 1, 3)
+                    forces = forces.view(-1, 3)
+                else:
+                    forces = -1 * torch.autograd.grad(
+                        energy,
+                        original_pos,
+                        grad_outputs=torch.ones_like(energy),
+                        create_graph=force_create_graph,
+                    )[0]
+            else:
+                forces = None
+
+            outputs = {}
+
+            ###############################################################
+            # Hessian estimation
+            ###############################################################
+            if hessian:
+                # we are going to use a different graph here
+                # with a bigger cutoff radius
+                edge_index_hessian = data.edge_index_hessian
+                edge_distance_hessian = data.edge_distance_hessian
+                edge_distance_vec_hessian = data.edge_distance_vec_hessian
+
+                # Compute 3x3 rotation matrix per edge
+                edge_rot_mat_hessian = self._init_edge_rot_mat(
+                    data, edge_index_hessian, edge_distance_vec_hessian
+                )
+
+                # Initialize the WignerD matrices and other values for spherical harmonic calculations
+                # used in edge_degree_embedding, TransBlockV2
+                for i in range(self.num_resolutions):
+                    self.SO3_rotation_hessian[i].set_wigner(edge_rot_mat_hessian)
+
+                # Edge encoding (distance and atom edge)
+                edge_distance_hessian = self.distance_expansion_hessian(
+                    edge_distance_hessian
+                )
+
+                for i in range(self.num_layers_hessian):
+                    x = self.hessian_layers[i](
+                        x,  # SO3_Embedding
+                        atomic_numbers=atomic_numbers,
+                        edge_distance=edge_distance_hessian,
+                        edge_index=edge_index_hessian,
+                        batch=data.batch,  # for GraphDropPath
+                    )
+
+                # messages: SO3_Embedding (E, L, num_heads * attn_value_channels)
+                x_message = self.hessian_head(
+                    x,
+                    atomic_numbers=atomic_numbers,
+                    edge_distance=edge_distance_hessian,
+                    edge_index=edge_index_hessian,
+                    return_raw_messages=self.hessian_no_attn_weights,  # messages without attention weights
+                    return_attn_messages=True,
+                    attn_wo_sigmoid=self.attn_wo_sigmoid,
+                )
+                # select l0, l1, l2 features
+                l012_message_emb = x_message.embedding.narrow(
+                    dim=1, start=0, length=9
+                )  # length=2l+1
+                l012_edge_features = SO3_Embedding(
+                    length=l012_message_emb.shape[0],
+                    lmax_list=[2],
+                    num_channels=l012_message_emb.shape[2],
+                    device=self.device,
+                    dtype=self.dtype,
+                )
+                l012_edge_features.set_embedding(
+                    l012_message_emb
+                )  # (E, 9, num_heads * attn_value_channels)
+                # project channel dimension to 1
+                l012_edge_features = self.hessian_edge_message_proj(
+                    l012_edge_features
+                )
+                l012_edge_features: torch.Tensor = l012_edge_features.embedding[:, :, 0]
+                l012_edge_features_3x3 = irreps_to_cartesian_matrix(
+                    l012_edge_features
+                )  # (E, 3, 3)
+                # messages: torch.Tensor = l012_edge_features
+
+                # combine message with node embeddings (self-connection)
+                # node embeddings -> (N, 3, 3)
+                l012_node_tensor = x.embedding.narrow(dim=1, start=0, length=9)
+                l012_node_features = SO3_Embedding(
+                    length=l012_node_tensor.shape[0],
+                    lmax_list=[2],
+                    num_channels=l012_node_tensor.shape[2],
+                    device=self.device,
+                    dtype=self.dtype,
+                )  # (N, 9, C)
+                l012_node_features.set_embedding(l012_node_tensor)
+                l012_node_features = self.hessian_node_proj(l012_node_features)
+                l012_node_features: torch.Tensor = l012_node_features.embedding[:, :, 0]
+                # (N, 3, 3)
+                l012_node_features_3x3 = irreps_to_cartesian_matrix(
+                    l012_node_features
+                )
+
+                hessian = self._get_hessian_from_features(
+                    edge_index=edge_index_hessian,
+                    data=data,
+                    l012_edge_features=l012_edge_features_3x3,
+                    l012_node_features=l012_node_features_3x3,
+                )
+
+                if return_l_features:
+                    outputs["l012_node_features"] = l012_node_features_3x3
+                    outputs["l012_edge_features"] = l012_edge_features_3x3
+                    outputs["l012_node_features_irreps"] = l012_node_features
+                    outputs["l012_edge_features_irreps"] = l012_edge_features
+
+                outputs["hessian"] = hessian
+
+        data.pos = original_pos
         # return energy.reshape(data.ae.shape), forces, outputs
         return energy, forces, outputs
 

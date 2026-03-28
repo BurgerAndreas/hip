@@ -17,12 +17,8 @@ from torch.optim.lr_scheduler import (
 )
 from hip.lrscheduler import StepLR, CosineAnnealingLR
 
-try:
-    from pytorch_lightning.utilities import grad_norm as pl_grad_norm
-    from pytorch_lightning import LightningModule
-except ImportError:
-    from lightning.pytorch.utilities import grad_norm as pl_grad_norm
-    from lightning import LightningModule
+from lightning.pytorch.utilities import grad_norm as pl_grad_norm
+from lightning.pytorch import LightningModule
 from nets.equiformer_v2.equiformer_v2_oc20 import EquiformerV2_OC20
 from ocpmodels.hessian_graph_transform import (
     HessianGraphTransform,

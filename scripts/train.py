@@ -5,24 +5,14 @@ import re
 from omegaconf import DictConfig, OmegaConf
 from datetime import datetime, timedelta
 
-try:
-    from pytorch_lightning.callbacks import (
-        TQDMProgressBar,
-        EarlyStopping,
-        ModelCheckpoint,
-        LearningRateMonitor,
-    )
-    from pytorch_lightning.loggers import WandbLogger
-    import pytorch_lightning as pl
-except ImportError:
-    from lightning.callbacks import (
-        TQDMProgressBar,
-        EarlyStopping,
-        ModelCheckpoint,
-        LearningRateMonitor,
-    )
-    from lightning.loggers import WandbLogger
-    import lightning as pl
+from lightning.pytorch.callbacks import (
+    TQDMProgressBar,
+    EarlyStopping,
+    ModelCheckpoint,
+    LearningRateMonitor,
+)
+from lightning.pytorch.loggers import WandbLogger
+import lightning.pytorch as pl
 
 # needed for eval(cfg.potential_module_class)
 from hip.training_module import PotentialModule

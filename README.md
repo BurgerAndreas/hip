@@ -52,6 +52,7 @@ uv pip install -e .
 
 Download the checkpoint from HuggingFace (222 MB)
 ```bash
+mkdir ckpt
 wget https://huggingface.co/andreasburger/heigen/resolve/main/ckpt/hip_v2.ckpt -O ckpt/hip_v2.ckpt
 ```
 

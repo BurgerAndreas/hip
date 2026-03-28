@@ -1,6 +1,7 @@
 from pathlib import Path
 
 import hydra
+import numpy as np
 import pytest
 import torch
 
@@ -10,6 +11,7 @@ from torch_geometric.data import Batch as TGBatch
 
 from hip.equiformer_ase_calculator import EquiformerASECalculator
 from hip.ff_lmdb import LmdbDataset, Z_TO_ATOM_SYMBOL
+from hip.inference_utils import get_model_from_checkpoint
 from hip.path_config import fix_dataset_path
 
 
@@ -52,6 +54,14 @@ def _checkpoint_path():
 
 def _mae_torch(pred_t, true_t):
     return torch.mean(torch.abs(pred_t - true_t))
+
+
+def _conservative_model(ckpt_path, device):
+    model = get_model_from_checkpoint(str(ckpt_path), device)
+    model.direct_forces = False
+    model.grad_forces = True
+    model.eval()
+    return model
 
 
 @pytest.mark.parametrize("device", ["cpu"])  # GPU covered in a separate test
@@ -122,3 +132,35 @@ def test_ase_calculator_gpu_energy_forces_mae():
     print(f"ASE GPU: Energy MAE: {e_mae:.2e}, Forces MAE: {f_mae:.2e}")
     assert e_mae < 0.5, f"Energy MAE: {e_mae:.2e}"
     assert f_mae < 0.1, f"Forces MAE: {f_mae:.2e}"
+
+
+@pytest.mark.parametrize("device", ["cpu"])
+def test_ase_calculator_conservative_forces_work_under_no_grad(device):
+    cfg = _compose_cfg()
+
+    ckpt_path = _checkpoint_path()
+    if not ckpt_path.exists():
+        pytest.skip(f"Checkpoint not found: {ckpt_path}")
+
+    batch = _first_val_batch(cfg)
+    atoms = _to_atoms(batch)
+
+    ase_calc = EquiformerASECalculator(
+        model=_conservative_model(ckpt_path, device),
+        hessian_method="predict",
+        device=device,
+    )
+    atoms.calc = ase_calc
+
+    ase_calc.calculate(atoms)
+    reference = {
+        "energy": ase_calc.results["energy"],
+        "forces": np.array(ase_calc.results["forces"], copy=True),
+    }
+
+    with torch.no_grad():
+        ase_calc.calculate(atoms)
+    under_no_grad = ase_calc.results
+
+    assert np.allclose(reference["energy"], under_no_grad["energy"])
+    assert np.allclose(reference["forces"], under_no_grad["forces"])

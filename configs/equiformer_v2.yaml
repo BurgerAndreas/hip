@@ -9,6 +9,7 @@ model:
 
   use_pbc:                  False
   regress_forces:           True
+  direct_forces:            True
   otf_graph:                True
   max_neighbors:            20
   max_radius:               12.0
