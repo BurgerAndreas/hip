@@ -22,11 +22,11 @@ ROOT_DIR = find_project_root()
 
 # HORM dataset
 DATASET_DIR_HORM_EIGEN = os.path.expanduser(
-    "~/.cache/kagglehub/datasets/yunhonghan/hessian-dataset-for-optimizing-reactive-mliphorm/versions/5/"
+    "~/.cache/kagglehub/datasets/yunhonghan/hessian-dataset-for-optimizing-reactive-mliphorm/versions/6"
 )
 DATASET_FILES_HORM = [
     "ts1x-val.lmdb",  # 50_844 samples
-    "ts1x_hess_train_big.lmdb",  # 1_725_362 samples
+    "ts1x_hess_train.lmdb",  # 1_725_362 samples
     "RGD1.lmdb",  # 60_000 samples
 ]
 
@@ -85,7 +85,7 @@ def fix_dataset_path(_path):
             # so we try again once to automatically fix the path
             if strict:
                 raise FileNotFoundError(
-                    f"Dataset path {_path} not found in \n{horm_path} \n{rgd1_path}"
+                    f"Dataset path {_path} not found in \n{horm_path} \nor \n{rgd1_path}"
                 )
             else:
                 _path_end = _path.split("/")[-1]

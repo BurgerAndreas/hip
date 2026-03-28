@@ -8,6 +8,7 @@ import wandb
 import numpy as np
 
 import torch
+import torch.distributed as dist
 
 from torch_geometric.loader import DataLoader as TGDataLoader
 from torch.optim.lr_scheduler import (
@@ -609,6 +610,11 @@ class PotentialModule(LightningModule):
     def on_validation_batch_end(self, outputs, batch, batch_idx, dataloader_idx=0):
         self.val_step_outputs.append(outputs)
 
+    def _distributed_logging_kwargs(self):
+        if dist.is_available() and dist.is_initialized():
+            return {"sync_dist": True}
+        return {"rank_zero_only": True}
+
     def on_validation_epoch_end(self):
         val_epoch_metrics = average_over_batch_metrics(self.val_step_outputs)
         # if self.trainer.is_global_zero:
@@ -620,12 +626,16 @@ class PotentialModule(LightningModule):
         #     )
 
         val_epoch_metrics.update({"epoch": self.current_epoch})
-        self.log_dict(val_epoch_metrics, prog_bar=False)
+        self.log_dict(
+            val_epoch_metrics,
+            prog_bar=False,
+            **self._distributed_logging_kwargs(),
+        )
         self.log(
             "val-val_duration_seconds",
             time.time() - self.val_start_time,
             prog_bar=False,
-            rank_zero_only=True,
+            **self._distributed_logging_kwargs(),
         )
 
         self.val_step_outputs.clear()
@@ -640,7 +650,7 @@ class PotentialModule(LightningModule):
         self.log(
             "train-epoch_duration_seconds",
             epoch_duration,
-            rank_zero_only=True,
+            **self._distributed_logging_kwargs(),
         )
 
     def on_validation_epoch_start(self):
@@ -654,8 +664,8 @@ class PotentialModule(LightningModule):
         self.log(
             "start_epoch",
             int(self.current_epoch),
-            rank_zero_only=True,
             prog_bar=False,
+            **self._distributed_logging_kwargs(),
         )
         super().on_train_start()
 

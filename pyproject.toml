@@ -10,9 +10,14 @@ authors = [
     {name = "Andreas Burger", email = "andreas.burger@mail.utoronto.ca"},
 ]
 readme = "README.md"
-requires-python = ">=3.10,<=3.11"
+requires-python = ">=3.12,<3.15"
 dependencies = [
-    "torch==2.7.0",
+    "torch==2.11.0",
+    "pyg-lib==0.6.0+pt211cu126",
+    "torch-scatter==2.1.2+pt211cu126",
+    "torch-sparse==0.6.18+pt211cu126",
+    "torch-cluster==1.6.3+pt211cu126",
+    "torch-geometric==2.7.0",
     "scipy",
     "scikit-learn",
     "pandas",
@@ -37,10 +42,10 @@ dependencies = [
     "pyarrow",
     "fastparquet",
     "pytorch_warmup",
-    "lightning==2.5.1.post0",
-    "triton==3.3.0",
+    "lightning==2.6.1",
+    "triton==3.6.0",
     "opt-einsum-fx==0.1.4",
-    "e3nn==0.5.1",
+    "e3nn==0.6.0",
     "ipykernel",
     "nbformat",
     "toml",
@@ -67,6 +72,17 @@ include = ["hip*", "nets*", "ocpmodels*", "alphanet*", "leftnet*", "scripts*"]
 torch = [
   { index = "pytorch-cu126", marker = "sys_platform == 'linux' or sys_platform == 'win32'" },
 ]
+
+[tool.uv]
+find-links = [
+  "https://data.pyg.org/whl/torch-2.11.0+cu126.html",
+]
+
+[tool.uv.extra-build-dependencies]
+torch-cluster = ["torch", "setuptools", "wheel"]
+torch-scatter = ["torch", "setuptools", "wheel"]
+torch-sparse = ["torch", "setuptools", "wheel"]
+pyg-lib = ["torch", "setuptools", "wheel"]
 
 [[tool.uv.index]]
 name = "pytorch-cu126"

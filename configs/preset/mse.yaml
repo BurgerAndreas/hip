@@ -1,9 +1,0 @@
-# @package _global_
-
-model:
-  alpha_drop:               0.0         # [0.0, 0.1]
-  drop_path_rate:           0.0         # [0.0, 0.05]
-  proj_drop:                0.0
-
-training:
-  hessian_loss_type: "mse"

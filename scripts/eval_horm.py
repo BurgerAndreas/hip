@@ -536,7 +536,7 @@ if __name__ == "__main__":
         "-d",
         type=str,
         default="ts1x-val.lmdb",
-        help="Dataset file name (e.g., ts1x-val.lmdb, ts1x_hess_train_big.lmdb, RGD1.lmdb)",
+        help="Dataset file name (e.g., ts1x-val.lmdb, ts1x_hess_train.lmdb, RGD1.lmdb)",
     )
     parser.add_argument(
         "--max_samples",

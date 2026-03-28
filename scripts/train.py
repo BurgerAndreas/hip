@@ -1,9 +1,11 @@
 import os
-import torch
-import hydra
 import re
+import warnings
 from omegaconf import DictConfig, OmegaConf
 from datetime import datetime, timedelta
+
+import hydra
+import torch
 
 from lightning.pytorch.callbacks import (
     TQDMProgressBar,
@@ -23,12 +25,30 @@ from hip.path_config import (
 from hip.logging_utils import name_from_config, find_latest_checkpoint
 
 
+def configure_runtime_warnings():
+    warnings.filterwarnings(
+        "ignore",
+        message=r".*isinstance\(treespec, LeafSpec\) is deprecated.*",
+        category=DeprecationWarning,
+    )
+    warnings.filterwarnings(
+        "ignore",
+        message=r"The `srun` command is available on your system but is not used\..*",
+    )
+    warnings.filterwarnings(
+        "ignore",
+        message=r"The AccumulateGrad node's stream does not match.*",
+        category=UserWarning,
+    )
+    torch.autograd.graph.set_warn_on_accumulate_grad_stream_mismatch(False)
+
+
 def setup_training(cfg: DictConfig):
     ###########################################
     # Fix config
     ###########################################
 
-    # muon requires ddp to be initialized
+    # Muon expects torch.distributed to be initialized, even on 1 GPU.
     if cfg.optimizer.optimizer.lower() == "muon":
         cfg.pltrainer.strategy = "ddp_find_unused_parameters_true"
 
@@ -258,6 +278,7 @@ def setup_training(cfg: DictConfig):
 
 @hydra.main(version_base=None, config_path="../configs", config_name="train")
 def main(cfg: DictConfig) -> None:
+    configure_runtime_warnings()
     torch.set_float32_matmul_precision("high")
     trainer, pm = setup_training(cfg)
     print("Fitting model")

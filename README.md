@@ -32,7 +32,7 @@ git clone git@github.com:BurgerAndreas/hip.git
 cd hip
 
 # Create virtual environment and install base dependencies
-uv venv .venv --python 3.11
+uv venv .venv --python 3.13
 source .venv/bin/activate
 uv sync
 
@@ -82,6 +82,12 @@ uv run scripts/download_horm_data_kaggle.py
 Train HIP (around two to three days on a H100 GPU)
 ```bash
 uv run scripts/train.py
+
+# conservative forces
+uv run scripts/train.py model.direct_forces=False
+
+# reduce the batch size if you are running on a L40s or A100 with 40GB GPU RAM
+# uv run scripts/train.py +extra=bz64
 ```
 
 ## Citation

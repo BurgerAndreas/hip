@@ -7,8 +7,19 @@ model:
 
 training:
   hessian_loss_type: "mae"
+  eigen_loss:
+    k: 8
+    alpha: 1.0
+  # eigen_loss:
+  #   k: [null, 8]
+  #   alpha: [0.1, 1.0]
 
 optimizer:
+  # muon
+  optimizer: "muon"
+  lr_muon: 1e-3
+  weight_decay_muon: 0.001
+  # adamw
   amsgrad: False
   beta1: 0.965
   beta2: 0.965
@@ -18,3 +29,4 @@ optimizer:
 pltrainer:
   gradient_clip_algorithm: norm
   gradient_clip_val: 7
+  

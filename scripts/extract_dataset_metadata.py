@@ -341,11 +341,11 @@ def extract_dataset_metadata(lmdb_path, max_samples=None, output_file=None):
 def main():
     """
     uv run scripts/extract_dataset_metadata.py --dataset ts1x-val.lmdb
-    uv run scripts/extract_dataset_metadata.py --dataset ts1x_hess_train_big.lmdb
+    uv run scripts/extract_dataset_metadata.py --dataset ts1x_hess_train.lmdb
     uv run scripts/extract_dataset_metadata.py --dataset RGD1.lmdb
 
     # Compare formulas between datasets
-    uv run scripts/extract_dataset_metadata.py --compare --train_csv dataset_metadata_ts1x_hess_train_big.parquet --val_csv dataset_metadata_ts1x-val.parquet
+    uv run scripts/extract_dataset_metadata.py --compare --train_csv dataset_metadata_ts1x_hess_train.parquet --val_csv dataset_metadata_ts1x-val.parquet
     """
     parser = argparse.ArgumentParser(
         description="Extract dataset metadata for split design"
@@ -354,7 +354,7 @@ def main():
         "--dataset",
         "-d",
         type=str,
-        help="Dataset file name (e.g., ts1x-val.lmdb, ts1x_hess_train_big.lmdb, RGD1.lmdb)",
+        help="Dataset file name (e.g., ts1x-val.lmdb, ts1x_hess_train.lmdb, RGD1.lmdb)",
     )
     parser.add_argument(
         "--max_samples",

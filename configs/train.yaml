@@ -3,7 +3,7 @@ defaults:
   - _self_
   - lr: cosine
   # - trgt: hessian
-  - preset: tunedmuon
+  - preset: mae
   - experiment: t1x
   - gpu: one
 

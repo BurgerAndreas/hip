@@ -151,13 +151,12 @@ class LmdbDataset(Dataset):
 
 if __name__ == "__main__":
     import os
+    from hip.path_config import DATASET_DIR_HORM_EIGEN
 
-    dataset_dir = os.path.expanduser(
-        "~/.cache/kagglehub/datasets/yunhonghan/hessian-dataset-for-optimizing-reactive-mliphorm/versions/5/"
-    )
+    dataset_dir = DATASET_DIR_HORM_EIGEN
     dataset_files = [
         "ts1x-val.lmdb",
-        "ts1x_hess_train_big.lmdb",
+        "ts1x_hess_train.lmdb",
         "RGD1.lmdb",
     ]
     lmdb_path = os.path.join(dataset_dir, dataset_files[0])
