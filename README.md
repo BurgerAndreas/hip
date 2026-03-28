@@ -78,12 +78,14 @@ Now download the HORM dataset (25GB):
 uv run scripts/download_horm_data_kaggle.py
 ```
 
-Train HIP (around two to three days on a L40s or H100 GPU)
+Train HIP (around two to three days on a H100 GPU)
 ```bash
 uv run scripts/train.py
 ```
 
 ## Citation
+
+If I can help you run the code or setup your own project, please email me at: <firstname>.<lastname>(at)mail.utoronto.ca
 
 If you found this code useful, please consider citing:
 ```bibtex
