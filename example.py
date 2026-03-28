@@ -104,3 +104,5 @@ if __name__ == "__main__":
 
     torch_example(checkpoint_path, dataset_path, device)
     ase_example(checkpoint_path, device)
+
+    print("\nExample ran successfully!")
