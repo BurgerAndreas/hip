@@ -18,8 +18,10 @@ Compared to autograd Hessians, HIP is:
 
 ## Installation
 
+This should only take 5-10 minutes depending on your internet connection.
+
 ### Setting up the environment
-Install uv (if not already installed)
+First install the uv package manager (if not already installed)
 ```bash
 curl -LsSf https://astral.sh/uv/install.sh | sh
 export PATH="$HOME/.local/bin:$PATH"
@@ -48,27 +50,37 @@ uv pip install -e .
 
 ## Use our model
 
-Download the checkpoint from HuggingFace
+Download the checkpoint from HuggingFace (222 MB)
 ```bash
 wget https://huggingface.co/andreasburger/heigen/resolve/main/ckpt/hip_v2.ckpt -O ckpt/hip_v2.ckpt
 ```
 
+Run a few forward passes (should take 30s)
 ```bash
 uv run example.py
 ```
 
 ## Setting up the HORM dataset for training
+
+Our models are trained on the Hessian dataset for Optimizing Reactive MLIP (HORM).
+
+The HORM dataset is hosted on Kaggle.
 Kaggle automatically downloads to the `~/.cache` folder. 
-I highly recommend to set up a symbolic link to a local folder to avoid running out of space on your home directory:
+If you want to use another location for the files, I recommend to set up a symbolic link to a another folder:
 ```bash
 PROJECT = <folder where you want to store the dataset>
 mkdir -p ${PROJECT}/.cache
 ln -s ${PROJECT}/.cache ${HOME}/.cache
 ```
 
-Get the HORM dataset: 
+Now download the HORM dataset (25GB): 
 ```bash
 uv run scripts/download_horm_data_kaggle.py
+```
+
+Train HIP (around two to three days on a L40s or H100 GPU)
+```bash
+uv run scripts/train.py
 ```
 
 ## Citation
