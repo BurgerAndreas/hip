@@ -83,6 +83,22 @@ Train HIP (around two to three days on a H100 GPU)
 uv run scripts/train.py
 ```
 
+## Transition state search
+
+For the transition state search we followed the HORM paper and used
+- https://github.com/deepprinciple/ReactBench
+- https://github.com/deepprinciple/pysisyphus
+
+Unfortunetly, the code is a horrible mess.
+
+If I were to do this project again, I would use (geodesic interpolation + Sella TS search + Sella IRC) as done in this paper: \
+https://www.nature.com/articles/s41467-024-52481-5 \
+For that you need to install:\
+https://github.com/virtualzx-nad/geodesic-interpolate \
+https://github.com/zadorlab/sella \
+and follow their workflow from here: \
+https://github.com/Quantum-Accelerators/quacc/blob/main/src/quacc/recipes/newtonnet/ts.py
+
 ## Citation
 
 If I can help you run the code or setup your own project, please email me at: `<firstname>.<lastname>(at)mail.utoronto.ca`
