@@ -88,6 +88,7 @@ uv run scripts/train.py
 For the transition state search we followed the HORM paper and used
 - https://github.com/deepprinciple/ReactBench
 - https://github.com/deepprinciple/pysisyphus
+- https://github.com/deepprinciple/pyGSM
 
 Unfortunetly, the code is a horrible mess.
 
