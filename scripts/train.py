@@ -138,19 +138,22 @@ def setup_training(cfg: DictConfig):
         checkpoint_name = "base"
     print(f"Checkpoint name: {checkpoint_name}")
 
-    # Auto-resume logic: find existing trainer checkpoint with same base name
+    # Auto-resume logic: find existing trainer checkpoint with same base name.
+    # An explicit ckpt_trainer_path should always take precedence over auto-discovery.
     if cfg.get("ckpt_resume_auto", False):
         if cfg.ckpt_trainer_path is not None:
             print(
-                f"Auto-resume is overwriting ckpt_trainer_path: {cfg.ckpt_trainer_path}"
+                "Auto-resume enabled, but explicit ckpt_trainer_path was provided; "
+                f"using {cfg.ckpt_trainer_path}"
             )
-        print("Auto-resume enabled, searching for existing checkpoints...")
-        latest_ckpt = find_latest_checkpoint(checkpoint_name, cfg.ckpt_base_dir)
-        if latest_ckpt:
-            cfg.ckpt_trainer_path = latest_ckpt
-            print(f"Auto-resume: Will resume from {latest_ckpt}")
         else:
-            print("Auto-resume: No existing checkpoints found, starting fresh")
+            print("Auto-resume enabled, searching for existing checkpoints...")
+            latest_ckpt = find_latest_checkpoint(checkpoint_name, cfg.ckpt_base_dir)
+            if latest_ckpt:
+                cfg.ckpt_trainer_path = latest_ckpt
+                print(f"Auto-resume: Will resume from {latest_ckpt}")
+            else:
+                print("Auto-resume: No existing checkpoints found, starting fresh")
 
     if cfg.ckpt_trainer_path is not None and cfg.ckpt_model_path is not None:
         # If both ckpt_model_path and ckpt_trainer_path are specified,
@@ -282,7 +285,13 @@ def main(cfg: DictConfig) -> None:
     torch.set_float32_matmul_precision("high")
     trainer, pm = setup_training(cfg)
     print("Fitting model")
-    trainer.fit(pm, ckpt_path=cfg.ckpt_trainer_path)
+    # Trainer checkpoints in this repo are trusted and may contain non-tensor
+    # OmegaConf objects, so resume with full checkpoint loading enabled.
+    trainer.fit(
+        pm,
+        ckpt_path=cfg.ckpt_trainer_path,
+        weights_only=False if cfg.ckpt_trainer_path is not None else None,
+    )
     print("\nTraining complete!")
 
 
