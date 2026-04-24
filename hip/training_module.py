@@ -95,6 +95,8 @@ class PotentialModule(LightningModule):
         self.model_config = model_config
         self.optimizer_config = optimizer_config
         self.training_config = training_config
+        self.epoch_start_time: Optional[float] = None
+        self.val_start_time: Optional[float] = None
 
         if self.model_config["name"] == "EquiformerV2":
             root_dir = find_project_root()
@@ -448,33 +450,39 @@ class PotentialModule(LightningModule):
 
     def train_dataloader(self):
         """Override to use custom collate function for Hessian batch offsetting"""
+        persistent_workers = self.training_config["num_workers"] > 0
         return TGDataLoader(
             self.train_dataset,
             batch_size=self.training_config["bz"],
             shuffle=True,
             num_workers=self.training_config["num_workers"],
+            persistent_workers=persistent_workers,
             follow_batch=self.training_config["follow_batch"],
             drop_last=self.training_config["drop_last"],
         )
 
     def val_dataloader(self):
         """Override to use custom collate function for Hessian batch offsetting"""
+        persistent_workers = self.training_config["num_workers"] > 0
         return TGDataLoader(
             self.val_dataset,
             batch_size=self.training_config["bz_val"],
             shuffle=False,
             num_workers=self.training_config["num_workers"],
+            persistent_workers=persistent_workers,
             follow_batch=self.training_config["follow_batch"],
             drop_last=self.training_config["drop_last"],
         )
 
     # not used
     def test_dataloader(self) -> TGDataLoader:
+        persistent_workers = self.training_config["num_workers"] > 0
         return TGDataLoader(
             self.test_dataset,
             batch_size=self.training_config["bz_val"],
             shuffle=False,
             num_workers=self.training_config["num_workers"],
+            persistent_workers=persistent_workers,
             follow_batch=self.training_config["follow_batch"],
             drop_last=self.training_config["drop_last"],
         )
@@ -631,12 +639,13 @@ class PotentialModule(LightningModule):
             prog_bar=False,
             **self._distributed_logging_kwargs(),
         )
-        self.log(
-            "val-val_duration_seconds",
-            time.time() - self.val_start_time,
-            prog_bar=False,
-            **self._distributed_logging_kwargs(),
-        )
+        if self.val_start_time is not None:
+            self.log(
+                "val-val_duration_seconds",
+                time.time() - self.val_start_time,
+                prog_bar=False,
+                **self._distributed_logging_kwargs(),
+            )
 
         self.val_step_outputs.clear()
 
@@ -646,12 +655,13 @@ class PotentialModule(LightningModule):
 
     def on_train_epoch_end(self):
         """Calculate and log the time taken for the training epoch."""
-        epoch_duration = time.time() - self.epoch_start_time
-        self.log(
-            "train-epoch_duration_seconds",
-            epoch_duration,
-            **self._distributed_logging_kwargs(),
-        )
+        if self.epoch_start_time is not None:
+            epoch_duration = time.time() - self.epoch_start_time
+            self.log(
+                "train-epoch_duration_seconds",
+                epoch_duration,
+                **self._distributed_logging_kwargs(),
+            )
 
     def on_validation_epoch_start(self):
         """Reset the validation dataloader at the start of every epoch."""
