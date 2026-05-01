@@ -8,6 +8,7 @@
 icon
 Icon
 .vscode
+.cursor/
 .ruff_cache/
 qm_calcs/
 scratch/
