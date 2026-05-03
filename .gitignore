@@ -17,6 +17,7 @@ scratch/
 .matplotlib/
 outputs/
 outslurm/
+profile_forward/
 checkpoint
 wandb
 scaling

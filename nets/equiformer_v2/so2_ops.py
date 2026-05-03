@@ -132,10 +132,12 @@ class SO2_Convolution(torch.nn.Module):
 
     def forward(self, x, x_edge):
         num_edges = len(x_edge)
-        out = []
 
         # Reshape the spherical harmonics based on m (order)
         x._m_primary(self.mappingReduced)
+        out = x.embedding.new_empty(
+            num_edges, x.embedding.shape[1], self.m_output_channels
+        )
 
         # radial function
         if self.rad_func is not None:
@@ -162,7 +164,8 @@ class SO2_Convolution(torch.nn.Module):
 
         x_0 = x_0.view(num_edges, -1, self.m_output_channels)
         # x.embedding[:, 0 : self.mappingReduced.m_size[0]] = x_0
-        out.append(x_0)
+        out_offset = x_0.shape[1]
+        out[:, :out_offset, :] = x_0
         offset_rad = offset_rad + self.fc_m0.in_features
 
         # Compute the values for the m > 0 coefficients
@@ -184,11 +187,12 @@ class SO2_Convolution(torch.nn.Module):
             x_m = self.so2_m_conv[m - 1](x_m)
             x_m = x_m.view(num_edges, -1, self.m_output_channels)
             # x.embedding[:, offset : offset + 2 * self.mappingReduced.m_size[m]] = x_m
-            out.append(x_m)
+            next_out_offset = out_offset + x_m.shape[1]
+            out[:, out_offset:next_out_offset, :] = x_m
+            out_offset = next_out_offset
             offset = offset + 2 * self.mappingReduced.m_size[m]
             offset_rad = offset_rad + self.so2_m_conv[m - 1].fc.in_features
 
-        out = torch.cat(out, dim=1)
         out_embedding = SO3_Embedding(
             0,
             x.lmax_list.copy(),
@@ -285,10 +289,12 @@ class SO2_Linear(torch.nn.Module):
 
     def forward(self, x, x_edge):
         batch_size = x.embedding.shape[0]
-        out = []
 
         # Reshape the spherical harmonics based on m (order)
         x._m_primary(self.mappingReduced)
+        out = x.embedding.new_empty(
+            batch_size, x.embedding.shape[1], self.m_output_channels
+        )
 
         # radial function
         if self.rad_func is not None:
@@ -303,7 +309,8 @@ class SO2_Linear(torch.nn.Module):
             x_0 = x_0 * x_edge_0
         x_0 = self.fc_m0(x_0)
         x_0 = x_0.view(batch_size, -1, self.m_output_channels)
-        out.append(x_0)
+        out_offset = x_0.shape[1]
+        out[:, :out_offset, :] = x_0
         offset_rad = offset_rad + self.fc_m0.in_features
 
         # Compute the values for the m > 0 coefficients
@@ -324,12 +331,13 @@ class SO2_Linear(torch.nn.Module):
             # Perform SO(2) linear
             x_m = self.so2_m_fc[m - 1](x_m)
             x_m = x_m.view(batch_size, -1, self.m_output_channels)
-            out.append(x_m)
+            next_out_offset = out_offset + x_m.shape[1]
+            out[:, out_offset:next_out_offset, :] = x_m
+            out_offset = next_out_offset
 
             offset = offset + 2 * self.mappingReduced.m_size[m]
             offset_rad = offset_rad + self.so2_m_fc[m - 1].in_features
 
-        out = torch.cat(out, dim=1)
         out_embedding = SO3_Embedding(
             0,
             x.lmax_list.copy(),

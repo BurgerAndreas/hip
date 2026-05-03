@@ -49,6 +49,7 @@ from .input_block import EdgeDegreeEmbedding
 from .hessian_pred_utils import (
     add_extra_props_for_hessian,
     blocks3x3_to_hessian,
+    get_cartesian_wigner_3j_basis,
     irreps_to_cartesian_matrix,
     add_hessian_graph_batch,
     # _get_indexadd_offdiagonal_to_flat_hessian_message_indices,
@@ -217,7 +218,7 @@ class EquiformerV2_OC20(BaseModel):
         compute_stress=None,
         do_hessian=None,
         num_gaussians_distance_hessian=None,
-        hessian_build_method=None,
+        fully_connected_hessian=True,
         device=None,
         **kwargs,
     ):
@@ -451,6 +452,7 @@ class EquiformerV2_OC20(BaseModel):
         ################################################################
 
         self.cutoff_hessian = cutoff_hessian
+        self.fully_connected_hessian = fully_connected_hessian
         self.hessian_module_list = []
 
         # Initialize the module that compute WignerD matrices and other values for spherical harmonic calculations
@@ -567,6 +569,11 @@ class EquiformerV2_OC20(BaseModel):
             in_features=self.sphere_channels,
             out_features=1,
             lmax=2,
+        )
+        self.register_buffer(
+            "hessian_cartesian_basis",
+            get_cartesian_wigner_3j_basis(dtype=torch.get_default_dtype()),
+            persistent=False,
         )
         self._get_hessian_from_features = blocks3x3_to_hessian
 
@@ -747,8 +754,8 @@ class EquiformerV2_OC20(BaseModel):
                 data = add_hessian_graph_batch(
                     data,
                     cutoff=self.cutoff_hessian,
-                    max_neighbors=1_000_000,
                     use_pbc=False,
+                    fully_connected=self.fully_connected_hessian,
                 )
             else:
                 data = add_extra_props_for_hessian(data)
@@ -929,7 +936,8 @@ class EquiformerV2_OC20(BaseModel):
                 )
                 l012_edge_features: torch.Tensor = l012_edge_features.embedding[:, :, 0]
                 l012_edge_features_3x3 = irreps_to_cartesian_matrix(
-                    l012_edge_features
+                    l012_edge_features,
+                    self.hessian_cartesian_basis,
                 )  # (E, 3, 3)
                 # messages: torch.Tensor = l012_edge_features
 
@@ -948,7 +956,8 @@ class EquiformerV2_OC20(BaseModel):
                 l012_node_features: torch.Tensor = l012_node_features.embedding[:, :, 0]
                 # (N, 3, 3)
                 l012_node_features_3x3 = irreps_to_cartesian_matrix(
-                    l012_node_features
+                    l012_node_features,
+                    self.hessian_cartesian_basis,
                 )
 
                 hessian = self._get_hessian_from_features(

@@ -3,9 +3,10 @@ from collections.abc import Iterable
 from omegaconf import ListConfig, OmegaConf
 import os
 import time
+import warnings
 from pathlib import Path
-import wandb
 import numpy as np
+import wandb
 
 import torch
 import torch.distributed as dist
@@ -18,7 +19,6 @@ from torch.optim.lr_scheduler import (
 )
 from hip.lrscheduler import StepLR, CosineAnnealingLR
 
-from lightning.pytorch.utilities import grad_norm as pl_grad_norm
 from lightning.pytorch import LightningModule
 from nets.equiformer_v2.equiformer_v2_oc20 import EquiformerV2_OC20
 from ocpmodels.hessian_graph_transform import (
@@ -166,7 +166,6 @@ class PotentialModule(LightningModule):
 
         self.wandb_run_id = None
         self.num_muon_params = None
-        self.grad_norm_history = []
 
         # For Lightning
         # Allow non-strict checkpoint loading for transfer learning
@@ -377,8 +376,11 @@ class PotentialModule(LightningModule):
                     transform = HessianGraphTransform(
                         cutoff=self.potential.cutoff,
                         cutoff_hessian=self.potential.cutoff_hessian,
-                        max_neighbors=self.potential.max_neighbors,
+                        backbone_max_neighbors=self.potential.max_neighbors,
                         use_pbc=self.potential.use_pbc,
+                        fully_connected_hessian=getattr(
+                            self.potential, "fully_connected_hessian", False
+                        ),
                     )
                 self.train_dataset = LmdbDataset(
                     Path(self.training_config["trn_path"]),
@@ -402,8 +404,11 @@ class PotentialModule(LightningModule):
                     transform = HessianGraphTransform(
                         cutoff=self.potential.cutoff,
                         cutoff_hessian=self.potential.cutoff_hessian,
-                        max_neighbors=self.potential.max_neighbors,
+                        backbone_max_neighbors=self.potential.max_neighbors,
                         use_pbc=self.potential.use_pbc,
+                        fully_connected_hessian=getattr(
+                            self.potential, "fully_connected_hessian", False
+                        ),
                     )
                 self.val_dataset = LmdbDataset(
                     Path(self.training_config["val_path"]),
@@ -678,15 +683,3 @@ class PotentialModule(LightningModule):
             **self._distributed_logging_kwargs(),
         )
         super().on_train_start()
-
-    def on_before_optimizer_step(self, optimizer):
-        # Compute the 2-norm for each layer
-        # If using mixed precision, the gradients are already unscaled here
-        # norms: The dictionary of p-norms of each parameter's gradient and
-        # a special entry for the total p-norm of the gradients viewed as a single vector
-        norms = pl_grad_norm(module=self.potential, norm_type=2)
-        self.grad_norm_history.append(norms["grad_2.0_norm_total"])  # float
-        if (self.global_step % 100 == 0) and self.global_step > 350:
-            norms["grad_2.0_norm_std"] = np.std(self.grad_norm_history)
-        self.log_dict(norms)
-        # super().on_before_optimizer_step(optimizer)

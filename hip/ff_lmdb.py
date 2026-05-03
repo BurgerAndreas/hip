@@ -57,8 +57,9 @@ class LmdbDataset(Dataset):
 
             self.metadata_path = self.path / "metadata.npz"
 
+            self.db_paths = db_paths
             self._keys, self.envs = [], []
-            for db_path in db_paths:
+            for db_path in self.db_paths:
                 self.envs.append(self.connect_db(db_path))
                 length = pickle.loads(
                     self.envs[-1].begin().get("length".encode("ascii"))
@@ -69,6 +70,7 @@ class LmdbDataset(Dataset):
             self._keylen_cumulative = np.cumsum(keylens).tolist()
             self.num_samples = sum(keylens)
         else:
+            self.db_paths = None
             self.metadata_path = self.path.parent / "metadata.npz"
             self.env = self.connect_db(self.path)
             try:
@@ -84,6 +86,19 @@ class LmdbDataset(Dataset):
 
         self.transform = transform
 
+    def __getstate__(self):
+        state = self.__dict__.copy()
+        state["env"] = None
+        state["envs"] = None
+        return state
+
+    def __setstate__(self, state):
+        self.__dict__.update(state)
+        if self.path.is_file():
+            self.env = None
+        else:
+            self.envs = None
+
     def __len__(self):
         return self.num_samples
 
@@ -92,6 +107,8 @@ class LmdbDataset(Dataset):
             raise IndexError(
                 f"Index {idx} out of range for dataset with {self.num_samples} samples"
             )
+
+        self._ensure_db_open()
 
         if not self.path.is_file():
             # Figure out which db this should be indexed from.
@@ -141,12 +158,23 @@ class LmdbDataset(Dataset):
         )
         return env
 
+    def _ensure_db_open(self):
+        if not self.path.is_file():
+            if getattr(self, "envs", None) is None:
+                self.envs = [self.connect_db(db_path) for db_path in self.db_paths]
+        elif getattr(self, "env", None) is None:
+            self.env = self.connect_db(self.path)
+
     def close_db(self):
         if not self.path.is_file():
-            for env in self.envs:
+            for env in getattr(self, "envs", None) or []:
                 env.close()
+            self.envs = None
         else:
-            self.env.close()
+            env = getattr(self, "env", None)
+            if env is not None:
+                env.close()
+            self.env = None
 
 
 if __name__ == "__main__":

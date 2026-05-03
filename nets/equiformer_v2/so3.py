@@ -89,6 +89,10 @@ class CoefficientMappingModule(torch.nn.Module):
             offset = offset + len(idx_i)
 
         to_m = to_m.detach()
+        # `to_m` is a one-hot permutation matrix. Keep index forms so layout
+        # changes can use gathers instead of dense einsums in the hot path.
+        to_m_primary_index = torch.argmax(to_m, dim=1).long()
+        to_l_primary_index = torch.argmax(to_m, dim=0).long()
 
         # save tensors and they will be moved to GPU
         self.register_buffer("l_harmonic", l_harmonic)
@@ -96,6 +100,8 @@ class CoefficientMappingModule(torch.nn.Module):
         self.register_buffer("m_complex", m_complex)
         self.register_buffer("res_size", res_size)
         self.register_buffer("to_m", to_m)
+        self.register_buffer("to_m_primary_index", to_m_primary_index, persistent=False)
+        self.register_buffer("to_l_primary_index", to_l_primary_index, persistent=False)
         self.register_buffer("m_size", m_size)
 
         # for caching the output of `coefficient_idx`
@@ -266,11 +272,15 @@ class SO3_Embedding:
 
     # Reshape the embedding l -> m
     def _m_primary(self, mapping):
-        self.embedding = torch.einsum("nac, ba -> nbc", self.embedding, mapping.to_m)
+        self.embedding = torch.index_select(
+            self.embedding, dim=1, index=mapping.to_m_primary_index
+        )
 
     # Reshape the embedding m -> l
     def _l_primary(self, mapping):
-        self.embedding = torch.einsum("nac, ab -> nbc", self.embedding, mapping.to_m)
+        self.embedding = torch.index_select(
+            self.embedding, dim=1, index=mapping.to_l_primary_index
+        )
 
     # Rotate the embedding
     def _rotate(self, SO3_rotation, lmax_list, mmax_list):

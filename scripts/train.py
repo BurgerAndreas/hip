@@ -1,5 +1,6 @@
 import os
 import re
+import sys
 import warnings
 from omegaconf import DictConfig, OmegaConf
 from datetime import datetime, timedelta
@@ -23,6 +24,27 @@ from hip.path_config import (
     CHECKPOINT_PATH_EQUIFORMER_ORIG,
 )
 from hip.logging_utils import name_from_config, find_latest_checkpoint
+
+
+def patch_argparse_lazy_help_for_python314():
+    if sys.version_info < (3, 14):
+        return
+
+    import argparse
+
+    if getattr(argparse.ArgumentParser, "_hip_lazy_help_patch", False):
+        return
+
+    original_add_argument = argparse.ArgumentParser.add_argument
+
+    def add_argument(self, *args, **kwargs):
+        help_text = kwargs.get("help")
+        if help_text is not None and not isinstance(help_text, str):
+            kwargs = {**kwargs, "help": repr(help_text)}
+        return original_add_argument(self, *args, **kwargs)
+
+    argparse.ArgumentParser.add_argument = add_argument
+    argparse.ArgumentParser._hip_lazy_help_patch = True
 
 
 def configure_runtime_warnings():
@@ -120,7 +142,12 @@ def setup_training(cfg: DictConfig):
     elif os.path.exists(cfg.ckpt_model_path):
         # pm = hydra.utils.instantiate(cfg.potential_module_class).load_from_checkpoint(
         pm = eval(cfg.potential_module_class).load_from_checkpoint(
-            cfg.ckpt_model_path, strict=False
+            cfg.ckpt_model_path,
+            model_config=model_config,
+            optimizer_config=optimizer_config,
+            training_config=training_config,
+            strict=False,
+            weights_only=False,
         )
     else:
         print(f"Not loading model checkpoint from {cfg.ckpt_model_path}")
@@ -174,13 +201,21 @@ def setup_training(cfg: DictConfig):
     callbacks = [
         TQDMProgressBar(),
     ]
-    early_stopping_callback = EarlyStopping(
-        monitor=cfg.early_stopping.monitor,
-        patience=cfg.early_stopping.patience,
-        mode=cfg.early_stopping.mode,
-        verbose=cfg.early_stopping.verbose,
-    )
-    callbacks.append(early_stopping_callback)
+    early_stopping_monitor = cfg.early_stopping.monitor
+    validation_disabled = cfg.pltrainer.limit_val_batches == 0
+    if validation_disabled and str(early_stopping_monitor).startswith("val"):
+        print(
+            f"Skipping early stopping because validation is disabled and "
+            f"monitor is '{early_stopping_monitor}'"
+        )
+    else:
+        early_stopping_callback = EarlyStopping(
+            monitor=early_stopping_monitor,
+            patience=cfg.early_stopping.patience,
+            mode=cfg.early_stopping.mode,
+            verbose=cfg.early_stopping.verbose,
+        )
+        callbacks.append(early_stopping_callback)
 
     if cfg.use_wandb:
         lr_monitor = LearningRateMonitor(logging_interval="step")
@@ -247,26 +282,15 @@ def setup_training(cfg: DictConfig):
         wandb_logger = False
 
     print("Initializing trainer")
-    trainer = pl.Trainer(
-        devices=cfg.pltrainer.devices,
-        num_nodes=cfg.pltrainer.num_nodes,
-        accelerator=cfg.pltrainer.accelerator,
-        strategy=cfg.pltrainer.strategy,
-        max_epochs=cfg.pltrainer.max_epochs,
+    trainer_kwargs = OmegaConf.to_container(cfg.pltrainer, resolve=True)
+    trainer_kwargs.update(
         callbacks=callbacks,
         # path for logs and weights when no logger/ckpt_callback passed
         default_root_dir=ckpt_output_path,
         enable_checkpointing=cfg.ckpt_do_save,
         logger=wandb_logger,
-        gradient_clip_val=cfg.pltrainer.gradient_clip_val,
-        gradient_clip_algorithm=cfg.pltrainer.gradient_clip_algorithm,
-        accumulate_grad_batches=cfg.pltrainer.accumulate_grad_batches,
-        limit_train_batches=cfg.pltrainer.limit_train_batches,
-        limit_val_batches=cfg.pltrainer.limit_val_batches,
-        log_every_n_steps=cfg.pltrainer.log_every_n_steps,
-        # check_val_every_n_epoch=cfg.pltrainer.get('check_val_every_n_epoch', 1),
-        # val_check_interval=cfg.pltrainer.get('val_check_interval', None),
     )
+    trainer = pl.Trainer(**trainer_kwargs)
 
     # Set WandB run ID on the model for future checkpoints
     if wandb_logger:
@@ -300,4 +324,5 @@ if __name__ == "__main__":
     python scripts/train.py experiment=debug
     python scripts/train.py training.bz=2
     """
+    patch_argparse_lazy_help_for_python314()
     main()
