@@ -3,6 +3,7 @@ from torch_geometric.transforms import BaseTransform
 from nets.equiformer_v2.hessian_pred_utils import (
     _get_indexadd_offdiagonal_to_flat_hessian_message_indices,
     _get_node_diagonal_1d_indexadd_indices,
+    fully_connected_hessian_graph_batch,
     # add_extra_props_for_hessian,
 )
 # from torch_geometric.data import Batch as TGBatch
@@ -10,7 +11,6 @@ from nets.equiformer_v2.hessian_pred_utils import (
 
 from ocpmodels.common.utils import (
     generate_graph,
-    generate_graph_nopbc,
 )
 
 # from torch_geometric.data import Data as TGData
@@ -45,20 +45,28 @@ class HessianGraphTransform(BaseTransform):
     Extremely slow. For training it is highly recommended to preprocess the dataset and compute this once.
     """
 
-    def __init__(self, cutoff=5.0, cutoff_hessian=100, max_neighbors=32, use_pbc=False):
+    def __init__(
+        self,
+        cutoff=5.0,
+        cutoff_hessian=100,
+        backbone_max_neighbors=32,
+        use_pbc=False,
+        fully_connected_hessian=True,
+    ):
         """
         Args:
             cutoff: cutoff radius for the graph
-            max_neighbors: maximum number of neighbors for the graph. None means 32.
+            backbone_max_neighbors: maximum number of neighbors for the backbone graph. None means 32.
             use_pbc: whether to use periodic boundary conditions
         """
         super().__init__()
         self.cutoff = cutoff
         self.cutoff_hessian = cutoff_hessian
-        self.max_neighbors = max_neighbors
+        self.backbone_max_neighbors = backbone_max_neighbors
         self.use_pbc = use_pbc
+        self.fully_connected_hessian = fully_connected_hessian
 
-    def __call__(self, data):
+    def forward(self, data):
         """
         Apply the transform to precompute graph and hessian indices.
 
@@ -80,7 +88,7 @@ class HessianGraphTransform(BaseTransform):
         ) = generate_graph(
             data,
             cutoff=self.cutoff,
-            max_neighbors=self.max_neighbors,
+            max_neighbors=self.backbone_max_neighbors,
             use_pbc=self.use_pbc,
         )
 
@@ -92,23 +100,34 @@ class HessianGraphTransform(BaseTransform):
         data.cell_offset_distances = cell_offset_distances
         data.neighbors = neighbors
         # add number of edges, analagous to natoms
-        data.nedges = torch.tensor(edge_index.shape[1], dtype=torch.long)
+        data.nedges = torch.tensor(
+            edge_index.shape[1], dtype=torch.long, device=data.pos.device
+        )
 
         ########################################################################################
         # Generate hessian graph
-        (
-            edge_index_hessian,
-            edge_distance_hessian,
-            edge_distance_vec_hessian,
-            cell_offsets_hessian,
-            cell_offset_distances_hessian,
-            neighbors_hessian,
-        ) = generate_graph(
-            data,
-            cutoff=self.cutoff_hessian,
-            max_neighbors=self.max_neighbors,
-            use_pbc=self.use_pbc,
-        )
+        if self.fully_connected_hessian:
+            (
+                edge_index_hessian,
+                edge_distance_hessian,
+                edge_distance_vec_hessian,
+                cell_offsets_hessian,
+                cell_offset_distances_hessian,
+                neighbors_hessian,
+            ) = fully_connected_hessian_graph_batch(data)
+        else:
+            (
+                edge_index_hessian,
+                edge_distance_hessian,
+                edge_distance_vec_hessian,
+                cell_offsets_hessian,
+                cell_offset_distances_hessian,
+                neighbors_hessian,
+            ) = generate_graph(
+                data,
+                cutoff=self.cutoff_hessian,
+                use_pbc=self.use_pbc,
+            )
 
         # Store hessian graph information in data object
         data.edge_index_hessian = edge_index_hessian
@@ -119,11 +138,11 @@ class HessianGraphTransform(BaseTransform):
         data.neighbors_hessian = neighbors_hessian
         # add number of edges, analagous to natoms
         data.nedges_hessian = torch.tensor(
-            edge_index_hessian.shape[1], dtype=torch.long
+            edge_index_hessian.shape[1], dtype=torch.long, device=data.pos.device
         )
 
         # Precompute edge message indices for offdiagonal entries in the hessian
-        N = data.natoms.sum().item()  # Number of atoms
+        N = data.pos.shape[0]  # Number of atoms
         indices_ij, indices_ji = (
             _get_indexadd_offdiagonal_to_flat_hessian_message_indices(
                 N=N, edge_index=edge_index_hessian

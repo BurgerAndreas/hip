@@ -15,10 +15,7 @@ from torch.optim.lr_scheduler import (
     CosineAnnealingLR,
 )
 
-try:
-    from pytorch_lightning import LightningModule
-except ImportError:
-    from lightning import LightningModule
+from lightning.pytorch import LightningModule
 from torchmetrics import (
     MeanAbsoluteError,
     MeanAbsolutePercentageError,

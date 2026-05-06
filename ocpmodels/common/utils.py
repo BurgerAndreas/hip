@@ -33,13 +33,41 @@ from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
 from matplotlib.figure import Figure
 from torch_geometric.data import Data
 from torch_geometric.utils import remove_self_loops
-from torch_geometric.nn import radius_graph
 
 # from torch_scatter import scatter, segment_coo, segment_csr
 from ocpmodels.common.scatter_utils import scatter, segment_coo, segment_csr
 
 if TYPE_CHECKING:
     from torch.nn.modules.module import _IncompatibleKeys
+
+
+def radius_graph_no_max_neighbors(pos, r, batch=None):
+    """Build a directed radius graph without torch_cluster's max-neighbor path.
+
+    This is intended for small molecular batches where a very large
+    max_num_neighbors value would make torch_cluster allocate huge intermediate
+    masks. It constructs all within-sample pairs and filters by distance.
+    """
+    num_nodes = pos.shape[0]
+    device = pos.device
+    if batch is None:
+        batch = torch.zeros(num_nodes, device=device, dtype=torch.long)
+
+    # Keep edge_index[1] sorted because compute_neighbors uses segment_coo.
+    target = torch.arange(num_nodes, device=device, dtype=torch.long).repeat_interleave(
+        num_nodes
+    )
+    source = torch.arange(num_nodes, device=device, dtype=torch.long).repeat(num_nodes)
+
+    same_sample = batch[source] == batch[target]
+    not_self = source != target
+    pair_mask = same_sample & not_self
+    source = source[pair_mask]
+    target = target[pair_mask]
+
+    distance_vec = pos[source] - pos[target]
+    within_radius = distance_vec.norm(dim=-1) <= r
+    return torch.stack((source[within_radius], target[within_radius]), dim=0)
 
 
 def pyg2_data_transform(data: Data):
@@ -520,11 +548,8 @@ def generate_graph(
         cell_offset_distances = out["offsets"]
         distance_vec = out["distance_vec"]
     else:
-        edge_index = radius_graph(
-            data.pos,
-            r=cutoff,
-            batch=data.batch,
-            max_num_neighbors=max_neighbors,
+        edge_index = radius_graph_no_max_neighbors(
+            data.pos, r=cutoff, batch=getattr(data, "batch", None)
         )
 
         j, i = edge_index
@@ -554,8 +579,8 @@ def generate_graph_nopbc(data, cutoff, max_neighbors: int = 32):
     if max_neighbors is None:
         max_neighbors = 32
     pos = data.pos
-    edge_index = radius_graph(
-        pos, r=cutoff, batch=data.batch, max_num_neighbors=max_neighbors
+    edge_index = radius_graph_no_max_neighbors(
+        pos, r=cutoff, batch=getattr(data, "batch", None)
     )
     j, i = edge_index
     posj = pos[j]

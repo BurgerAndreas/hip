@@ -13,6 +13,7 @@ def get_model_from_checkpoint(checkpoint_path, device):
         checkpoint_path,
         strict=False,
         map_location=device,
+        weights_only=False,
     ).potential
     model.eval()
     model.name = model_name

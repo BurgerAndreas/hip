@@ -1,28 +1,21 @@
 import os
-import torch
-import hydra
 import re
+import sys
+import warnings
 from omegaconf import DictConfig, OmegaConf
 from datetime import datetime, timedelta
 
-try:
-    from pytorch_lightning.callbacks import (
-        TQDMProgressBar,
-        EarlyStopping,
-        ModelCheckpoint,
-        LearningRateMonitor,
-    )
-    from pytorch_lightning.loggers import WandbLogger
-    import pytorch_lightning as pl
-except ImportError:
-    from lightning.callbacks import (
-        TQDMProgressBar,
-        EarlyStopping,
-        ModelCheckpoint,
-        LearningRateMonitor,
-    )
-    from lightning.loggers import WandbLogger
-    import lightning as pl
+import hydra
+import torch
+
+from lightning.pytorch.callbacks import (
+    TQDMProgressBar,
+    EarlyStopping,
+    ModelCheckpoint,
+    LearningRateMonitor,
+)
+from lightning.pytorch.loggers import WandbLogger
+import lightning.pytorch as pl
 
 # needed for eval(cfg.potential_module_class)
 from hip.training_module import PotentialModule
@@ -33,12 +26,51 @@ from hip.path_config import (
 from hip.logging_utils import name_from_config, find_latest_checkpoint
 
 
+def patch_argparse_lazy_help_for_python314():
+    if sys.version_info < (3, 14):
+        return
+
+    import argparse
+
+    if getattr(argparse.ArgumentParser, "_hip_lazy_help_patch", False):
+        return
+
+    original_add_argument = argparse.ArgumentParser.add_argument
+
+    def add_argument(self, *args, **kwargs):
+        help_text = kwargs.get("help")
+        if help_text is not None and not isinstance(help_text, str):
+            kwargs = {**kwargs, "help": repr(help_text)}
+        return original_add_argument(self, *args, **kwargs)
+
+    argparse.ArgumentParser.add_argument = add_argument
+    argparse.ArgumentParser._hip_lazy_help_patch = True
+
+
+def configure_runtime_warnings():
+    warnings.filterwarnings(
+        "ignore",
+        message=r".*isinstance\(treespec, LeafSpec\) is deprecated.*",
+        category=DeprecationWarning,
+    )
+    warnings.filterwarnings(
+        "ignore",
+        message=r"The `srun` command is available on your system but is not used\..*",
+    )
+    warnings.filterwarnings(
+        "ignore",
+        message=r"The AccumulateGrad node's stream does not match.*",
+        category=UserWarning,
+    )
+    torch.autograd.graph.set_warn_on_accumulate_grad_stream_mismatch(False)
+
+
 def setup_training(cfg: DictConfig):
     ###########################################
     # Fix config
     ###########################################
 
-    # muon requires ddp to be initialized
+    # Muon expects torch.distributed to be initialized, even on 1 GPU.
     if cfg.optimizer.optimizer.lower() == "muon":
         cfg.pltrainer.strategy = "ddp_find_unused_parameters_true"
 
@@ -110,7 +142,12 @@ def setup_training(cfg: DictConfig):
     elif os.path.exists(cfg.ckpt_model_path):
         # pm = hydra.utils.instantiate(cfg.potential_module_class).load_from_checkpoint(
         pm = eval(cfg.potential_module_class).load_from_checkpoint(
-            cfg.ckpt_model_path, strict=False
+            cfg.ckpt_model_path,
+            model_config=model_config,
+            optimizer_config=optimizer_config,
+            training_config=training_config,
+            strict=False,
+            weights_only=False,
         )
     else:
         print(f"Not loading model checkpoint from {cfg.ckpt_model_path}")
@@ -128,19 +165,22 @@ def setup_training(cfg: DictConfig):
         checkpoint_name = "base"
     print(f"Checkpoint name: {checkpoint_name}")
 
-    # Auto-resume logic: find existing trainer checkpoint with same base name
+    # Auto-resume logic: find existing trainer checkpoint with same base name.
+    # An explicit ckpt_trainer_path should always take precedence over auto-discovery.
     if cfg.get("ckpt_resume_auto", False):
         if cfg.ckpt_trainer_path is not None:
             print(
-                f"Auto-resume is overwriting ckpt_trainer_path: {cfg.ckpt_trainer_path}"
+                "Auto-resume enabled, but explicit ckpt_trainer_path was provided; "
+                f"using {cfg.ckpt_trainer_path}"
             )
-        print("Auto-resume enabled, searching for existing checkpoints...")
-        latest_ckpt = find_latest_checkpoint(checkpoint_name, cfg.ckpt_base_dir)
-        if latest_ckpt:
-            cfg.ckpt_trainer_path = latest_ckpt
-            print(f"Auto-resume: Will resume from {latest_ckpt}")
         else:
-            print("Auto-resume: No existing checkpoints found, starting fresh")
+            print("Auto-resume enabled, searching for existing checkpoints...")
+            latest_ckpt = find_latest_checkpoint(checkpoint_name, cfg.ckpt_base_dir)
+            if latest_ckpt:
+                cfg.ckpt_trainer_path = latest_ckpt
+                print(f"Auto-resume: Will resume from {latest_ckpt}")
+            else:
+                print("Auto-resume: No existing checkpoints found, starting fresh")
 
     if cfg.ckpt_trainer_path is not None and cfg.ckpt_model_path is not None:
         # If both ckpt_model_path and ckpt_trainer_path are specified,
@@ -161,13 +201,21 @@ def setup_training(cfg: DictConfig):
     callbacks = [
         TQDMProgressBar(),
     ]
-    early_stopping_callback = EarlyStopping(
-        monitor=cfg.early_stopping.monitor,
-        patience=cfg.early_stopping.patience,
-        mode=cfg.early_stopping.mode,
-        verbose=cfg.early_stopping.verbose,
-    )
-    callbacks.append(early_stopping_callback)
+    early_stopping_monitor = cfg.early_stopping.monitor
+    validation_disabled = cfg.pltrainer.limit_val_batches == 0
+    if validation_disabled and str(early_stopping_monitor).startswith("val"):
+        print(
+            f"Skipping early stopping because validation is disabled and "
+            f"monitor is '{early_stopping_monitor}'"
+        )
+    else:
+        early_stopping_callback = EarlyStopping(
+            monitor=early_stopping_monitor,
+            patience=cfg.early_stopping.patience,
+            mode=cfg.early_stopping.mode,
+            verbose=cfg.early_stopping.verbose,
+        )
+        callbacks.append(early_stopping_callback)
 
     if cfg.use_wandb:
         lr_monitor = LearningRateMonitor(logging_interval="step")
@@ -234,26 +282,15 @@ def setup_training(cfg: DictConfig):
         wandb_logger = False
 
     print("Initializing trainer")
-    trainer = pl.Trainer(
-        devices=cfg.pltrainer.devices,
-        num_nodes=cfg.pltrainer.num_nodes,
-        accelerator=cfg.pltrainer.accelerator,
-        strategy=cfg.pltrainer.strategy,
-        max_epochs=cfg.pltrainer.max_epochs,
+    trainer_kwargs = OmegaConf.to_container(cfg.pltrainer, resolve=True)
+    trainer_kwargs.update(
         callbacks=callbacks,
         # path for logs and weights when no logger/ckpt_callback passed
         default_root_dir=ckpt_output_path,
         enable_checkpointing=cfg.ckpt_do_save,
         logger=wandb_logger,
-        gradient_clip_val=cfg.pltrainer.gradient_clip_val,
-        gradient_clip_algorithm=cfg.pltrainer.gradient_clip_algorithm,
-        accumulate_grad_batches=cfg.pltrainer.accumulate_grad_batches,
-        limit_train_batches=cfg.pltrainer.limit_train_batches,
-        limit_val_batches=cfg.pltrainer.limit_val_batches,
-        log_every_n_steps=cfg.pltrainer.log_every_n_steps,
-        # check_val_every_n_epoch=cfg.pltrainer.get('check_val_every_n_epoch', 1),
-        # val_check_interval=cfg.pltrainer.get('val_check_interval', None),
     )
+    trainer = pl.Trainer(**trainer_kwargs)
 
     # Set WandB run ID on the model for future checkpoints
     if wandb_logger:
@@ -268,10 +305,17 @@ def setup_training(cfg: DictConfig):
 
 @hydra.main(version_base=None, config_path="../configs", config_name="train")
 def main(cfg: DictConfig) -> None:
+    configure_runtime_warnings()
     torch.set_float32_matmul_precision("high")
     trainer, pm = setup_training(cfg)
     print("Fitting model")
-    trainer.fit(pm, ckpt_path=cfg.ckpt_trainer_path)
+    # Trainer checkpoints in this repo are trusted and may contain non-tensor
+    # OmegaConf objects, so resume with full checkpoint loading enabled.
+    trainer.fit(
+        pm,
+        ckpt_path=cfg.ckpt_trainer_path,
+        weights_only=False if cfg.ckpt_trainer_path is not None else None,
+    )
     print("\nTraining complete!")
 
 
@@ -280,4 +324,5 @@ if __name__ == "__main__":
     python scripts/train.py experiment=debug
     python scripts/train.py training.bz=2
     """
+    patch_argparse_lazy_help_for_python314()
     main()

@@ -271,22 +271,19 @@ class SO2EquivariantGraphAttention(torch.nn.Module):
             # just use relative distance
             x_edge = edge_distance
 
-        x_source = x.clone()
-        x_target = x.clone()
-        # (E, num_l_features, C)
-        x_source._expand_edge(edge_index[0, :])
-        x_target._expand_edge(edge_index[1, :])
-
         # Message data is the embeddings of the nodes connected by the edge
+        # (E, num_l_features, C)
+        x_source_embedding = x.embedding[edge_index[0, :]]
+        x_target_embedding = x.embedding[edge_index[1, :]]
         x_message_data = torch.cat(
-            (x_source.embedding, x_target.embedding), dim=2
+            (x_source_embedding, x_target_embedding), dim=2
         )  # (E, L, 2*C)
         x_message = SO3_Embedding(
             0,
-            x_target.lmax_list.copy(),
-            x_target.num_channels * 2,
-            device=x_target.device,
-            dtype=x_target.dtype,
+            x.lmax_list.copy(),
+            x.num_channels * 2,
+            device=x.device,
+            dtype=x.dtype,
         )
         x_message.set_embedding(x_message_data)
         x_message.set_lmax_mmax(self.lmax_list.copy(), self.mmax_list.copy())

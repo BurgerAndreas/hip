@@ -3,11 +3,13 @@ from collections.abc import Iterable
 from omegaconf import ListConfig, OmegaConf
 import os
 import time
+import warnings
 from pathlib import Path
-import wandb
 import numpy as np
+import wandb
 
 import torch
+import torch.distributed as dist
 
 from torch_geometric.loader import DataLoader as TGDataLoader
 from torch.optim.lr_scheduler import (
@@ -17,12 +19,7 @@ from torch.optim.lr_scheduler import (
 )
 from hip.lrscheduler import StepLR, CosineAnnealingLR
 
-try:
-    from pytorch_lightning.utilities import grad_norm as pl_grad_norm
-    from pytorch_lightning import LightningModule
-except ImportError:
-    from lightning.pytorch.utilities import grad_norm as pl_grad_norm
-    from lightning import LightningModule
+from lightning.pytorch import LightningModule
 from nets.equiformer_v2.equiformer_v2_oc20 import EquiformerV2_OC20
 from ocpmodels.hessian_graph_transform import (
     HessianGraphTransform,
@@ -98,6 +95,8 @@ class PotentialModule(LightningModule):
         self.model_config = model_config
         self.optimizer_config = optimizer_config
         self.training_config = training_config
+        self.epoch_start_time: Optional[float] = None
+        self.val_start_time: Optional[float] = None
 
         if self.model_config["name"] == "EquiformerV2":
             root_dir = find_project_root()
@@ -167,7 +166,6 @@ class PotentialModule(LightningModule):
 
         self.wandb_run_id = None
         self.num_muon_params = None
-        self.grad_norm_history = []
 
         # For Lightning
         # Allow non-strict checkpoint loading for transfer learning
@@ -378,8 +376,11 @@ class PotentialModule(LightningModule):
                     transform = HessianGraphTransform(
                         cutoff=self.potential.cutoff,
                         cutoff_hessian=self.potential.cutoff_hessian,
-                        max_neighbors=self.potential.max_neighbors,
+                        backbone_max_neighbors=self.potential.max_neighbors,
                         use_pbc=self.potential.use_pbc,
+                        fully_connected_hessian=getattr(
+                            self.potential, "fully_connected_hessian", False
+                        ),
                     )
                 self.train_dataset = LmdbDataset(
                     Path(self.training_config["trn_path"]),
@@ -403,8 +404,11 @@ class PotentialModule(LightningModule):
                     transform = HessianGraphTransform(
                         cutoff=self.potential.cutoff,
                         cutoff_hessian=self.potential.cutoff_hessian,
-                        max_neighbors=self.potential.max_neighbors,
+                        backbone_max_neighbors=self.potential.max_neighbors,
                         use_pbc=self.potential.use_pbc,
+                        fully_connected_hessian=getattr(
+                            self.potential, "fully_connected_hessian", False
+                        ),
                     )
                 self.val_dataset = LmdbDataset(
                     Path(self.training_config["val_path"]),
@@ -451,33 +455,39 @@ class PotentialModule(LightningModule):
 
     def train_dataloader(self):
         """Override to use custom collate function for Hessian batch offsetting"""
+        persistent_workers = self.training_config["num_workers"] > 0
         return TGDataLoader(
             self.train_dataset,
             batch_size=self.training_config["bz"],
             shuffle=True,
             num_workers=self.training_config["num_workers"],
+            persistent_workers=persistent_workers,
             follow_batch=self.training_config["follow_batch"],
             drop_last=self.training_config["drop_last"],
         )
 
     def val_dataloader(self):
         """Override to use custom collate function for Hessian batch offsetting"""
+        persistent_workers = self.training_config["num_workers"] > 0
         return TGDataLoader(
             self.val_dataset,
             batch_size=self.training_config["bz_val"],
             shuffle=False,
             num_workers=self.training_config["num_workers"],
+            persistent_workers=persistent_workers,
             follow_batch=self.training_config["follow_batch"],
             drop_last=self.training_config["drop_last"],
         )
 
     # not used
     def test_dataloader(self) -> TGDataLoader:
+        persistent_workers = self.training_config["num_workers"] > 0
         return TGDataLoader(
             self.test_dataset,
             batch_size=self.training_config["bz_val"],
             shuffle=False,
             num_workers=self.training_config["num_workers"],
+            persistent_workers=persistent_workers,
             follow_batch=self.training_config["follow_batch"],
             drop_last=self.training_config["drop_last"],
         )
@@ -613,6 +623,11 @@ class PotentialModule(LightningModule):
     def on_validation_batch_end(self, outputs, batch, batch_idx, dataloader_idx=0):
         self.val_step_outputs.append(outputs)
 
+    def _distributed_logging_kwargs(self):
+        if dist.is_available() and dist.is_initialized():
+            return {"sync_dist": True}
+        return {"rank_zero_only": True}
+
     def on_validation_epoch_end(self):
         val_epoch_metrics = average_over_batch_metrics(self.val_step_outputs)
         # if self.trainer.is_global_zero:
@@ -624,13 +639,18 @@ class PotentialModule(LightningModule):
         #     )
 
         val_epoch_metrics.update({"epoch": self.current_epoch})
-        self.log_dict(val_epoch_metrics, prog_bar=False)
-        self.log(
-            "val-val_duration_seconds",
-            time.time() - self.val_start_time,
+        self.log_dict(
+            val_epoch_metrics,
             prog_bar=False,
-            rank_zero_only=True,
+            **self._distributed_logging_kwargs(),
         )
+        if self.val_start_time is not None:
+            self.log(
+                "val-val_duration_seconds",
+                time.time() - self.val_start_time,
+                prog_bar=False,
+                **self._distributed_logging_kwargs(),
+            )
 
         self.val_step_outputs.clear()
 
@@ -640,12 +660,13 @@ class PotentialModule(LightningModule):
 
     def on_train_epoch_end(self):
         """Calculate and log the time taken for the training epoch."""
-        epoch_duration = time.time() - self.epoch_start_time
-        self.log(
-            "train-epoch_duration_seconds",
-            epoch_duration,
-            rank_zero_only=True,
-        )
+        if self.epoch_start_time is not None:
+            epoch_duration = time.time() - self.epoch_start_time
+            self.log(
+                "train-epoch_duration_seconds",
+                epoch_duration,
+                **self._distributed_logging_kwargs(),
+            )
 
     def on_validation_epoch_start(self):
         """Reset the validation dataloader at the start of every epoch."""
@@ -658,19 +679,7 @@ class PotentialModule(LightningModule):
         self.log(
             "start_epoch",
             int(self.current_epoch),
-            rank_zero_only=True,
             prog_bar=False,
+            **self._distributed_logging_kwargs(),
         )
         super().on_train_start()
-
-    def on_before_optimizer_step(self, optimizer):
-        # Compute the 2-norm for each layer
-        # If using mixed precision, the gradients are already unscaled here
-        # norms: The dictionary of p-norms of each parameter's gradient and
-        # a special entry for the total p-norm of the gradients viewed as a single vector
-        norms = pl_grad_norm(module=self.potential, norm_type=2)
-        self.grad_norm_history.append(norms["grad_2.0_norm_total"])  # float
-        if (self.global_step % 100 == 0) and self.global_step > 350:
-            norms["grad_2.0_norm_std"] = np.std(self.grad_norm_history)
-        self.log_dict(norms)
-        # super().on_before_optimizer_step(optimizer)

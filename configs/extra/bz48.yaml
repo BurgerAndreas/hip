@@ -1,0 +1,5 @@
+# @package _global_
+
+training:
+  bz: 48
+  bz_val: 48

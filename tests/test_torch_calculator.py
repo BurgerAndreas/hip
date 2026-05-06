@@ -8,6 +8,7 @@ from torch_geometric.data import Batch as TGBatch
 
 from hip.equiformer_torch_calculator import EquiformerTorchCalculator
 from hip.ff_lmdb import LmdbDataset
+from hip.inference_utils import get_model_from_checkpoint
 from hip.path_config import fix_dataset_path
 
 
@@ -41,6 +42,14 @@ def _checkpoint_path():
 
 def _mae(pred, target):
     return torch.mean(torch.abs(pred.reshape(-1) - target.reshape(-1)))
+
+
+def _conservative_model(ckpt_path, device):
+    model = get_model_from_checkpoint(str(ckpt_path), device)
+    model.direct_forces = False
+    model.grad_forces = True
+    model.eval()
+    return model
 
 
 @pytest.mark.parametrize("device", ["cpu"])  # GPU covered in a separate test
@@ -106,3 +115,27 @@ def test_torch_calculator_gpu_energy_forces_mae():
     print(f"Torch GPU: Energy MAE: {e_mae:.2e}, Forces MAE: {f_mae:.2e}")
     assert e_mae < 0.5, f"Energy MAE: {e_mae:.2e}"
     assert f_mae < 0.1, f"Forces MAE: {f_mae:.2e}"
+
+
+@pytest.mark.parametrize("device", ["cpu"])
+def test_torch_calculator_conservative_forces_work_under_no_grad(device):
+    cfg = _compose_cfg()
+
+    ckpt_path = _checkpoint_path()
+    if not ckpt_path.exists():
+        pytest.skip(f"Checkpoint not found: {ckpt_path}")
+
+    calc = EquiformerTorchCalculator(
+        model=_conservative_model(ckpt_path, device),
+        hessian_method="predict",
+        device=device,
+    )
+
+    batch = _first_val_batch(cfg)
+    reference = calc.predict(batch=batch, do_hessian=False)
+
+    with torch.no_grad():
+        under_no_grad = calc.predict(batch=batch, do_hessian=False)
+
+    assert torch.allclose(reference["energy"], under_no_grad["energy"])
+    assert torch.allclose(reference["forces"], under_no_grad["forces"])

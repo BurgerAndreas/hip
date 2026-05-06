@@ -1,27 +1,33 @@
-# HIP: Hessian Interatomic Potentials 
+# HIP: Hessian Interatomic Potentials
 
-Paper: https://arxiv.org/abs/2509.21624 <br>
-Official repo: https://github.com/BurgerAndreas/hip <br>
-MACE implementation (work in progress): https://github.com/BurgerAndreas/hip-mace <br>
+Paper: [https://arxiv.org/abs/2509.21624](https://arxiv.org/abs/2509.21624)   
+
+Official repo: [https://github.com/BurgerAndreas/hip](https://github.com/BurgerAndreas/hip)   
+
+MACE implementation (work in progress): [https://github.com/BurgerAndreas/hip-mace](https://github.com/BurgerAndreas/hip-mace)   
+
 
 HIPs are machine learning interatomic potentials (MLIPs) that directly predict the Hessian, in addition to the usual energy and forces.
 This repo primarily trains HIP-EquiformerV2 on the [HORM Hessian dataset](https://github.com/deepprinciple/HORM), which consists of off-equilibrium geometries of small, neutral organic molecules, contained H, C, N, O, based on Transition1x, at the $\omega$B97X/6-31G(d) level of theory.
 
 Compared to autograd Hessians, HIP is:
+
 - 10-70x faster for a single molecule of 5-30 atoms
 - 70x faster for a typical T1x batch in batched prediction
 - 3x memory reduction
 - Better accuracy (Hessian, Hessian eigenvalues and eigenvectors)
 - Better downstream accuracy (relaxation, transition state search, frequency analysis)
 
-![Speed and memory comparison](static/combined_speed_memory_batchsize.png)
+Speed and memory comparison
 
 ## Installation
 
 This should only take 5-10 minutes depending on your internet connection.
 
 ### Setting up the environment
+
 First install the uv package manager (if not already installed)
+
 ```bash
 curl -LsSf https://astral.sh/uv/install.sh | sh
 export PATH="$HOME/.local/bin:$PATH"
@@ -32,7 +38,7 @@ git clone git@github.com:BurgerAndreas/hip.git
 cd hip
 
 # Create virtual environment and install base dependencies
-uv venv .venv --python 3.11
+uv venv .venv --python 3.13
 source .venv/bin/activate
 uv sync
 
@@ -50,12 +56,24 @@ uv pip install -e .
 
 ## Use our model
 
-Download the checkpoint from HuggingFace (222 MB)
+Download the latest checkpoints from HuggingFace:
+
 ```bash
-wget https://huggingface.co/andreasburger/heigen/resolve/main/ckpt/hip_v2.ckpt -O ckpt/hip_v2.ckpt
+mkdir -p ckpt
+wget https://huggingface.co/andreasburger/hip/resolve/main/ckpt/hip_v3.ckpt -O ckpt/hip_v3.ckpt
+wget https://huggingface.co/andreasburger/hip/resolve/main/ckpt/hip_v3.yaml -O ckpt/hip_v3.yaml
+wget https://huggingface.co/andreasburger/hip/resolve/main/ckpt/hip_v3_cf.ckpt -O ckpt/hip_v3_cf.ckpt
+wget https://huggingface.co/andreasburger/hip/resolve/main/ckpt/hip_v3_cf.yaml -O ckpt/hip_v3_cf.yaml
 ```
 
+Available checkpoints:
+
+- `hip_v3.ckpt`: latest HIP checkpoint with direct force prediction.
+- `hip_v3_cf.ckpt`: latest HIP checkpoint trained with conservative forces (`model.direct_forces=False`).
+- `hip_v3.yaml` and `hip_v3_cf.yaml`: saved model, optimizer, and training configs for the matching checkpoints.
+
 Run a few forward passes (should take 30s)
+
 ```bash
 uv run example.py
 ```
@@ -67,6 +85,7 @@ Our models are trained on the Hessian dataset for Optimizing Reactive MLIP (HORM
 The HORM dataset is hosted on Kaggle.
 Kaggle automatically downloads to the `~/.cache` folder. 
 If you want to use another location for the files, I recommend to set up a symbolic link to a another folder:
+
 ```bash
 PROJECT = <folder where you want to store the dataset>
 mkdir -p ${PROJECT}/.cache
@@ -74,13 +93,21 @@ ln -s ${PROJECT}/.cache ${HOME}/.cache
 ```
 
 Now download the HORM dataset (25GB): 
+
 ```bash
 uv run scripts/download_horm_data_kaggle.py
 ```
 
 Train HIP (around two to three days on a H100 GPU)
+
 ```bash
 uv run scripts/train.py
+
+# conservative forces
+uv run scripts/train.py model.direct_forces=False
+
+# reduce the batch size if you are running on a L40s or A100 with 40GB GPU RAM
+# uv run scripts/train.py +extra=bz64
 ```
 
 ## Transition state search
@@ -105,6 +132,7 @@ https://github.com/Quantum-Accelerators/quacc/blob/main/src/quacc/recipes/newton
 If I can help you run the code or setup your own project, please email me at: `<firstname>.<lastname>(at)mail.utoronto.ca`
 
 If you found this code useful, please consider citing:
+
 ```bibtex
 @misc{burger2025hiphessian,
       title={Shoot from the HIP: Hessian Interatomic Potentials without derivatives}, 

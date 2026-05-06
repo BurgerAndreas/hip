@@ -11,8 +11,8 @@ from torch.utils.tensorboard import SummaryWriter
 from torch.optim.lr_scheduler import StepLR, ReduceLROnPlateau, CosineAnnealingLR
 from tqdm import tqdm
 import time
-import pytorch_lightning as pl
-from pytorch_lightning.callbacks import ModelCheckpoint, EarlyStopping
+import lightning.pytorch as pl
+from lightning.pytorch.callbacks import ModelCheckpoint, EarlyStopping
 
 
 def expand_stress_components(stress_6):

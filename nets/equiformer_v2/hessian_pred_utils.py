@@ -2,8 +2,6 @@ import torch
 
 from e3nn import o3
 
-import einops
-
 from torch_geometric.data import Batch as TGBatch
 
 from ocpmodels.common.utils import (
@@ -15,28 +13,68 @@ from ocpmodels.common.utils import (
 # l0_features = x_message.embedding.narrow(dimension=1, start=0, length=1)
 # l1_features = x_message.embedding.narrow(dimension=1, start=1, length=3)
 # l2_features = x_message.embedding.narrow(dim=1, start=4, length=5) # length=2l+1
-def irreps_to_cartesian_matrix(irreps: torch.Tensor) -> torch.Tensor:
+def get_cartesian_wigner_3j_basis(
+    dtype: torch.dtype | None = None,
+    device: torch.device | None = None,
+) -> torch.Tensor:
+    """Fixed basis mapping l=0,1,2 irreps to Cartesian 3x3 blocks."""
+    return torch.cat(
+        (
+            o3.wigner_3j(1, 1, 0, dtype=dtype, device=device),
+            o3.wigner_3j(1, 1, 1, dtype=dtype, device=device),
+            o3.wigner_3j(1, 1, 2, dtype=dtype, device=device),
+        ),
+        dim=-1,
+    )
+
+
+def irreps_to_cartesian_matrix(
+    irreps: torch.Tensor, basis: torch.Tensor | None = None
+) -> torch.Tensor:
     """Coupled angular momentum basis to Cartesian matrix.
     irreps: torch.Tensor [N, 9] or [E, 9]
+    basis: Optional precomputed Wigner-3j basis [3, 3, 9]
     Returns:
         torch.Tensor [N, 3, 3] or [E, 3, 3]
     """
+    if basis is None:
+        basis = get_cartesian_wigner_3j_basis(
+            dtype=irreps.dtype, device=irreps.device
+        )
+    elif basis.dtype != irreps.dtype or basis.device != irreps.device:
+        basis = basis.to(dtype=irreps.dtype, device=irreps.device)
+    return torch.einsum("...k,ijk->...ij", irreps, basis)
+
+
+def fully_connected_hessian_graph_batch(data: TGBatch):
+    """Build all directed, non-self edges within each sample in a batch."""
+    device = data.pos.device
+    num_nodes = data.pos.shape[0]
+    source = torch.arange(num_nodes, device=device, dtype=torch.long).repeat(num_nodes)
+    target = torch.arange(num_nodes, device=device, dtype=torch.long).repeat_interleave(
+        num_nodes
+    )
+    batch = getattr(data, "batch", None)
+    if batch is None:
+        batch = torch.zeros(num_nodes, device=device, dtype=torch.long)
+    keep = (batch[source] == batch[target]) & (source != target)
+    source = source[keep]
+    target = target[keep]
+
+    edge_index = torch.stack((source, target), dim=0)
+    edge_distance_vec = data.pos[source] - data.pos[target]
+    edge_distance = edge_distance_vec.norm(dim=-1)
+    cell_offsets = torch.zeros(edge_index.shape[1], 3, device=device)
+    cell_offset_distances = torch.zeros_like(cell_offsets, device=device)
+    natoms = data.natoms.to(device=device, dtype=torch.long)
+    neighbors = natoms * (natoms - 1)
     return (
-        einops.einsum(
-            o3.wigner_3j(1, 1, 0, dtype=irreps.dtype, device=irreps.device),
-            irreps[..., :1],
-            "m1 m2 m3, b m3 -> b m1 m2",
-        )
-        + einops.einsum(
-            o3.wigner_3j(1, 1, 1, dtype=irreps.dtype, device=irreps.device),
-            irreps[..., 1:4],
-            "m1 m2 m3, b m3 -> b m1 m2",
-        )
-        + einops.einsum(
-            o3.wigner_3j(1, 1, 2, dtype=irreps.dtype, device=irreps.device),
-            irreps[..., 4:9],
-            "m1 m2 m3, b m3 -> b m1 m2",
-        )
+        edge_index,
+        edge_distance,
+        edge_distance_vec,
+        cell_offsets,
+        cell_offset_distances,
+        neighbors,
     )
 
 
@@ -69,10 +107,9 @@ def add_extra_props_for_hessian(data: TGBatch, offset_indices: bool = True) -> T
     """
     # add extra props for convience
     nedges = data.nedges_hessian
-    B = data.batch.max().item() + 1
+    B = data.natoms.shape[0]
     # vectorized pointer build
     _nedges = nedges.to(device=data.batch.device, dtype=torch.long)
-    _sizes = (_nedges * 3) ** 2
     # indices are computed for each sample individually
     # so we need to offset the indices by the number of entries in the previous samples in the batch
     if hasattr(data, "offsetdone") and (data.offsetdone is True):
@@ -91,24 +128,21 @@ def add_extra_props_for_hessian(data: TGBatch, offset_indices: bool = True) -> T
             B + 1, device=data.batch.device, dtype=torch.long
         )
         data.ptr_1d_hessian[0] = 0
-        if B > 0:
-            data.ptr_1d_hessian[1:] = torch.cumsum(_sizes, dim=0)
+        data.ptr_1d_hessian[1:] = cumsum_hess
         hess_offsets[1:] = cumsum_hess[:-1]
         node_offsets[1:] = cumsum_node[:-1]
     # Parallelize offsets across all elements using repeat_interleave per-sample lengths
     edge_counts = (_nedges * 9).to(dtype=torch.long)
     node_counts = (natoms * 9).to(dtype=torch.long)
     # Build full-length offset vectors
-    if edge_counts.sum().item() > 0:
-        full_edge_hess_offsets = torch.repeat_interleave(hess_offsets, edge_counts)
-        data.message_idx_ij += full_edge_hess_offsets
-        data.message_idx_ji += full_edge_hess_offsets
-    if node_counts.sum().item() > 0:
-        full_node_hess_offsets = torch.repeat_interleave(hess_offsets, node_counts)
-        full_node_node_offsets = torch.repeat_interleave(node_offsets, node_counts)
-        data.diag_ij += full_node_hess_offsets
-        data.diag_ji += full_node_hess_offsets
-        data.node_transpose_idx += full_node_node_offsets
+    full_edge_hess_offsets = torch.repeat_interleave(hess_offsets, edge_counts)
+    data.message_idx_ij += full_edge_hess_offsets
+    data.message_idx_ji += full_edge_hess_offsets
+    full_node_hess_offsets = torch.repeat_interleave(hess_offsets, node_counts)
+    full_node_node_offsets = torch.repeat_interleave(node_offsets, node_counts)
+    data.diag_ij += full_node_hess_offsets
+    data.diag_ji += full_node_hess_offsets
+    data.node_transpose_idx += full_node_node_offsets
 
     return data
 
@@ -192,7 +226,12 @@ def _indexadd_offdiagonal_to_flat_hessian(edge_index, messages, data):
         hessian1d: Tensor, shape (sum_b (N_b*3)^2,).
     """
     # do the same thing in 1d, but indexing messageflat without storing it in values
-    total_entries = int(torch.sum((data.natoms * 3) ** 2).item())
+    if hasattr(data, "hessian"):
+        total_entries = data.hessian.numel()
+    elif data.natoms.shape[0] == 1:
+        total_entries = (data.pos.shape[0] * 3) ** 2
+    else:
+        total_entries = int(torch.sum((data.natoms * 3) ** 2).item())
     hessian1d = torch.zeros(total_entries, device=messages.device, dtype=messages.dtype)
     E = edge_index.shape[1]
     messageflat = messages.reshape(-1)
@@ -358,7 +397,7 @@ def blocks3x3_to_hessian_loops(
             N_total = sum_b N_b.
     """
     # slow but trusworthy
-    N = data.natoms.sum().item()
+    N = data.pos.shape[0]
     hessian = _loop_offdiagonal_to_blockdiagonal_hessian(
         N, edge_index, l012_edge_features
     )
@@ -370,8 +409,8 @@ def blocks3x3_to_hessian_loops(
 def add_hessian_graph_batch(
     data: TGBatch,
     cutoff: float = 16.0,
-    max_neighbors: int = 1_000_000,
     use_pbc: bool = False,
+    fully_connected: bool = True,
 ) -> TGBatch:
     """
     Build Hessian graph and precompute globally-offset indices for a batched object.
@@ -398,19 +437,28 @@ def add_hessian_graph_batch(
     device = data.pos.device
 
     # 1) Generate batched Hessian graph
-    (
-        edge_index_hessian,
-        edge_distance_hessian,
-        edge_distance_vec_hessian,
-        cell_offsets_hessian,
-        cell_offset_distances_hessian,
-        neighbors_hessian,
-    ) = generate_graph(
-        data,
-        cutoff=cutoff,
-        max_neighbors=max_neighbors,
-        use_pbc=use_pbc,
-    )
+    if fully_connected:
+        (
+            edge_index_hessian,
+            edge_distance_hessian,
+            edge_distance_vec_hessian,
+            cell_offsets_hessian,
+            cell_offset_distances_hessian,
+            neighbors_hessian,
+        ) = fully_connected_hessian_graph_batch(data)
+    else:
+        (
+            edge_index_hessian,
+            edge_distance_hessian,
+            edge_distance_vec_hessian,
+            cell_offsets_hessian,
+            cell_offset_distances_hessian,
+            neighbors_hessian,
+        ) = generate_graph(
+            data,
+            cutoff=cutoff,
+            use_pbc=use_pbc,
+        )
 
     data.edge_index_hessian = edge_index_hessian
     data.edge_distance_hessian = edge_distance_hessian
@@ -471,7 +519,7 @@ def add_hessian_graph_batch(
     data.message_idx_ji = (idx_ji_in_sample + edge_hess_offset).reshape(-1)
 
     # 4) Node diagonal indices per sample, vectorized to global
-    total_nodes = int(natoms.sum().item())
+    total_nodes = data.pos.shape[0]
     if total_nodes > 0:
         # Per-node sample id and local indices
         sample_by_node = data.batch.to(dtype=torch.long, device=device)
@@ -528,7 +576,6 @@ if __name__ == "__main__":
         ) = generate_graph(
             data,
             cutoff=100.0,
-            max_neighbors=32,
             use_pbc=False,
         )
 
@@ -546,7 +593,7 @@ if __name__ == "__main__":
 
         # Precompute edge message indices for offdiagonal entries in the hessian
         # TODO: only works for a single sample, not for a batch
-        N = data.natoms.sum().item()  # Number of atoms
+        N = data.pos.shape[0]  # Number of atoms
         indices_ij, indices_ji = (
             _get_indexadd_offdiagonal_to_flat_hessian_message_indices(
                 N=N, edge_index=edge_index_hessian
@@ -590,7 +637,7 @@ if __name__ == "__main__":
 
     edge_index = batch.edge_index_hessian
     rnd_messages = torch.randn(edge_index.shape[1], 3, 3)
-    rnd_node_features = torch.randn(batch.natoms.sum().item(), 3, 3)
+    rnd_node_features = torch.randn(batch.pos.shape[0], 3, 3)
     hessian = blocks3x3_to_hessian(edge_index, batch, rnd_messages, rnd_node_features)
     hessian_loops = blocks3x3_to_hessian_loops(
         edge_index, batch, rnd_messages, rnd_node_features
@@ -632,7 +679,7 @@ if __name__ == "__main__":
 
     edge_index = batch.edge_index_hessian
     # rnd_messages = torch.randn(edge_index.shape[1], 3, 3)
-    # rnd_node_features = torch.randn(batch.natoms.sum().item(), 3, 3)
+    # rnd_node_features = torch.randn(batch.pos.shape[0], 3, 3)
     hessian2 = blocks3x3_to_hessian(edge_index, batch, rnd_messages, rnd_node_features)
     hessian_loops2 = blocks3x3_to_hessian_loops(
         edge_index, batch, rnd_messages, rnd_node_features
@@ -708,7 +755,7 @@ if __name__ == "__main__":
     batch_for_assembly = add_hessian_graph_batch(build_batch(num_atoms=32, B=4))
     edge_index_b = batch_for_assembly.edge_index_hessian
     rnd_messages_b = torch.randn(edge_index_b.shape[1], 3, 3)
-    rnd_node_features_b = torch.randn(batch_for_assembly.natoms.sum().item(), 3, 3)
+    rnd_node_features_b = torch.randn(batch_for_assembly.pos.shape[0], 3, 3)
 
     def _call_assembly(_):
         return blocks3x3_to_hessian(

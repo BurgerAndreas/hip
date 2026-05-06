@@ -270,14 +270,14 @@ def ase_atoms_to_torch_geometric(atoms):
 #             data = HessianGraphTransform(
 #                 cutoff=cutoff,
 #                 cutoff_hessian=cutoff_hessian,
-#                 max_neighbors=max_neighbors,
+#                 backbone_max_neighbors=max_neighbors,
 #                 use_pbc=use_pbc,
 #             )(data)
 #     else:
 #         data = HessianGraphTransform(
 #             cutoff=cutoff,
 #             cutoff_hessian=cutoff_hessian,
-#             max_neighbors=max_neighbors,
+#             backbone_max_neighbors=max_neighbors,
 #             use_pbc=use_pbc,
 #         )(data)
 #     data = Batch.from_data_list(
@@ -324,14 +324,14 @@ def ase_atoms_to_torch_geometric(atoms):
 #             data = HessianGraphTransform(
 #                 cutoff=cutoff,
 #                 cutoff_hessian=cutoff_hessian,
-#                 max_neighbors=max_neighbors,
+#                 backbone_max_neighbors=max_neighbors,
 #                 use_pbc=use_pbc,
 #             )(data)
 #     else:
 #         data = HessianGraphTransform(
 #             cutoff=cutoff,
 #             cutoff_hessian=cutoff_hessian,
-#             max_neighbors=max_neighbors,
+#             backbone_max_neighbors=max_neighbors,
 #             use_pbc=use_pbc,
 #         )(data)
 

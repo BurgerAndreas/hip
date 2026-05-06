@@ -1,5 +1,5 @@
 # @package _global_
 
 training:
-  bz: 100
-  bz_val: 100
+  bz: 64
+  bz_val: 64
