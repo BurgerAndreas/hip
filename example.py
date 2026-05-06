@@ -97,7 +97,7 @@ if __name__ == "__main__":
 
     # you might need to change the directory
     project_root = os.path.dirname(__file__)
-    checkpoint_path = os.path.join(project_root, "ckpt/hip_v2.ckpt")
+    checkpoint_path = os.path.join(project_root, "ckpt/hip_v3.ckpt")
 
     # Example 1: load a dataset file and predict the first batch
     dataset_path = os.path.join(project_root, "data/sample_100.lmdb")

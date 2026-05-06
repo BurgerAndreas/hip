@@ -16,23 +16,9 @@ def init_edge_rot_mat(edge_distance_vec):
 
     norm_x = edge_vec_0 / (edge_vec_0_distance.view(-1, 1))
 
-    edge_vec_2 = torch.rand_like(edge_vec_0) - 0.5
-    edge_vec_2 = edge_vec_2 / (torch.sqrt(torch.sum(edge_vec_2**2, dim=1)).view(-1, 1))
-    # Create two rotated copys of the random vectors in case the random vector is aligned with norm_x
-    # With two 90 degree rotated vectors, at least one should not be aligned with norm_x
-    edge_vec_2b = edge_vec_2.clone()
-    edge_vec_2b[:, 0] = -edge_vec_2[:, 1]
-    edge_vec_2b[:, 1] = edge_vec_2[:, 0]
-    edge_vec_2c = edge_vec_2.clone()
-    edge_vec_2c[:, 1] = -edge_vec_2[:, 2]
-    edge_vec_2c[:, 2] = edge_vec_2[:, 1]
-    vec_dot_b = torch.abs(torch.sum(edge_vec_2b * norm_x, dim=1)).view(-1, 1)
-    vec_dot_c = torch.abs(torch.sum(edge_vec_2c * norm_x, dim=1)).view(-1, 1)
-
-    vec_dot = torch.abs(torch.sum(edge_vec_2 * norm_x, dim=1)).view(-1, 1)
-    edge_vec_2 = torch.where(torch.gt(vec_dot, vec_dot_b), edge_vec_2b, edge_vec_2)
-    vec_dot = torch.abs(torch.sum(edge_vec_2 * norm_x, dim=1)).view(-1, 1)
-    edge_vec_2 = torch.where(torch.gt(vec_dot, vec_dot_c), edge_vec_2c, edge_vec_2)
+    # Pick a deterministic auxiliary axis that is least aligned with each edge.
+    candidate_axes = torch.eye(3, dtype=edge_vec_0.dtype, device=edge_vec_0.device)
+    edge_vec_2 = candidate_axes[torch.argmin(torch.abs(norm_x), dim=1)]
 
     vec_dot = torch.abs(torch.sum(edge_vec_2 * norm_x, dim=1))
     # Check the vectors aren't aligned

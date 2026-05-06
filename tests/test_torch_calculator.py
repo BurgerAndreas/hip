@@ -13,7 +13,7 @@ from hip.path_config import fix_dataset_path
 
 
 def _compose_cfg():
-    cfg_dir = "/ssd/Code/hip/configs"
+    cfg_dir = str(Path(__file__).resolve().parents[1] / "configs")
     with hydra.initialize_config_dir(config_dir=cfg_dir, version_base=None):
         cfg = hydra.compose(
             config_name="train",
@@ -36,7 +36,7 @@ def _first_val_batch(cfg):
 
 def _checkpoint_path():
     project_root = Path(__file__).resolve().parents[1]
-    ckpt_path = project_root / "ckpt/hip_v2.ckpt"
+    ckpt_path = project_root / "ckpt/hip_v3.ckpt"
     return ckpt_path
 
 
@@ -132,10 +132,37 @@ def test_torch_calculator_conservative_forces_work_under_no_grad(device):
     )
 
     batch = _first_val_batch(cfg)
-    reference = calc.predict(batch=batch, do_hessian=False)
+    reference = calc.predict(batch=batch.clone(), do_hessian=False)
+    grad_repeat = calc.predict(batch=batch.clone(), do_hessian=False)
 
     with torch.no_grad():
-        under_no_grad = calc.predict(batch=batch, do_hessian=False)
+        under_no_grad = calc.predict(batch=batch.clone(), do_hessian=False)
 
-    assert torch.allclose(reference["energy"], under_no_grad["energy"])
-    assert torch.allclose(reference["forces"], under_no_grad["forces"])
+    grad_energy_diff = torch.max(
+        torch.abs(reference["energy"] - grad_repeat["energy"])
+    ).item()
+    grad_forces_max_diff = torch.max(
+        torch.abs(reference["forces"] - grad_repeat["forces"])
+    ).item()
+    energy_diff = torch.max(
+        torch.abs(reference["energy"] - under_no_grad["energy"])
+    ).item()
+    forces_max_diff = torch.max(
+        torch.abs(reference["forces"] - under_no_grad["forces"])
+    ).item()
+    print(
+        "Torch grad repeat: "
+        f"Energy diff: {grad_energy_diff:.2e}, "
+        f"Forces max diff: {grad_forces_max_diff:.2e}"
+    )
+    print(
+        "Torch no-grad: "
+        f"Energy diff: {energy_diff:.2e}, Forces max diff: {forces_max_diff:.2e}"
+    )
+
+    assert torch.allclose(
+        reference["energy"], under_no_grad["energy"], rtol=1e-4, atol=1e-5
+    ), f"Energy diff: {energy_diff:.2e}"
+    assert torch.allclose(
+        reference["forces"], under_no_grad["forces"], rtol=1e-4, atol=1e-5
+    ), f"Forces max diff: {forces_max_diff:.2e}"

@@ -1,7 +1,5 @@
 import torch
 
-
-@torch.jit.script
 def gaussian(x, mean, std):
     pi = 3.14159
     a = (2 * pi) ** 0.5

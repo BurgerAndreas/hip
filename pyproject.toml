@@ -92,3 +92,11 @@ explicit = true
 
 [tool.ruff]
 lint.ignore = ["F541"] 
+
+[tool.pytest.ini_options]
+filterwarnings = [
+    'ignore:.*torch_geometric\.distributed.*deprecated.*:DeprecationWarning',
+    "ignore:The 'repr' attribute with value False was provided to the `Field\\(\\)` function.*",
+    "ignore:The 'frozen' attribute with value True was provided to the `Field\\(\\)` function.*",
+    "ignore:Can't initialize NVML:UserWarning",
+]

@@ -19,7 +19,7 @@ def parse_args():
         "--ckpt_path",
         "-c",
         type=str,
-        default="ckpt/hip_v2.ckpt",
+        default="ckpt/hip_v3.ckpt",
         help="Path to a Lightning checkpoint.",
     )
     parser.add_argument(

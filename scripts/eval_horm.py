@@ -505,7 +505,6 @@ def plot_accuracy_vs_natoms(df_results, name):
 """
 uv run python scripts/eval_horm.py -c ckpt/eqv2.ckpt -d ts1x-val.lmdb -m 1000 -r True
 uv run python scripts/eval_horm.py -c ckpt/hesspred_v1.ckpt -d ts1x-val.lmdb -m 1000 -r True -hm predict
-uv run python scripts/eval_horm.py -c ckpt/hip_v2.ckpt -d ts1x-val.lmdb -m 1000 -r True -hm predict
 uv run python scripts/eval_horm.py -c ckpt/hip_v3.ckpt -d ts1x-val.lmdb -m 1000 -r True -hm predict
 """
 if __name__ == "__main__":

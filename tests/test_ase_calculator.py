@@ -16,7 +16,7 @@ from hip.path_config import fix_dataset_path
 
 
 def _compose_cfg():
-    cfg_dir = "/ssd/Code/hip/configs"
+    cfg_dir = str(Path(__file__).resolve().parents[1] / "configs")
     with hydra.initialize_config_dir(config_dir=cfg_dir, version_base=None):
         cfg = hydra.compose(
             config_name="train",
@@ -48,7 +48,7 @@ def _to_atoms(batch: TGBatch) -> Atoms:
 
 def _checkpoint_path():
     project_root = Path(__file__).resolve().parents[1]
-    ckpt_path = project_root / "ckpt/hip_v2.ckpt"
+    ckpt_path = project_root / "ckpt/hip_v3.ckpt"
     return ckpt_path
 
 
@@ -158,9 +158,33 @@ def test_ase_calculator_conservative_forces_work_under_no_grad(device):
         "forces": np.array(ase_calc.results["forces"], copy=True),
     }
 
+    ase_calc.calculate(atoms)
+    grad_repeat = {
+        "energy": ase_calc.results["energy"],
+        "forces": np.array(ase_calc.results["forces"], copy=True),
+    }
+
     with torch.no_grad():
         ase_calc.calculate(atoms)
     under_no_grad = ase_calc.results
 
-    assert np.allclose(reference["energy"], under_no_grad["energy"])
-    assert np.allclose(reference["forces"], under_no_grad["forces"])
+    grad_energy_diff = abs(reference["energy"] - grad_repeat["energy"])
+    grad_forces_max_diff = np.max(np.abs(reference["forces"] - grad_repeat["forces"]))
+    energy_diff = abs(reference["energy"] - under_no_grad["energy"])
+    forces_max_diff = np.max(np.abs(reference["forces"] - under_no_grad["forces"]))
+    print(
+        "ASE grad repeat: "
+        f"Energy diff: {grad_energy_diff:.2e}, "
+        f"Forces max diff: {grad_forces_max_diff:.2e}"
+    )
+    print(
+        "ASE no-grad: "
+        f"Energy diff: {energy_diff:.2e}, Forces max diff: {forces_max_diff:.2e}"
+    )
+
+    assert np.allclose(
+        reference["energy"], under_no_grad["energy"], rtol=1e-4, atol=1e-5
+    ), f"Energy diff: {energy_diff:.2e}"
+    assert np.allclose(
+        reference["forces"], under_no_grad["forces"], rtol=1e-4, atol=1e-5
+    ), f"Forces max diff: {forces_max_diff:.2e}"

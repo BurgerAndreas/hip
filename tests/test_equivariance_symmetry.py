@@ -11,7 +11,7 @@ from hip.path_config import fix_dataset_path
 
 
 def _compose_cfg():
-    cfg_dir = "/ssd/Code/hip/configs"
+    cfg_dir = str(Path(__file__).resolve().parents[1] / "configs")
     with hydra.initialize_config_dir(config_dir=cfg_dir, version_base=None):
         cfg = hydra.compose(
             config_name="train",

@@ -6,7 +6,6 @@ Official repo: [https://github.com/BurgerAndreas/hip](https://github.com/BurgerA
 
 MACE implementation (work in progress): [https://github.com/BurgerAndreas/hip-mace](https://github.com/BurgerAndreas/hip-mace)   
 
-
 HIPs are machine learning interatomic potentials (MLIPs) that directly predict the Hessian, in addition to the usual energy and forces.
 This repo primarily trains HIP-EquiformerV2 on the [HORM Hessian dataset](https://github.com/deepprinciple/HORM), which consists of off-equilibrium geometries of small, neutral organic molecules, contained H, C, N, O, based on Transition1x, at the $\omega$B97X/6-31G(d) level of theory.
 
@@ -113,19 +112,20 @@ uv run scripts/train.py model.direct_forces=False
 ## Transition state search
 
 For the transition state search we followed the HORM paper and used
-- https://github.com/deepprinciple/ReactBench
-- https://github.com/deepprinciple/pysisyphus
-- https://github.com/deepprinciple/pyGSM
+
+- [https://github.com/deepprinciple/ReactBench](https://github.com/deepprinciple/ReactBench)
+- [https://github.com/deepprinciple/pysisyphus](https://github.com/deepprinciple/pysisyphus)
+- [https://github.com/deepprinciple/pyGSM](https://github.com/deepprinciple/pyGSM)
 
 Unfortunetly, the code is a horrible mess.
 
-If I were to do this project again, I would use (geodesic interpolation + Sella TS search + Sella IRC) as done in this paper: \
-https://www.nature.com/articles/s41467-024-52481-5 \
-For that you need to install:\
-https://github.com/virtualzx-nad/geodesic-interpolate \
-https://github.com/zadorlab/sella \
-and follow their workflow from here: \
-https://github.com/Quantum-Accelerators/quacc/blob/main/src/quacc/recipes/newtonnet/ts.py
+If I were to do this project again, I would use (geodesic interpolation + Sella TS search + Sella IRC) as done in this paper:  
+[https://www.nature.com/articles/s41467-024-52481-5](https://www.nature.com/articles/s41467-024-52481-5)  
+For that you need to install:  
+[https://github.com/virtualzx-nad/geodesic-interpolate](https://github.com/virtualzx-nad/geodesic-interpolate)  
+[https://github.com/zadorlab/sella](https://github.com/zadorlab/sella)  
+and follow their workflow from here:  
+[https://github.com/Quantum-Accelerators/quacc/blob/main/src/quacc/recipes/newtonnet/ts.py](https://github.com/Quantum-Accelerators/quacc/blob/main/src/quacc/recipes/newtonnet/ts.py)
 
 ## Citation
 
