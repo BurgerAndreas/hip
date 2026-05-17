@@ -36,21 +36,8 @@ export PATH="$HOME/.local/bin:$PATH"
 git clone git@github.com:BurgerAndreas/hip.git
 cd hip
 
-# Create virtual environment and install base dependencies
-uv venv .venv --python 3.13
-source .venv/bin/activate
-uv sync
-
-# Install PyTorch with CUDA support
-uv pip install torch==2.7.0 --index-url https://download.pytorch.org/whl/cu126
-
-# Install PyTorch Geometric packages with CUDA support
-uv pip install torch-scatter -f https://data.pyg.org/whl/torch-2.7.0+cu126.html
-uv pip install torch-cluster -f https://data.pyg.org/whl/torch-2.7.0+cu126.html
-uv pip install torch-geometric
-
-# Install the package in development mode
-uv pip install -e .
+# --extra cuda126
+uv sync --python 3.12 --extra cuda121
 ```
 
 ## Use our model

@@ -10,14 +10,9 @@ authors = [
     {name = "Andreas Burger", email = "andreas.burger@mail.utoronto.ca"},
 ]
 readme = "README.md"
-requires-python = ">=3.12,<3.15"
+requires-python = ">=3.12,<3.13"
 dependencies = [
-    "torch==2.11.0",
-    "pyg-lib==0.6.0+pt211cu126",
-    "torch-scatter==2.1.2+pt211cu126",
-    "torch-sparse==0.6.18+pt211cu126",
-    "torch-cluster==1.6.3+pt211cu126",
-    "torch-geometric==2.7.0",
+    "numpy",
     "scipy",
     "scikit-learn",
     "pytest<9",
@@ -44,7 +39,6 @@ dependencies = [
     "fastparquet",
     "pytorch_warmup",
     "lightning==2.6.1",
-    "triton==3.6.0",
     "opt-einsum-fx==0.1.4",
     "e3nn==0.6.0",
     "ipykernel",
@@ -66,16 +60,58 @@ dependencies = [
     "datasets>=4.4.1",
 ]
 
+[project.optional-dependencies]
+cuda121 = [
+    "torch==2.5.1",
+    "torch-geometric==2.7.0",
+    "pyg-lib==0.4.0+pt25cu121",
+    "torch-scatter==2.1.2+pt25cu121",
+    "torch-sparse==0.6.18+pt25cu121",
+    "torch-cluster==1.6.3+pt25cu121",
+]
+cuda126 = [
+    "torch==2.11.0",
+    "torch-geometric==2.7.0",
+    "pyg-lib==0.6.0+pt211cu126",
+    "torch-scatter==2.1.2+pt211cu126",
+    "torch-sparse==0.6.18+pt211cu126",
+    "torch-cluster==1.6.3+pt211cu126",
+]
+
+[dependency-groups]
+cuda121 = [
+    "torch==2.5.1",
+    "torch-geometric==2.7.0",
+    "pyg-lib==0.4.0+pt25cu121",
+    "torch-scatter==2.1.2+pt25cu121",
+    "torch-sparse==0.6.18+pt25cu121",
+    "torch-cluster==1.6.3+pt25cu121",
+]
+
 [tool.setuptools.packages.find]
-include = ["hip*", "nets*", "ocpmodels*", "alphanet*", "leftnet*", "scripts*"]
+include = ["hip*", "nets*", "ocpmodels*", "scripts*"]
 
 [tool.uv.sources]
 torch = [
-  { index = "pytorch-cu126", marker = "sys_platform == 'linux' or sys_platform == 'win32'" },
+  { index = "pytorch-cu121", group = "cuda121", marker = "sys_platform == 'linux' or sys_platform == 'win32'" },
+  { index = "pytorch-cu121", extra = "cuda121", marker = "sys_platform == 'linux' or sys_platform == 'win32'" },
+  { index = "pytorch-cu126", extra = "cuda126", marker = "sys_platform == 'linux' or sys_platform == 'win32'" },
 ]
 
 [tool.uv]
+default-groups = ["cuda121"]
+conflicts = [
+  [
+    { extra = "cuda121" },
+    { extra = "cuda126" },
+  ],
+  [
+    { group = "cuda121" },
+    { extra = "cuda126" },
+  ],
+]
 find-links = [
+  "https://data.pyg.org/whl/torch-2.5.1+cu121.html",
   "https://data.pyg.org/whl/torch-2.11.0+cu126.html",
 ]
 
@@ -84,6 +120,11 @@ torch-cluster = ["torch", "setuptools", "wheel"]
 torch-scatter = ["torch", "setuptools", "wheel"]
 torch-sparse = ["torch", "setuptools", "wheel"]
 pyg-lib = ["torch", "setuptools", "wheel"]
+
+[[tool.uv.index]]
+name = "pytorch-cu121"
+url = "https://download.pytorch.org/whl/cu121"
+explicit = true
 
 [[tool.uv.index]]
 name = "pytorch-cu126"

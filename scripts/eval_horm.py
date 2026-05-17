@@ -9,9 +9,6 @@ import matplotlib.pyplot as plt
 import os
 from torch_geometric.loader import DataLoader as TGDataLoader
 
-from alphanet.models.alphanet import AlphaNet
-from leftnet.model.leftnet import LEFTNet
-
 from hip.training_module import PotentialModule
 from hip.ff_lmdb import LmdbDataset, Z_TO_ATOM_SYMBOL
 from hip.path_config import fix_dataset_path
@@ -63,6 +60,8 @@ def evaluate(
     model_name = ckpt["hyper_parameters"]["model_config"]["name"]
     model_config = ckpt["hyper_parameters"]["model_config"]
     print(f"Model name: {model_name}")
+    if "equiformer" not in model_name.lower():
+        raise ValueError("HIP evaluation only supports Equiformer checkpoints")
 
     _name = ""
     # _name += checkpoint_path.split("/")[-2]
@@ -145,32 +144,19 @@ def evaluate(
             end_event = torch.cuda.Event(enable_timing=True)
             start_event.record()
 
-            # Forward pass
-            if model_name == "LEFTNet":
+            if do_autograd:
                 batch.pos.requires_grad_()
-                energy_model, force_model = model.forward_autograd(batch)
+                energy_model, force_model, out = model.forward(
+                    batch, otf_graph=False, hessian=False
+                )
                 hessian_model = compute_hessian(batch.pos, energy_model, force_model)
-            elif "equiformer" in model_name.lower():
-                if do_autograd:
-                    batch.pos.requires_grad_()
-                    energy_model, force_model, out = model.forward(
-                        batch, otf_graph=False, hessian=False
-                    )
-                    hessian_model = compute_hessian(
-                        batch.pos, energy_model, force_model
-                    )
-                else:
-                    with torch.no_grad():
-                        energy_model, force_model, out = model.forward(
-                            batch,
-                            otf_graph=False,
-                        )
-                    hessian_model = out["hessian"].reshape(n_atoms * 3, n_atoms * 3)
             else:
-                # AlphaNet
-                batch.pos.requires_grad_()
-                energy_model, force_model = model.forward(batch)
-                hessian_model = compute_hessian(batch.pos, energy_model, force_model)
+                with torch.no_grad():
+                    energy_model, force_model, out = model.forward(
+                        batch,
+                        otf_graph=False,
+                    )
+                hessian_model = out["hessian"].reshape(n_atoms * 3, n_atoms * 3)
 
         start_event_all = torch.cuda.Event(enable_timing=True)
         end_event_all = torch.cuda.Event(enable_timing=True)
@@ -186,32 +172,19 @@ def evaluate(
             end_event = torch.cuda.Event(enable_timing=True)
             start_event.record()
 
-            # Forward pass
-            if model_name == "LEFTNet":
+            if do_autograd:
                 batch.pos.requires_grad_()
-                energy_model, force_model = model.forward_autograd(batch)
+                energy_model, force_model, out = model.forward(
+                    batch, otf_graph=False, hessian=False
+                )
                 hessian_model = compute_hessian(batch.pos, energy_model, force_model)
-            elif "equiformer" in model_name.lower():
-                if do_autograd:
-                    batch.pos.requires_grad_()
-                    energy_model, force_model, out = model.forward(
-                        batch, otf_graph=False, hessian=False
-                    )
-                    hessian_model = compute_hessian(
-                        batch.pos, energy_model, force_model
-                    )
-                else:
-                    with torch.no_grad():
-                        energy_model, force_model, out = model.forward(
-                            batch,
-                            otf_graph=False,
-                        )
-                    hessian_model = out["hessian"]
             else:
-                # AlphaNet
-                batch.pos.requires_grad_()
-                energy_model, force_model = model.forward(batch)
-                hessian_model = compute_hessian(batch.pos, energy_model, force_model)
+                with torch.no_grad():
+                    energy_model, force_model, out = model.forward(
+                        batch,
+                        otf_graph=False,
+                    )
+                hessian_model = out["hessian"]
 
             end_event.record()
             torch.cuda.synchronize()

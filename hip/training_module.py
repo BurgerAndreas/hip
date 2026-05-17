@@ -69,12 +69,6 @@ def add_weight_decay(model, weight_decay=1e-5, skip_list=()):
     ]
 
 
-class AlphaConfig:
-    def __init__(self, config):
-        for k, v in config.items():
-            setattr(self, k, v)
-
-
 class PotentialModule(LightningModule):
     def __init__(
         self,
@@ -98,69 +92,21 @@ class PotentialModule(LightningModule):
         self.epoch_start_time: Optional[float] = None
         self.val_start_time: Optional[float] = None
 
-        if self.model_config["name"] == "EquiformerV2":
-            root_dir = find_project_root()
-            config_path = os.path.join(root_dir, "configs/equiformer_v2.yaml")
-            if not os.path.exists(config_path):
-                config_path = os.path.join(root_dir, "equiformer_v2.yaml")
-            if not os.path.exists(config_path):
-                raise FileNotFoundError(f"Config file not found at {config_path}")
-            with open(config_path, "r") as file:
-                config = yaml.safe_load(file)
-            model_config = config["model"]
-            model_config.update(self.model_config)
-            self.potential = EquiformerV2_OC20(**model_config)
-            self.pos_require_grad = False
-        elif self.model_config["name"] == "AlphaNet":
-            from alphanet.models.alphanet import AlphaNet
+        if self.model_config["name"] != "EquiformerV2":
+            raise ValueError("HIP only supports model_config.name='EquiformerV2'")
 
-            self.potential = AlphaNet(AlphaConfig(model_config)).float()
-            self.pos_require_grad = True
-        elif (
-            self.model_config["name"] == "LEFTNet"
-            or self.model_config["name"] == "LEFTNet-df"
-        ):
-            from leftnet.potential import Potential
-            from leftnet.model import LEFTNet
-
-            self.pos_require_grad = True
-            leftnet_config = dict(
-                pos_require_grad=True,
-                cutoff=10.0,
-                num_layers=6,
-                hidden_channels=196,
-                num_radial=96,
-                in_hidden_channels=8,
-                reflect_equiv=True,
-                legacy=True,
-                update=True,
-                pos_grad=False,
-                single_layer_output=True,
-            )
-            node_nfs: List[int] = [9] * 1  # 3 (pos) + 5 (cat) + 1 (charge)
-            edge_nf: int = 0  # edge type
-            condition_nf: int = 1
-            fragment_names: List[str] = ["structure"]
-            pos_dim: int = 3
-            edge_cutoff: Optional[float] = None
-            self.potential = Potential(
-                model_config=leftnet_config,
-                node_nfs=node_nfs,  # 3 (pos) + 5 (cat) + 1 (charge),
-                edge_nf=edge_nf,
-                condition_nf=condition_nf,
-                fragment_names=fragment_names,
-                pos_dim=pos_dim,
-                edge_cutoff=edge_cutoff,
-                model=LEFTNet,
-                enforce_same_encoding=None,
-                source=None,
-                timesteps=5000,
-                condition_time=False,
-            )
-        else:
-            print(
-                "Please Check your model name (choose from 'EquiformerV2', 'AlphaNet', 'LEFTNet', 'LEFTNet-df')"
-            )
+        root_dir = find_project_root()
+        config_path = os.path.join(root_dir, "configs/equiformer_v2.yaml")
+        if not os.path.exists(config_path):
+            config_path = os.path.join(root_dir, "equiformer_v2.yaml")
+        if not os.path.exists(config_path):
+            raise FileNotFoundError(f"Config file not found at {config_path}")
+        with open(config_path, "r") as file:
+            config = yaml.safe_load(file)
+        model_config = config["model"]
+        model_config.update(self.model_config)
+        self.potential = EquiformerV2_OC20(**model_config)
+        self.pos_require_grad = False
 
         self.val_step_outputs = []
 
