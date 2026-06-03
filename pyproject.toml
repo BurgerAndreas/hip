@@ -22,7 +22,6 @@ dependencies = [
     "rdkit>=2024.3.6",
     "rmsd",
     "pyscf",
-    "openbabel-wheel",
     "plotly",
     "imageio",
     "seaborn",
