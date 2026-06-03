@@ -109,6 +109,8 @@ def load_large_molecules(data_large_dir="data/large", maxnatoms=None):
                 file_path = data_large_path / f"{name}.sdf"
             elif file_format.lower() == "pdb":
                 file_path = data_large_path / f"{name}.pdb"
+            elif file_format.lower() == "xyz":
+                file_path = data_large_path / f"{name}.xyz"
             else:
                 print(f"Warning: Unknown format {file_format} for {name}, skipping")
                 continue
