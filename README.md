@@ -98,17 +98,17 @@ uv run scripts/train.py model.direct_forces=False
 
 ## Transition state search
 
-For the transition state search we followed the HORM paper and used
+For the transition state search we followed the HORM paper and used `ReactBench`
 
 - [https://github.com/deepprinciple/ReactBench](https://github.com/deepprinciple/ReactBench)
 - [https://github.com/deepprinciple/pysisyphus](https://github.com/deepprinciple/pysisyphus)
 - [https://github.com/deepprinciple/pyGSM](https://github.com/deepprinciple/pyGSM)
 
-Unfortunetly, the code is a horrible mess.
+Unfortunetly, the `ReactBench` code is a bit of a mess.
 
-If I were to do this project again, I would use (geodesic interpolation + Sella TS search + Sella IRC) as done in this paper:  
+If I were to do this project again, I would use `geodesic interpolation + Sella TS search + Sella IRC` instead of `ReactBench + pysisyphus + pyGSM` as done in this paper:  
 [https://www.nature.com/articles/s41467-024-52481-5](https://www.nature.com/articles/s41467-024-52481-5)  
-For that you need to install:  
+For that you would need to install:  
 [https://github.com/virtualzx-nad/geodesic-interpolate](https://github.com/virtualzx-nad/geodesic-interpolate)  
 [https://github.com/zadorlab/sella](https://github.com/zadorlab/sella)  
 and follow their workflow from here:  
