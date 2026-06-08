@@ -1,0 +1,88 @@
+{
+  "hip_v2_predict": {
+    "rows": 710,
+    "ok": 710,
+    "errors": 0,
+    "metric_files": 71,
+    "output_path": "metadata/orca_hessian_eval_hip_v2_predict.parquet",
+    "time_ms": {
+      "mean": 176.8820147017358,
+      "median": 106.30763244628906,
+      "min": 65.9378890991211,
+      "max": 2156.178955078125
+    },
+    "memory_mb": {
+      "mean": 1210.6318198985916,
+      "median": 1104.4595199999999,
+      "min": 307.745792,
+      "max": 2565.305856
+    },
+    "natoms": {
+      "mean": 65.0,
+      "median": 65.0,
+      "min": 30.0,
+      "max": 100.0
+    },
+    "hessian_mae_ev_a2": {
+      "mean": 1.5205119647367555,
+      "median": 1.3602709450048422,
+      "min": 1.042333560994957,
+      "max": 22.694697409432464
+    },
+    "cart_eigval_mae_ev_a2": {
+      "mean": 25.02796085195662,
+      "median": 18.644660703582495,
+      "min": 11.141108684004216,
+      "max": 2313.660138500319
+    },
+    "eckart_eigval_mae_hartree_bohr2": {
+      "mean": 0.13135759717213588,
+      "median": 0.082880304587834,
+      "min": 0.0503879072138035,
+      "max": 22.234391559500512
+    }
+  },
+  "eqv2_autograd": {
+    "rows": 710,
+    "ok": 710,
+    "errors": 0,
+    "metric_files": 710,
+    "output_path": "metadata/orca_hessian_eval_eqv2_autograd.parquet",
+    "time_ms": {
+      "mean": 6688.899845950704,
+      "median": 5317.025146484375,
+      "min": 2197.88134765625,
+      "max": 16175.8291015625
+    },
+    "memory_mb": {
+      "mean": 5235.21574940845,
+      "median": 4769.572352,
+      "min": 1205.034496,
+      "max": 11214.393856
+    },
+    "natoms": {
+      "mean": 65.0,
+      "median": 65.0,
+      "min": 30.0,
+      "max": 100.0
+    },
+    "hessian_mae_ev_a2": {
+      "mean": 0.7575258599654424,
+      "median": 0.5555443752423107,
+      "min": 0.3249833537835389,
+      "max": 21.62724893002698
+    },
+    "cart_eigval_mae_ev_a2": {
+      "mean": 36.54095277114973,
+      "median": 29.62637287451726,
+      "min": 25.518160591415903,
+      "max": 2339.8112677309914
+    },
+    "eckart_eigval_mae_hartree_bohr2": {
+      "mean": 0.16450695870954946,
+      "median": 0.11899710897691901,
+      "min": 0.1109362398373196,
+      "max": 22.303612193154397
+    }
+  }
+}
