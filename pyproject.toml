@@ -29,6 +29,7 @@ dependencies = [
     "wandb",
     "kagglehub>=0.3.12",
     "huggingface_hub>=0.27.1",
+    "h5py>=3.11",
     "lmdb==1.5.1",
     "muon-optimizer @ git+https://github.com/KellerJordan/Muon",
     "datasets>=4.4.1",

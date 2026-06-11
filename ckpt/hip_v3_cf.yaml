@@ -1,0 +1,95 @@
+source_checkpoint: checkpoint/hip/ckb0d04184-3381470-20260501-082131/last.ckpt
+saved_as: ckpt/hip_v3_cf.ckpt
+epoch: 493
+global_step: 1329799
+pytorch_lightning_version: 2.6.1
+hyper_parameters:
+  model_config:
+    name: EquiformerV2
+    use_pbc: false
+    regress_forces: true
+    direct_forces: false
+    otf_graph: true
+    max_neighbors: 32
+    max_radius: 5.0
+    max_num_elements: 90
+    avg_degree: 23.395238876342773
+    avg_degree_hessian: 23.395238876342773
+    avg_num_nodes: null
+    num_layers: 4
+    sphere_channels: 128
+    attn_hidden_channels: 64
+    num_heads: 4
+    attn_alpha_channels: 64
+    attn_value_channels: 16
+    ffn_hidden_channels: 128
+    norm_type: layer_norm_sh
+    lmax_list:
+    - 4
+    mmax_list:
+    - 2
+    grid_resolution: 18
+    num_sphere_samples: 128
+    edge_channels: 128
+    use_atom_edge_embedding: true
+    share_atom_edge_embedding: false
+    distance_function: gaussian
+    num_distance_basis: 512
+    attn_activation: silu
+    use_s2_act_attn: false
+    use_attn_renorm: true
+    ffn_activation: silu
+    use_gate_act: false
+    use_grid_mlp: true
+    use_sep_s2_act: true
+    alpha_drop: 0.0
+    drop_path_rate: 0.0
+    proj_drop: 0.0
+    weight_init: uniform
+    hessian_alpha_drop: 0.0
+    num_layers_hessian: 2
+    cutoff_hessian: 100.0
+    hessian_no_attn_weights: true
+    attn_wo_sigmoid: false
+  optimizer_config:
+    lr: 0.00044
+    betas:
+    - 0.965
+    - 0.965
+    weight_decay: 2.0e-05
+    amsgrad: false
+    weight_decay_muon: 0.001
+    lr_muon: 0.001
+  training_config:
+    bz: 64
+    bz_val: 64
+    num_workers: 2
+    clip_grad: true
+    data_weight: null
+    keep_fluorine: false
+    hessian_loss_weight: 10.0
+    energy_loss_weight: 1.0
+    force_loss_weight: 25.0
+    hessian_loss_type: mae
+    follow_batch:
+    - diag_ij
+    - edge_index
+    - message_idx_ij
+    eigen_loss:
+      k: null
+      alpha: null
+    train_hessian_only: false
+    otfgraph_in_model: true
+    load_weights_only: false
+    max_train_samples: null
+    max_val_samples: null
+    drop_last: true
+    lr_schedule_type: cosine
+    lr_schedule_config:
+      T_max: 300
+      eta_min: 5.0e-05
+      warmup_epochs: 10
+      warmup_init_lr: 0.0
+      hold_min_after_tmax: true
+    trn_path: /home/aburger/.cache/kagglehub/datasets/yunhonghan/hessian-dataset-for-optimizing-reactive-mliphorm/versions/6/ts1x_hess_train.lmdb
+    val_path: /home/aburger/.cache/kagglehub/datasets/yunhonghan/hessian-dataset-for-optimizing-reactive-mliphorm/versions/6/ts1x-val.lmdb
