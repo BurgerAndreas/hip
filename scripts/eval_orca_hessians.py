@@ -55,6 +55,9 @@ FIELDNAMES = [
     "true_neg_num",
     "pred_neg_num",
     "neg_num_agree",
+    "eigval_mae_eckart",
+    "eigval1_mae_eckart",
+    "eigval2_mae_eckart",
     "eckart_eigval_mae_hartree_bohr2",
     "eckart_lowest_eigval_mae_hartree_bohr2",
 ]
@@ -333,22 +336,22 @@ def sample_metrics(
     )
 
     pred_hessian_ev_a2 = pred_hessian_ev_a2_t.detach().cpu().numpy()
-    pred_hessian_hartree_bohr2 = (
-        pred_hessian_ev_a2 * ev_angstrom_2_to_hartree_bohr_2
-    )
 
     diff = pred_hessian_ev_a2 - true_hessian_ev_a2
     true_eigvals = np.linalg.eigvalsh(true_hessian_ev_a2)
     pred_eigvals = np.linalg.eigvalsh(pred_hessian_ev_a2)
 
+    # Match scripts/eval.py: pass raw dataset-style Hessians and coordinates
+    # directly into analyze_frequencies_np, even though that helper documents
+    # Hartree/Bohr^2 Hessians and Bohr coordinates.
     true_freqs = analyze_frequencies_np(
-        hessian=true_hessian_hartree_bohr2,
-        cart_coords=coords_bohr,
+        hessian=true_hessian_ev_a2,
+        cart_coords=coords_angstrom,
         atomsymbols=symbols,
     )
     pred_freqs = analyze_frequencies_np(
-        hessian=pred_hessian_hartree_bohr2,
-        cart_coords=coords_bohr,
+        hessian=pred_hessian_ev_a2,
+        cart_coords=coords_angstrom,
         atomsymbols=symbols,
     )
     eckart_diff = pred_freqs["eigvals"] - true_freqs["eigvals"]
@@ -384,6 +387,9 @@ def sample_metrics(
         "true_neg_num": int(true_freqs["neg_num"]),
         "pred_neg_num": int(pred_freqs["neg_num"]),
         "neg_num_agree": int(true_freqs["neg_num"] == pred_freqs["neg_num"]),
+        "eigval_mae_eckart": float(np.mean(np.abs(eckart_diff))),
+        "eigval1_mae_eckart": float(abs(eckart_diff[0])),
+        "eigval2_mae_eckart": float(abs(eckart_diff[1])),
         "eckart_eigval_mae_hartree_bohr2": float(np.mean(np.abs(eckart_diff))),
         "eckart_lowest_eigval_mae_hartree_bohr2": float(abs(eckart_diff[0])),
     }
