@@ -12,7 +12,9 @@ Icon
 .ruff_cache/
 qm_calcs/
 scratch/
-# uv.lock
+external/
+
+orca_hessians/
 
 .matplotlib/
 outputs/
