@@ -1,0 +1,989 @@
+sbatch scripts/killarney.sh scripts/train.py training.bz=64 training.bz_val=64 # 956684
+sbatch scripts/killarney.sh scripts/train.py training.bz=64 training.bz_val=64 # 956740
+sbatch scripts/killarney.sh scripts/train.py training.bz=64 training.bz_val=64 # 956803
+sbatch scripts/killarney.sh scripts/train.py training.bz=64 training.bz_val=64 # 958255
+sbatch scripts/killarney.sh scripts/train.py training.bz=64 training.bz_val=64 # 963855
+sbatch scripts/killarney_h100.sh scripts/train.py # 937281
+sbatch scripts/killarney.sh scripts/preprocess_hessian_dataset.py --dataset-file data/sample_100.lmdb # 937787
+sbatch scripts/killarney.sh scripts/preprocess_hessian_dataset.py --dataset-file ts1x-val.lmdb # 937788
+sbatch scripts/killarney.sh scripts/preprocess_hessian_dataset.py --dataset-file ts1x_hess_train_big.lmdb # 937790
+sbatch scripts/killarney.sh scripts/preprocess_hessian_dataset.py --dataset-file RGD1.lmdb # 937789
+sbatch scripts/killarney_h100.sh scripts/train.py # 938220
+sbatch scripts/killarney_h100.sh scripts/train.py # 940575
+sbatch scripts/killarney_h100.sh scripts/train.py # 940637
+sbatch scripts/killarney_h100.sh scripts/train.py # 940645
+sbatch scripts/killarney_h100.sh scripts/train.py optimizer.lr=1e-4 # 940700
+sbatch scripts/killarney.sh scripts/train.py experiment=allw10 # 947434
+sbatch scripts/killarney.sh scripts/train.py experiment=alldata # 947435
+sbatch scripts/killarney.sh scripts/train.py experiment=allw10 # 947437
+sbatch scripts/killarney_h100.sh scripts/train.py experiment=allw10 # 947438
+sbatch scripts/killarney_h100.sh scripts/train.py experiment=alldata # 947439
+sbatch scripts/killarney.sh scripts/train.py training.bz=64 training.bz_val=64 # 958263
+sbatch scripts/killarney.sh scripts/train.py experiment=rgd1 training.bz=64 training.bz_val=64 # 958267
+sbatch scripts/killarney_h100.sh scripts/train.py experiment=rgd1 training.bz=64 training.bz_val=64 # 959009
+sbatch scripts/killarney_h100.sh scripts/train.py experiment=rgd1 training.bz=64 training.bz_val=64 # 974933
+sbatch scripts/killarney_h100.sh scripts/train.py experiment=rgd1 training.bz=64 training.bz_val=64 # 976459
+sbatch scripts/killarney.sh scripts/train.py training.bz=64 training.bz_val=64 optimizer.lr=1e-3 # 976786
+sbatch scripts/killarney.sh scripts/train.py training.bz=64 training.bz_val=64 optimizer.lr=5e-4 # 976793
+sbatch scripts/killarney.sh scripts/train.py training.bz=64 training.bz_val=64 +v=5 # 977021
+sbatch scripts/killarney.sh scripts/train.py training.bz=64 training.bz_val=64 optimizer.lr=1e-3 # 977452
+sbatch scripts/killarney.sh scripts/train.py training.bz=64 training.bz_val=64 optimizer.lr=5e-4 # 977453
+sbatch scripts/killarney_h100.sh scripts/train.py experiment=rgd1 training.bz=64 training.bz_val=64 optimizer.lr=1e-4 # 979274
+sbatch scripts/killarney.sh scripts/train.py preset=luca8mae # 979440
+sbatch scripts/killarney.sh scripts/train.py preset=luca8w10mae training.bz=64 training.bz_val=64 # 979445
+sbatch scripts/killarney.sh scripts/train.py preset=luca8mae training.bz=64 training.bz_val=64 # 979446
+sbatch scripts/killarney.sh scripts/train.py preset=mse training.bz=64 training.bz_val=64 # 979447
+sbatch scripts/killarney.sh scripts/train.py preset=luca8mae training.bz=64 training.bz_val=64 # 979496
+sbatch scripts/killarney.sh scripts/train.py preset=luca8w10mae training.bz=64 training.bz_val=64 # 979499
+sbatch scripts/killarney.sh scripts/train.py preset=luca8w10mae training.bz=64 training.bz_val=64 # 979523
+sbatch scripts/killarney.sh scripts/train.py preset=luca8mae training.bz=64 training.bz_val=64 # 979524
+sbatch scripts/killarney.sh training.bz=64 training.bz_val=64 training.use_preproc_data=False # 993789
+sbatch scripts/killarney.sh training.bz=64 training.bz_val=64 training.use_preproc_data=False model.max_radius=7 # 993790
+sbatch scripts/killarney.sh training.bz=64 training.bz_val=64 training.use_preproc_data=False model.max_radius=12 # 993791
+sbatch scripts/killarney.sh scripts/train.py training.bz=64 training.bz_val=64 training.use_preproc_data=False # 994107
+sbatch scripts/killarney.sh scripts/train.py training.bz=64 training.bz_val=64 training.use_preproc_data=False model.max_radius=7 # 994108
+sbatch scripts/killarney.sh scripts/train.py training.bz=64 training.bz_val=64 training.use_preproc_data=False model.max_radius=12 # 994109
+sbatch scripts/killarney.sh scripts/train.py training.bz=64 training.bz_val=64 model.num_layers_hessian=0 # 994209
+sbatch scripts/killarney.sh scripts/train.py training.bz=64 training.bz_val=64 training.use_preproc_data=False model.max_radius=7.0 # 994305
+sbatch scripts/killarney.sh scripts/train.py training.bz=64 training.bz_val=64 training.offset_in_model=True # 997286
+sbatch scripts/killarney.sh scripts/train.py training.bz=64 training.bz_val=64 training.use_preproc_data=False training.otfgraph_in_model=True training.offset_in_model=True # 997293
+sbatch scripts/killarney.sh scripts/train.py training.bz=64 training.bz_val=64 model.reuse_source_target_embedding_hessian=False # 999451
+sbatch scripts/killarney.sh scripts/train.py training.bz=64 training.bz_val=64 model.reinit_edge_degree_embedding_hessian=True # 999453
+sbatch scripts/killarney.sh scripts/train.py training.bz=64 training.bz_val=64 training.otfgraph_in_model=True training.offset_in_model=True # 1001957
+sbatch scripts/killarney.sh scripts/train.py training.bz=64 training.bz_val=64 training.otfgraph_in_model=True # 1004643
+sbatch scripts/killarney.sh scripts/train.py training.bz=64 training.bz_val=64 training.otfgraph_in_model=True # 1006270
+sbatch scripts/killarney.sh scripts/train.py preset=luca8mae training.bz=64 training.bz_val=64 # 979524
+sbatch scripts/killarney.sh scripts/train.py training.bz=64 training.bz_val=64 training.use_preproc_data=False model.max_radius=12 # 994109
+sbatch scripts/killarney.sh scripts/train.py training.bz=64 training.bz_val=64 training.use_preproc_data=False model.max_radius=7.0 # 994305
+sbatch scripts/killarney.sh scripts/train.py training.bz=64 training.bz_val=64 model.reuse_source_target_embedding_hessian=False # 999451
+sbatch scripts/killarney.sh scripts/train.py preset=luca8w10mae training.bz=64 training.bz_val=64 # 979523
+sbatch scripts/killarney.sh scripts/train.py training.bz=64 training.bz_val=64 # 958263
+sbatch scripts/killarney.sh scripts/train.py training.bz=64 training.bz_val=64 model.num_layers_hessian=0 # 994209
+sbatch scripts/killarney.sh scripts/train.py training.bz=64 training.bz_val=64 model.reinit_edge_degree_embedding_hessian=True # 999453
+sbatch scripts/killarney.sh scripts/train.py training.bz=64 training.bz_val=64 optimizer.lr=1e-3 # 977452
+sbatch scripts/killarney.sh scripts/train.py training.bz=64 training.bz_val=64 optimizer.lr=5e-4 # 977453
+sbatch scripts/killarney.sh scripts/train.py preset=mse training.bz=64 training.bz_val=64 # 979447
+sbatch scripts/killarney.sh scripts/train.py training.bz=64 training.bz_val=64 training.otfgraph_in_model=False # 1017029
+sbatch scripts/killarney.sh scripts/train.py training.bz=64 training.bz_val=64 training.otfgraph_in_model=True # 1017543
+sbatch scripts/killarney.sh scripts/train.py training.bz=64 training.bz_val=64 training.otfgraph_in_model=False # 1017542
+sbatch scripts/killarney.sh scripts/train.py training.bz=64 training.bz_val=64 training.otfgraph_in_model=False # 1017579
+sbatch scripts/killarney.sh scripts/train.py training.bz=64 training.bz_val=64 training.otfgraph_in_model=True # 1017574
+sbatch scripts/killarney.sh scripts/train.py # 1036828
+sbatch scripts/killarney_h100.sh scripts/train.py optimizer.lr=5e-4 # 1036839
+sbatch scripts/killarney_h100.sh scripts/train.py trainin.lr_schedule_config.T_max=1000 # 1036850
+sbatch scripts/killarney_h100.sh scripts/train.py # 1036840
+sbatch scripts/killarney.sh scripts/train.py training.bz=64 training.bz_val=64 model.num_layers_hessian=0 # 1108367
+sbatch scripts/killarney.sh scripts/train.py training.bz=64 training.bz_val=64 model.num_layers_hessian=2 # 1108374
+sbatch scripts/killarney.sh scripts/train.py training.bz=64 training.bz_val=64 model.max_radius=3 # 1108380
+sbatch scripts/killarney.sh scripts/train.py training.bz=64 training.bz_val=64 model.max_radius=5 # 1108381
+sbatch scripts/killarney.sh scripts/train.py training.bz=64 training.bz_val=64 model.max_radius=7 # 1108384
+sbatch scripts/killarney.sh scripts/train.py training.bz=64 training.bz_val=64 model.max_radius=12 # 1108385
+sbatch scripts/killarney_h100.sh scripts/train.py training.lr_schedule_config.T_max=1000 optimizer.lr=5e-4 # 1108469
+sbatch scripts/killarney_h100.sh scripts/train.py optimizer.lr=5e-4 # 1175861
+sbatch scripts/killarney_h100.sh scripts/train.py # 1175862
+sbatch scripts/killarney.sh scripts/train.py preset=mse training.bz=64 training.bz_val=64 # 1177699
+sbatch scripts/killarney.sh scripts/train.py preset=luca8mae training.bz=64 training.bz_val=64 # 1177700
+sbatch scripts/killarney.sh scripts/train.py preset=luca8w10mae training.bz=64 training.bz_val=64 # 1177701
+sbatch scripts/killarney.sh scripts/train.py training.bz=64 training.bz_val=64 model.num_layers_hessian=0 # 1177702
+sbatch scripts/killarney.sh scripts/train.py training.bz=64 training.bz_val=64 model.num_layers_hessian=2 # 1177703
+sbatch scripts/killarney.sh scripts/train.py training.bz=64 training.bz_val=64 # 1178161
+sbatch scripts/killarney.sh scripts/train.py training.bz=64 training.bz_val=64 model.num_layers=3 # 1182121
+sbatch scripts/killarney.sh scripts/train.py training.bz=64 training.bz_val=64 model.lmax_list=[3] # 1182122
+sbatch scripts/killarney.sh training.bz=64 training.bz_val=64 training.split=random training.splitsize=1e3 # 1188242
+sbatch scripts/killarney.sh scripts/train.py training.bz=64 training.bz_val=64 training.split=random training.splitsize=1e3 # 1188245
+sbatch scripts/killarney.sh scripts/train.py training.bz=64 training.bz_val=64 training.split=random training.splitsize=1e3 # 1188261
+sbatch scripts/killarney.sh scripts/extract_dataset_metadata.py --dataset ts1x-val.lmdb # 1188302
+sbatch scripts/killarney.sh scripts/extract_dataset_metadata.py --dataset RGD1.lmdb # 1188304
+sbatch scripts/killarney.sh scripts/extract_dataset_metadata.py --dataset ts1x_hess_train_big.lmdb # 1188303
+sbatch scripts/killarney_h100.sh scripts/train.py training.lr_schedule_config.T_max=1000 # 1188372
+sbatch scripts/killarney.sh scripts/extract_dataset_metadata.py --dataset ts1x_hess_train_big.lmdb # 1188380
+sbatch scripts/killarney.sh scripts/extract_dataset_metadata.py --dataset RGD1.lmdb # 1188381
+sbatch scripts/killarney.sh scripts/extract_dataset_metadata.py --dataset ts1x-val.lmdb # 1188379
+sbatch scripts/killarney.sh scripts/train.py training.bz=64 training.bz_val=64 training.split=random training.splitsize=1e3 # 1188420
+sbatch scripts/killarney.sh scripts/train.py training.bz=64 training.bz_val=64 training.split=random training.splitsize=1e3 # 1188463
+sbatch scripts/killarney.sh scripts/train.py training.bz=64 training.bz_val=64 training.split=random training.splitsize=1e6 # 1188468
+sbatch scripts/killarney.sh scripts/train.py training.bz=64 training.bz_val=64 training.split=random training.splitsize=1e3 training.splitseed=1 # 1188464
+sbatch scripts/killarney.sh scripts/train.py training.bz=64 training.bz_val=64 training.split=random training.splitsize=1e3 training.splitseed=2 # 1188465
+sbatch scripts/killarney.sh scripts/train.py training.bz=64 training.bz_val=64 training.split=random training.splitsize=1e4 # 1188466
+sbatch scripts/killarney.sh scripts/train.py training.bz=64 training.bz_val=64 training.split=random training.splitsize=1e5 # 1188467
+sbatch scripts/killarney.sh scripts/train.py training.bz=64 training.bz_val=64 training.split=random training.splitsize=1e3 training.splitseed=1 lr=const # 1188621
+sbatch scripts/killarney.sh scripts/train.py training.bz=64 training.bz_val=64 training.split=random training.splitsize=1e3 lr=const # 1188620
+sbatch scripts/killarney.sh scripts/train.py training.bz=64 training.bz_val=64 training.split=random training.splitsize=1e5 lr=const # 1188624
+sbatch scripts/killarney.sh scripts/train.py training.bz=64 training.bz_val=64 training.split=random training.splitsize=1e4 lr=const # 1188623
+sbatch scripts/killarney.sh scripts/train.py training.bz=64 training.bz_val=64 training.split=random training.splitsize=1e3 training.splitseed=2 lr=const # 1188622
+sbatch scripts/killarney.sh scripts/train.py training.bz=64 training.bz_val=64 lr=const # 1188619
+sbatch scripts/killarney.sh scripts/train.py training.bz=64 training.bz_val=64 training.split=random training.splitsize=1e6 lr=const # 1188625
+sbatch scripts/killarney.sh scripts/extract_dataset_metadata.py --compare --train_csv dataset_metadata_ts1x_hess_train_big.csv --val_csv dataset_metadata_ts1x-val.csv # 1189672
+sbatch scripts/killarney.sh scripts/extract_dataset_metadata.py --compare --train_csv dataset_metadata_ts1x_hess_train_big.parquet --val_csv dataset_metadata_ts1x-val.parquet # 1189686
+sbatch scripts/killarney.sh scripts/train.py training.bz=64 training.bz_val=64 training.split=formula training.splitsize=unseen lr=const # 1189689
+sbatch scripts/killarney.sh scripts/train.py training.bz=64 training.bz_val=64 training.split=formula training.splitsize=60 lr=const # 1189692
+sbatch scripts/killarney.sh scripts/train.py training.bz=64 training.bz_val=64 training.split=formula training.splitsize=100 lr=const # 1189691
+sbatch scripts/killarney.sh scripts/train.py training.bz=64 training.bz_val=64 training.split=formula training.splitsize=140 lr=const # 1189690
+sbatch scripts/killarney.sh scripts/train.py extra=smoothf training.freg=null # 1191976
+sbatch scripts/killarney.sh scripts/train.py extra=smoothf # 1191998
+sbatch scripts/killarney.sh scripts/train.py extra=smoothf training.bz=32 training.bz_val=32 # 1192001
+sbatch scripts/killarney.sh scripts/train.py extra=smoothf training.bz=16 training.bz_val=16 # 1192003
+sbatch scripts/killarney_h100.sh scripts/train.py optimizer.lr=5e-4 # 1192010
+sbatch scripts/killarney.sh scripts/train.py extra=smoothf training.freg=null training.bz=16 training.bz_val=16 # 1192015
+sbatch scripts/killarney.sh scripts/train.py extra=smoothf training.freg=spectral training.bz=16 training.bz_val=16 # 1192018
+sbatch scripts/killarney.sh scripts/train.py extra=smoothf training.k=1 training.bz=16 training.bz_val=16 # 1192016
+sbatch scripts/killarney.sh scripts/train.py extra=smoothf training.freg=frob training.bz=16 training.bz_val=16 # 1192017
+sbatch scripts/killarney.sh scripts/train.py extra=smoothf training.k=3 training.fregw=1e-4 training.bz=16 training.bz_val=16 # 1192032
+sbatch scripts/killarney.sh scripts/train.py extra=smoothf training.k=1 training.fregw=1e-4 training.bz=16 training.bz_val=16 # 1192035
+sbatch scripts/killarney.sh scripts/train.py extra=smoothf training.freg=null training.bz=16 training.bz_val=16 ckpt_model_path=horm # 1192044
+sbatch scripts/killarney.sh scripts/train.py extra=smoothf training.freg=frob training.k=3 training.bz=16 training.bz_val=16 ckpt_model_path=horm # 1192047
+sbatch scripts/killarney.sh scripts/train.py extra=smoothf training.freg=frob training.k=1 training.bz=16 training.bz_val=16 ckpt_model_path=horm # 1192046
+sbatch scripts/killarney.sh scripts/train.py extra=smoothf training.freg=frob training.bz=16 training.bz_val=16 ckpt_model_path=horm # 1192045
+sbatch scripts/killarney.sh scripts/train.py extra=smoothf training.freg=null training.bz=16 training.bz_val=16 ckpt_model_path=horm # 1192061
+sbatch scripts/killarney.sh scripts/train.py extra=smoothf training.freg=frob training.k=3 training.bz=16 training.bz_val=16 ckpt_model_path=horm # 1192064
+sbatch scripts/killarney.sh scripts/train.py extra=smoothf training.freg=frob training.bz=16 training.bz_val=16 ckpt_model_path=horm # 1192062
+sbatch scripts/killarney.sh scripts/train.py extra=smoothf training.freg=frob training.k=1 training.bz=16 training.bz_val=16 ckpt_model_path=horm # 1192063
+sbatch scripts/killarney.sh scripts/train.py extra=smoothf training.freg=null training.bz=16 training.bz_val=16 ckpt_model_path=horm ckpt_resume_auto=false # 1192066
+sbatch scripts/killarney.sh scripts/train.py training.bz=64 training.bz_val=64 training.split=formula training.splitsize=unseen lr=const # 1192076
+sbatch scripts/killarney.sh scripts/train.py training.bz=64 training.bz_val=64 training.split=formula training.splitsize=140 lr=const # 1192077
+sbatch scripts/killarney.sh scripts/train.py training.bz=64 training.bz_val=64 training.split=formula training.splitsize=60 lr=const # 1192079
+sbatch scripts/killarney.sh scripts/train.py training.bz=64 training.bz_val=64 training.split=formula training.splitsize=100 lr=const # 1192078
+sbatch scripts/killarney.sh scripts/train.py training.bz=64 training.bz_val=64 training.split=random training.splitsize=4e5 lr=const # 1192989
+sbatch scripts/killarney.sh scripts/train.py training.bz=64 training.bz_val=64 training.split=random training.splitsize=8e5 lr=const # 1192990
+sbatch scripts/killarney.sh scripts/train.py extra=smoothf training.freg=frob training.k=1 training.fregw=10 training.bz=16 training.bz_val=16 ckpt_model_path=horm # 1192992
+sbatch scripts/killarney.sh scripts/train.py extra=smoothf training.freg=frob training.k=1 training.fregw=1 training.bz=16 training.bz_val=16 ckpt_model_path=horm # 1192991
+sbatch scripts/killarney.sh scripts/train.py extra=smoothf training.freg=frob training.k=1 training.fregw=10 training.bz=16 training.bz_val=16 ckpt_model_path=horm # 1192994
+sbatch scripts/killarney.sh scripts/train.py extra=smoothf training.freg=frob training.k=1 training.fregw=1 training.bz=16 training.bz_val=16 ckpt_model_path=horm # 1192993
+sbatch scripts/killarney.sh scripts/train.py extra=smoothf training.k=3 training.fregw=1e-2 training.bz=16 training.bz_val=16 # 1193039
+sbatch scripts/killarney.sh scripts/train.py extra=smoothf training.freg=null training.energy_loss_weight=0.0 training.force_loss_weight=0.0 training.bz=16 training.bz_val=16 ckpt_model_path=horm # 1194799
+sbatch scripts/killarney.sh scripts/train.py training.bz=64 training.bz_val=64 training.split=formula training.splitsize=60 lr=const ckpt_resume_auto=false # 1195071
+sbatch scripts/killarney.sh scripts/train.py training.bz=64 training.bz_val=64 training.split=formula training.splitsize=100 lr=const ckpt_resume_auto=false # 1195070
+sbatch scripts/killarney.sh scripts/train.py training.bz=64 training.bz_val=64 training.split=formula training.splitsize=140 lr=const ckpt_resume_auto=false # 1195069
+sbatch scripts/killarney.sh scripts/train.py training.bz=64 training.bz_val=64 training.split=formula training.splitsize=unseen lr=const ckpt_resume_auto=false # 1195068
+sbatch scripts/killarney_h100.sh scripts/train.py training.lr_schedule_config.T_max=1000 optimizer.lr=5e-4 # 1193072
+sbatch scripts/killarney.sh scripts/train.py extra=smoothf training.freg=null training.energy_loss_weight=0.0 training.force_loss_weight=0.0 training.bz=16 training.bz_val=16 ckpt_model_path=ckpt/eqv2_orig.ckpt # 1196200
+sbatch scripts/killarney.sh scripts/train.py extra=smoothf training.freg=null training.energy_loss_weight=0.0 training.force_loss_weight=0.0 training.bz=16 training.bz_val=16 ckpt_model_path=ckpt/eqv2_orig.ckpt # 1196215
+sbatch scripts/killarney.sh scripts/train.py extra=smoothf training.freg=null training.energy_loss_weight=0.0 training.force_loss_weight=0.0 training.bz=16 training.bz_val=16 ckpt_model_path=ckpt/eqv2_orig.ckpt # 1196246
+sbatch scripts/killarney.sh scripts/train.py training.bz=64 training.bz_val=64 training.split=formula training.splitsize=40 lr=const ckpt_resume_auto=false # 1196248
+sbatch scripts/killarney.sh scripts/train.py training.bz=64 training.bz_val=64 training.split=formula training.splitsize=20 lr=const ckpt_resume_auto=false # 1196247
+sbatch scripts/killarney.sh scripts/train.py training.bz=64 training.bz_val=64 training.split=random training.splitsize=6e4 lr=const # 1196267
+sbatch scripts/killarney.sh scripts/train.py training.bz=64 training.bz_val=64 training.split=random training.splitsize=4e4 lr=const # 1196265
+sbatch scripts/killarney.sh scripts/train.py training.bz=64 training.bz_val=64 training.split=random training.splitsize=8e4 lr=const # 1196266
+sbatch scripts/killarney.sh scripts/train.py training.bz=64 training.bz_val=64 training.split=random training.splitsize=1.7e6 lr=const # 1196271
+sbatch scripts/killarney.sh scripts/train.py extra=smoothf training.freg=frob training.k=1 training.fregw=10 training.bz=16 training.bz_val=16 ckpt_model_path=ckpt/eqv2_orig.ckpt # 1196291
+sbatch scripts/killarney.sh scripts/train.py extra=smoothf training.freg=frob training.k=1 training.fregw=1 training.bz=16 training.bz_val=16 ckpt_model_path=ckpt/eqv2_orig.ckpt # 1196292
+sbatch scripts/killarney.sh scripts/train.py extra=smoothf training.freg=frob training.k=3 training.fregw=1 training.bz=16 training.bz_val=16 ckpt_model_path=ckpt/eqv2_orig.ckpt # 1196293
+sbatch scripts/killarney.sh scripts/train.py extra=smoothf training.freg=null training.energy_loss_weight=0.0 training.force_loss_weight=0.0 training.bz=16 training.bz_val=16 ckpt_model_path=ckpt/eqv2_orig.ckpt # 1196296
+sbatch scripts/killarney.sh scripts/train.py extra=smoothf training.freg=null training.energy_loss_weight=0.0 training.force_loss_weight=0.0 training.bz=16 training.bz_val=16 ckpt_model_path=ckpt/eqv2_orig.ckpt ckpt_resume_auto=False # 1196351
+sbatch scripts/killarney.sh scripts/train.py extra=smoothf training.freg=null training.energy_losaining.bz_val=16 ckpt_model_path=ckpt/eqv2_orig.ckpt ckpt_resume_auto=False # 1196359
+sbatch scripts/killarney_h100.sh scripts/train.py training.lr_schedule_config.T_max=1000 # 1215235
+sbatch scripts/killarney.sh scripts/train.py extra=smoothf training.freg=frob training.k=1 training.fregw=1 training.bz=16 training.bz_val=16 ckpt_model_path=ckpt/eqv2_orig.ckpt ckpt_resume_auto=False # 1215428
+sbatch scripts/killarney.sh scripts/train.py extra=smoothf training.freg=frob training.k=1 training.fregw=10 training.bz=16 training.bz_val=16 ckpt_model_path=ckpt/eqv2_orig.ckpt ckpt_resume_auto=False # 1215429
+sbatch scripts/killarney.sh scripts/train.py extra=smoothf training.freg=null training.bz_val=16 ckpt_model_path=ckpt/eqv2_orig.ckpt ckpt_resume_auto=False # 1215438
+sbatch scripts/killarney_h100.sh scripts/train.py lr=cos2 # 1215466
+sbatch scripts/killarney.sh scripts/train.py training.bz=64 training.bz_val=64 training.split=random training.splitsize=1e6 lr=const training.hessian_loss_weight=0.0 # 1222405
+sbatch scripts/killarney.sh scripts/train.py training.bz=64 training.bz_val=64 training.split=random training.splitsize=1e7 lr=const training.hessian_loss_weight=0.0 # 1222406
+sbatch scripts/killarney.sh scripts/train.py training.bz=64 training.bz_val=64 training.split=random training.splitsize=1e6 lr=const training.hessian_loss_weight=0.0 # 1222412
+sbatch scripts/killarney.sh scripts/train.py training.bz=64 training.bz_val=64 training.split=random training.splitsize=1e7 lr=const training.hessian_loss_weight=0.0 # 1222417
+sbatch scripts/killarney.sh scripts/train.py training.bz=64 training.bz_val=64 training.split=random training.splitsize=4e5 lr=const # 1222421
+sbatch scripts/killarney.sh scripts/train.py training.bz=64 training.bz_val=64 training.split=random training.splitsize=8e5 lr=const # 1222420
+sbatch scripts/killarney.sh scripts/train.py training.bz=64 training.bz_val=64 training.split=random training.splitsize=1e5 lr=const # 1222422
+sbatch scripts/killarney.sh scripts/train.py training.bz=64 training.bz_val=64 training.split=random training.splitsize=1e4 lr=const # 1222423
+sbatch scripts/killarney.sh scripts/train.py training.bz=64 training.bz_val=64 training.split=random training.splitsize=1e6 lr=const # 1222424
+sbatch scripts/killarney.sh scripts/train.py training.bz=64 training.bz_val=64 training.split=random training.splitsize=1e5 lr=const training.hessian_loss_weight=0.0 # 1222497
+sbatch scripts/killarney.sh scripts/train.py training.bz=64 training.bz_val=64 training.split=random training.splitsize=1e3 lr=const # 1222570
+sbatch scripts/killarney.sh scripts/train.py training.bz=64 training.bz_val=64 training.split=random training.splitsize=1e6 lr=const training.hessian_loss_weight=0.0 # 1222804
+sbatch scripts/killarney.sh scripts/train.py extra=smoothf training.freg=frob training.k=1 training.fregw=10 training.bz=16 training.bz_val=16 ckpt_model_path=ckpt/eqv2_orig.ckpt # 1227399
+sbatch scripts/killarney.sh scripts/train.py extra=smoothf training.freg=frob training.k=1 training.fregw=1 training.bz=16 training.bz_val=16 ckpt_model_path=ckpt/eqv2_orig.ckpt # 1227398
+sbatch scripts/killarney.sh scripts/train.py extra=smoothf training.freg=frob training.k=1 training.fregw=0 training.bz=16 training.bz_val=16 ckpt_model_path=ckpt/eqv2_orig.ckpt # 1227400
+sbatch scripts/killarney.sh scripts/train.py extra=smoothf training.freg=frob training.k=1 training.fregw=1 training.bz=16 training.bz_val=16 ckpt_model_path=ckpt/eqv2_orig.ckpt # 1227516
+sbatch scripts/killarney.sh scripts/train.py extra=smoothf training.freg=frob training.k=1 training.fregw=1 training.bz=16 training.bz_val=16 ckpt_model_path=ckpt/eqv2_orig.ckpt # 1227519
+sbatch scripts/killarney.sh scripts/train.py extra=smoothf training.freg=frob training.k=1 training.fregw=1 training.bz=16 training.bz_val=16 # 1227521
+sbatch scripts/killarney.sh scripts/train.py training.bz=64 training.bz_val=64 training.split=random training.splitsize=1e4 lr=const training.hessian_loss_weight=0.0 # 1237337
+sbatch scripts/killarney_h100.sh training.lr_schedule_config.eta_min=8e-5 # 1237310
+sbatch scripts/killarney_h100.sh scripts/train.py training.lr_schedule_config.eta_min=8e-5 # 
+sbatch scripts/killarney_h100.sh scripts/train.py training.lr_schedule_config.eta_min=8e-5 # 1238386
+sbatch scripts/killarney_h100.sh scripts/train.py training.lr_schedule_config.T_max=1000 # 1238390
+sbatch scripts/killarney_h100.sh scripts/train.py lr=cos2 # 1238392
+sbatch scripts/killarney.sh scripts/train.py training.bz=64 training.bz_val=64 training.split=random training.splitsize=2e5 lr=const # 1245894
+sbatch scripts/killarney.sh scripts/train.py training.bz=64 training.bz_val=64 training.split=random training.splitsize=2e5 lr=const # 1245895
+sbatch scripts/killarney.sh scripts/train.py training.bz=64 training.bz_val=64 training.split=random training.splitsize=6e5 lr=const # 1245940
+sbatch scripts/killarney.sh scripts/train.py training.bz=64 training.bz_val=64 training.split=random training.splitsize=3e5 lr=const # 1245944
+sbatch scripts/killarney.sh scripts/train.py training.bz=64 training.bz_val=64 training.split=random training.splitsize=5e5 lr=const # 1245945
+sbatch scripts/killarney.sh scripts/train.py training.bz=64 training.bz_val=64 training.split=random training.splitsize=7e5 lr=const # 1245946
+sbatch scripts/killarney.sh scripts/train.py training.bz=64 training.bz_val=64 training.split=random training.splitsize=1e5 lr=const # 1245947
+sbatch scripts/killarney.sh scripts/train.py training.bz=64 training.bz_val=64 training.split=random training.splitsize=2e4 lr=const # 1245949
+sbatch scripts/killarney.sh scripts/train.py training.bz=64 training.bz_val=64 training.split=random training.splitsize=4e5 lr=const training.hessian_loss_weight=0.0 # 1245950
+sbatch scripts/killarney.sh scripts/train.py training.bz=64 training.bz_val=64 training.split=random training.splitsize=4e5 lr=const training.hessian_loss_weight=0.0 # 1245952
+sbatch scripts/killarney.sh scripts/train.py training.bz=64 training.bz_val=64 training.split=random training.splitsize=1e5 lr=const # 1245953
+sbatch scripts/killarney.sh scripts/train.py training.bz=64 training.bz_val=64 training.split=random training.splitsize=2e4 lr=const # 1245954
+sbatch scripts/killarney.sh scripts/train.py training.bz=64 training.bz_val=64 training.split=size training.splitsize=8 lr=const # 1246280
+sbatch scripts/killarney.sh scripts/train.py training.bz=64 training.bz_val=64 training.split=size training.splitsize=12 lr=const # 1246289
+sbatch scripts/killarney.sh scripts/train.py training.bz=64 training.bz_val=64 training.split=size training.splitsize=22 lr=const # 1246298
+sbatch scripts/killarney.sh scripts/train.py training.bz=64 training.bz_val=64 training.split=size training.splitsize=14 lr=const # 1246296
+sbatch scripts/killarney.sh scripts/train.py training.bz=64 training.bz_val=64 training.split=size training.splitsize=18 lr=const # 1246297
+sbatch scripts/killarney.sh scripts/train.py training.bz=64 training.bz_val=64 training.split=size training.splitsize=10 lr=const # 1252512
+sbatch scripts/killarney.sh scripts/train.py training.bz=64 training.bz_val=64 training.split=size training.splitsize=16 lr=const # 1252522
+sbatch scripts/killarney.sh scripts/train.py training.bz=64 training.bz_val=64 training.split=size training.splitsize=16 lr=const # 1252531
+sbatch scripts/killarney.sh scripts/train.py training.bz=64 training.bz_val=64 training.split=size training.splitsize=10 lr=const # 1252532
+sbatch scripts/killarney.sh scripts/train.py training.bz=64 training.bz_val=64 training.split=size training.splitsize=8 lr=const # 1252727
+sbatch scripts/killarney.sh scripts/train.py training.bz=64 training.bz_val=64 training.split=size training.splitsize=12 lr=const # 1252737
+sbatch scripts/killarney.sh scripts/train.py training.bz=64 training.bz_val=64 training.split=size training.splitsize=14 lr=const # 1252745
+sbatch scripts/killarney.sh scripts/train.py training.bz=64 training.bz_val=64 training.split=size training.splitsize=18 lr=const # 1252782
+sbatch scripts/killarney.sh scripts/train.py training.bz=64 training.bz_val=64 training.split=size training.splitsize=22 lr=const # 1252784
+sbatch scripts/killarney.sh scripts/train.py training.bz=64 training.bz_val=64 training.split=size training.splitsize=20 lr=const # 1252810
+sbatch scripts/killarney.sh scripts/train.py training.bz=64 training.bz_val=64 training.split=size training.splitsize=14 lr=const training.hessian_loss_weight=0.0 # 1252937
+sbatch scripts/killarney.sh scripts/train.py training.bz=64 training.bz_val=64 training.split=size training.splitsize=10 lr=const training.hessian_loss_weight=0.0 # 1252936
+sbatch scripts/killarney.sh scripts/train.py training.bz=64 training.bz_val=64 training.split=size training.splitsize=18 lr=const training.hessian_loss_weight=0.0 # 1252938
+sbatch scripts/killarney.sh scripts/train.py training.bz=64 training.bz_val=64 training.split=size training.splitsize=20 lr=const training.hessian_loss_weight=0.0 # 1252939
+sbatch scripts/killarney.sh scripts/train.py training.bz=64 training.bz_val=64 training.split=size training.splitsize=18 lr=const training.equal_samples_per_size=True # 1256357
+sbatch scripts/killarney.sh scripts/train.py preset=tuned # 1259152
+sbatch scripts/killarney.sh scripts/train.py preset=tuned model.num_layers_hessian=0 # 1259154
+sbatch scripts/killarney.sh scripts/train.py preset=tuned model.drop_path_rate=0.05 # 1259157
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 # 1259161
+sbatch scripts/killarney.sh scripts/train.py preset=tuned model.drop_path_rate=0.05 training.bz=64 training.bz_val=64 # 1259162
+sbatch scripts/killarney.sh scripts/train.py training.bz=64 training.bz_val=64 training.split=size training.splitsize=14 lr=const training.equal_samples_per_size=True # 1259243
+sbatch scripts/killarney.sh scripts/train.py training.bz=64 training.bz_val=64 training.split=size training.splitsize=10 lr=const training.equal_samples_per_size=True # 1259244
+sbatch scripts/killarney.sh scripts/train.py x=t1x_bm # 1259374
+sbatch scripts/killarney.sh scripts/train.py x=t1x # 1259375
+sbatch scripts/killarney.sh scripts/train.py training.bz=64 training.bz_val=64 model.reinit_edge_degree_embedding_hessian=True # 1266533
+sbatch scripts/killarney.sh scripts/train.py training.bz=64 training.bz_val=64 model.reuse_source_target_embedding_hessian=False # 1266534
+sbatch scripts/killarney.sh scripts/train.py preset=tuned model.num_layers_hessian=0 training.bz=64 training.bz_val=64 # 1266535
+sbatch scripts/killarney_h100.sh scripts/train.py lr=cos2 # 1259145
+sbatch scripts/killarney_h100.sh scripts/train.py training.lr_schedule_config.T_max=1000 # 1259146
+sbatch scripts/killarney_h100.sh scripts/train.py training.lr_schedule_config.T_max=1000 optimizer.lr=5e-4 # 1259144
+sbatch scripts/killarney_h100.sh scripts/train.py preset=tuned2 # 1266604
+sbatch scripts/killarney_h100.sh scripts/train.py preset=tuned2 training.lr_schedule_config.eta_min=5e-5 # 1266609
+sbatch scripts/killarney.sh scripts/train.py training.bz=64 training.bz_val=64 training.split=size training.splitsize=16 lr=const training.equal_samples_per_size=True ckpt_resume_auto=True # 1266690
+sbatch scripts/killarney.sh scripts/train.py training.bz=64 training.bz_val=64 training.split=size training.splitsize=10 lr=const # 1266864
+sbatch scripts/killarney.sh scripts/train.py training.bz=64 training.bz_val=64 training.split=size training.splitsize=14 lr=const # 1266865
+sbatch scripts/killarney.sh scripts/train.py training.bz=64 training.bz_val=64 training.split=size training.splitsize=18 lr=const # 1266866
+sbatch scripts/killarney.sh scripts/train.py training.bz=64 training.bz_val=64 training.split=size training.splitsize=10 lr=const training.hessian_loss_weight=0.0 # 1266867
+sbatch scripts/killarney.sh scripts/train.py training.bz=64 training.bz_val=64 training.split=size training.splitsize=14 lr=const training.hessian_loss_weight=0.0 # 1266868
+sbatch scripts/killarney.sh scripts/train.py training.bz=64 training.bz_val=64 training.split=size training.splitsize=18 lr=const training.hessian_loss_weight=0.0 # 1266869
+sbatch scripts/killarney.sh scripts/train.py training.bz=64 training.bz_val=64 training.split=size training.splitsize=10 lr=const training.equal_samples_per_size=True # 1266870
+sbatch scripts/killarney.sh scripts/train.py training.bz=64 training.bz_val=64 training.split=size training.splitsize=14 lr=const training.equal_samples_per_size=True # 1266871
+sbatch scripts/killarney.sh scripts/train.py training.bz=64 training.bz_val=64 training.split=size training.splitsize=10 lr=const model.max_radius=100 # 1266873
+sbatch scripts/killarney.sh scripts/train.py training.bz=64 training.bz_val=64 training.split=size training.splitsize=18 lr=const training.equal_samples_per_size=True # 1266872
+sbatch scripts/killarney.sh scripts/train.py training.bz=64 training.bz_val=64 training.split=size training.splitsize=18 lr=const model.max_radius=100 # 1266875
+sbatch scripts/killarney.sh scripts/train.py training.bz=64 training.bz_val=64 training.split=size training.splitsize=14 lr=const model.max_radius=100 # 1266874
+sbatch scripts/killarney.sh scripts/train.py training.bz=64 training.bz_val=64 training.split=size training.splitsize=18 lr=const # 1266913
+sbatch scripts/killarney.sh scripts/train.py training.bz=64 training.bz_val=64 training.split=size training.splitsize=14 lr=const # 1266912
+sbatch scripts/killarney.sh scripts/train.py training.bz=64 training.bz_val=64 training.split=size training.splitsize=10 lr=const training.hessian_loss_weight=0.0 # 1266914
+sbatch scripts/killarney.sh scripts/train.py training.bz=64 training.bz_val=64 training.split=size training.splitsize=14 lr=const training.hessian_loss_weight=0.0 # 1266915
+sbatch scripts/killarney.sh scripts/train.py training.bz=64 training.bz_val=64 training.split=size training.splitsize=18 lr=const training.hessian_loss_weight=0.0 # 1266916
+sbatch scripts/killarney.sh scripts/train.py training.bz=64 training.bz_val=64 training.split=size training.splitsize=10 lr=const training.equal_samples_per_size=True # 1266917
+sbatch scripts/killarney.sh scripts/train.py training.bz=64 training.bz_val=64 training.split=size training.splitsize=10 lr=const # 1266911
+sbatch scripts/killarney.sh scripts/train.py training.bz=64 training.bz_val=64 training.split=size training.splitsize=14 lr=const training.equal_samples_per_size=True # 1266918
+sbatch scripts/killarney.sh scripts/train.py training.bz=64 training.bz_val=64 training.split=size training.splitsize=18 lr=const training.equal_samples_per_size=True # 1266919
+sbatch scripts/killarney.sh scripts/train.py training.bz=64 training.bz_val=64 training.split=random training.splitsize=6e5 lr=const # 1267275
+sbatch scripts/killarney.sh scripts/train.py training.bz=64 training.bz_val=64 training.split=random training.splitsize=2e5 lr=const # 1267278
+sbatch scripts/killarney.sh scripts/train.py training.bz=64 training.bz_val=64 training.split=random training.splitsize=2e4 lr=const # 1267279
+sbatch scripts/killarney.sh scripts/train.py training.bz=64 training.bz_val=64 training.split=random training.splitsize=4e3 lr=const # 1267334
+sbatch scripts/killarney.sh scripts/train.py preset=tuned model.drop_path_rate=0.05 training.bz=64 training.bz_val=64 # 1273942
+sbatch scripts/killarney.sh scripts/train.py preset=tuned model.alpha_drop=0.1 training.bz=64 training.bz_val=64 # 1273943
+sbatch scripts/killarney.sh scripts/train.py preset=tuned model.drop_path_rate=0.05 training.bz=64 training.bz_val=64 resume_ckpt_auto=False # 1273944
+sbatch scripts/killarney.sh scripts/train.py preset=tuned model.max_radius=10 training.bz=64 training.bz_val=64 resume_ckpt_auto=False # 1273947
+sbatch scripts/killarney.sh scripts/train.py preset=tuned model.max_radius=10 training.bz=64 training.bz_val=64 ckpt_resume_auto=False # 1273948
+sbatch scripts/killarney.sh scripts/train.py preset=tuned model.drop_path_rate=0.05 training.bz=64 training.bz_val=64 ckpt_resume_auto=False # 1273949
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=muon # 
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=muon # 1274408
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=muon optimizer.lr_muon=0.00044 optimizer.weight_decay_muon=2e-5 # 1274410
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 ckpt_resume_auto=False # 1274411
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 ckpt_resume_auto=False # 1274414
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=muon optimizer.lr_muon=6e-4 optimizer.weight_decay_muon=0.00001 # 1276651
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=muon optimizer.lr_muon=6e-4 optimizer.weight_decay_muon=0.000001 # 1276650
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=muon optimizer.lr_muon=1e-3 optimizer.weight_decay_muon=0.00001 # 1276641
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=muon optimizer.lr_muon=8e-4 optimizer.weight_decay_muon=0.0001 # 1276647
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=muon optimizer.lr_muon=1e-3 optimizer.weight_decay_muon=0.01 # 1276644
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=muon optimizer.lr_muon=1e-3 optimizer.weight_decay_muon=0.001 # 1276643
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=muon optimizer.lr_muon=8e-4 optimizer.weight_decay_muon=0.001 # 1276648
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=muon optimizer.lr_muon=8e-4 optimizer.weight_decay_muon=0.01 # 1276649
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=muon optimizer.lr_muon=8e-4 optimizer.weight_decay_muon=0.000001 # 12766sbasbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=muon optimizer.lr_muon=8e-4 optimizer.weight_decay_muon=0.00001 # 1276646
+ch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=muon optimizer.lr_muon=6e-4 optimizer.weight_decay_muon=0.01 # 1276654
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=muon optimizer.lr_muon=1e-3 optimizer.weight_decay_muon=0.0001 # 1276642
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=muon optimizer.lr_muon=1e-3 optimizer.weight_decay_muon=0.000001 # 1276640
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=muon optimizer.lr_muon=4e-4 optimizer.weight_decay_muon=0.000001 # 1276655
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=muon optimizer.lr_muon=4e-4 optimizer.weight_decay_muon=0.00001 # 1276656
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=muon optimizer.lr_muon=4e-4 optimizer.weight_decay_muon=0.0001 # 1276657
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=muon optimizer.lr_muon=4e-4 optimizer.weight_decay_muon=0.001 # 1276658
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=muon optimizer.lr_muon=4e-4 optimizer.weight_decay_muon=0.01 # 1276659
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=muon optimizer.lr_muon=2e-4 optimizer.weight_decay_muon=0.000001 # 1276660
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=muon optimizer.lr_muon=2e-4 optimizer.weight_decay_muon=0.00001 # 1276661
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=muon optimizer.lr_muon=2e-4 optimizer.weight_decay_muon=0.0001 # 1276662
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=muon optimizer.lr_muon=2e-4 optimizer.weight_decay_muon=0.001 # 1276663
+sbatch scripts/killarney.sh scripts/train.py training.bz=64 training.bz_val=64 training.split=size training.splitsize=12 lr=const # 1276952
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=muon optimizer.lr_muon=2e-4 optimizer.weight_decay_muon=0.01 # 1276664
+sbatch scripts/killarney.sh scripts/train.py training.bz=64 training.bz_val=64 training.split=size training.splitsize=16 lr=const # 1276953
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=muon optimizer.lr_muon=1e-4 optimizer.weight_decay_muon=0.000001 # 1276665
+sbatch scripts/killarney.sh scripts/train.py training.bz=64 training.bz_val=64 training.split=size training.splitsize=16 lr=const training.equal_samples_per_size=True # 1276954
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=muon optimizer.lr_muon=1e-4 optimizer.weight_decay_muon=0.00001 # 1276666
+sbatch scripts/killarney.sh scripts/train.py training.bz=64 training.bz_val=64 training.split=size training.splitsize=12 lr=const training.equal_samples_per_size=True # 1276956
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=muon optimizer.lr_muon=1e-4 optimizer.weight_decay_muon=0.0001 # 1276667
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=muon optimizer.lr_muon=1e-4 optimizer.weight_decay_muon=0.001 # 1276668
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=muon optimizer.lr_muon=1e-4 optimizer.weight_decay_muon=0.01 # 1276669
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=muon optimizer.lr_muon=1e-3 optimizer.weight_decay_muon=0.000001 run_name=lr=1e-3 wd=0.000001 # 1276725
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=muon optimizer.lr_muon=1e-3 optimizer.weight_decay_muon=0.00001 run_name=lr=1e-3 wd=0.00001 # 1276726
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=muon optimizer.lr_muon=1e-3 optimizer.weight_decay_muon=0.0001 run_name=lr=1e-3 wd=0.0001 # 1276727
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=muon optimizer.lr_muon=1e-3 optimizer.weight_decay_muon=0.001 run_name=lr=1e-3 wd=0.001 # 1276728
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=muon optimizer.lr_muon=1e-3 optimizer.weight_decay_muon=0.01 run_name=lr=1e-3 wd=0.01 # 1276729
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=muon optimizer.lr_muon=4e-3 optimizer.weight_decay_muon=0.000001 run_name=lr=4e-3 wd=0.000001 # 1276730
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=muon optimizer.lr_muon=4e-3 optimizer.weight_decay_muon=0.00001 run_name=lr=4e-3 wd=0.00001 # 1276731
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=muon optimizer.lr_muon=4e-3 optimizer.weight_decay_muon=0.0001 run_name=lr=4e-3 wd=0.0001 # 1276732
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=muon optimizer.lr_muon=4e-3 optimizer.weight_decay_muon=0.001 run_name=lr=4e-3 wd=0.001 # 1276733
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=muon optimizer.lr_muon=4e-3 optimizer.weight_decay_muon=0.01 run_name=lr=4e-3 wd=0.01 # 1276734
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=muon optimizer.lr_muon=8e-3 optimizer.weight_decay_muon=0.000001 run_name=lr=8e-3 wd=0.000001 # 1276735
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=muon optimizer.lr_muon=8e-3 optimizer.weight_decay_muon=0.00001 run_name=lr=8e-3 wd=0.00001 # 1276736
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=muon optimizer.lr_muon=8e-3 optimizer.weight_decay_muon=0.0001 run_name=lr=8e-3 wd=0.0001 # 1276737
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=muon optimizer.lr_muon=8e-3 optimizer.weight_decay_muon=0.001 run_name=lr=8e-3 wd=0.001 # 1276738
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=muon optimizer.lr_muon=8e-3 optimizer.weight_decay_muon=0.01 run_name=lr=8e-3 wd=0.01 # 1276739
+sbatch scripts/killarney.sh scripts/train.py training.bz=64 training.bz_val=64 ckpt_resume_auto=False pltrainer.limit_val_batches=200 # 1277191
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 ckpt_resume_auto=False pltrainer.limit_val_batches=200 # 1277372
+sbatch scripts/killarney.sh scripts/train.py training.bz=64 training.bz_val=64 training.split=random training.splitsize=6e5 lr=const pltrainer.limit_val_batches=200 # 1277473
+sbatch scripts/killarney.sh scripts/train.py training.bz=64 training.bz_val=64 training.split=random training.splitsize=2e5 lr=const pltrainer.limit_val_batches=200 # 1277474
+sbatch scripts/killarney.sh scripts/train.py training.bz=64 training.bz_val=64 training.split=random training.splitsize=2e4 lr=const pltrainer.limit_val_batches=200 # 1277475
+sbatch scripts/killarney.sh scripts/train.py training.bz=64 training.bz_val=64 training.split=random training.splitsize=4e4 lr=const pltrainer.limit_val_batches=200 # 1277476
+sbatch scripts/killarney.sh scripts/train.py training.bz=64 training.bz_val=64 training.split=random training.splitsize=2e4 lr=const pltrainer.limit_val_batches=200 # 1277671
+sbatch scripts/killarney.sh scripts/train.py training.bz=64 training.bz_val=64 training.split=random training.splitsize=2e5 lr=const pltrainer.limit_val_batches=200 # 1277670
+sbatch scripts/killarney.sh scripts/train.py training.bz=64 training.bz_val=64 training.split=random training.splitsize=4e4 lr=const pltrainer.limit_val_batches=200 # 1277672
+sbatch scripts/killarney.sh scripts/train.py training.bz=64 training.bz_val=64 training.split=random training.splitsize=6e5 lr=const pltrainer.limit_val_batches=200 # 1277669
+sbatch scripts/killarney_h100.sh scripts/train.py training.lr_schedule_config.T_max=1000 # 1279591
+sbatch scripts/killarney_h100.sh scripts/train.py lr=cos2 # 1279594
+sbatch scripts/killarney_h100.sh scripts/train.py preset=tuned2 training.lr_schedule_config.eta_min=5e-5 # 1279606
+sbatch scripts/killarney_h100.sh scripts/train.py preset=tuned2 # 1279605
+sbatch scripts/killarney_h100.sh scripts/train.py training.lr_schedule_config.T_max=1000 # 1279591
+sbatch scripts/killarney_h100.sh scripts/train.py lr=cos2 # 1279594
+sbatch scripts/killarney_h100.sh scripts/train.py preset=tuned2 # 1279605
+sbatch scripts/killarney_h100.sh scripts/train.py preset=tuned2 training.lr_schedule_config.eta_min=5e-5 # 1279606
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=muon optimizer.lr_muon=1e-3 optimizer.weight_decay_muon=0.000001 run_name=lr=1e-3 wd=0.000001 # 1290782
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=muon optimizer.lr_muon=1e-3 optimizer.weight_decay_muon=0.00001 run_name=lr=1e-3 wd=0.00001 # 1290783
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=muon optimizer.lr_muon=1e-3 optimizer.weight_decay_muon=0.0001 run_name=lr=1e-3 wd=0.0001 # 1290784
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=muon optimizer.lr_muon=1e-3 optimizer.weight_decay_muon=0.001 run_name=lr=1e-3 wd=0.001 # 1290785
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=muon optimizer.lr_muon=8e-4 optimizer.weight_decay_muon=0.00001 run_name=lr=8e-4 wd=0.00001 # 1290788
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=muon optimizer.lr_muon=8e-4 optimizer.weight_decay_muon=0.0001 run_name=lr=8e-4 wd=0.0001 # 1290789
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=muon optimizer.lr_muon=8e-4 optimizer.weight_decay_muon=0.001 run_name=lr=8e-4 wd=0.001 # 1290790
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=muon optimizer.lr_muon=8e-4 optimizer.weight_decay_muon=0.000001 run_name=lr=8e-4 wd=0.000001 # 1290787
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=muon optimizer.lr_muon=1e-3 optimizer.weight_decay_muon=0.01 run_name=lr=1e-3 wd=0.01 # 1290786
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=muon optimizer.lr_muon=6e-4 optimizer.weight_decay_muon=0.0001 run_name=lr=6e-4 wd=0.0001 # 1290794
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=muon optimizer.lr_muon=6e-4 optimizer.weight_decay_muon=0.001 run_name=lr=6e-4 wd=0.001 # 1290795
+90792
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=muon optimizer.lr_muon=8e-4 optimizer.weight_decay_muon=0.01 run_name=lr=8e-4 wd=0.01 # 1290791
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=muon optimizer.lr_muon=6e-4 optimizer.weight_decay_muon=0.00001 run_name=lr=6e-4 wd=0.00001 # 1290793
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=muon optimizer.lr_muon=6e-4 optimizer.weight_decay_muon=0.01 run_name=lr=6e-4 wd=0.01 # 1290796
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=muon optimizer.lr_muon=4e-4 optimizer.weight_decay_muon=0.000001 run_name=lr=4e-4 wd=0.000001 # 1290797
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=muon optimizer.lr_muon=4e-4 optimizer.weight_decay_muon=0.001 run_name=lr=4e-4 wd=0.001 # 1290800
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=muon optimizer.lr_muon=4e-4 optimizer.weight_decay_muon=0.0001 run_name=lr=4e-4 wd=0.0001 # 1290799
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=muon optimizer.lr_muon=4e-4 optimizer.weight_decay_muon=0.00001 run_name=lr=4e-4 wd=0.00001 # 1290798
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=muon optimizer.lr_muon=2e-4 optimizer.weight_decay_muon=0.001 run_name=lr=2e-4 wd=0.001 # 1290805
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=muon optimizer.lr_muon=2e-4 optimizer.weight_decay_muon=0.000001 run_name=lr=2e-4 wd=0.000001 # 1290802
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=muon optimizer.lr_muon=2e-4 optimizer.weight_decay_muon=0.0001 run_name=lr=2e-4 wd=0.0001 # 1290804
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=muon optimizer.lr_muon=2e-4 optimizer.weight_decay_muon=0.00001 run_name=lr=2e-4 wd=0.00001 # 1290803
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=muon optimizer.lr_muon=4e-4 optimizer.weight_decay_muon=0.01 run_name=lr=4e-4 wd=0.01 # 1290801
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=muon optimizer.lr_muon=1e-4 optimizer.weight_decay_muon=0.000001 run_name=lr=1e-4 wd=0.000001 # 1290807
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=muon optimizer.lr_muon=1e-4 optimizer.weight_decay_muon=0.001 run_name=lr=1e-4 wd=0.001 # 1290810
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=muon optimizer.lr_muon=1e-4 optimizer.weight_decay_muon=0.00001 run_name=lr=1e-4 wd=0.00001 # 1290808
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=muon optimizer.lr_muon=2e-4 optimizer.weight_decay_muon=0.01 run_name=lr=2e-4 wd=0.01 # 1290806
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=muon optimizer.lr_muon=1e-3 optimizer.weight_decay_muon=0.00001 run_name=lr=1e-3 wd=0.00001 # 1290813
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=muon optimizer.lr_muon=1e-3 optimizer.weight_decay_muon=0.000001 run_name=lr=1e-3 wd=0.000001 # 1290812
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=muon optimizer.lr_muon=1e-4 optimizer.weight_decay_muon=0.01 run_name=lr=1e-4 wd=0.01 # 1290811
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=muon optimizer.lr_muon=1e-3 optimizer.weight_decay_muon=0.0001 run_name=lr=1e-3 wd=0.0001 # 1290814
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=muon optimizer.lr_muon=1e-3 optimizer.weight_decay_muon=0.001 run_name=lr=1e-3 wd=0.001 # 1290815
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=muon optimizer.lr_muon=4e-3 optimizer.weight_decay_muon=0.001 run_name=lr=4e-3 wd=0.001 # 1290820
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=muon optimizer.lr_muon=4e-3 optimizer.weight_decay_muon=0.000001 run_name=lr=4e-3 wd=0.000001 # 1290817
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=muon optimizer.lr_muon=4e-3 optimizer.weight_decay_muon=0.00001 run_name=lr=4e-3 wd=0.00001 # 1290818
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=muon optimizer.lr_muon=4e-3 optimizer.weight_decay_muon=0.0001 run_name=lr=4e-3 wd=0.0001 # 1290819
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=muon optimizer.lr_muon=4e-3 optimizer.weight_decay_muon=0.01 run_name=lr=4e-3 wd=0.01 # 1290821
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=muon optimizer.lr_muon=8e-3 optimizer.weight_decay_muon=0.00001 run_name=lr=8e-3 wd=0.00001 # 1290823
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=muon optimizer.lr_muon=8e-3 optimizer.weight_decay_muon=0.0001 run_name=lr=8e-3 wd=0.0001 # 1290824
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=muon optimizer.lr_muon=8e-3 optimizer.weight_decay_muon=0.001 run_name=lr=8e-3 wd=0.001 # 1290825
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=muon optimizer.lr_muon=8e-3 optimizer.weight_decay_muon=0.000001 run_name=lr=8e-3 wd=0.000001 # 1290822
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 # 1290828
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=muon optimizer.lr_muon=8e-3 optimizer.weight_decay_muon=0.01 run_name=lr=8e-3 wd=0.01 # 1290826
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=muon optimizer.lr_muon=1e-3 optimizer.weight_decay_muon=0.01 # 1290842
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=muon optimizer.lr_muon=1e-3 optimizer.weight_decay_muon=0.00001 # 1290839
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=muon optimizer.lr_muon=1e-3 optimizer.weight_decay_muon=0.000001 # 1290838
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=muon optimizer.lr_muon=1e-3 optimizer.weight_decay_muon=0.0001 # 1290840
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=muon optimizer.lr_muon=1e-3 optimizer.weight_decay_muon=0.001 # 1290841
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=muon optimizer.lr_muon=8e-4 optimizer.weight_decay_muon=0.0001 # 1290845
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=muon optimizer.lr_muon=8e-4 optimizer.weight_decay_muon=0.01 # 1290847
+843
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=muon optimizer.lr_muon=8e-4 optimizer.weight_decay_muon=0.00001 # 1290844
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=muon optimizer.lr_muon=8e-4 optimizer.weight_decay_muon=0.001 # 1290846
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=muon optimizer.lr_muon=6e-4 optimizer.weight_decay_muon=0.0001 # 1290850
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=muon optimizer.lr_muon=6e-4 optimizer.weight_decay_muon=0.001 # 1290851
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=muon optimizer.lr_muon=6e-4 optimizer.weight_decay_muon=0.000001 # 1290848
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=muon optimizer.lr_muon=6e-4 optimizer.weight_decay_muon=0.00001 # 1290849
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=muon optimizer.lr_muon=6e-4 optimizer.weight_decay_muon=0.01 # 1290852
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=muon optimizer.lr_muon=4e-4 optimizer.weight_decay_muon=0.0001 # 1290855
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=muon optimizer.lr_muon=4e-4 optimizer.weight_decay_muon=0.000001 # 1290853
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=muon optimizer.lr_muon=4e-4 optimizer.weight_decay_muon=0.01 # 1290857
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=muon optimizer.lr_muon=4e-4 optimizer.weight_decay_muon=0.00001 # 1290854
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=muon optimizer.lr_muon=4e-4 optimizer.weight_decay_muon=0.001 # 1290856
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=muon optimizer.lr_muon=2e-4 optimizer.weight_decay_muon=0.0001 # 1290860
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=muon optimizer.lr_muon=2e-4 optimizer.weight_decay_muon=0.000001 # 1290858
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=muon optimizer.lr_muon=2e-4 optimizer.weight_decay_muon=0.001 # 1290861
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=muon optimizer.lr_muon=2e-4 optimizer.weight_decay_muon=0.01 # 1290862
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=muon optimizer.lr_muon=1e-4 optimizer.weight_decay_muon=0.000001 # 1290863
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=muon optimizer.lr_muon=1e-4 optimizer.weight_decay_muon=0.00001 # 1290864
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=muon optimizer.lr_muon=1e-4 optimizer.weight_decay_muon=0.0001 # 1290865
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=muon optimizer.lr_muon=1e-4 optimizer.weight_decay_muon=0.001 # 1290866
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=muon optimizer.lr_muon=1e-4 optimizer.weight_decay_muon=0.01 # 1290867
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=muon optimizer.lr_muon=1e-3 optimizer.weight_decay_muon=0.000001 # 1290868
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=muon optimizer.lr_muon=1e-3 optimizer.weight_decay_muon=0.00001 # 1290869
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=muon optimizer.lr_muon=1e-3 optimizer.weight_decay_muon=0.0001 # 1290870
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=muon optimizer.lr_muon=1e-3 optimizer.weight_decay_muon=0.001 # 1290871
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=muon optimizer.lr_muon=1e-3 optimizer.weight_decay_muon=0.01 # 1290872
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=muon optimizer.lr_muon=4e-3 optimizer.weight_decay_muon=0.000001 # 1290873
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=muon optimizer.lr_muon=4e-3 optimizer.weight_decay_muon=0.00001 # 1290874
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=muon optimizer.lr_muon=4e-3 optimizer.weight_decay_muon=0.0001 # 1290875
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=muon optimizer.lr_muon=4e-3 optimizer.weight_decay_muon=0.001 # 1290876
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=muon optimizer.lr_muon=8e-3 optimizer.weight_decay_muon=0.000001 # 1290878
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=muon optimizer.lr_muon=4e-3 optimizer.weight_decay_muon=0.01 # 1290877
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=muon optimizer.lr_muon=8e-3 optimizer.weight_decay_muon=0.00001 # 1290879
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=muon optimizer.lr_muon=8e-3 optimizer.weight_decay_muon=0.0001 # 1290880
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=muon optimizer.lr_muon=8e-3 optimizer.weight_decay_muon=0.01 # 1290882
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=muon optimizer.lr_muon=8e-3 optimizer.weight_decay_muon=0.001 # 1290881
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 # 1290885
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 ckpt_resume_auto=False +v=2 # 1292502
+sbatch scripts/killarney_h100.sh scripts/train.py preset=tuned2 # 1292505
+sbatch scripts/killarney_h100.sh scripts/train.py preset=tuned2 training.lr_schedule_config.eta_min=5e-5 # 1292504
+sbatch scripts/killarney_h100.sh scripts/train.py preset=tuned optimizer.optimizer=muon optimizer.lr_muon=8e-4 optimizer.weight_decay_muon=0.01 # 1290835
+sbatch scripts/killarney_h100.sh scripts/train.py preset=tuned optimizer.optimizer=muon optimizer.lr_muon=8e-4 optimizer.weight_decay_muon=0.0001 # 1290830
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 ckpt_resume_auto=False +v=3 # 1317123
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 ckpt_resume_auto=False +v=3 # 1317313
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 ckpt_resume_auto=False model.max_radius=12 # 1317474
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=muon optimizer.lr_muon=1e-3 optimizer.weight_decay_muon=0.001 # 1317672
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls +optimizer.lr_kls=8e-4 +optimizer.betas_kls=[0.8,0.95] +optimizer.weight_decay_kls=1e-6 # 1323988
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls +optimizer.lr_kls=5e-4 +optimizer.weight_decay_kls=1e-2 +optimizer.betas_kls=[0.9,0.999] # 1324001
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls +optimizer.lr_kls=5e-4 +optimizer.weight_decay_kls=1e-6 +optimizer.betas_kls=[0.9,0.999] # 1323989
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls +optimizer.lr_kls=5e-4 +optimizer.weight_decay_kls=1e-4 +optimizer.betas_kls=[0.9,0.999] # 1323995
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls +optimizer.lr_kls=5e-4 +optimizer.weight_decay_kls=1e-6 +optimizer.betas_kls=[0.85,0.95] # 1323994
+
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls +optimizer.lr_kls=5e-4 +optimizer.weight_decay_kls=1e-2 +optimizer.betas_kls=[0.9,0.98] # 1324002
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls +optimizer.lr_kls=5e-4 +optimizer.weight_decay_kls=1e-2 +optimizer.betas_kls=[0.8,0.9995] # 1324005
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls +optimizer.lr_kls=5e-4 +optimizer.weight_decay_kls=1e-4 +optimizer.betas_kls=[0.9,0.95] # 1323997
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls +optimizer.lr_kls=5e-4 +optimizer.weight_decay_kls=1e-6 +optimizer.betas_kls=[0.8,0.9995] # 1323993
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls +optimizer.lr_kls=5e-4 +optimizer.weight_decay_kls=1e-2 +optimizer.betas_kls=[0.9,0.95] # 1324003
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls +optimizer.lr_kls=5e-4 +optimizer.weight_decay_kls=1e-6 +optimizer.betas_kls=[0.85,0.99] # 1323992
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls +optimizer.lr_kls=5e-4 +optimizer.weight_decay_kls=1e-6 +optimizer.betas_kls=[0.9,0.95] # 1323991
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls +optimizer.lr_kls=5e-4 +optimizer.weight_decay_kls=1e-4 +optimizer.betas_kls=[0.9,0.98] # 1323996
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls +optimizer.lr_kls=5e-4 +optimizer.weight_decay_kls=1e-6 +optimizer.betas_kls=[0.9,0.98] # 1323990
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls +optimizer.lr_kls=5e-4 +optimizer.weight_decay_kls=1e-2 +optimizer.betas_kls=[0.85,0.99] # 1324004
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls +optimizer.lr_kls=1e-3 +optimizer.weight_decay_kls=1e-6 +optimizer.betas_kls=[0.9,0.98] # 1324008
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls +optimizer.lr_kls=5e-4 +optimizer.weight_decay_kls=1e-2 +optimizer.betas_kls=[0.85,0.95] # 1324006
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls +optimizer.lr_kls=1e-3 +optimizer.weight_decay_kls=1e-6 +optimizer.betas_kls=[0.9,0.999] # 1324007
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls +optimizer.lr_kls=1e-3 +optimizer.weight_decay_kls=1e-6 +optimizer.betas_kls=[0.9,0.95] # 1324009
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 ckpt_resume_auto=False model.max_radius=2 # 1324934
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls +optimizer.lr_kls=1e-3 +optimizer.weight_decay_kls=1e-6 +optimizer.betas_kls=[0.85,0.99] # 1324010
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls +optimizer.lr_kls=1e-3 +optimizer.weight_decay_kls=1e-6 +optimizer.betas_kls=[0.8,0.9995] # 1324011
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls +optimizer.lr_kls=1e-3 +optimizer.weight_decay_kls=1e-6 +optimizer.betas_kls=[0.85,0.95] # 1324012
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls +optimizer.lr_kls=1e-3 +optimizer.weight_decay_kls=1e-4 +optimizer.betas_kls=[0.9,0.999] # 1324013
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls +optimizer.lr_kls=1e-3 +optimizer.weight_decay_kls=1e-4 +optimizer.betas_kls=[0.9,0.98] # 1324014
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls +optimizer.lr_kls=1e-3 +optimizer.weight_decay_kls=1e-4 +optimizer.betas_kls=[0.9,0.95] # 1324015
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls +optimizer.lr_kls=1e-3 +optimizer.weight_decay_kls=1e-4 +optimizer.betas_kls=[0.85,0.99] # 1324016
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls +optimizer.lr_kls=1e-3 +optimizer.weight_decay_kls=1e-4 +optimizer.betas_kls=[0.8,0.9995] # 1324017
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls +optimizer.lr_kls=1e-3 +optimizer.weight_decay_kls=1e-4 +optimizer.betas_kls=[0.85,0.95] # 1324018
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls +optimizer.lr_kls=1e-3 +optimizer.weight_decay_kls=1e-2 +optimizer.betas_kls=[0.9,0.999] # 1324019
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls +optimizer.lr_kls=1e-3 +optimizer.weight_decay_kls=1e-2 +optimizer.betas_kls=[0.9,0.98] # 1324020
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls +optimizer.lr_kls=1e-3 +optimizer.weight_decay_kls=1e-2 +optimizer.betas_kls=[0.9,0.95] # 1324021
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls +optimizer.lr_kls=1e-3 +optimizer.weight_decay_kls=1e-2 +optimizer.betas_kls=[0.85,0.99] # 1324022
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls +optimizer.lr_kls=1e-3 +optimizer.weight_decay_kls=1e-2 +optimizer.betas_kls=[0.8,0.9995] # 1324023
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls +optimizer.lr_kls=1e-3 +optimizer.weight_decay_kls=1e-2 +optimizer.betas_kls=[0.85,0.95] # 1324024
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls +optimizer.lr_kls=5e-3 +optimizer.weight_decay_kls=1e-6 +optimizer.betas_kls=[0.9,0.999] # 1324025
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls +optimizer.lr_kls=5e-3 +optimizer.weight_decay_kls=1e-6 +optimizer.betas_kls=[0.9,0.98] # 1324026
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls +optimizer.lr_kls=5e-3 +optimizer.weight_decay_kls=1e-6 +optimizer.betas_kls=[0.9,0.95] # 1324027
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls +optimizer.lr_kls=5e-3 +optimizer.weight_decay_kls=1e-6 +optimizer.betas_kls=[0.85,0.99] # 1324028
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls +optimizer.lr_kls=5e-3 +optimizer.weight_decay_kls=1e-6 +optimizer.betas_kls=[0.8,0.9995] # 1324029
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls +optimizer.lr_kls=5e-3 +optimizer.weight_decay_kls=1e-6 +optimizer.betas_kls=[0.85,0.95] # 1324030
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls +optimizer.lr_kls=5e-3 +optimizer.weight_decay_kls=1e-4 +optimizer.betas_kls=[0.9,0.999] # 1324031
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls +optimizer.lr_kls=5e-3 +optimizer.weight_decay_kls=1e-4 +optimizer.betas_kls=[0.9,0.98] # 1324032
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls +optimizer.lr_kls=5e-3 +optimizer.weight_decay_kls=1e-4 +optimizer.betas_kls=[0.9,0.95] # 1324033
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls +optimizer.lr_kls=5e-3 +optimizer.weight_decay_kls=1e-4 +optimizer.betas_kls=[0.8,0.9995] # 1324035
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls +optimizer.lr_kls=5e-3 +optimizer.weight_decay_kls=1e-4 +optimizer.betas_kls=[0.85,0.99] # 1324034
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls +optimizer.lr_kls=5e-3 +optimizer.weight_decay_kls=1e-4 +optimizer.betas_kls=[0.85,0.95] # 1324036
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls +optimizer.lr_kls=5e-3 +optimizer.weight_decay_kls=1e-2 +optimizer.betas_kls=[0.9,0.999] # 1324037
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls +optimizer.lr_kls=5e-3 +optimizer.weight_decay_kls=1e-2 +optimizer.betas_kls=[0.9,0.98] # 1324038
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls +optimizer.lr_kls=5e-3 +optimizer.weight_decay_kls=1e-2 +optimizer.betas_kls=[0.9,0.95] # 1324039
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls +optimizer.lr_kls=5e-3 +optimizer.weight_decay_kls=1e-2 +optimizer.betas_kls=[0.85,0.99] # 1324040
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls +optimizer.lr_kls=5e-3 +optimizer.weight_decay_kls=1e-2 +optimizer.betas_kls=[0.8,0.9995] # 1324041
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls +optimizer.lr_kls=5e-3 +optimizer.weight_decay_kls=1e-2 +optimizer.betas_kls=[0.85,0.95] # 1324042
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls +optimizer.lr_kls=1e-2 +optimizer.weight_decay_kls=1e-6 +optimizer.betas_kls=[0.9,0.999] # 1324043
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls +optimizer.lr_kls=1e-2 +optimizer.weight_decay_kls=1e-6 +optimizer.betas_kls=[0.9,0.98] # 1324044
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls +optimizer.lr_kls=1e-2 +optimizer.weight_decay_kls=1e-6 +optimizer.betas_kls=[0.9,0.95] # 1324045
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls +optimizer.lr_kls=1e-2 +optimizer.weight_decay_kls=1e-6 +optimizer.betas_kls=[0.85,0.99] # 1324046
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls +optimizer.lr_kls=1e-2 +optimizer.weight_decay_kls=1e-6 +optimizer.betas_kls=[0.8,0.9995] # 1324047
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls +optimizer.lr_kls=1e-2 +optimizer.weight_decay_kls=1e-6 +optimizer.betas_kls=[0.85,0.95] # 1324048
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls +optimizer.lr_kls=1e-2 +optimizer.weight_decay_kls=1e-4 +optimizer.betas_kls=[0.9,0.999] # 1324049
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls +optimizer.lr_kls=1e-2 +optimizer.weight_decay_kls=1e-4 +optimizer.betas_kls=[0.9,0.98] # 1324050
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls +optimizer.lr_kls=1e-2 +optimizer.weight_decay_kls=1e-4 +optimizer.betas_kls=[0.9,0.95] # 1324051
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls +optimizer.lr_kls=1e-2 +optimizer.weight_decay_kls=1e-4 +optimizer.betas_kls=[0.8,0.9995] # 1324053
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls +optimizer.lr_kls=1e-2 +optimizer.weight_decay_kls=1e-4 +optimizer.betas_kls=[0.85,0.99] # 1324052
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls +optimizer.lr_kls=1e-2 +optimizer.weight_decay_kls=1e-4 +optimizer.betas_kls=[0.85,0.95] # 1324054
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls +optimizer.lr_kls=1e-2 +optimizer.weight_decay_kls=1e-2 +optimizer.betas_kls=[0.9,0.999] # 1324055
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls +optimizer.lr_kls=1e-2 +optimizer.weight_decay_kls=1e-2 +optimizer.betas_kls=[0.9,0.98] # 1324056
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls +optimizer.lr_kls=1e-2 +optimizer.weight_decay_kls=1e-2 +optimizer.betas_kls=[0.9,0.95] # 1324057
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls +optimizer.lr_kls=1e-2 +optimizer.weight_decay_kls=1e-2 +optimizer.betas_kls=[0.85,0.99] # 1324058
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls +optimizer.lr_kls=1e-2 +optimizer.weight_decay_kls=1e-2 +optimizer.betas_kls=[0.8,0.9995] # 1324059
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls +optimizer.lr_kls=1e-2 +optimizer.weight_decay_kls=1e-2 +optimizer.betas_kls=[0.85,0.95] # 1324060
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls +optimizer.lr_kls=1e-3 +optimizer.weight_decay_kls=1e-6 +optimizer.betas_kls=[0.9,0.999] # 1325025
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls +optimizer.lr_kls=1e-3 +optimizer.weight_decay_kls=1e-6 +optimizer.betas_kls=[0.9,0.98] # 1325026
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls +optimizer.lr_kls=1e-3 +optimizer.weight_decay_kls=1e-6 +optimizer.betas_kls=[0.85,0.99] # 1325028
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls +optimizer.lr_kls=1e-3 +optimizer.weight_decay_kls=1e-6 +optimizer.betas_kls=[0.9,0.95] # 1325027
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls +optimizer.lr_kls=1e-3 +optimizer.weight_decay_kls=1e-6 +optimizer.betas_kls=[0.8,0.9995] # 1325029
+sbatch scripts/killarney_h100.sh scripts/train.py preset=tuned2 # 1317340
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls +optimizer.lr_kls=1e-3 +optimizer.weight_decay_kls=1e-6 +optimizer.betas_kls=[0.85,0.95] # 1325030
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls +optimizer.lr_kls=1e-3 +optimizer.weight_decay_kls=1e-4 +optimizer.betas_kls=[0.9,0.999] # 1325031
+sbatch scripts/killarney_h100.sh scripts/train.py preset=tuned2 training.lr_schedule_config.eta_min=5e-5 # 1317341
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls +optimizer.lr_kls=1e-3 +optimizer.weight_decay_kls=1e-4 +optimizer.betas_kls=[0.9,0.98] # 1325032
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls +optimizer.lr_kls=1e-3 +optimizer.weight_decay_kls=1e-4 +optimizer.betas_kls=[0.9,0.95] # 1325033
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls +optimizer.lr_kls=1e-3 +optimizer.weight_decay_kls=1e-4 +optimizer.betas_kls=[0.85,0.99] # 1325034
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls +optimizer.lr_kls=1e-3 +optimizer.weight_decay_kls=1e-4 +optimizer.betas_kls=[0.8,0.9995] # 1325035
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls +optimizer.lr_kls=1e-3 +optimizer.weight_decay_kls=1e-4 +optimizer.betas_kls=[0.85,0.95] # 1325036
+sbatch scripts/killarney_h100.sh scripts/train.py preset=tuned optimizer.optimizer=muon optimizer.lr_muon=1e-3 optimizer.weight_decay_muon=0.001 # 1317685
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls +optimizer.lr_kls=1e-3 +optimizer.weight_decay_kls=1e-2 +optimizer.betas_kls=[0.9,0.999] # 1325037
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls +optimizer.lr_kls=1e-3 +optimizer.weight_decay_kls=1e-2 +optimizer.betas_kls=[0.9,0.98] # 1325038
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls +optimizer.lr_kls=1e-3 +optimizer.weight_decay_kls=1e-2 +optimizer.betas_kls=[0.9,0.95] # 1325039
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls +optimizer.lr_kls=1e-3 +optimizer.weight_decay_kls=1e-2 +optimizer.betas_kls=[0.85,0.99] # 1325040
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls +optimizer.lr_kls=1e-3 +optimizer.weight_decay_kls=1e-2 +optimizer.betas_kls=[0.8,0.9995] # 1325041
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls +optimizer.lr_kls=1e-3 +optimizer.weight_decay_kls=1e-2 +optimizer.betas_kls=[0.85,0.95] # 1325042
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls +optimizer.lr_kls=5e-3 +optimizer.weight_decay_kls=1e-6 +optimizer.betas_kls=[0.9,0.999] # 1325043
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls +optimizer.lr_kls=5e-3 +optimizer.weight_decay_kls=1e-6 +optimizer.betas_kls=[0.9,0.98] # 1325044
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls +optimizer.lr_kls=1e3 +optimizer.weight_decay_kls=1e-6 +optimizer.betas_kls=[0.9,0.999] # 1339874
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 model.residual=00 # 1339907
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 model.residual=01 # 1339908
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls +optimizer.lr_kls=5e-3 +optimizer.weight_decay_kls=1e-6 +optimizer.betas_kls=[0.9,0.95] # 1325045
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls +optimizer.lr_kls=5e-3 +optimizer.weight_decay_kls=1e-6 +optimizer.betas_kls=[0.85,0.99] # 1325046
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls +optimizer.lr_kls=5e-3 +optimizer.weight_decay_kls=1e-6 +optimizer.betas_kls=[0.8,0.9995] # 1325047
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls +optimizer.lr_kls=5e-3 +optimizer.weight_decay_kls=1e-6 +optimizer.betas_kls=[0.85,0.95] # 1325048
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls +optimizer.lr_kls=5e-3 +optimizer.weight_decay_kls=1e-4 +optimizer.betas_kls=[0.9,0.999] # 1325049
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls +optimizer.lr_kls=5e-3 +optimizer.weight_decay_kls=1e-4 +optimizer.betas_kls=[0.9,0.98] # 1325050
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls +optimizer.lr_kls=5e-3 +optimizer.weight_decay_kls=1e-4 +optimizer.betas_kls=[0.9,0.95] # 1325051
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls +optimizer.lr_kls=5e-3 +optimizer.weight_decay_kls=1e-4 +optimizer.betas_kls=[0.85,0.99] # 1325052
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls +optimizer.lr_kls=5e-3 +optimizer.weight_decay_kls=1e-4 +optimizer.betas_kls=[0.8,0.9995] # 1325053
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls +optimizer.lr_kls=5e-3 +optimizer.weight_decay_kls=1e-4 +optimizer.betas_kls=[0.85,0.95] # 1325054
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls +optimizer.lr_kls=5e-3 +optimizer.weight_decay_kls=1e-2 +optimizer.betas_kls=[0.9,0.999] # 1325055
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls +optimizer.lr_kls=5e-3 +optimizer.weight_decay_kls=1e-2 +optimizer.betas_kls=[0.9,0.98] # 1325056
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls +optimizer.lr_kls=5e-3 +optimizer.weight_decay_kls=1e-2 +optimizer.betas_kls=[0.9,0.95] # 1325057
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls +optimizer.lr_kls=5e-3 +optimizer.weight_decay_kls=1e-2 +optimizer.betas_kls=[0.85,0.99] # 1325058
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls +optimizer.lr_kls=5e-3 +optimizer.weight_decay_kls=1e-2 +optimizer.betas_kls=[0.8,0.9995] # 1325059
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls +optimizer.lr_kls=5e-3 +optimizer.weight_decay_kls=1e-2 +optimizer.betas_kls=[0.85,0.95] # 1325060
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls +optimizer.lr_kls=1e-2 +optimizer.weight_decay_kls=1e-6 +optimizer.betas_kls=[0.9,0.999] # 1325061
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls +optimizer.lr_kls=1e-2 +optimizer.weight_decay_kls=1e-6 +optimizer.betas_kls=[0.9,0.98] # 1325062
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls +optimizer.lr_kls=1e-2 +optimizer.weight_decay_kls=1e-6 +optimizer.betas_kls=[0.9,0.95] # 1325063
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls +optimizer.lr_kls=1e-2 +optimizer.weight_decay_kls=1e-6 +optimizer.betas_kls=[0.85,0.99] # 1325064
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls +optimizer.lr_kls=1e-2 +optimizer.weight_decay_kls=1e-6 +optimizer.betas_kls=[0.8,0.9995] # 1325065
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls +optimizer.lr_kls=1e-2 +optimizer.weight_decay_kls=1e-6 +optimizer.betas_kls=[0.85,0.95] # 1325066
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls +optimizer.lr_kls=1e-2 +optimizer.weight_decay_kls=1e-4 +optimizer.betas_kls=[0.9,0.999] # 1325067
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls +optimizer.lr_kls=1e-2 +optimizer.weight_decay_kls=1e-4 +optimizer.betas_kls=[0.9,0.98] # 1325068
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls +optimizer.lr_kls=1e-2 +optimizer.weight_decay_kls=1e-4 +optimizer.betas_kls=[0.9,0.95] # 1325069
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls +optimizer.lr_kls=1e-2 +optimizer.weight_decay_kls=1e-4 +optimizer.betas_kls=[0.85,0.99] # 1325070
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls +optimizer.lr_kls=1e-2 +optimizer.weight_decay_kls=1e-4 +optimizer.betas_kls=[0.8,0.9995] # 1325071
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls +optimizer.lr_kls=1e-2 +optimizer.weight_decay_kls=1e-4 +optimizer.betas_kls=[0.85,0.95] # 1325072
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls +optimizer.lr_kls=1e-2 +optimizer.weight_decay_kls=1e-2 +optimizer.betas_kls=[0.9,0.999] # 1325073
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls +optimizer.lr_kls=1e-2 +optimizer.weight_decay_kls=1e-2 +optimizer.betas_kls=[0.9,0.98] # 1325074
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls +optimizer.lr_kls=1e-2 +optimizer.weight_decay_kls=1e-2 +optimizer.betas_kls=[0.9,0.95] # 1325075
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls +optimizer.lr_kls=1e-2 +optimizer.weight_decay_kls=1e-2 +optimizer.betas_kls=[0.85,0.99] # 1325076
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls +optimizer.lr_kls=1e-2 +optimizer.weight_decay_kls=1e-2 +optimizer.betas_kls=[0.8,0.9995] # 1325077
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls +optimizer.lr_kls=1e-2 +optimizer.weight_decay_kls=1e-2 +optimizer.betas_kls=[0.85,0.95] # 1325078
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls +optimizer.lr_kls=1e-3 +optimizer.weight_decay_kls=1e-6 +optimizer.betas_kls=[0.9,0.999] # 1325079
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls +optimizer.lr_kls=1e3 +optimizer.weight_decay_kls=1e-6 +optimizer.betas_kls=[0.9,0.999] # 1339870
+sbatch scripts/killarney_h100.sh scripts/train.py preset=tuned model.num_layers_hessian=0 ckpt_resume_auto=False # 1332789
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls +optimizer.lr_kls=1e3 +optimizer.weight_decay_kls=1e-6 +optimizer.betas_kls=[0.9,0.999] # 1342557
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls +optimizer.lr_kls=1e-7 +optimizer.weight_decay_kls=1e-6 +optimizer.betas_kls=[0.9,0.999] # 1342558
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls +optimizer.lr_kls=5e-3 +optimizer.weight_decay_kls=1e-6 +optimizer.betas_kls=[0.8,0.9995] # 1342619
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls +optimizer.lr_kls=5e-3 +optimizer.weight_decay_kls=1e-6 +optimizer.betas_kls=[0.9,0.95] # 1342617
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls +optimizer.lr_kls=5e-3 +optimizer.weight_decay_kls=1e-4 +optimizer.betas_kls=[0.9,0.999] # 1342621
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls +optimizer.lr_kls=5e-3 +optimizer.weight_decay_kls=1e-6 +optimizer.betas_kls=[0.85,0.99] # 1342618
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls +optimizer.lr_kls=5e-3 +optimizer.weight_decay_kls=1e-2 +optimizer.betas_kls=[0.9,0.95] # 1342629
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls +optimizer.lr_kls=1e3 +optimizer.weight_decay_kls=1e-6 +optimizer.betas_kls=[0.9,0.999] # 1342616
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls +optimizer.lr_kls=5e-3 +optimizer.weight_decay_kls=1e-4 +optimizer.betas_kls=[0.9,0.95] # 1342623
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls +optimizer.lr_kls=5e-3 +optimizer.weight_decay_kls=1e-2 +optimizer.betas_kls=[0.85,0.99] # 1342630
+
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls +optimizer.lr_kls=5e-3 +optimizer.weight_decay_kls=1e-4 +optimizer.betas_kls=[0.8,0.9995] # 1342625
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls +optimizer.lr_kls=1e-2 +optimizer.weight_decay_kls=1e-6 +optimizer.betas_kls=[0.9,0.999] # 1342633
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls +optimizer.lr_kls=5e-3 +optimizer.weight_decay_kls=1e-2 +optimizer.betas_kls=[0.9,0.98] # 1342628
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls +optimizer.lr_kls=1e-2 +optimizer.weight_decay_kls=1e-6 +optimizer.betas_kls=[0.9,0.98] # 1342634
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls +optimizer.lr_kls=5e-3 +optimizer.weight_decay_kls=1e-6 +optimizer.betas_kls=[0.85,0.95] # 1342620
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls +optimizer.lr_kls=5e-3 +optimizer.weight_decay_kls=1e-2 +optimizer.betas_kls=[0.85,0.95] # 1342632
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls +optimizer.lr_kls=5e-3 +optimizer.weight_decay_kls=1e-2 +optimizer.betas_kls=[0.9,0.999] # 1342627
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls +optimizer.lr_kls=5e-3 +optimizer.weight_decay_kls=1e-4 +optimizer.betas_kls=[0.85,0.99] # 1342624
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls +optimizer.lr_kls=5e-3 +optimizer.weight_decay_kls=1e-4 +optimizer.betas_kls=[0.85,0.95] # 1342626
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls +optimizer.lr_kls=1e-2 +optimizer.weight_decay_kls=1e-6 +optimizer.betas_kls=[0.9,0.95] # 1342635
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls +optimizer.lr_kls=1e-2 +optimizer.weight_decay_kls=1e-6 +optimizer.betas_kls=[0.85,0.99] # 1342636
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls +optimizer.lr_kls=1e-2 +optimizer.weight_decay_kls=1e-6 +optimizer.betas_kls=[0.8,0.9995] # 1342637
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls +optimizer.lr_kls=1e-2 +optimizer.weight_decay_kls=1e-6 +optimizer.betas_kls=[0.85,0.95] # 1342638
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls +optimizer.lr_kls=1e-2 +optimizer.weight_decay_kls=1e-4 +optimizer.betas_kls=[0.9,0.999] # 1342639
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls +optimizer.lr_kls=1e-2 +optimizer.weight_decay_kls=1e-4 +optimizer.betas_kls=[0.9,0.98] # 1342640
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls +optimizer.lr_kls=1e-2 +optimizer.weight_decay_kls=1e-4 +optimizer.betas_kls=[0.9,0.95] # 1342641
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls +optimizer.lr_kls=1e-2 +optimizer.weight_decay_kls=1e-4 +optimizer.betas_kls=[0.85,0.99] # 1342642
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls +optimizer.lr_kls=1e-2 +optimizer.weight_decay_kls=1e-4 +optimizer.betas_kls=[0.8,0.9995] # 1342643
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls +optimizer.lr_kls=1e-2 +optimizer.weight_decay_kls=1e-2 +optimizer.betas_kls=[0.9,0.98] # 1342646
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls +optimizer.lr_kls=1e-2 +optimizer.weight_decay_kls=1e-4 +optimizer.betas_kls=[0.85,0.95] # 1342644
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls +optimizer.lr_kls=1e-2 +optimizer.weight_decay_kls=1e-2 +optimizer.betas_kls=[0.9,0.999] # 1342645
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls +optimizer.lr_kls=1e-2 +optimizer.weight_decay_kls=1e-2 +optimizer.betas_kls=[0.9,0.95] # 1342647
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls +optimizer.lr_kls=1e-2 +optimizer.weight_decay_kls=1e-2 +optimizer.betas_kls=[0.85,0.99] # 1342648
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls +optimizer.lr_kls=1e-2 +optimizer.weight_decay_kls=1e-2 +optimizer.betas_kls=[0.8,0.9995] # 1342649
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls +optimizer.lr_kls=1e-2 +optimizer.weight_decay_kls=1e-2 +optimizer.betas_kls=[0.85,0.95] # 1342650
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls +optimizer.lr_kls=1e-3 +optimizer.weight_decay_kls=1e-6 +optimizer.betas_kls=[0.9,0.999] # 1342651
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls +optimizer.lr_kls=1e3 +optimizer.weight_decay_kls=1e-6 +optimizer.betas_kls=[0.9,0.999] # 1342652
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 model.residual=10 model.residual_mlp=True # 1342658
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 model.residual=10 # 1342657
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=muon optimizer.lr_muon=8e-3 optimizer.weight_decay_muon=0.000001 +v=2 # 1348038
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=muon optimizer.lr_muon=8e-3 optimizer.weight_decay_muon=0.000001 +v=3 # 1348039
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 model.residual=10 +model.residual_mlp=True # 1348048
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 model.residual=01 ckpt_resume_auto=False # 1348050
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 model.residual=00 ckpt_resume_auto=False # 1348049
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 model.residual=10 ckpt_resume_auto=False # 1348051
+sbatch scripts/killarney_h100.sh scripts/train.py preset=tuned optimizer.optimizer=muon optimizer.lr_muon=1e-3 optimizer.weight_decay_muon=0.001 # 1348067
+sbatch scripts/killarney_h100.sh scripts/train.py preset=tunedmuon training.lr_schedule_config.eta_min=0.00005 # 1349264
+sbatch scripts/killarney_h100.sh scripts/train.py preset=tunedmuonluca8 # 1358114
+sbatch scripts/killarney.sh scripts/train.py preset=tunedmuon training.bz=64 training.bz_val=64 training.loss_type=l1 training.hessian_loss_weight=0 # 1358200
+sbatch scripts/killarney.sh scripts/train.py preset=tunedmuon training.bz=64 training.bz_val=64 training.loss_type=l2 training.hessian_loss_weight=0 # 1358201
+sbatch scripts/killarney.sh scripts/train.py preset=tunedmuon training.bz=64 training.bz_val=64 training.loss_type=huber training.loss_width=1e-3 training.hessian_loss_weight=0 # 1358202
+sbatch scripts/killarney.sh scripts/train.py preset=tunedmuon training.bz=64 training.bz_val=64 training.loss_type=huber training.hessian_loss_weight=0 # 1358203
+sbatch scripts/killarney.sh scripts/train.py preset=tunedmuon training.bz=64 training.bz_val=64 training.loss_type=asinh training.loss_width=1e-3 training.hessian_loss_weight=0 # 1358204
+sbatch scripts/killarney.sh scripts/train.py preset=tunedmuon training.bz=64 training.bz_val=64 training.loss_type=asinh training.hessian_loss_weight=0 # 1358205
+sbatch scripts/killarney.sh scripts/train.py preset=tunedmuon training.bz=64 training.bz_val=64 training.loss_type=asinh training.loss_width=1e-3 training.hessian_loss_weight=0 +v=2 # 1358209
+sbatch scripts/killarney.sh scripts/train.py preset=tunedmuon training.bz=64 training.bz_val=64 training.loss_type=asinh training.hessian_loss_weight=0 +v=2 # 1358210
+sbatch scripts/killarney.sh scripts/train.py preset=tunedmuon training.bz=64 training.bz_val=64 training.loss_type=huber training.loss_width=1e-3 training.hessian_loss_weight=0 # 1359044
+sbatch scripts/killarney.sh scripts/train.py preset=tunedmuon training.bz=64 training.bz_val=64 training.loss_type=l2 training.hessian_loss_weight=0 # 1359043
+sbatch scripts/killarney.sh scripts/train.py preset=tunedmuon training.bz=64 training.bz_val=64 training.loss_type=huber training.hessian_loss_weight=0 # 1359045
+sbatch scripts/killarney.sh scripts/train.py preset=tunedmuon training.bz=64 training.bz_val=64 training.loss_type=asinh training.loss_width=1e-3 training.hessian_loss_weight=0 # 1359046
+sbatch scripts/killarney.sh scripts/train.py preset=tunedmuon training.bz=64 training.bz_val=64 training.loss_type=asinh training.hessian_loss_weight=0 # 1359047
+sbatch scripts/killarney.sh scripts/train.py preset=tunedmuon training.bz=64 training.bz_val=64 training.loss_type=l1 training.hessian_loss_weight=0 # 1359048
+sbatch scripts/killarney.sh scripts/train.py preset=tunedmuon training.bz=64 training.bz_val=64 training.loss_type=l1 training.hessian_loss_type=l1 # 1359142
+sbatch scripts/killarney.sh scripts/train.py preset=tunedmuon training.bz=64 training.bz_val=64 training.loss_type=l2 training.hessian_loss_type=l2 # 1359143
+sbatch scripts/killarney.sh scripts/train.py preset=tunedmuon training.bz=64 training.bz_val=64 training.loss_type=huber training.loss_width=1e-3 training.hessian_loss_type=huber training.loss_width_hessian=1e-3 # 1359144
+sbatch scripts/killarney.sh scripts/train.py preset=tunedmuon training.bz=64 training.bz_val=64 training.loss_type=huber training.hessian_loss_type=huber # 1359145
+sbatch scripts/killarney.sh scripts/train.py preset=tunedmuon training.bz=64 training.bz_val=64 training.loss_type=asinh training.loss_width=1e-3 training.hessian_loss_type=asinh training.loss_width_hessian=1e-3 # 1359146
+sbatch scripts/killarney.sh scripts/train.py preset=tunedmuon training.bz=64 training.bz_val=64 training.loss_type=asinh training.hessian_loss_type=asinh # 1359147
+sbatch scripts/killarney.sh scripts/train.py preset=tunedmuon training.bz=64 training.bz_val=64 training.loss_type=l1 training.hessian_loss_type=mae # 1359149
+sbatch scripts/killarney_h100.sh scripts/train.py preset=tunedmuonluca8 # 1359126
+sbatch scripts/killarney.sh scripts/train.py preset=tunedmuon training.bz=64 training.bz_val=64 training.loss_type=l2 training.hessian_loss_type=mse # 1359150
+sbatch scripts/killarney.sh scripts/train.py preset=tunedmuon training.bz=64 training.bz_val=64 training.loss_type=huber training.loss_width=1e-3 training.hessian_loss_weight=0 # 1359995
+sbatch scripts/killarney.sh scripts/train.py preset=tunedmuon training.bz=64 training.bz_val=64 training.loss_type=l2 training.hessian_loss_weight=0 # 1359994
+sbatch scripts/killarney.sh scripts/train.py preset=tunedmuon training.bz=64 training.bz_val=64 training.loss_type=huber training.hessian_loss_weight=0 # 1359996
+sbatch scripts/killarney.sh scripts/train.py preset=tunedmuon training.bz=64 training.bz_val=64 training.loss_type=l1 training.hessian_loss_weight=0 # 1359993
+sbatch scripts/killarney.sh scripts/train.py preset=tunedmuon training.bz=64 training.bz_val=64 training.loss_type=asinh training.hessian_loss_weight=0 # 1359998
+sbatch scripts/killarney.sh scripts/train.py preset=tunedmuon training.bz=64 training.bz_val=64 training.loss_type=asinh training.loss_width=1e-3 training.hessian_loss_weight=0 # 1359997
+sbatch scripts/killarney.sh scripts/train.py preset=tunedmuon training.bz=64 training.bz_val=64 training.loss_type=huber training.loss_width=1e-3 training.hessian_loss_type=huber training.loss_width_hessian=1e-3 # 1360006
+sbatch scripts/killarney.sh scripts/train.py preset=tunedmuon training.bz=64 training.bz_val=64 training.loss_type=l2 training.hessian_loss_type=mse # 1360005
+sbatch scripts/killarney.sh scripts/train.py preset=tunedmuon training.bz=64 training.bz_val=64 training.loss_type=l1 training.hessian_loss_type=mae # 1360004
+sbatch scripts/killarney.sh scripts/train.py preset=tunedmuon training.bz=64 training.bz_val=64 training.loss_type=huber training.hessian_loss_type=huber # 1360007
+sbatch scripts/killarney.sh scripts/train.py preset=tunedmuon training.bz=64 training.bz_val=64 training.loss_type=asinh training.loss_width=1e-3 training.hessian_loss_type=asinh training.loss_width_hessian=1e-3 # 1360008
+sbatch scripts/killarney.sh scripts/train.py preset=tunedmuon training.bz=64 training.bz_val=64 training.loss_type=asinh training.hessian_loss_type=asinh # 1360009
+sbatch scripts/killarney.sh scripts/train.py preset=tunedmuon training.bz=64 training.bz_val=64 training.hessian_loss_type=huber training.loss_width_hessian=1e-2 # 1366072
+sbatch scripts/killarney.sh scripts/train.py preset=tunedmuon training.bz=64 training.bz_val=64 training.hessian_loss_type=asinh training.loss_width_hessian=1e-2 # 1366073
+sbatch scripts/killarney.sh scripts/train.py preset=tunedmuon training.bz=64 training.bz_val=64 training.hessian_loss_type=asinh training.loss_width_hessian=1e-3 # 1366075
+sbatch scripts/killarney.sh scripts/train.py preset=tunedmuon training.bz=64 training.bz_val=64 training.hessian_loss_type=huber training.loss_width_hessian=1e-3 # 1366074
+sbatch scripts/killarney.sh scripts/train.py preset=tunedmuon training.bz=64 training.bz_val=64 training.hessian_loss_type=asinh training.loss_width_hessian=1e-4 # 1366077
+sbatch scripts/killarney.sh scripts/train.py preset=tunedmuon training.bz=64 training.bz_val=64 training.hessian_loss_type=huber training.loss_width_hessian=1e-4 # 1366076
+sbatch scripts/killarney.sh scripts/train.py preset=tunedmuon training.bz=64 training.bz_val=64 training.hessian_loss_type=huber training.loss_width_hessian=1e-5 # 1366078
+sbatch scripts/killarney.sh scripts/train.py preset=tunedmuon training.bz=64 training.bz_val=64 training.hessian_loss_type=asinh training.loss_width_hessian=1e-5 # 1366079
+sbatch scripts/killarney.sh scripts/train.py preset=tunedmuon training.bz=64 training.bz_val=64 training.hessian_loss_type=huber training.loss_width_hessian=1e-2 # 1368625
+sbatch scripts/killarney.sh scripts/train.py preset=tunedmuon training.bz=64 training.bz_val=64 training.hessian_loss_type=asinh training.loss_width_hessian=1e-3 # 1368628
+sbatch scripts/killarney.sh scripts/train.py preset=tunedmuon training.bz=64 training.bz_val=64 training.hessian_loss_type=huber training.loss_width_hessian=1e-3 # 1368627
+sbatch scripts/killarney.sh scripts/train.py preset=tunedmuon training.bz=64 training.bz_val=64 training.hessian_loss_type=asinh training.loss_width_hessian=1e-2 # 1368626
+sbatch scripts/killarney.sh scripts/train.py preset=tunedmuon training.bz=64 training.bz_val=64 training.hessian_loss_type=asinh training.loss_width_hessian=1e-4 # 1368630
+sbatch scripts/killarney.sh scripts/train.py preset=tunedmuon training.bz=64 training.bz_val=64 training.hessian_loss_type=huber training.loss_width_hessian=1e-4 # 1368629
+sbatch scripts/killarney.sh scripts/train.py preset=tunedmuon training.bz=64 training.bz_val=64 training.hessian_loss_type=huber training.loss_width_hessian=1e-5 # 1368631
+sbatch scripts/killarney.sh scripts/train.py preset=tunedmuon training.bz=64 training.bz_val=64 training.hessian_loss_type=asinh training.loss_width_hessian=1e-5 # 1368632
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls optimizer.lr_kls=5e-4 optimizer.weight_decay_kls=1e-4 optimizer.betas_kls=[0.9,0.999] optimizer.damping_kls=True # 1368658
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls optimizer.lr_kls=5e-4 optimizer.weight_decay_kls=1e-4 optimizer.betas_kls=[0.9,0.98] optimizer.damping_kls=True # 1368659
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls optimizer.lr_kls=5e-4 optimizer.weight_decay_kls=1e-4 optimizer.betas_kls=[0.9,0.95] optimizer.damping_kls=True # 1368660
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls optimizer.lr_kls=5e-4 optimizer.weight_decay_kls=1e-4 optimizer.betas_kls=[0.85,0.99] optimizer.damping_kls=True # 1368661
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls optimizer.lr_kls=5e-4 optimizer.weight_decay_kls=1e-4 optimizer.betas_kls=[0.8,0.9995] optimizer.damping_kls=True # 1368662
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls optimizer.lr_kls=5e-4 optimizer.weight_decay_kls=1e-4 optimizer.betas_kls=[0.85,0.95] optimizer.damping_kls=True # 1368663
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls optimizer.lr_kls=1e-3 optimizer.weight_decay_kls=1e-4 optimizer.betas_kls=[0.9,0.999] optimizer.damping_kls=True # 1368664
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls optimizer.lr_kls=1e-3 optimizer.weight_decay_kls=1e-4 optimizer.betas_kls=[0.9,0.98] optimizer.damping_kls=True # 1368665
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls optimizer.lr_kls=1e-3 optimizer.weight_decay_kls=1e-4 optimizer.betas_kls=[0.8,0.9995] optimizer.damping_kls=True # 1368668
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls optimizer.lr_kls=1e-3 optimizer.weight_decay_kls=1e-4 optimizer.betas_kls=[0.85,0.99] optimizer.damping_kls=True # 1368667
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls optimizer.lr_kls=1e-3 optimizer.weight_decay_kls=1e-4 optimizer.betas_kls=[0.9,0.95] optimizer.damping_kls=True # 1368666
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls optimizer.lr_kls=1e-3 optimizer.weight_decay_kls=1e-4 optimizer.betas_kls=[0.85,0.95] optimizer.damping_kls=True # 1368669
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls optimizer.lr_kls=5e-3 optimizer.weight_decay_kls=1e-4 optimizer.betas_kls=[0.9,0.999] optimizer.damping_kls=True # 1368670
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls optimizer.lr_kls=5e-3 optimizer.weight_decay_kls=1e-4 optimizer.betas_kls=[0.9,0.95] optimizer.damping_kls=True # 1368672
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls optimizer.lr_kls=5e-3 optimizer.weight_decay_kls=1e-4 optimizer.betas_kls=[0.9,0.98] optimizer.damping_kls=True # 1368671
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls optimizer.lr_kls=5e-3 optimizer.weight_decay_kls=1e-4 optimizer.betas_kls=[0.85,0.99] optimizer.damping_kls=True # 1368673
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls optimizer.lr_kls=5e-3 optimizer.weight_decay_kls=1e-4 optimizer.betas_kls=[0.8,0.9995] optimizer.damping_kls=True # 1368674
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls optimizer.lr_kls=5e-3 optimizer.weight_decay_kls=1e-4 optimizer.betas_kls=[0.85,0.95] optimizer.damping_kls=True # 1368675
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls optimizer.lr_kls=5e-4 optimizer.weight_decay_kls=1e-4 optimizer.betas_kls=[0.9,0.999] optimizer.damping_kls=True # 1369823
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls optimizer.lr_kls=5e-4 optimizer.weight_decay_kls=1e-4 optimizer.betas_kls=[0.9,0.98] optimizer.damping_kls=True # 1369824
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls optimizer.lr_kls=5e-4 optimizer.weight_decay_kls=1e-4 optimizer.betas_kls=[0.9,0.95] optimizer.damping_kls=True # 1369825
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls optimizer.lr_kls=5e-4 optimizer.weight_decay_kls=1e-4 optimizer.betas_kls=[0.85,0.99] optimizer.damping_kls=True # 1369826
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls optimizer.lr_kls=5e-4 optimizer.weight_decay_kls=1e-4 optimizer.betas_kls=[0.8,0.9995] optimizer.damping_kls=True # 1369827
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls optimizer.lr_kls=5e-4 optimizer.weight_decay_kls=1e-4 optimizer.betas_kls=[0.85,0.95] optimizer.damping_kls=True # 1369828
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls optimizer.lr_kls=1e-3 optimizer.weight_decay_kls=1e-4 optimizer.betas_kls=[0.9,0.999] optimizer.damping_kls=True # 1369829
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls optimizer.lr_kls=1e-3 optimizer.weight_decay_kls=1e-4 optimizer.betas_kls=[0.9,0.98] optimizer.damping_kls=True # 1369830
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls optimizer.lr_kls=1e-3 optimizer.weight_decay_kls=1e-4 optimizer.betas_kls=[0.9,0.95] optimizer.damping_kls=True # 1369831
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls optimizer.lr_kls=1e-3 optimizer.weight_decay_kls=1e-4 optimizer.betas_kls=[0.85,0.99] optimizer.damping_kls=True # 1369832
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls optimizer.lr_kls=1e-3 optimizer.weight_decay_kls=1e-4 optimizer.betas_kls=[0.8,0.9995] optimizer.damping_kls=True # 1369833
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls optimizer.lr_kls=1e-3 optimizer.weight_decay_kls=1e-4 optimizer.betas_kls=[0.85,0.95] optimizer.damping_kls=True # 1369834
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls optimizer.lr_kls=5e-3 optimizer.weight_decay_kls=1e-4 optimizer.betas_kls=[0.9,0.999] optimizer.damping_kls=True # 1369835
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls optimizer.lr_kls=5e-3 optimizer.weight_decay_kls=1e-4 optimizer.betas_kls=[0.9,0.98] optimizer.damping_kls=True # 1369836
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls optimizer.lr_kls=5e-3 optimizer.weight_decay_kls=1e-4 optimizer.betas_kls=[0.9,0.95] optimizer.damping_kls=True # 1369837
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls optimizer.lr_kls=5e-3 optimizer.weight_decay_kls=1e-4 optimizer.betas_kls=[0.85,0.99] optimizer.damping_kls=True # 1369838
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls optimizer.lr_kls=5e-3 optimizer.weight_decay_kls=1e-4 optimizer.betas_kls=[0.8,0.9995] optimizer.damping_kls=True # 1369839
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls optimizer.lr_kls=5e-3 optimizer.weight_decay_kls=1e-4 optimizer.betas_kls=[0.85,0.95] optimizer.damping_kls=True # 1369840
+sbatch scripts/killarney_h100.sh scripts/train.py preset=tunedmuonluca8 # 1366106
+sbatch scripts/killarney.sh scripts/train.py preset=tunedmuon training.bz=64 training.bz_val=64 training.hessian_loss_type=asinh training.loss_width_hessian=1e-2 # 1370449
+sbatch scripts/killarney.sh scripts/train.py preset=tunedmuon training.bz=64 training.bz_val=64 training.hessian_loss_type=huber training.loss_width_hessian=1e-2 # 1370450
+sbatch scripts/killarney.sh scripts/train.py preset=tunedmuon training.bz=64 training.bz_val=64 training.hessian_loss_type=l1 # 1370580
+sbatch scripts/killarney.sh scripts/train.py preset=tunedmuon training.bz=64 training.bz_val=64 training.hessian_loss_type=huber training.loss_width_hessian=1e-2 training.loss_type=huber training.loss_width=1e-2 # 1370583
+sbatch scripts/killarney.sh scripts/train.py preset=tunedmuon training.bz=64 training.bz_val=64 training.hessian_loss_type=asinh training.loss_width_hessian=1e-2 training.loss_type=asinh training.loss_width=1e-2 # 1372659
+sbatch scripts/killarney.sh scripts/train.py preset=tunedmuon training.bz=64 training.bz_val=64 training.lr_schedule_config.warmup_epochs=30 # 1372665
+sbatch scripts/killarney.sh scripts/train.py preset=tunedmuon training.bz=64 training.bz_val=64 training.lr_schedule_config.warmup_init_lr=1e-5 # 1372664
+sbatch scripts/killarney_h100.sh scripts/train.py preset=tunedmuon training.lr_schedule_config.eta_min=0.00005 # 1366108
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls optimizer.lr_kls=5e-4 optimizer.weight_decay_kls=1e-4 optimizer.betas_kls=[0.85,0.99] optimizer.damping_kls=True optimizer.only_2d_muon=True # 1387827
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls optimizer.lr_kls=5e-4 optimizer.weight_decay_kls=1e-4 optimizer.betas_kls=[0.85,0.99] optimizer.damping_kls=True optimizer.only_2d_muon=False # 1387828
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls optimizer.lr_kls=5e-4 optimizer.weight_decay_kls=1e-4 optimizer.betas_kls=[0.85,0.99] optimizer.damping_kls=False optimizer.only_2d_muon=True # 1387829
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls optimizer.lr_kls=5e-4 optimizer.weight_decay_kls=1e-4 optimizer.betas_kls=[0.85,0.99] optimizer.damping_kls=False optimizer.only_2d_muon=False # 1387830
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls optimizer.lr_kls=1e-3 optimizer.weight_decay_kls=1e-4 optimizer.betas_kls=[0.85,0.99] optimizer.damping_kls=True optimizer.only_2d_muon=True # 1387831
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls optimizer.lr_kls=1e-3 optimizer.weight_decay_kls=1e-4 optimizer.betas_kls=[0.85,0.99] optimizer.damping_kls=True optimizer.only_2d_muon=False # 1387832
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls optimizer.lr_kls=1e-3 optimizer.weight_decay_kls=1e-4 optimizer.betas_kls=[0.85,0.99] optimizer.damping_kls=False optimizer.only_2d_muon=True # 1387833
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls optimizer.lr_kls=1e-3 optimizer.weight_decay_kls=1e-4 optimizer.betas_kls=[0.85,0.99] optimizer.damping_kls=False optimizer.only_2d_muon=False # 1387834
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls optimizer.lr_kls=5e-3 optimizer.weight_decay_kls=1e-4 optimizer.betas_kls=[0.85,0.99] optimizer.damping_kls=False optimizer.only_2d_muon=True # 1387837
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls optimizer.lr_kls=5e-3 optimizer.weight_decay_kls=1e-4 optimizer.betas_kls=[0.85,0.99] optimizer.damping_kls=True optimizer.only_2d_muon=False # 1387836
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls optimizer.lr_kls=5e-3 optimizer.weight_decay_kls=1e-4 optimizer.betas_kls=[0.85,0.99] optimizer.damping_kls=True optimizer.only_2d_muon=True # 1387835
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls optimizer.lr_kls=5e-3 optimizer.weight_decay_kls=1e-4 optimizer.betas_kls=[0.85,0.99] optimizer.damping_kls=False optimizer.only_2d_muon=False # 1387838
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls optimizer.lr_kls=5e-4 optimizer.weight_decay_kls=1e-4 optimizer.betas_kls=[0.85,0.99] optimizer.damping_kls=True optimizer.only_2d_muon=True # 1388454
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls optimizer.lr_kls=5e-4 optimizer.weight_decay_kls=1e-4 optimizer.betas_kls=[0.85,0.99] optimizer.damping_kls=False optimizer.only_2d_muon=True # 1388456
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls optimizer.lr_kls=5e-4 optimizer.weight_decay_kls=1e-4 optimizer.betas_kls=[0.85,0.99] optimizer.damping_kls=True optimizer.only_2d_muon=False # 1388455
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls optimizer.lr_kls=5e-4 optimizer.weight_decay_kls=1e-4 optimizer.betas_kls=[0.85,0.99] optimizer.damping_kls=False optimizer.only_2d_muon=False # 1388457
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls optimizer.lr_kls=1e-3 optimizer.weight_decay_kls=1e-4 optimizer.betas_kls=[0.85,0.99] optimizer.damping_kls=True optimizer.only_2d_muon=True # 1388458
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls optimizer.lr_kls=1e-3 optimizer.weight_decay_kls=1e-4 optimizer.betas_kls=[0.85,0.99] optimizer.damping_kls=True optimizer.only_2d_muon=False # 1388459
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls optimizer.lr_kls=1e-3 optimizer.weight_decay_kls=1e-4 optimizer.betas_kls=[0.85,0.99] optimizer.damping_kls=False optimizer.only_2d_muon=True # 1388460
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls optimizer.lr_kls=1e-3 optimizer.weight_decay_kls=1e-4 optimizer.betas_kls=[0.85,0.99] optimizer.damping_kls=False optimizer.only_2d_muon=False # 1388461
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls optimizer.lr_kls=5e-3 optimizer.weight_decay_kls=1e-4 optimizer.betas_kls=[0.85,0.99] optimizer.damping_kls=True optimizer.only_2d_muon=True # 1388462
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls optimizer.lr_kls=5e-3 optimizer.weight_decay_kls=1e-4 optimizer.betas_kls=[0.85,0.99] optimizer.damping_kls=True optimizer.only_2d_muon=False # 1388463
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls optimizer.lr_kls=5e-3 optimizer.weight_decay_kls=1e-4 optimizer.betas_kls=[0.85,0.99] optimizer.damping_kls=False optimizer.only_2d_muon=True # 1388464
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 optimizer.optimizer=kls optimizer.lr_kls=5e-3 optimizer.weight_decay_kls=1e-4 optimizer.betas_kls=[0.85,0.99] optimizer.damping_kls=False optimizer.only_2d_muon=False # 1388465
+sbatch scripts/killarney_h100.sh scripts/train.py preset=tunedmuon training.hessian_loss_type=huber training.loss_width_hessian=1e-2 training.loss_type=huber training.loss_width=1e-2 # 1372662
+sbatch scripts/killarney_h100.sh scripts/train.py preset=tunedmuon training.lr_schedule_config.eta_min=4e-6 # 1372663
+sbatch scripts/killarney.sh scripts/train.py preset=tunedmuoneigen8 extra=bz100 training.lr_schedule_config.eta_min=1e-6 # 1407201
+sbatch scripts/killarney.sh scripts/train.py preset=tunedmuoneigen8 extra=bz100 # 1407200
+sbatch scripts/killarney.sh scripts/train.py preset=tunedmuon extra=bz100 training.lr_schedule_config.eta_min=1e-6 # 1407202
+sbatch scripts/killarney.sh scripts/train.py preset=tunedmuon +extra=bz100 training.lr_schedule_config.eta_min=1e-6 # 1408095
+sbatch scripts/killarney.sh scripts/train.py preset=tunedmuoneigen8 +extra=bz100 # 1408094
+sbatch scripts/killarney.sh scripts/train.py preset=tunedmuoneigen8 +extra=bz100 training.lr_schedule_config.eta_min=1e-6 # 1408093
+sbatch scripts/killarney.sh scripts/train.py preset=tunedmuon +extra=bz100 training.lr_schedule_config.eta_min=1e-6 training.lr_schedule_config.T_max=400 # 1408727
+sbatch scripts/killarney_h100.sh scripts/train.py preset=tunedmuoneigen8 # 1406947
+sbatch scripts/killarney_h100.sh scripts/train.py preset=tunedmuoneigen8 # 1416744
+sbatch scripts/killarney_h100.sh scripts/train.py preset=tunedmuon training.lr_schedule_config.eta_min=1e-6 # 1416746
+sbatch scripts/killarney.sh scripts/train.py preset=tunedmuon extra=bz100 training.lr_schedule_config.eta_min=1e-6 # 1416749
+sbatch scripts/killarney.sh scripts/train.py preset=tunedmuoneigen8 extra=bz100 # 1416747
+sbatch scripts/killarney.sh scripts/train.py preset=tunedmuoneigen8 extra=bz100 training.lr_schedule_config.eta_min=1e-6 # 1416748
+sbatch scripts/killarney.sh scripts/train.py preset=tunedmuon +extra=bz100 training.lr_schedule_config.eta_min=1e-6 # 1416754
+sbatch scripts/killarney.sh scripts/train.py preset=tunedmuoneigen8 +extra=bz100 # 1416752
+sbatch scripts/killarney.sh scripts/train.py preset=tunedmuoneigen8 +extra=bz100 training.lr_schedule_config.eta_min=1e-6 # 1416753
+sbatch scripts/killarney_h100.sh scripts/train.py preset=tunedmuoneigen8 training.lr_schedule_config.eta_min=1e-6 # 1416755
+sbatch scripts/killarney_h100.sh scripts/train.py preset=tunedmuon training.lr_schedule_config.eta_min=1e-6 # 1417514
+sbatch scripts/killarney_h100.sh scripts/train.py preset=tunedmuoneigen8 # 1417512
+sbatch scripts/killarney_h100.sh scripts/train.py preset=tunedmuoneigen8 training.lr_schedule_config.eta_min=1e-6 # 1417513
+sbatch scripts/killarney.sh scripts/train.py preset=tunedmuoneigen8 +extra=bz100 # 1417515
+sbatch scripts/killarney.sh scripts/train.py preset=tunedmuoneigen8 +extra=bz100 training.lr_schedule_config.eta_min=1e-6 # 1417516
+sbatch scripts/killarney.sh scripts/train.py preset=tunedmuon +extra=bz100 training.lr_schedule_config.eta_min=1e-6 # 1417517
+sbatch scripts/killarney_h100.sh scripts/train.py preset=tunedmuoneigen8 # 1430810
+sbatch scripts/killarney_h100.sh scripts/train.py preset=tunedmuoneigen8 training.lr_schedule_config.eta_min=1e-6 # 1430811
+sbatch scripts/killarney.sh scripts/train.py preset=tunedmuoneigen8 +extra=bz100 # 1430807
+sbatch scripts/killarney.sh scripts/train.py preset=tunedmuoneigen8 +extra=bz100 training.lr_schedule_config.eta_min=1e-6 # 1430808
+sbatch scripts/killarney_h100.sh scripts/train.py preset=tunedmuon training.lr_schedule_config.eta_min=1e-6 # 1430812
+sbatch scripts/killarney.sh scripts/train.py preset=tunedmuon +extra=bz100 training.lr_schedule_config.eta_min=1e-6 # 1430809
+sbatch scripts/killarney.sh scripts/train.py preset=tunedmuon +extra=bz100 model.num_layers_hessian=2 # 1438870
+sbatch scripts/killarney.sh scripts/train.py preset=tunedmuon +extra=bz100 model.num_layers_hessian=2 training.lr_schedule_config.eta_min=5e-6 # 1438872
+sbatch scripts/killarney.sh scripts/train.py preset=tunedmuoneigen8 +extra=bz100 model.num_layers_hessian=2 training.lr_schedule_config.eta_min=5e-6 # 1438875
+sbatch scripts/killarney_h100.sh scripts/train.py preset=tunedmuon model.num_layers_hessian=2 # 1438868
+sbatch scripts/killarney.sh scripts/train.py preset=mae training.bz=100 training.bz_val=100 ckpt_model_path=orig model.num_layers_hessian=3 # 1445206
+sbatch scripts/killarney.sh scripts/train.py preset=mae training.bz=100 training.bz_val=100 ckpt_model_path=orig # 1445207
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=100 training.bz_val=100 ckpt_model_path=orig model.num_layers_hessian=3 # 1445208
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=100 training.bz_val=100 ckpt_model_path=orig # 1445209
+sbatch scripts/killarney.sh scripts/train.py preset=mae training.bz=100 training.bz_val=100 model.num_layers_hessian=3 train_hessian_only=True # 1447590
+sbatch scripts/killarney.sh scripts/train.py preset=mae training.bz=100 training.bz_val=100 ckpt_model_path=orig model.num_layers_hessian=3 train_hessian_only=True # 1447591
+sbatch scripts/killarney.sh scripts/train.py preset=mae training.bz=100 training.bz_val=100 ckpt_model_path=orig train_hessian_only=True # 1447592
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=100 training.bz_val=100 ckpt_model_path=orig model.num_layers_hessian=3 train_hessian_only=True # 1447593
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=100 training.bz_val=100 ckpt_model_path=orig train_hessian_only=True # 1447594
+sbatch scripts/killarney.sh scripts/train.py preset=mae experiment=water training.bz=100 training.bz_val=100 # 1447976
+sbatch scripts/killarney.sh scripts/train.py preset=mae experiment=vacuum training.bz=100 training.bz_val=100 # 1447977
+sbatch scripts/killarney.sh scripts/train.py preset=mae experiment=thf training.bz=100 training.bz_val=100 # 1447979
+sbatch scripts/killarney.sh scripts/train.py preset=mae experiment=toluene training.bz=100 training.bz_val=100 # 1447978
+sbatch scripts/killarney.sh scripts/train.py preset=mae experiment=water training.bz=100 training.bz_val=100 # 1448014
+sbatch scripts/killarney.sh scripts/train.py preset=mae experiment=vacuum training.bz=100 training.bz_val=100 # 1448015
+sbatch scripts/killarney.sh scripts/train.py preset=mae experiment=toluene training.bz=100 training.bz_val=100 # 1448016
+sbatch scripts/killarney.sh scripts/train.py preset=mae experiment=thf training.bz=100 training.bz_val=100 # 1448017
+sbatch scripts/killarney.sh scripts/train.py preset=mae experiment=thf training.bz=64 training.bz_val=64 # 1448045
+sbatch scripts/killarney.sh scripts/train.py preset=mae experiment=vacuum training.bz=64 training.bz_val=64 # 1448062
+sbatch scripts/killarney.sh scripts/train.py preset=mae experiment=water training.bz=64 training.bz_val=64 # 1448061
+sbatch scripts/killarney.sh scripts/train.py preset=mae experiment=thf training.bz=64 training.bz_val=64 # 1448064
+sbatch scripts/killarney.sh scripts/train.py preset=mae experiment=water training.bz=64 training.bz_val=64 training.hessian_loss_weight=0 # 1448066
+sbatch scripts/killarney.sh scripts/train.py preset=mae experiment=vacuum training.bz=64 training.bz_val=64 training.hessian_loss_weight=0 # 1448067
+sbatch scripts/killarney.sh scripts/train.py preset=mae experiment=toluene training.bz=64 training.bz_val=64 training.hessian_loss_weight=0 # 1448068
+sbatch scripts/killarney.sh scripts/train.py preset=mae experiment=thf training.bz=64 training.bz_val=64 training.hessian_loss_weight=0 # 1448069
+sbatch scripts/killarney.sh scripts/train.py preset=mae experiment=thf training.bz=64 training.bz_val=64 # 1448095
+sbatch scripts/killarney.sh scripts/train.py preset=mae experiment=vacuum training.bz=64 training.bz_val=64 # 1448093
+sbatch scripts/killarney.sh scripts/train.py preset=mae experiment=toluene training.bz=64 training.bz_val=64 # 1448094
+sbatch scripts/killarney.sh scripts/train.py preset=mae experiment=water training.bz=64 training.bz_val=64 # 1448092
+sbatch scripts/killarney.sh scripts/train.py preset=mae experiment=water training.bz=64 training.bz_val=64 training.hessian_loss_weight=0 # 1448096
+sbatch scripts/killarney.sh scripts/train.py preset=mae experiment=vacuum training.bz=64 training.bz_val=64 training.hessian_loss_weight=0 # 1448097
+sbatch scripts/killarney.sh scripts/train.py preset=mae experiment=toluene training.bz=64 training.bz_val=64 training.hessian_loss_weight=0 # 1448098
+sbatch scripts/killarney.sh scripts/train.py preset=mae experiment=thf training.bz=64 training.bz_val=64 training.hessian_loss_weight=0 # 1448099
+sbatch scripts/killarney.sh scripts/train.py preset=mae experiment=vacuum training.bz=64 training.bz_val=64 # 1448183
+sbatch scripts/killarney.sh scripts/train.py preset=mae experiment=toluene training.bz=64 training.bz_val=64 # 1448184
+sbatch scripts/killarney.sh scripts/train.py preset=mae experiment=thf training.bz=64 training.bz_val=64 # 1448185
+sbatch scripts/killarney.sh scripts/train.py preset=mae experiment=water training.bz=64 training.bz_val=64 # 1448182
+sbatch scripts/killarney.sh scripts/train.py preset=mae experiment=vacuum training.bz=64 training.bz_val=64 training.hessian_loss_weight=0 # 1448187
+sbatch scripts/killarney.sh scripts/train.py preset=mae experiment=toluene training.bz=64 training.bz_val=64 training.hessian_loss_weight=0 # 1448188
+sbatch scripts/killarney.sh scripts/train.py preset=mae training.bz=100 training.bz_val=100 model.num_layers_hessian=3 train_hessian_only=True # 1451098
+sbatch scripts/killarney.sh scripts/train.py preset=mae training.bz=100 training.bz_val=100 ckpt_model_path=orig model.num_layers_hessian=3 train_hessian_only=True # 1451099
+sbatch scripts/killarney.sh scripts/train.py preset=mae training.bz=100 training.bz_val=100 ckpt_model_path=orig train_hessian_only=True # 1451100
+sbatch scripts/killarney.sh scripts/train.py preset=mae training.bz=100 training.bz_val=100 model.num_layers_hessian=3 train_hessian_only=True ckpt_model_path=horm # 1451101
+sbatch scripts/killarney.sh scripts/train.py preset=mae training.bz=100 training.bz_val=100 ckpt_model_path=orig training.train_hessian_only=True # 1451249
+sbatch scripts/killarney.sh scripts/train.py preset=mae training.bz=100 training.bz_val=100 ckpt_model_path=orig model.num_layers_hessian=3 training.train_hessian_only=True # 1451248
+sbatch scripts/killarney.sh scripts/train.py preset=mae training.bz=100 training.bz_val=100 model.num_layers_hessian=3 training.train_hessian_only=True ckpt_model_path=horm # 1451247
+sbatch scripts/killarney.sh scripts/train.py preset=mae experiment=thf training.bz=64 training.bz_val=64 # 1448185
+sbatch scripts/killarney.sh scripts/train.py preset=mae experiment=water training.bz=64 training.bz_val=64 training.hessian_loss_weight=0 # 1448186
+sbatch scripts/killarney.sh scripts/train.py preset=mae experiment=water training.bz=64 training.bz_val=64 hessian_loss_weight=25 # 1456770
+sbatch scripts/killarney.sh scripts/train.py preset=mae experiment=water training.bz=64 training.bz_val=64 optimizer.lr_muon=1e-4 # 1456772
+sbatch scripts/killarney.sh scripts/train.py preset=mae experiment=water training.bz=64 training.bz_val=64 optimizer.lr=0.0001 # 1456771
+sbatch scripts/killarney.sh scripts/train.py preset=mae experiment=water training.bz=64 training.bz_val=64 training.lr_schedule_config.warmup_epochs=0 # 1456779
+sbatch scripts/killarney.sh scripts/train.py preset=mae experiment=water training.bz=64 training.bz_val=64 optimizer.lr=1e-4 optimizer.lr_muon=1e-4 # 1456780
+sbatch scripts/killarney.sh scripts/train.py preset=mae experiment=water training.bz=64 training.bz_val=64 hessian_loss_weight=100 # 1456786
+sbatch scripts/killarney.sh scripts/train.py preset=mae experiment=water training.bz=64 training.bz_val=64 training.hessian_loss_weight=100 # 1456787
+sbatch scripts/killarney.sh scripts/train.py preset=mae experiment=water training.bz=64 training.bz_val=64 training.hessian_loss_weight=25 # 1456788
+sbatch scripts/killarney.sh scriptsp/large.py --redo True --maxnatoms 500 --maxnatoms_fc 300 --maxnatoms_ad 150 # 1457861
+sbatch scripts/killarney.sh scripts/train.py preset=mae experiment=water training.bz=64 training.bz_val=64 +v=2 # 1457872
+sbatch scripts/killarney.sh scriptsp/large.py --redo True --maxnatoms 500 --maxnatoms_fc 300 --maxnatoms_ad 150 # 1458169
+sbatch scripts/killarney.sh scriptsp/large.py --redo True --maxnatoms 500 --maxnatoms_fc 300 --maxnatoms_ad 150 --largerepeat 10 # 1459038
+sbatch scripts/killarney.sh scriptsp/large.py --redo True --maxnatoms 500 --maxnatoms_fc 300 --maxnatoms_ad 150 # 1459044
+sbatch scripts/killarney.sh scriptsp/large.py --redo True --maxnatoms 500 --maxnatoms_fc 300 --maxnatoms_ad 150 --largerepeat 10 # 1459045
+sbatch scripts/killarney.sh scriptsp/large.py --redo True --maxnatoms 300 --maxnatoms_fc 300 --maxnatoms_ad 150 --largerepeat 10 # 1459051
+sbatch scripts/killarney.sh scriptsp/large.py --redo True --maxnatoms 400 --maxnatoms_fc 300 --maxnatoms_ad 150 --largerepeat 10 # 1459052
+sbatch scripts/killarney.sh scripts/train.py +extra=ad # 1459286
+sbatch scripts/killarney.sh scripts/train.py training.bz=32 training.bz_val=32 training.ad_hessian=true # 1459288
+sbatch scripts/killarney.sh scripts/train.py preset=ad training.bz=32 training.bz_val=32 # 1459289
+sbatch scripts/killarney.sh scripts/train.py training.bz=32 training.bz_val=32 +extra=ad # 1459290
+sbatch scripts/killarney.sh scripts/train.py experiment=water preset=ad training.bz=32 training.bz_val=32 # 1459291
+sbatch scripts/killarney.sh scripts/train.py experiment=water preset=ad training.bz=16 training.bz_val=16 # 1459292
+sbatch scripts/killarney.sh scripts/train.py experiment=water preset=ad training.bz=32 training.bz_val=32 training.hvps=1 # 1459293
+sbatch scripts/killarney.sh scripts/train.py training.bz=64 training.bz_val=64 training.ad_hessian=true # 1459285
+sbatch scripts/killarney.sh scripts/train.py experiment=water preset=ad training.bz=16 training.bz_val=16 optimizer.lr=1e-4 # 1459774
+sbatch scripts/killarney.sh scripts/train.py experiment=water preset=ad training.bz=2 training.bz_val=2 training.hvps=100 # 1459798
+sbatch scripts/killarney.sh scripts/train.py experiment=water preset=ad training.bz=1 training.bz_val=1 training.hvps=100 # 1460044
+sbatch scripts/killarney.sh scripts/train.py experiment=water preset=ad training.bz=2 training.bz_val=2 training.hvps=60 # 1460052
+sbatch scripts/killarney.sh scripts/train.py experiment=water preset=ad training.bz=1 training.bz_val=1 training.hvps=60 # 1460056
+sbatch scripts/killarney.sh scripts/train.py experiment=water preset=ad training.bz=1 training.bz_val=1 training.hvps=20 # 1460111
+sbatch scripts/killarney.sh scripts/train.py experiment=water preset=ad training.bz=2 training.bz_val=2 training.hvps=8 # 1460113
+sbatch scripts/killarney.sh scripts/train.py experiment=water preset=ad training.bz=16 training.bz_val=16 training.conservative_forces=True # 1460115
+sbatch scripts/killarney.sh scripts/train.py experiment=water preset=ad training.bz=16 training.bz_val=16 training.conservative_forces=True training.hvps=1 # 1460116
+sbatch scripts/killarney.sh scripts/train.py experiment=water preset=ad training.bz=8 training.bz_val=8 training.conservative_forces=True training.hvps=1 # 1460118
+sbatch scripts/killarney.sh scripts/train.py experiment=water preset=ad training.bz=16 training.bz_val=16 training.conservative_forces=True training.hvps=1 # 1460122
+sbatch scripts/killarney.sh scripts/train.py experiment=water preset=ad training.bz=12 training.bz_val=12 training.conservative_forces=True training.hvps=1 # 1460123
+sbatch scripts/killarney.sh scripts/train_h100.py preset=ad training.bz=32 training.bz_val=32 training.conservative_forces=True training.hvps=1 # 1460126
+sbatch scripts/killarney.sh scripts/train.py preset=ad training.bz=16 training.bz_val=16 training.conservative_forces=True training.hvps=1 # 1460125
+sbatch scripts/killarney.sh scripts/train_h100.py preset=ad training.bz=24 training.bz_val=24 training.conservative_forces=True training.hvps=1 # 1460127
+sbatch scripts/killarney.sh scripts/train_h100.py preset=ad training.bz=64 training.bz_val=64 # 1460128
+sbatch scripts/killarney.sh scripts/train.py preset=mae experiment=water training.bz=64 training.bz_val=64 training.hessian_loss_weight=100 model.num_layers_hessian=0 # 1462480
+sbatch scripts/killarney.sh scripts/train.py preset=mae experiment=water training.bz=64 training.bz_val=64 training.hessian_loss_weight=100 model.num_layers=2 # 1462479
+sbatch scripts/killarney.sh scripts/train.py preset=mae experiment=water training.bz=64 training.bz_val=64 training.hessian_loss_weight=1000 # 1462481
+sbatch scripts/killarney.sh scripts/train.py preset=mae experiment=water training.bz=64 training.bz_val=64 training.hessian_loss_weight=0 # 1466853
+sbatch scripts/killarney.sh scripts/train.py preset=mae experiment=water training.bz=64 training.bz_val=64 +v=2 # 1466868
+sbatch scripts/killarney.sh scripts/eval.py -c 1448185 -hm predict # 1467237
+
+sbatch scripts/killarney.sh scripts/eval.py -c 1448185 -hm predict # 1467407
+sbatch scripts/killarney.sh scripts/eval.py -c 1448189 -hm autograd # 1467408
+sbatch scripts/killarney.sh scripts/train.py experiment=vacuum preset=ad training.bz=12 training.bz_val=12 training.conservative_forces=True training.hvps=1 # 1466956
+sbatch scripts/killarney.sh scripts/train.py experiment=vacuum preset=ad training.bz=16 training.bz_val=16 # 1466957
+sbatch scripts/killarney.sh scripts/train.py experiment=thf preset=ad training.bz=12 training.bz_val=12 training.conservative_forces=True training.hvps=1 # 1466958
+sbatch scripts/killarney.sh scripts/train.py experiment=thf preset=ad training.bz=16 training.bz_val=16 # 1466959
+sbatch scripts/killarney.sh scripts/train.py experiment=toluene preset=ad training.bz=12 training.bz_val=12 training.conservative_forces=True training.hvps=1 # 1466960
+sbatch scripts/killarney.sh scripts/train.py experiment=toluene preset=ad training.bz=16 training.bz_val=16 # 1466961
+sbatch scripts/killarney.sh scripts/eval.py -c 1448185 -hm predict # 1467839
+sbatch scripts/killarney.sh scripts/eval.py -c 1448189 -hm autograd # 1467840
+sbatch scripts/killarney.sh scripts/eval.py -c 1456787 -hm predict # 1467848
+sbatch scripts/killarney.sh scripts/eval.py -c 1459292 -hm autograd # 1467855
+sbatch scripts/killarney.sh scripts/eval.py -c 1460123 -hm autograd # 1467856
+sbatch scripts/killarney.sh scripts/eval.py -c 1448186 -hm autograd # 1467854
+sbatch scripts/killarney.sh scripts/eval.py -c 1448184 -hm predict # 1467857
+sbatch scripts/killarney.sh scripts/eval.py -c 1448188 -hm autograd # 1467858
+sbatch scripts/killarney.sh scripts/eval.py -c 1448183 -hm predict # 1467859
+
+sbatch scripts/killarney.sh scripts/eval.py -c 1448185 -hm predict # 1467861
+sbatch scripts/killarney.sh scripts/eval.py -c 1448187 -hm autograd # 1467860
+sbatch scripts/killarney.sh scriptsp/large.py --redo True --maxnatoms 350 --maxnatoms_fc 350 --maxnatoms_ad 150 --largerepeat 10 # 1468269
+sbatch scripts/killarney.sh scriptsp/large.py --redo True --maxnatoms 350 --maxnatoms_fc 350 --maxnatoms_ad 150 --largerepeat 10 --cutoff 10 --cutoff_hessian 10 # 1468275
+sbatch scripts/killarney.sh scripts/eval.py -c 1448189 -hm autograd # 1471248
+sbatch scripts/killarney.sh scripts/eval.py -c 1448185 -hm predict # 1471247
+sbatch scripts/killarney.sh scripts/eval.py -c 1448183 -hm predict # 1471250
+sbatch scripts/killarney.sh scripts/eval.py -c 1448184 -hm predict # 1471252
+sbatch scripts/killarney.sh scripts/eval.py -c 1448187 -hm autograd # 1471251
+sbatch scripts/killarney.sh scripts/eval.py -c 1448188 -hm autograd # 1471253
+sbatch scripts/killarney.sh scripts/eval.py -c 1448186 -hm autograd # 1471255
+sbatch scripts/killarney.sh scripts/eval.py -c 1459292 -hm autograd # 1471256
+sbatch scripts/killarney.sh scripts/eval.py -c 1456787 -hm predict # 1471254
+sbatch scripts/killarney.sh scripts/eval.py -c 1460123 -hm autograd # 1471257
+sbatch scripts/killarney.sh scripts/eval.py -c 1466957 -hm autograd # 1474579
+sbatch scripts/killarney.sh scripts/eval.py -c 1466960 -hm autograd # 1474578
+sbatch scripts/killarney.sh scripts/eval.py -c 1466956 -hm autograd # 1474580
+sbatch scripts/killarney.sh scripts/eval.py -c 1466959 -hm autograd # 1474581
+sbatch scripts/killarney.sh scripts/eval.py -c 1466958 -hm autograd # 1474582
+sbatch scripts/killarney.sh scripts/eval.py -c 1466961 -hm autograd # 1478309
+sbatch scripts/killarney.sh scripts/eval.py -c 1466960 -hm autograd # 1478310
+sbatch scripts/killarney.sh scripts/eval.py -c 1466956 -hm autograd # 1478312
+sbatch scripts/killarney.sh scripts/eval.py -c 1466957 -hm autograd # 1478311
+sbatch scripts/killarney.sh scripts/eval.py -c 1466959 -hm autograd # 1478313
+sbatch scripts/killarney.sh scripts/eval.py -c 1466958 -hm autograd # 1478314
+sbatch scripts/killarney.sh scripts/eval_equ.py -c 1466957 -hm autograd -m 1000 --cf # 1482737
+sbatch scripts/killarney.sh scripts/eval_equ.py -c 1466960 -hm autograd -m 1000 --cf # 1482736
+sbatch scripts/killarney.sh scripts/eval_equ.py -c 1466961 -hm autograd -m 1000 --cf # 1482735
+sbatch scripts/killarney.sh scripts/eval_equ.py -c 1466956 -hm autograd -m 1000 --cf # 1482738
+sbatch scripts/killarney.sh scripts/eval_equ.py -c 1466959 -hm autograd -m 1000 --cf # 1482739
+sbatch scripts/killarney.sh scripts/eval_equ.py -c 1466958 -hm autograd -m 1000 --cf # 1482740
+sbatch scripts/killarney.sh scripts/eval.py -c 1460123 -hm autograd -m 1000 --cf # 1482752
+sbatch scripts/killarney.sh scripts/eval.py -c 1459292 -hm autograd -m 1000 --cf # 1482753
+sbatch scripts/killarney.sh scripts/eval.py -c 1459292 -hm autograd -m 100 # 1482881
+sbatch scripts/killarney.sh scripts/eval.py -c 1460123 -hm autograd -m 100 --cf # 1482882
+sbatch scripts/killarney.sh scripts/eval.py -c 1466961 -hm autograd -m 100 # 1482883
+sbatch scripts/killarney.sh scripts/eval_equ.py -c 1466960 -hm autograd -m 100 --cf # 1482884
+sbatch scripts/killarney.sh scripts/eval.py -c 1466957 -hm autograd -m 100 # 1482885
+sbatch scripts/killarney.sh scripts/eval_equ.py -c 1466956 -hm autograd -m 100 --cf # 1482886
+sbatch scripts/killarney.sh scripts/eval.py -c 1466959 -hm autograd -m 100 # 1482887
+sbatch scripts/killarney.sh scripts/eval_equ.py -c 1466958 -hm autograd -m 100 --cf # 1482888
+sbatch scripts/killarney.sh scripts/train.py experiment=vacuum preset=ad training.bz=12 training.bz_val=12 training.conservative_forces=True training.hvps=1 # 1466956
+sbatch scripts/killarney.sh scripts/train.py experiment=toluene preset=ad training.bz=16 training.bz_val=16 # 1466961
+sbatch scripts/killarney.sh scripts/train.py experiment=toluene preset=ad training.bz=12 training.bz_val=12 training.conservative_forces=True training.hvps=1 # 1466960
+sbatch scripts/killarney.sh scripts/train.py experiment=vacuum preset=ad training.bz=16 training.bz_val=16 # 1466957
+sbatch scripts/killarney.sh scripts/train.py experiment=thf preset=ad training.bz=12 training.bz_val=12 training.conservative_forces=True training.hvps=1 # 1466958
+sbatch scripts/killarney.sh scripts/train.py experiment=thf preset=ad training.bz=16 training.bz_val=16 # 1466959
+sbatch scripts/killarney.sh scripts/eval.py -c 1459292 -hm autograd # 1485186
+sbatch scripts/killarney.sh scripts/eval_equ.py -c 1459292 -hm autograd # 1485187
+sbatch scripts/killarney.sh scripts/eval.py -c 1460123 -hm autograd --cf # 1485189
+sbatch scripts/killarney.sh scripts/eval.py -c 1466961 -hm autograd # 1485191
+sbatch scripts/killarney.sh scripts/eval_equ.py -c 1466960 -hm autograd --cf # 1485192
+sbatch scripts/killarney.sh scripts/eval_equ.py -c 1466956 -hm autograd --cf # 1485194
+sbatch scripts/killarney.sh scripts/eval.py -c 1466959 -hm autograd # 1485195
+sbatch scripts/killarney.sh scripts/eval.py -c 1466957 -hm autograd # 1485193
+sbatch scripts/killarney.sh scripts/eval_equ.py -c 1466958 -hm autograd --cf # 1485196
+sbatch scripts/killarney.sh scripts/eval_equ.py -c 1460123 -hm autograd --cf # 1485206
+sbatch scripts/killarney.sh scripts/eval_equ.py -c 1466958 -hm autograd --cf --redo True # 1485207
+sbatch scripts/killarney.sh scripts/eval_equ.py -c 1466956 -hm autograd --cf --redo True # 1485208
+sbatch scripts/killarney.sh scripts/eval_equ.py -c 1466960 -hm autograd --cf --redo True # 1485209
+sbatch scripts/killarney.sh scripts/eval_equ.py -c 1460123 -hm autograd --cf --redo True # 1485212
+sbatch scripts/killarney.sh scripts/eval_equ.py -c 1460123 -hm autograd --cf --redo True # 1485258
+sbatch scripts/killarney.sh scripts/eval_equ.py -c 1466960 -hm autograd --cf --redo True # 1485257
+sbatch scripts/killarney.sh scripts/eval_equ.py -c 1466958 -hm autograd --cf --redo True # 1485262
+sbatch scripts/killarney.sh scripts/eval.py -c 1466959 -hm autograd --redo True # 1485261
+sbatch scripts/killarney.sh scripts/eval.py -c 1466957 -hm autograd --redo True # 1485263
+sbatch scripts/killarney.sh scripts/eval_equ.py -c 1466956 -hm autograd --cf --redo True # 1485264
+sbatch scripts/killarney.sh scripts/eval.py -c 1466961 -hm autograd --redo True # 1485265
+sbatch scripts/killarney.sh scripts/eval.py -c 1459292 -hm autograd --redo True # 1485267
+sbatch scripts/killarney.sh scripts/eval_equ.py -c 1459292 -hm autograd --redo True # 1485274
+sbatch scripts/killarney.sh scripts/train.py training.hessian_loss_type=rmse # 1575095
+sbatch scripts/killarney.sh scripts/train.py # 1575096
+sbatch scripts/killarney.sh scripts/train.py training.hessian_loss_type=rmse training.hessian_loss_weight=1 # 1575098
+sbatch scripts/killarney.sh scripts/train.py training.hessian_loss_type=rmse training.hessian_loss_weight=100 # 1575099
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 # 1575102
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 training.hessian_loss_weight=1 # 1575105
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 training.hessian_loss_weight=10 # 1575106
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 training.hessian_loss_weight=100 # 1575107
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 training.hessian_loss_weight=1 training.hessian_loss_type=rmse # 1575149
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 training.hessian_loss_weight=10 training.hessian_loss_type=rmse # 1575150
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 training.hessian_loss_weight=100 training.hessian_loss_type=rmse # 1575151
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 # 1589667
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 training.hessian_loss_type=rmse training.hessian_loss_weight=1 # 1589669
+sbatch scripts/killarney.sh scripts/train.py preset=tuned training.bz=64 training.bz_val=64 training.hessian_loss_type=rmse training.hessian_loss_weight=0.1 # 1589670
+sbatch scripts/killarney_h100.sh scripts/train.py # 2648388
+sbatch scripts/killarney_h100.sh scripts/train.py model.direct_forces=False # 2648389
+sbatch scripts/killarney_h100.sh scripts/train.py model.direct_forces=False +extra=bz64 # 2648390

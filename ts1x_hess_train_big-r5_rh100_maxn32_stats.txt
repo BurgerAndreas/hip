@@ -1,0 +1,3 @@
+Number of edges: 176.7360948021343
+Number of edges (hessian): 186.7841774653667
+Number of atoms: 13.919938540433833

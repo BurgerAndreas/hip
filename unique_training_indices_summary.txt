@@ -1,0 +1,48 @@
+Dataset Formula Comparison Summary
+========================================
+
+Training samples: 1725362
+Validation samples: 50844
+Unique formulas in training: 169
+Unique formulas in validation: 129
+Common formulas: 127
+Formulas unique to training: 42
+Formulas unique to validation: 2
+Training samples with unique formulas: 49153
+Percentage of training samples with unique formulas: 2.85%
+
+Top 10 most common formulas in training:
+  C4H8O2: 67354
+  C4H7NO: 63898
+  C5H8O: 63545
+  C5H7NO: 60947
+  C5H10O: 55188
+  C6H10O: 54465
+  C6H12O: 49317
+  C5H8O2: 48806
+  C4H5NO: 46826
+  C4H6O2: 46667
+
+Top 10 most common formulas in validation:
+  C4H8O2: 2100
+  C4H6O2: 1938
+  C4H7NO: 1899
+  C5H8O: 1800
+  C5H7NO: 1635
+  C5H10O: 1530
+  C6H10O: 1469
+  C4H9NO2: 1368
+  C6H12O: 1355
+  C5H10O2: 1296
+
+Top 10 most common unique training formulas:
+  C6H4O: 7542
+  C3H8O: 3376
+  C3H4O2: 3161
+  C3H3NO3: 3109
+  C2H5NO: 2811
+  C3H5NO3: 2532
+  C5H10: 2291
+  C3H3N3: 2083
+  C5H2O: 1976
+  C6H14: 1915
