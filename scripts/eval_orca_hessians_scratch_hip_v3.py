@@ -57,15 +57,13 @@ FIELDNAMES = [
     "hessian_rmse_ev_a2",
     "hessian_max_abs_ev_a2",
     "hessian_rel_mae",
-    "cart_eigval_mae_ev_a2",
-    "cart_eigval_rmse_ev_a2",
     "true_asymmetry_mae_ev_a2",
     "pred_asymmetry_mae_ev_a2",
     "true_neg_num",
     "pred_neg_num",
     "neg_num_agree",
-    "eckart_eigval_mae_hartree_bohr2",
-    "eckart_lowest_eigval_mae_hartree_bohr2",
+    "eckart_eigval_mae_ev_a2",
+    "eckart_lowest_eigval_mae_ev_a2",
 ]
 
 
@@ -221,30 +219,29 @@ def sample_metrics(
     checkpoint_path: Path,
     device: torch.device,
 ) -> dict[str, Any]:
+    # Load true Hessians and convert to eV/Angstrom^2
     atomic_numbers, coords_bohr, symbols, true_hessian_hartree_bohr2 = (
         load_hf_orca_hessian(path)
     )
     coords_angstrom = coords_bohr * bohr_to_angstrom
     true_hessian_ev_a2 = true_hessian_hartree_bohr2 / ev_angstrom_2_to_hartree_bohr_2
+
+    # get predicted HIP Hessian
     batch = make_batch(atomic_numbers, coords_angstrom, device)
     energy, pred_hessian_ev_a2_t, time_ms, memory_mb = predict_dense_hessian(
         model, batch, device
     )
-
     pred_hessian_ev_a2 = pred_hessian_ev_a2_t.detach().cpu().numpy()
-    pred_hessian_hartree_bohr2 = pred_hessian_ev_a2 * ev_angstrom_2_to_hartree_bohr_2
     diff = pred_hessian_ev_a2 - true_hessian_ev_a2
-    true_eigvals = np.linalg.eigvalsh(true_hessian_ev_a2)
-    pred_eigvals = np.linalg.eigvalsh(pred_hessian_ev_a2)
 
     true_freqs = analyze_frequencies_np(
-        hessian=true_hessian_hartree_bohr2,
-        cart_coords=coords_bohr,
+        hessian=true_hessian_ev_a2,
+        cart_coords=coords_angstrom,
         atomsymbols=symbols,
     )
     pred_freqs = analyze_frequencies_np(
-        hessian=pred_hessian_hartree_bohr2,
-        cart_coords=coords_bohr,
+        hessian=pred_hessian_ev_a2,
+        cart_coords=coords_angstrom,
         atomsymbols=symbols,
     )
     eckart_diff = pred_freqs["eigvals"] - true_freqs["eigvals"]
@@ -270,10 +267,6 @@ def sample_metrics(
         "hessian_rel_mae": float(
             np.mean(np.abs(diff)) / (np.mean(np.abs(true_hessian_ev_a2)) + 1e-12)
         ),
-        "cart_eigval_mae_ev_a2": float(np.mean(np.abs(pred_eigvals - true_eigvals))),
-        "cart_eigval_rmse_ev_a2": float(
-            np.sqrt(np.mean((pred_eigvals - true_eigvals) ** 2))
-        ),
         "true_asymmetry_mae_ev_a2": float(
             np.mean(np.abs(true_hessian_ev_a2 - true_hessian_ev_a2.T))
         ),
@@ -283,8 +276,8 @@ def sample_metrics(
         "true_neg_num": int(true_freqs["neg_num"]),
         "pred_neg_num": int(pred_freqs["neg_num"]),
         "neg_num_agree": int(true_freqs["neg_num"] == pred_freqs["neg_num"]),
-        "eckart_eigval_mae_hartree_bohr2": float(np.mean(np.abs(eckart_diff))),
-        "eckart_lowest_eigval_mae_hartree_bohr2": float(abs(eckart_diff[0])),
+        "eckart_eigval_mae_ev_a2": float(np.mean(np.abs(eckart_diff))),
+        "eckart_lowest_eigval_mae_ev_a2": float(abs(eckart_diff[0])),
     }
 
 
