@@ -799,9 +799,9 @@ class EquiformerV2_OC20(BaseModel):
                 # For Hessian prediction
                 data = add_graph_batch(
                     data,
-                    cutoff=self.cutoff,
-                    max_neighbors=self.max_neighbors,
-                    use_pbc=self.use_pbc,
+                    cutoff=self.cutoff_hessian,
+                    max_neighbors=1_000,
+                    use_pbc=False,
                 )
             else:
                 data = add_extra_props_for_hessian(data)
