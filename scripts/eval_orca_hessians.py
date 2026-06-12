@@ -103,20 +103,20 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--cutoff",
         type=float,
-        default=16.0,
-        help="Message passing cutoff in Angstrom.",
+        default=None,
+        help="Override message passing cutoff in Angstrom.",
     )
     parser.add_argument(
         "--cutoff-hessian",
         type=float,
-        default=16.0,
-        help="Hessian edge cutoff in Angstrom.",
+        default=None,
+        help="Override Hessian edge cutoff in Angstrom.",
     )
     parser.add_argument(
         "--max-neighbors",
         type=int,
-        default=100000,
-        help="Maximum graph neighbors for large-molecule evaluation.",
+        default=None,
+        help="Override maximum message-passing graph neighbors.",
     )
     parser.add_argument(
         "--hessian-method",
@@ -474,9 +474,18 @@ def main() -> None:
     module = load_module_for_inference(checkpoint_path, device)
     model = module.potential.to(device)
     model.eval()
-    model.cutoff = args.cutoff
-    model.cutoff_hessian = args.cutoff_hessian
-    model.max_neighbors = args.max_neighbors
+    if args.cutoff is not None:
+        model.cutoff = args.cutoff
+    if args.cutoff_hessian is not None:
+        model.cutoff_hessian = args.cutoff_hessian
+    if args.max_neighbors is not None:
+        model.max_neighbors = args.max_neighbors
+    print(
+        "Effective graph settings: "
+        f"cutoff={model.cutoff}, "
+        f"cutoff_hessian={model.cutoff_hessian}, "
+        f"max_neighbors={model.max_neighbors}"
+    )
 
     if args.shard_index is not None:
         print(
