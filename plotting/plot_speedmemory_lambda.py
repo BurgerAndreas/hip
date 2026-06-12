@@ -32,6 +32,9 @@ EIGVAL_MAE_COLUMNS = (
     "eckart_eigval_mae_ev_a2",
     "eigval_mae_eckart",
 )
+OUTLIER_METRIC_COLUMNS = ("hessian_mae_ev_a2", "hessian_mae")
+OUTLIER_MODIFIED_Z_THRESHOLD = 10.0
+STD_BAND_ALPHA = 0.24
 
 
 def _color_for_method(method):
@@ -75,11 +78,86 @@ def _display_name(method):
     return str(method)
 
 
-def _load_eigval_curve(csv_path):
-    df = pd.read_csv(csv_path)
-    if "status" in df.columns:
-        df = df[df["status"] == "ok"].copy()
+def _modified_z_outliers(df, metric, threshold):
+    if metric not in df.columns or "natoms" not in df.columns:
+        return pd.Series(False, index=df.index)
 
+    values = pd.to_numeric(df[metric], errors="coerce")
+    medians = values.groupby(df["natoms"]).transform("median")
+    abs_deviation = (values - medians).abs()
+    mads = abs_deviation.groupby(df["natoms"]).transform("median")
+    modified_z = 0.6745 * (values - medians) / mads
+    return modified_z.abs() > threshold
+
+
+def _outlier_metric_for_frame(df):
+    return next((metric for metric in OUTLIER_METRIC_COLUMNS if metric in df.columns), None)
+
+
+def _outlier_key_for_frame(df):
+    return next((key for key in ("sample_name", "sample_idx") if key in df.columns), None)
+
+
+def _remove_outlier_samples(dfs, output_path=None, dataset_name="PubChem"):
+    outlier_rows = []
+    outlier_sample_ids = {}
+    outlier_metrics = set()
+
+    for label, df in dfs.items():
+        outlier_metric = _outlier_metric_for_frame(df)
+        if outlier_metric is None:
+            continue
+
+        mask = _modified_z_outliers(
+            df,
+            outlier_metric,
+            OUTLIER_MODIFIED_Z_THRESHOLD,
+        )
+        if not mask.any():
+            continue
+
+        outlier_metrics.add(outlier_metric)
+        label_outliers = df[mask].copy()
+        label_outliers.insert(0, "label", label)
+        outlier_rows.append(label_outliers)
+
+        outlier_key = _outlier_key_for_frame(label_outliers)
+        if outlier_key is not None:
+            outlier_sample_ids.setdefault(outlier_key, set()).update(
+                label_outliers[outlier_key].dropna()
+            )
+
+    if not outlier_rows:
+        print(f"No {dataset_name} outliers removed")
+        return dfs
+
+    outliers = pd.concat(outlier_rows, ignore_index=True)
+    if output_path is not None:
+        outliers_path = Path(output_path)
+        outliers_path.parent.mkdir(parents=True, exist_ok=True)
+        outliers.to_csv(outliers_path, index=False)
+        print(f"Saved removed {dataset_name} outlier rows to {outliers_path}")
+
+    print(
+        f"Removing {sum(len(ids) for ids in outlier_sample_ids.values())} "
+        f"{dataset_name} outlier samples identified by per-natoms "
+        f"{'/'.join(sorted(outlier_metrics))} modified z-score > "
+        f"{OUTLIER_MODIFIED_Z_THRESHOLD}"
+    )
+
+    filtered = {}
+    for label, df in dfs.items():
+        outlier_key = _outlier_key_for_frame(df)
+        if outlier_key is None or outlier_key not in outlier_sample_ids:
+            filtered[label] = df
+            continue
+        filtered[label] = df[~df[outlier_key].isin(outlier_sample_ids[outlier_key])].copy()
+        print(f"Filtered {dataset_name} {label}: {len(df)} -> {len(filtered[label])} samples")
+
+    return filtered
+
+
+def _eigval_curve_from_frame(df, csv_path):
     metric_col = next((col for col in EIGVAL_MAE_COLUMNS if col in df.columns), None)
     if "natoms" not in df.columns or metric_col is None:
         raise ValueError(
@@ -87,6 +165,26 @@ def _load_eigval_curve(csv_path):
             f"{list(EIGVAL_MAE_COLUMNS)}."
         )
     return df.groupby("natoms")[metric_col].mean().sort_index()
+
+
+def _eigval_curve_stats_from_frame(df, csv_path):
+    metric_col = next((col for col in EIGVAL_MAE_COLUMNS if col in df.columns), None)
+    if "natoms" not in df.columns or metric_col is None:
+        raise ValueError(
+            f"Missing required columns in {csv_path}. Need 'natoms' and one of "
+            f"{list(EIGVAL_MAE_COLUMNS)}."
+        )
+    stats = df.groupby("natoms")[metric_col].agg(["mean", "std"]).sort_index()
+    stats["std"] = stats["std"].fillna(0.0)
+    return stats
+
+
+def _load_eigval_curve(csv_path):
+    df = pd.read_csv(csv_path)
+    if "status" in df.columns:
+        df = df[df["status"] == "ok"].copy()
+
+    return _eigval_curve_stats_from_frame(df, csv_path)
 
 
 def _load_curves(lambda_results):
@@ -97,6 +195,58 @@ def _load_curves(lambda_results):
             continue
         curves[label] = _load_eigval_curve(csv_path)
     return curves
+
+
+def _load_curves_with_outlier_filter(
+    lambda_results,
+    outliers_output_path=None,
+    dataset_name="PubChem",
+):
+    frames = {}
+    paths = {}
+    for label, csv_path in lambda_results.items():
+        if not Path(csv_path).exists():
+            print(f"Skipping {label}: missing {csv_path}")
+            continue
+        df = pd.read_csv(csv_path)
+        if "status" in df.columns:
+            df = df[df["status"] == "ok"].copy()
+        frames[label] = df.reset_index(drop=True)
+        paths[label] = csv_path
+
+    frames = _remove_outlier_samples(
+        frames,
+        output_path=outliers_output_path,
+        dataset_name=dataset_name,
+    )
+    return {
+        label: _eigval_curve_stats_from_frame(df, paths[label])
+        for label, df in frames.items()
+    }
+
+
+def _outliers_output_path(output_path):
+    output_path = Path(output_path)
+    return output_path.with_name(f"{output_path.stem}_removed_outliers.csv")
+
+
+def _rgd1_outliers_output_path(output_path):
+    output_path = Path(output_path)
+    return output_path.with_name(f"{output_path.stem}_rgd1_removed_outliers.csv")
+
+
+def _hex_to_rgba(hex_color, alpha):
+    if not isinstance(hex_color, str) or not hex_color.startswith("#"):
+        return hex_color
+
+    hex_color = hex_color.lstrip("#")
+    if len(hex_color) != 6:
+        return f"#{hex_color}"
+
+    red = int(hex_color[0:2], 16)
+    green = int(hex_color[2:4], 16)
+    blue = int(hex_color[4:6], 16)
+    return f"rgba({red}, {green}, {blue}, {alpha})"
 
 
 def _load_speed_tables(speed_csv):
@@ -129,8 +279,16 @@ def make_plot_plotly(
     from plotly.subplots import make_subplots
 
     avg_times, avg_memory = _load_speed_tables(speed_csv)
-    rgd1_lambda_curves = _load_curves(rgd1_lambda_results)
-    pubchem_lambda_curves = _load_curves(pubchem_lambda_results)
+    rgd1_lambda_curves = _load_curves_with_outlier_filter(
+        rgd1_lambda_results,
+        outliers_output_path=_rgd1_outliers_output_path(output_path),
+        dataset_name="RGD1",
+    )
+    pubchem_lambda_curves = _load_curves_with_outlier_filter(
+        pubchem_lambda_results,
+        outliers_output_path=_outliers_output_path(output_path),
+        dataset_name="PubChem",
+    )
 
     fig = make_subplots(
         rows=2,
@@ -193,10 +351,44 @@ def make_plot_plotly(
             continue
         method = rgd1_label_to_method[label]
         color = _color_for_method(method)
+        stats = rgd1_lambda_curves[label]
+        x_values = stats.index
+        mean = stats["mean"]
+        std = stats["std"]
+        band_color = _hex_to_rgba(color, STD_BAND_ALPHA)
+        transparent_color = _hex_to_rgba(color, 0.0)
         fig.add_trace(
             go.Scatter(
-                x=rgd1_lambda_curves[label].index,
-                y=rgd1_lambda_curves[label].values,
+                x=x_values,
+                y=mean + std,
+                mode="lines",
+                name=f"{label} +1 std",
+                showlegend=False,
+                hoverinfo="skip",
+                line=dict(color=transparent_color, width=0),
+            ),
+            row=2,
+            col=1,
+        )
+        fig.add_trace(
+            go.Scatter(
+                x=x_values,
+                y=mean - std,
+                mode="lines",
+                name=f"{label} ±1 std",
+                showlegend=False,
+                hoverinfo="skip",
+                line=dict(color=transparent_color, width=0),
+                fill="tonexty",
+                fillcolor=band_color,
+            ),
+            row=2,
+            col=1,
+        )
+        fig.add_trace(
+            go.Scatter(
+                x=x_values,
+                y=mean,
                 mode="lines+markers",
                 name=label,
                 showlegend=False,
@@ -240,10 +432,44 @@ def make_plot_plotly(
             continue
         method = pubchem_label_to_method[label]
         color = _color_for_method(method)
+        stats = pubchem_lambda_curves[label]
+        x_values = stats.index
+        mean = stats["mean"]
+        std = stats["std"]
+        band_color = _hex_to_rgba(color, STD_BAND_ALPHA)
+        transparent_color = _hex_to_rgba(color, 0.0)
         fig.add_trace(
             go.Scatter(
-                x=pubchem_lambda_curves[label].index,
-                y=pubchem_lambda_curves[label].values,
+                x=x_values,
+                y=mean + std,
+                mode="lines",
+                name=f"{label} +1 std",
+                showlegend=False,
+                hoverinfo="skip",
+                line=dict(color=transparent_color, width=0),
+            ),
+            row=2,
+            col=2,
+        )
+        fig.add_trace(
+            go.Scatter(
+                x=x_values,
+                y=mean - std,
+                mode="lines",
+                name=f"{label} ±1 std",
+                showlegend=False,
+                hoverinfo="skip",
+                line=dict(color=transparent_color, width=0),
+                fill="tonexty",
+                fillcolor=band_color,
+            ),
+            row=2,
+            col=2,
+        )
+        fig.add_trace(
+            go.Scatter(
+                x=x_values,
+                y=mean,
                 mode="lines+markers",
                 name=label,
                 showlegend=False,
@@ -271,8 +497,8 @@ def make_plot_plotly(
     rgd1_lambda_n = sorted(
         {
             n
-            for series in rgd1_lambda_curves.values()
-            for n in series.index.tolist()
+            for stats in rgd1_lambda_curves.values()
+            for n in stats.index.tolist()
         }
     )
     if rgd1_lambda_n:
@@ -282,11 +508,21 @@ def make_plot_plotly(
             row=2,
             col=1,
         )
+        # rgd1_ymax = max(
+        #     float((stats["mean"] + stats["std"]).max())
+        #     for stats in rgd1_lambda_curves.values()
+        # )
+        fig.update_yaxes(
+            range=[0.0, 0.6],
+            autorange=False,
+            row=2,
+            col=1,
+        )
     pubchem_lambda_n = sorted(
         {
             n
-            for series in pubchem_lambda_curves.values()
-            for n in series.index.tolist()
+            for stats in pubchem_lambda_curves.values()
+            for n in stats.index.tolist()
         }
     )
     if pubchem_lambda_n:
@@ -414,6 +650,7 @@ def make_plot_seaborn(
         "xtick.color": PLOTLY_FONT_COLOR,
         "ytick.color": PLOTLY_FONT_COLOR,
         "legend.labelcolor": PLOTLY_FONT_COLOR,
+        "grid.color": "#e6e6e6", # #e6e6e6 #eeeeee
     }
     try:
         import seaborn as sns
@@ -433,8 +670,16 @@ def make_plot_seaborn(
         )
 
     avg_times, avg_memory = _load_speed_tables(speed_csv)
-    rgd1_lambda_curves = _load_curves(rgd1_lambda_results)
-    pubchem_lambda_curves = _load_curves(pubchem_lambda_results)
+    rgd1_lambda_curves = _load_curves_with_outlier_filter(
+        rgd1_lambda_results,
+        outliers_output_path=_rgd1_outliers_output_path(output_path),
+        dataset_name="RGD1",
+    )
+    pubchem_lambda_curves = _load_curves_with_outlier_filter(
+        pubchem_lambda_results,
+        outliers_output_path=_outliers_output_path(output_path),
+        dataset_name="PubChem",
+    )
 
     fig, axes = plt.subplots(2, 2, figsize=(8, 7.6))
     ax_time, ax_memory, ax_rgd1, ax_pubchem = axes.ravel()
@@ -481,9 +726,22 @@ def make_plot_seaborn(
     for label in ["HIP", "AD"]:
         if label in rgd1_lambda_curves:
             color = _color_for_method(label_to_method[label])
+            stats = rgd1_lambda_curves[label]
+            x_values = stats.index
+            mean = stats["mean"]
+            std = stats["std"]
+            ax_rgd1.fill_between(
+                x_values,
+                mean - std,
+                mean + std,
+                color=color,
+                alpha=STD_BAND_ALPHA,
+                linewidth=0,
+                zorder=2,
+            )
             ax_rgd1.plot(
-                rgd1_lambda_curves[label].index,
-                rgd1_lambda_curves[label].values,
+                x_values,
+                mean,
                 marker="o",
                 linewidth=2,
                 markersize=3,
@@ -492,9 +750,22 @@ def make_plot_seaborn(
             )
         if label in pubchem_lambda_curves:
             color = _color_for_method(label_to_method[label])
+            stats = pubchem_lambda_curves[label]
+            x_values = stats.index
+            mean = stats["mean"]
+            std = stats["std"]
+            ax_pubchem.fill_between(
+                x_values,
+                mean - std,
+                mean + std,
+                color=color,
+                alpha=STD_BAND_ALPHA,
+                linewidth=0,
+                zorder=2,
+            )
             ax_pubchem.plot(
-                pubchem_lambda_curves[label].index,
-                pubchem_lambda_curves[label].values,
+                x_values,
+                mean,
                 marker="o",
                 linewidth=2,
                 markersize=3,
@@ -526,6 +797,7 @@ def make_plot_seaborn(
         fontsize=AXES_FONT_SIZE * 1.3,
         va="center",
         ha="left",
+        bbox={"facecolor": "white", "edgecolor": "none", "pad": 0.2},
         zorder=2,
     )
 
@@ -563,13 +835,16 @@ def make_plot_seaborn(
 
     ax_time.set_ylim(ymin_time, ymax_time)
     ax_memory.set_ylim(ymin_memory, ymax_memory)
+    # ax_rgd1.set_ylim(bottom=0.0)
+    ax_rgd1.set_ylim(bottom=0.0, top=0.345)
+    ax_pubchem.set_ylim(bottom=0.0, top=9.8)
     ax_time.set_xlim(4.5, 21.5)
     ax_memory.set_xlim(4.5, 21.5)
     if rgd1_lambda_curves:
-        max_n = max(n for series in rgd1_lambda_curves.values() for n in series.index)
+        max_n = max(n for stats in rgd1_lambda_curves.values() for n in stats.index)
         ax_rgd1.set_xlim(9.95, max_n + 0.5)
     if pubchem_lambda_curves:
-        ns = [n for series in pubchem_lambda_curves.values() for n in series.index]
+        ns = [n for stats in pubchem_lambda_curves.values() for n in stats.index]
         ax_pubchem.set_xlim(min(ns) - 0.5, max(ns) + 0.5)
 
     legend = ax_time.legend(
@@ -651,12 +926,18 @@ if __name__ == "__main__":
     parser.add_argument(
         "--pubchem_hip_metrics_csv",
         type=str,
-        default="results_size_eval/hesspred_v2_dft_geometries_predict_metrics.csv",
+        # default="results_size_eval/
+        # hesspred_v2_dft_geometries_pr
+        # edict_metrics.csv",
+        default="results_eval_largehessians_orca_hip_v2/metrics.csv",
     )
     parser.add_argument(
         "--pubchem_ad_metrics_csv",
         type=str,
-        default="results_size_eval/eqv2_dft_geometries_autograd_metrics.csv",
+        # default="results_size_eval/
+        # eqv2_dft_geometries_autograd_
+        # metrics.csv",
+        default="results_eval_largehessians_orca_hf_horm_eqv2_autograd/metrics.csv",
     )
     parser.add_argument(
         "--pubchem_ad_ef_metrics_csv",
