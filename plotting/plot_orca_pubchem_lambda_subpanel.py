@@ -2,7 +2,7 @@
 Plot the standalone PubChem lambda MAE subpanel from ORCA evaluation CSVs.
 
 Usage:
-    uv run --no-project --with pandas --with plotly --with kaleido python plotting/plot_orca_pubchem_lambda_subpanel.py
+    .venv-plotting/bin/python plotting/plot_orca_pubchem_lambda_subpanel.py
 """
 
 import argparse
@@ -10,6 +10,24 @@ from pathlib import Path
 
 import pandas as pd
 import plotly.graph_objects as go
+
+# try:
+#     from hip.colours import (
+#         ANNOTATION_BOLD_FONT_SIZE,
+#         AXES_FONT_SIZE,
+#         AXES_TITLE_FONT_SIZE,
+#         HESSIAN_METHOD_TO_COLOUR,
+#         TITLE_FONT_SIZE,
+#     )
+# except ModuleNotFoundError:
+ANNOTATION_BOLD_FONT_SIZE = 18
+AXES_FONT_SIZE = 12
+AXES_TITLE_FONT_SIZE = 13
+HESSIAN_METHOD_TO_COLOUR = {
+    "autograd": "#1f77b4",
+    "prediction": "#d96001",
+}
+TITLE_FONT_SIZE = 16
 
 
 RESULTS = {
@@ -24,8 +42,8 @@ OUTLIER_MODIFIED_Z_THRESHOLD = 10.0
 PLOTLY_TEMPLATE = "plotly_white"
 
 METHOD_TO_COLOUR = {
-    "autograd": "#295c7e",
-    "prediction": "#ae5a41",
+    "autograd": HESSIAN_METHOD_TO_COLOUR.get("autograd", "#1f77b4"),
+    "prediction": "#d96001",
 }
 
 
@@ -143,8 +161,8 @@ def make_plot(
     only_successful=True,
     filter_outliers=True,
     write_outliers=True,
-    width=520,
-    height=520,
+    width=400,
+    height=380,
 ):
     dfs = _load_metrics(results, metric, only_successful=only_successful)
     if filter_outliers:
@@ -203,19 +221,19 @@ def make_plot(
         template=PLOTLY_TEMPLATE,
         width=width,
         height=height,
-        title=dict(text=title, x=0.5, xanchor="center", font=dict(size=16)),
+        title=dict(text=title, x=0.5, xanchor="center", font=dict(size=TITLE_FONT_SIZE)),
         margin=dict(l=10, r=0, b=10, t=30),
     )
     fig.update_xaxes(
         title_text="Number of Atoms",
         title_standoff=5,
-        tickfont=dict(size=12),
-        title_font=dict(size=13),
+        tickfont=dict(size=AXES_FONT_SIZE),
+        title_font=dict(size=AXES_TITLE_FONT_SIZE),
     )
     fig.update_yaxes(
         title_text="",
-        tickfont=dict(size=12),
-        title_font=dict(size=13),
+        tickfont=dict(size=AXES_FONT_SIZE),
+        title_font=dict(size=AXES_TITLE_FONT_SIZE),
     )
     fig.add_annotation(
         x=0.0,
@@ -226,7 +244,7 @@ def make_plot(
         showarrow=False,
         xanchor="right",
         yanchor="bottom",
-        font=dict(size=18),
+        font=dict(size=ANNOTATION_BOLD_FONT_SIZE),
     )
 
     output_path = Path(output)
@@ -262,8 +280,8 @@ def parse_args():
         action="store_true",
         help="Do not write a CSV containing removed outlier rows.",
     )
-    parser.add_argument("--width", type=int, default=520, help="Output figure width.")
-    parser.add_argument("--height", type=int, default=520, help="Output figure height.")
+    parser.add_argument("--width", type=int, default=400, help="Output figure width.")
+    parser.add_argument("--height", type=int, default=380, help="Output figure height.")
     parser.add_argument(
         "--title",
         default="Eigenvalues λ MAE (PubChem)",

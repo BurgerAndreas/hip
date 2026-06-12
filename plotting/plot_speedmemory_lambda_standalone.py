@@ -21,11 +21,13 @@ except ModuleNotFoundError:
     LEGEND_FONT_SIZE = 12
     TITLE_FONT_SIZE = 16
     HESSIAN_METHOD_TO_COLOUR = {
-        "autograd": "#1f77b4",
+        "autograd": "#295c7e",
         "prediction": "#d96001",
     }
 
 PLOTLY_TEMPLATE = "plotly_white"
+PLOTLY_FONT_COLOR = "#2a3f5f"
+PLOTLY_FONT_FAMILY = ("Open Sans", "Arial", "Helvetica", "DejaVu Sans", "sans-serif")
 EIGVAL_MAE_COLUMNS = (
     "eckart_eigval_mae_ev_a2",
     "eigval_mae_eckart",
@@ -35,9 +37,9 @@ EIGVAL_MAE_COLUMNS = (
 def _color_for_method(method):
     method_lower = str(method).lower()
     if method_lower == "prediction":
-        return "#d96001"
+        return HESSIAN_METHOD_TO_COLOUR.get("prediction", "#d96001")
     if method_lower == "autograd":
-        return HESSIAN_METHOD_TO_COLOUR.get("autograd")
+        return HESSIAN_METHOD_TO_COLOUR.get("autograd", "#295c7e")
     if method_lower == "autograd_conservative":
         return "#9b59b6"
     if method_lower == "forward_pass":
@@ -391,11 +393,32 @@ def make_plot_seaborn(
     ymax_memory=2100.0,
 ):
     import matplotlib.pyplot as plt
+    from matplotlib import font_manager
+    from matplotlib.transforms import offset_copy
 
+    available_fonts = {font.name for font in font_manager.fontManager.ttflist}
+    font_family = next(
+        (
+            family
+            for family in PLOTLY_FONT_FAMILY
+            if family == "sans-serif" or family in available_fonts
+        ),
+        "sans-serif",
+    )
+
+    seaborn_rc = {
+        "font.family": font_family,
+        "text.color": PLOTLY_FONT_COLOR,
+        "axes.labelcolor": PLOTLY_FONT_COLOR,
+        "axes.titlecolor": PLOTLY_FONT_COLOR,
+        "xtick.color": PLOTLY_FONT_COLOR,
+        "ytick.color": PLOTLY_FONT_COLOR,
+        "legend.labelcolor": PLOTLY_FONT_COLOR,
+    }
     try:
         import seaborn as sns
 
-        sns.set_theme(style="whitegrid", context="paper")
+        sns.set_theme(style="whitegrid", context="paper", rc=seaborn_rc)
     except ModuleNotFoundError:
         plt.rcParams.update(
             {
@@ -405,6 +428,7 @@ def make_plot_seaborn(
                 "legend.fontsize": LEGEND_FONT_SIZE,
                 "xtick.labelsize": AXES_FONT_SIZE,
                 "ytick.labelsize": AXES_FONT_SIZE,
+                **seaborn_rc,
             }
         )
 
@@ -425,6 +449,7 @@ def make_plot_seaborn(
             markersize=3,
             label=_display_name(method),
             color=color,
+            zorder=3,
         )
 
     for method in avg_memory.columns:
@@ -438,6 +463,7 @@ def make_plot_seaborn(
                 linestyle="None",
                 markersize=3,
                 color=color,
+                zorder=3,
             )
         else:
             ax_memory.plot(
@@ -448,6 +474,7 @@ def make_plot_seaborn(
                 markersize=3,
                 linestyle=linestyle,
                 color=color,
+                zorder=3,
             )
 
     label_to_method = {"HIP": "prediction", "AD": "autograd"}
@@ -461,6 +488,7 @@ def make_plot_seaborn(
                 linewidth=2,
                 markersize=3,
                 color=color,
+                zorder=3,
             )
         if label in pubchem_lambda_curves:
             color = _color_for_method(label_to_method[label])
@@ -471,18 +499,34 @@ def make_plot_seaborn(
                 linewidth=2,
                 markersize=3,
                 color=color,
+                zorder=3,
             )
 
-    ax_rgd1.axvline(22, linewidth=1.5, linestyle="--", color="gray")
+    ax_rgd1.axvline(22, linewidth=1.5, linestyle="--", color="gray", zorder=2)
+    train_annotation_transform = offset_copy(
+        ax_rgd1.get_xaxis_transform(),
+        fig=fig,
+        x=10,
+        y=-14,
+        units="dots",
+    )
     ax_rgd1.annotate(
         "Train",
-        xy=(22, 0.95),
-        xycoords=("data", "axes fraction"),
-        xytext=(-55, 0),
-        textcoords="offset points",
-        arrowprops={"arrowstyle": "->", "color": "gray"},
+        xy=(16.0, 0.95),
+        xycoords=train_annotation_transform,
+        xytext=(18.0, 0.95),
+        textcoords=train_annotation_transform,
+        arrowprops={
+            "arrowstyle": "-|>",
+            "edgecolor": "gray",
+            "facecolor": "gray",
+            "mutation_scale": 12,
+        },
         color="gray",
+        fontsize=AXES_FONT_SIZE * 1.3,
         va="center",
+        ha="left",
+        zorder=2,
     )
 
     titles = (
@@ -494,11 +538,23 @@ def make_plot_seaborn(
     for panel_label, ax, title in zip("abcd", axes.ravel(), titles):
         ax.set_title(title, fontsize=TITLE_FONT_SIZE)
         ax.set_xlabel("Number of Atoms")
+        ax.set_axisbelow(True)
+        ax.grid(True, zorder=0)
+        ax.tick_params(axis="both", which="both", length=0)
+        for spine in ax.spines.values():
+            spine.set_visible(False)
+        panel_label_transform = offset_copy(
+            ax.transAxes,
+            fig=fig,
+            x=60,
+            y=-30,
+            units="dots",
+        )
         ax.text(
             -0.08,
             1.04,
             panel_label,
-            transform=ax.transAxes,
+            transform=panel_label_transform,
             fontsize=ANNOTATION_BOLD_FONT_SIZE,
             fontweight="bold",
             va="bottom",
@@ -516,7 +572,14 @@ def make_plot_seaborn(
         ns = [n for series in pubchem_lambda_curves.values() for n in series.index]
         ax_pubchem.set_xlim(min(ns) - 0.5, max(ns) + 0.5)
 
-    ax_time.legend(loc="upper left", framealpha=0.6)
+    legend = ax_time.legend(
+        loc="upper left",
+        framealpha=0.6,
+        fontsize=LEGEND_FONT_SIZE - 2,
+    )
+    legend.set_zorder(1)
+    legend.get_frame().set_linewidth(0)
+    legend.get_frame().set_edgecolor("none")
     fig.tight_layout(pad=0.4)
 
     output_path = Path(output_path)
