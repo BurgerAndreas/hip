@@ -1,0 +1,341 @@
+n_atoms,device,method,time,memory,neg_num,natoms
+5,cuda,gpu,46.001434326171875,353.807872,"tensor(2, device='cuda:0')",5
+5,cpu,cpu,40.44747352600098,0.0,tensor(2),5
+5,cuda,gpu,42.111873626708984,352.761344,"tensor(0, device='cuda:0')",5
+5,cpu,cpu,39.61920738220215,0.0,tensor(0),5
+5,cuda,gpu,44.92974281311035,352.761344,"tensor(1, device='cuda:0')",5
+5,cpu,cpu,40.38047790527344,0.0,tensor(1),5
+5,cuda,gpu,42.45185852050781,352.762368,"tensor(0, device='cuda:0')",5
+5,cpu,cpu,40.7109260559082,0.0,tensor(0),5
+5,cuda,gpu,44.27385330200195,352.762368,"tensor(2, device='cuda:0')",5
+5,cpu,cpu,40.48895835876465,0.0,tensor(2),5
+5,cuda,gpu,42.38438606262207,352.763392,"tensor(1, device='cuda:0')",5
+5,cpu,cpu,39.50691223144531,0.0,tensor(1),5
+5,cuda,gpu,44.91424560546875,352.763904,"tensor(2, device='cuda:0')",5
+5,cpu,cpu,40.49181938171387,0.0,tensor(2),5
+5,cuda,gpu,42.44542121887207,352.764416,"tensor(0, device='cuda:0')",5
+5,cpu,cpu,42.40870475769043,0.0,tensor(0),5
+5,cuda,gpu,45.30215263366699,352.764416,"tensor(1, device='cuda:0')",5
+5,cpu,cpu,40.14325141906738,0.0,tensor(1),5
+5,cuda,gpu,42.34600067138672,352.76544,"tensor(1, device='cuda:0')",5
+5,cpu,cpu,39.35980796813965,0.0,tensor(1),5
+6,cuda,gpu,44.718265533447266,354.290688,"tensor(1, device='cuda:0')",6
+6,cpu,cpu,40.52162170410156,0.0,tensor(1),6
+6,cuda,gpu,42.84977912902832,354.291712,"tensor(0, device='cuda:0')",6
+6,cpu,cpu,41.43810272216797,0.0,tensor(0),6
+6,cuda,gpu,45.06254196166992,354.291712,"tensor(2, device='cuda:0')",6
+6,cpu,cpu,40.15398025512695,0.0,tensor(2),6
+6,cuda,gpu,43.335676193237305,354.292736,"tensor(1, device='cuda:0')",6
+6,cpu,cpu,39.76726531982422,0.0,tensor(1),6
+6,cuda,gpu,45.12357711791992,354.293248,"tensor(1, device='cuda:0')",6
+6,cpu,cpu,41.200876235961914,0.0,tensor(1),6
+6,cuda,gpu,42.42372512817383,354.29376,"tensor(1, device='cuda:0')",6
+6,cpu,cpu,39.69717025756836,0.0,tensor(1),6
+6,cuda,gpu,45.511484146118164,354.294272,"tensor(0, device='cuda:0')",6
+6,cpu,cpu,40.81439971923828,0.0,tensor(0),6
+6,cuda,gpu,42.84954071044922,354.294272,"tensor(1, device='cuda:0')",6
+6,cpu,cpu,40.48514366149902,0.0,tensor(1),6
+6,cuda,gpu,45.80998420715332,354.295296,"tensor(1, device='cuda:0')",6
+6,cpu,cpu,40.15660285949707,0.0,tensor(1),6
+6,cuda,gpu,42.9081916809082,354.295808,"tensor(1, device='cuda:0')",6
+6,cpu,cpu,41.16964340209961,0.0,tensor(1),6
+7,cuda,gpu,48.17676544189453,357.324288,"tensor(3, device='cuda:0')",7
+7,cpu,cpu,43.96653175354004,0.0,tensor(3),7
+7,cuda,gpu,43.68782043457031,357.325312,"tensor(4, device='cuda:0')",7
+7,cpu,cpu,39.984703063964844,0.0,tensor(4),7
+7,cuda,gpu,46.28562927246094,357.325824,"tensor(2, device='cuda:0')",7
+7,cpu,cpu,40.41028022766113,0.0,tensor(2),7
+7,cuda,gpu,42.845964431762695,357.326336,"tensor(1, device='cuda:0')",7
+7,cpu,cpu,40.32254219055176,0.0,tensor(1),7
+7,cuda,gpu,46.23079299926758,357.326848,"tensor(1, device='cuda:0')",7
+7,cpu,cpu,41.73088073730469,0.0,tensor(1),7
+7,cuda,gpu,42.76609420776367,357.32736,"tensor(2, device='cuda:0')",7
+7,cpu,cpu,40.13967514038086,0.0,tensor(2),7
+7,cuda,gpu,46.75793647766113,357.327872,"tensor(0, device='cuda:0')",7
+7,cpu,cpu,42.89388656616211,0.0,tensor(0),7
+7,cuda,gpu,42.6480770111084,357.327872,"tensor(1, device='cuda:0')",7
+7,cpu,cpu,40.348052978515625,0.0,tensor(1),7
+7,cuda,gpu,46.32973670959473,357.328896,"tensor(1, device='cuda:0')",7
+7,cpu,cpu,40.87400436401367,0.0,tensor(1),7
+7,cuda,gpu,43.164968490600586,357.329408,"tensor(2, device='cuda:0')",7
+7,cpu,cpu,40.15517234802246,0.0,tensor(2),7
+8,cuda,gpu,46.456336975097656,360.859648,"tensor(1, device='cuda:0')",8
+8,cpu,cpu,41.03803634643555,0.0,tensor(1),8
+8,cuda,gpu,43.28107833862305,360.861184,"tensor(2, device='cuda:0')",8
+8,cpu,cpu,40.738582611083984,0.0,tensor(2),8
+8,cuda,gpu,46.62489891052246,360.861696,"tensor(1, device='cuda:0')",8
+8,cpu,cpu,41.356801986694336,0.0,tensor(1),8
+8,cuda,gpu,46.87905311584473,360.862208,"tensor(2, device='cuda:0')",8
+8,cpu,cpu,41.08071327209473,0.0,tensor(2),8
+8,cuda,gpu,46.65207862854004,360.86272,"tensor(3, device='cuda:0')",8
+8,cpu,cpu,40.64655303955078,0.0,tensor(3),8
+8,cuda,gpu,43.390512466430664,360.863232,"tensor(2, device='cuda:0')",8
+8,cpu,cpu,40.392398834228516,0.0,tensor(2),8
+8,cuda,gpu,46.035051345825195,360.863744,"tensor(3, device='cuda:0')",8
+8,cpu,cpu,42.10996627807617,0.0,tensor(3),8
+8,cuda,gpu,43.49803924560547,360.864256,"tensor(0, device='cuda:0')",8
+8,cpu,cpu,40.7252311706543,0.0,tensor(0),8
+8,cuda,gpu,47.832489013671875,360.864256,"tensor(1, device='cuda:0')",8
+8,cpu,cpu,41.132211685180664,0.0,tensor(1),8
+8,cuda,gpu,45.163631439208984,360.86528,"tensor(2, device='cuda:0')",8
+8,cpu,cpu,44.04783248901367,0.0,tensor(2),8
+9,cuda,gpu,48.88463020324707,364.893696,"tensor(4, device='cuda:0')",9
+9,cpu,cpu,42.543649673461914,0.0,tensor(4),9
+9,cuda,gpu,150.7711410522461,364.89472,"tensor(1, device='cuda:0')",9
+9,cpu,cpu,42.07253456115723,0.0,tensor(1),9
+9,cuda,gpu,47.319889068603516,364.895232,"tensor(2, device='cuda:0')",9
+9,cpu,cpu,41.84889793395996,0.0,tensor(2),9
+9,cuda,gpu,44.026851654052734,364.895744,"tensor(0, device='cuda:0')",9
+9,cpu,cpu,41.73588752746582,0.0,tensor(0),9
+9,cuda,gpu,46.0209846496582,364.895744,"tensor(2, device='cuda:0')",9
+9,cpu,cpu,41.70656204223633,0.0,tensor(2),9
+9,cuda,gpu,44.13127899169922,364.896768,"tensor(4, device='cuda:0')",9
+9,cpu,cpu,41.01157188415527,0.0,tensor(4),9
+9,cuda,gpu,47.13010787963867,364.89728,"tensor(4, device='cuda:0')",9
+9,cpu,cpu,43.160200119018555,0.0,tensor(4),9
+9,cuda,gpu,44.490814208984375,364.897792,"tensor(1, device='cuda:0')",9
+9,cpu,cpu,41.70370101928711,0.0,tensor(1),9
+9,cuda,gpu,47.888755798339844,364.898304,"tensor(4, device='cuda:0')",9
+9,cpu,cpu,43.52164268493652,0.0,tensor(4),9
+9,cuda,gpu,44.41070556640625,364.898816,"tensor(0, device='cuda:0')",9
+9,cpu,cpu,41.52512550354004,0.0,tensor(0),9
+10,cuda,gpu,49.196720123291016,370.221568,"tensor(0, device='cuda:0')",10
+10,cpu,cpu,42.6783561706543,0.0,tensor(0),10
+10,cuda,gpu,46.53787612915039,370.223104,"tensor(1, device='cuda:0')",10
+10,cpu,cpu,42.99449920654297,0.0,tensor(1),10
+10,cuda,gpu,48.44236373901367,370.224128,"tensor(1, device='cuda:0')",10
+10,cpu,cpu,44.980525970458984,0.0,tensor(1),10
+10,cuda,gpu,46.088218688964844,370.22464,"tensor(0, device='cuda:0')",10
+10,cpu,cpu,41.9003963470459,0.0,tensor(0),10
+10,cuda,gpu,47.5916862487793,370.22464,"tensor(0, device='cuda:0')",10
+10,cpu,cpu,42.95516014099121,0.0,tensor(0),10
+10,cuda,gpu,44.803619384765625,370.225152,"tensor(2, device='cuda:0')",10
+10,cpu,cpu,42.26326942443848,0.0,tensor(1),10
+10,cuda,gpu,49.57175254821777,370.226176,"tensor(1, device='cuda:0')",10
+10,cpu,cpu,42.838096618652344,0.0,tensor(1),10
+10,cuda,gpu,46.70286178588867,370.226688,"tensor(0, device='cuda:0')",10
+10,cpu,cpu,45.81594467163086,0.0,tensor(0),10
+10,cuda,gpu,49.96657371520996,370.226688,"tensor(2, device='cuda:0')",10
+10,cpu,cpu,47.01066017150879,0.0,tensor(2),10
+10,cuda,gpu,49.43656921386719,370.227712,"tensor(2, device='cuda:0')",10
+10,cpu,cpu,46.96965217590332,0.0,tensor(2),10
+11,cuda,gpu,50.600528717041016,374.453248,"tensor(2, device='cuda:0')",11
+11,cpu,cpu,49.40962791442871,0.0,tensor(2),11
+11,cuda,gpu,50.68182945251465,374.455296,"tensor(0, device='cuda:0')",11
+11,cpu,cpu,46.42152786254883,0.0,tensor(0),11
+11,cuda,gpu,47.63031005859375,374.455296,"tensor(5, device='cuda:0')",11
+11,cpu,cpu,44.01206970214844,0.0,tensor(5),11
+11,cuda,gpu,51.04684829711914,374.45632,"tensor(4, device='cuda:0')",11
+11,cpu,cpu,42.94562339782715,0.0,tensor(4),11
+11,cuda,gpu,45.7453727722168,374.456832,"tensor(4, device='cuda:0')",11
+11,cpu,cpu,42.62709617614746,0.0,tensor(4),11
+11,cuda,gpu,48.56061935424805,374.457344,"tensor(1, device='cuda:0')",11
+11,cpu,cpu,42.7403450012207,0.0,tensor(1),11
+11,cuda,gpu,59.728145599365234,374.457856,"tensor(1, device='cuda:0')",11
+11,cpu,cpu,51.14555358886719,0.0,tensor(1),11
+11,cuda,gpu,49.539804458618164,374.458368,"tensor(2, device='cuda:0')",11
+11,cpu,cpu,43.03932189941406,0.0,tensor(2),11
+11,cuda,gpu,45.70508003234863,374.45888,"tensor(1, device='cuda:0')",11
+11,cpu,cpu,42.56772994995117,0.0,tensor(1),11
+11,cuda,gpu,47.93858528137207,374.459392,"tensor(1, device='cuda:0')",11
+11,cpu,cpu,43.365478515625,0.0,tensor(1),11
+12,cuda,gpu,50.99153518676758,380.929536,"tensor(3, device='cuda:0')",12
+12,cpu,cpu,44.786930084228516,0.0,tensor(3),12
+12,cuda,gpu,47.361135482788086,380.931584,"tensor(3, device='cuda:0')",12
+12,cpu,cpu,43.790340423583984,0.0,tensor(3),12
+12,cuda,gpu,48.98977279663086,380.932096,"tensor(2, device='cuda:0')",12
+12,cpu,cpu,44.333696365356445,0.0,tensor(2),12
+12,cuda,gpu,49.65567588806152,380.932608,"tensor(3, device='cuda:0')",12
+12,cpu,cpu,45.298099517822266,0.0,tensor(3),12
+12,cuda,gpu,50.42457580566406,380.93312,"tensor(2, device='cuda:0')",12
+12,cpu,cpu,44.37875747680664,0.0,tensor(2),12
+12,cuda,gpu,46.6306209564209,380.933632,"tensor(2, device='cuda:0')",12
+12,cpu,cpu,43.94650459289551,0.0,tensor(2),12
+12,cuda,gpu,49.23868179321289,380.934144,"tensor(2, device='cuda:0')",12
+12,cpu,cpu,44.248342514038086,0.0,tensor(2),12
+12,cuda,gpu,47.797203063964844,380.934656,"tensor(4, device='cuda:0')",12
+12,cpu,cpu,44.14677619934082,0.0,tensor(4),12
+12,cuda,gpu,48.52294921875,380.935168,"tensor(1, device='cuda:0')",12
+12,cpu,cpu,43.74885559082031,0.0,tensor(1),12
+12,cuda,gpu,47.857046127319336,380.93568,"tensor(3, device='cuda:0')",12
+12,cpu,cpu,44.19279098510742,0.0,tensor(3),12
+13,cuda,gpu,50.70996284484863,386.338304,"tensor(3, device='cuda:0')",13
+13,cpu,cpu,45.35269737243652,0.0,tensor(3),13
+13,cuda,gpu,49.59416389465332,386.340352,"tensor(2, device='cuda:0')",13
+13,cpu,cpu,44.49176788330078,0.0,tensor(2),13
+13,cuda,gpu,50.35996437072754,386.340864,"tensor(2, device='cuda:0')",13
+13,cpu,cpu,44.657230377197266,0.0,tensor(2),13
+13,cuda,gpu,48.79903793334961,386.341376,"tensor(1, device='cuda:0')",13
+13,cpu,cpu,44.4490909576416,0.0,tensor(1),13
+13,cuda,gpu,51.06711387634277,386.341888,"tensor(1, device='cuda:0')",13
+13,cpu,cpu,46.683549880981445,0.0,tensor(1),13
+13,cuda,gpu,48.128366470336914,386.3424,"tensor(3, device='cuda:0')",13
+13,cpu,cpu,43.639421463012695,0.0,tensor(3),13
+13,cuda,gpu,51.387786865234375,386.342912,"tensor(1, device='cuda:0')",13
+13,cpu,cpu,44.71397399902344,0.0,tensor(1),13
+13,cuda,gpu,47.7902889251709,386.343424,"tensor(0, device='cuda:0')",13
+13,cpu,cpu,44.02518272399902,0.0,tensor(0),13
+13,cuda,gpu,50.89306831359863,386.343424,"tensor(2, device='cuda:0')",13
+13,cpu,cpu,45.42279243469238,0.0,tensor(2),13
+13,cuda,gpu,48.27404022216797,386.344448,"tensor(5, device='cuda:0')",13
+13,cpu,cpu,43.898820877075195,0.0,tensor(5),13
+14,cuda,gpu,53.51734161376953,393.165824,"tensor(2, device='cuda:0')",14
+14,cpu,cpu,46.51784896850586,0.0,tensor(2),14
+14,cuda,gpu,51.45621299743652,393.167872,"tensor(4, device='cuda:0')",14
+14,cpu,cpu,46.32878303527832,0.0,tensor(4),14
+14,cuda,gpu,53.43747138977051,393.168384,"tensor(2, device='cuda:0')",14
+14,cpu,cpu,46.11492156982422,0.0,tensor(2),14
+14,cuda,gpu,52.39129066467285,393.168896,"tensor(2, device='cuda:0')",14
+14,cpu,cpu,47.43647575378418,0.0,tensor(2),14
+14,cuda,gpu,54.20732498168945,393.169408,"tensor(4, device='cuda:0')",14
+14,cpu,cpu,46.071767807006836,0.0,tensor(4),14
+14,cuda,gpu,51.87058448791504,393.16992,"tensor(3, device='cuda:0')",14
+14,cpu,cpu,46.08035087585449,0.0,tensor(3),14
+14,cuda,gpu,54.598093032836914,393.170432,"tensor(4, device='cuda:0')",14
+14,cpu,cpu,47.35755920410156,0.0,tensor(4),14
+14,cuda,gpu,57.67536163330078,393.170944,"tensor(5, device='cuda:0')",14
+14,cpu,cpu,45.72176933288574,0.0,tensor(5),14
+14,cuda,gpu,51.8651008605957,393.171456,"tensor(2, device='cuda:0')",14
+14,cpu,cpu,46.8597412109375,0.0,tensor(2),14
+14,cuda,gpu,52.367210388183594,393.171968,"tensor(4, device='cuda:0')",14
+14,cpu,cpu,45.886993408203125,0.0,tensor(4),14
+15,cuda,gpu,51.82385444641113,399.557632,"tensor(4, device='cuda:0')",15
+15,cpu,cpu,47.96242713928223,0.0,tensor(4),15
+15,cuda,gpu,55.556297302246094,399.55968,"tensor(1, device='cuda:0')",15
+15,cpu,cpu,48.15340042114258,0.0,tensor(1),15
+15,cuda,gpu,52.857160568237305,399.560192,"tensor(4, device='cuda:0')",15
+15,cpu,cpu,45.586585998535156,0.0,tensor(4),15
+15,cuda,gpu,53.10225486755371,399.560704,"tensor(3, device='cuda:0')",15
+15,cpu,cpu,46.273231506347656,0.0,tensor(3),15
+15,cuda,gpu,51.66316032409668,399.561216,"tensor(5, device='cuda:0')",15
+15,cpu,cpu,46.15139961242676,0.0,tensor(5),15
+15,cuda,gpu,51.52177810668945,399.561728,"tensor(4, device='cuda:0')",15
+15,cpu,cpu,46.022653579711914,0.0,tensor(4),15
+15,cuda,gpu,51.98097229003906,399.56224,"tensor(5, device='cuda:0')",15
+15,cpu,cpu,45.93992233276367,0.0,tensor(5),15
+15,cuda,gpu,51.56207084655762,399.562752,"tensor(5, device='cuda:0')",15
+15,cpu,cpu,46.7684268951416,0.0,tensor(5),15
+15,cuda,gpu,52.10065841674805,399.563264,"tensor(2, device='cuda:0')",15
+15,cpu,cpu,45.81093788146973,0.0,tensor(2),15
+15,cuda,gpu,52.87981033325195,399.563776,"tensor(3, device='cuda:0')",15
+15,cpu,cpu,46.790361404418945,0.0,tensor(3),15
+16,cuda,gpu,52.9630184173584,407.164416,"tensor(5, device='cuda:0')",16
+16,cpu,cpu,47.2261905670166,0.0,tensor(5),16
+16,cuda,gpu,53.275108337402344,407.166976,"tensor(3, device='cuda:0')",16
+16,cpu,cpu,47.301292419433594,0.0,tensor(3),16
+16,cuda,gpu,52.501678466796875,407.167488,"tensor(6, device='cuda:0')",16
+16,cpu,cpu,49.12614822387695,0.0,tensor(6),16
+16,cuda,gpu,52.870988845825195,407.168,"tensor(4, device='cuda:0')",16
+16,cpu,cpu,46.92196846008301,0.0,tensor(4),16
+16,cuda,gpu,52.59442329406738,407.168512,"tensor(6, device='cuda:0')",16
+16,cpu,cpu,46.75912857055664,0.0,tensor(6),16
+16,cuda,gpu,53.58624458312988,407.169024,"tensor(4, device='cuda:0')",16
+16,cpu,cpu,48.590660095214844,0.0,tensor(4),16
+16,cuda,gpu,53.624868392944336,407.169536,"tensor(8, device='cuda:0')",16
+16,cpu,cpu,47.19901084899902,0.0,tensor(8),16
+16,cuda,gpu,53.8630485534668,407.170048,"tensor(4, device='cuda:0')",16
+16,cpu,cpu,47.98078536987305,0.0,tensor(4),16
+16,cuda,gpu,52.72531509399414,407.17056,"tensor(2, device='cuda:0')",16
+16,cpu,cpu,46.504974365234375,0.0,tensor(2),16
+16,cuda,gpu,51.83577537536621,407.171072,"tensor(5, device='cuda:0')",16
+16,cpu,cpu,46.898841857910156,0.0,tensor(5),16
+17,cuda,gpu,55.0992488861084,416.963584,"tensor(3, device='cuda:0')",17
+17,cpu,cpu,48.697710037231445,0.0,tensor(3),17
+17,cuda,gpu,54.837942123413086,416.966144,"tensor(5, device='cuda:0')",17
+17,cpu,cpu,47.971248626708984,0.0,tensor(5),17
+17,cuda,gpu,54.231882095336914,416.966656,"tensor(4, device='cuda:0')",17
+17,cpu,cpu,49.088478088378906,0.0,tensor(4),17
+17,cuda,gpu,64.34011459350586,416.967168,"tensor(4, device='cuda:0')",17
+17,cpu,cpu,52.48403549194336,0.0,tensor(4),17
+17,cuda,gpu,54.04782295227051,416.96768,"tensor(4, device='cuda:0')",17
+17,cpu,cpu,48.58684539794922,0.0,tensor(4),17
+17,cuda,gpu,53.71522903442383,416.968192,"tensor(4, device='cuda:0')",17
+17,cpu,cpu,48.03323745727539,0.0,tensor(4),17
+17,cuda,gpu,62.05105781555176,416.968704,"tensor(5, device='cuda:0')",17
+17,cpu,cpu,48.76303672790527,0.0,tensor(5),17
+17,cuda,gpu,54.16750907897949,416.969216,"tensor(1, device='cuda:0')",17
+17,cpu,cpu,49.314260482788086,0.0,tensor(1),17
+17,cuda,gpu,55.104732513427734,416.969728,"tensor(5, device='cuda:0')",17
+17,cpu,cpu,49.0720272064209,0.0,tensor(5),17
+17,cuda,gpu,55.52959442138672,416.97024,"tensor(3, device='cuda:0')",17
+17,cpu,cpu,47.976016998291016,0.0,tensor(3),17
+18,cuda,gpu,57.14249610900879,424.425984,"tensor(8, device='cuda:0')",18
+18,cpu,cpu,50.0490665435791,0.0,tensor(8),18
+18,cuda,gpu,55.82284927368164,424.428544,"tensor(3, device='cuda:0')",18
+18,cpu,cpu,49.4077205657959,0.0,tensor(3),18
+18,cuda,gpu,56.96916580200195,424.429056,"tensor(6, device='cuda:0')",18
+18,cpu,cpu,49.735307693481445,0.0,tensor(6),18
+18,cuda,gpu,56.30326271057129,424.429568,"tensor(5, device='cuda:0')",18
+18,cpu,cpu,49.93891716003418,0.0,tensor(5),18
+18,cuda,gpu,55.79495429992676,424.43008,"tensor(8, device='cuda:0')",18
+18,cpu,cpu,49.6976375579834,0.0,tensor(8),18
+18,cuda,gpu,56.327104568481445,424.430592,"tensor(5, device='cuda:0')",18
+18,cpu,cpu,50.562381744384766,0.0,tensor(5),18
+18,cuda,gpu,57.74712562561035,424.431104,"tensor(8, device='cuda:0')",18
+18,cpu,cpu,49.64947700500488,0.0,tensor(8),18
+18,cuda,gpu,54.92377281188965,424.431616,"tensor(5, device='cuda:0')",18
+18,cpu,cpu,49.72219467163086,0.0,tensor(5),18
+18,cuda,gpu,55.83977699279785,424.432128,"tensor(6, device='cuda:0')",18
+18,cpu,cpu,49.46184158325195,0.0,tensor(6),18
+18,cuda,gpu,55.956125259399414,424.43264,"tensor(8, device='cuda:0')",18
+18,cpu,cpu,49.659013748168945,0.0,tensor(8),18
+19,cuda,gpu,57.45959281921387,434.628096,"tensor(5, device='cuda:0')",19
+19,cpu,cpu,50.728797912597656,0.0,tensor(5),19
+19,cuda,gpu,57.079315185546875,434.631168,"tensor(8, device='cuda:0')",19
+19,cpu,cpu,50.960540771484375,0.0,tensor(8),19
+19,cuda,gpu,58.96425247192383,434.63168,"tensor(6, device='cuda:0')",19
+19,cpu,cpu,53.82895469665527,0.0,tensor(6),19
+19,cuda,gpu,59.7989559173584,434.632192,"tensor(6, device='cuda:0')",19
+19,cpu,cpu,56.63466453552246,0.0,tensor(6),19
+19,cuda,gpu,65.85955619812012,434.632704,"tensor(6, device='cuda:0')",19
+19,cpu,cpu,55.66692352294922,0.0,tensor(6),19
+19,cuda,gpu,58.25352668762207,434.633216,"tensor(5, device='cuda:0')",19
+19,cpu,cpu,50.95505714416504,0.0,tensor(5),19
+19,cuda,gpu,57.31558799743652,434.633728,"tensor(5, device='cuda:0')",19
+19,cpu,cpu,50.94146728515625,0.0,tensor(5),19
+19,cuda,gpu,56.552886962890625,434.63424,"tensor(7, device='cuda:0')",19
+19,cpu,cpu,50.60768127441406,0.0,tensor(7),19
+19,cuda,gpu,57.11531639099121,434.634752,"tensor(7, device='cuda:0')",19
+19,cpu,cpu,51.23424530029297,0.0,tensor(7),19
+19,cuda,gpu,56.28681182861328,434.635264,"tensor(4, device='cuda:0')",19
+19,cpu,cpu,51.09810829162598,0.0,tensor(4),19
+20,cuda,gpu,60.250043869018555,442.624512,"tensor(5, device='cuda:0')",20
+20,cpu,cpu,52.720069885253906,0.0,tensor(5),20
+20,cuda,gpu,61.682939529418945,442.627584,"tensor(5, device='cuda:0')",20
+20,cpu,cpu,53.180694580078125,0.0,tensor(5),20
+20,cuda,gpu,59.94009971618652,442.628096,"tensor(5, device='cuda:0')",20
+20,cpu,cpu,53.8783073425293,0.0,tensor(5),20
+20,cuda,gpu,60.11152267456055,442.628608,"tensor(8, device='cuda:0')",20
+20,cpu,cpu,52.77228355407715,0.0,tensor(8),20
+20,cuda,gpu,59.79776382446289,442.62912,"tensor(6, device='cuda:0')",20
+20,cpu,cpu,55.81378936767578,0.0,tensor(6),20
+20,cuda,gpu,59.0817928314209,442.629632,"tensor(5, device='cuda:0')",20
+20,cpu,cpu,52.58893966674805,0.0,tensor(5),20
+20,cuda,gpu,58.241844177246094,442.630144,"tensor(5, device='cuda:0')",20
+20,cpu,cpu,52.38676071166992,0.0,tensor(5),20
+20,cuda,gpu,62.682390213012695,442.630656,"tensor(6, device='cuda:0')",20
+20,cpu,cpu,53.110361099243164,0.0,tensor(6),20
+20,cuda,gpu,59.15498733520508,442.631168,"tensor(5, device='cuda:0')",20
+20,cpu,cpu,52.54650115966797,0.0,tensor(5),20
+20,cuda,gpu,58.695077896118164,442.63168,"tensor(7, device='cuda:0')",20
+20,cpu,cpu,52.43992805480957,0.0,tensor(7),20
+21,cuda,gpu,60.98532676696777,454.55616,"tensor(7, device='cuda:0')",21
+21,cpu,cpu,53.07745933532715,0.0,tensor(7),21
+21,cuda,gpu,64.3315315246582,454.58432,"tensor(6, device='cuda:0')",21
+21,cpu,cpu,62.24417686462402,0.0,tensor(6),21
+21,cuda,gpu,61.411380767822266,454.584832,"tensor(6, device='cuda:0')",21
+21,cpu,cpu,56.78153038024902,0.0,tensor(6),21
+21,cuda,gpu,64.25833702087402,454.560256,"tensor(6, device='cuda:0')",21
+21,cpu,cpu,56.275129318237305,0.0,tensor(6),21
+21,cuda,gpu,64.08143043518066,454.585856,"tensor(6, device='cuda:0')",21
+21,cpu,cpu,54.663896560668945,0.0,tensor(6),21
+21,cuda,gpu,62.944889068603516,454.56128,"tensor(8, device='cuda:0')",21
+21,cpu,cpu,55.11593818664551,0.0,tensor(8),21
+21,cuda,gpu,60.027122497558594,454.58688,"tensor(7, device='cuda:0')",21
+21,cpu,cpu,53.72738838195801,0.0,tensor(7),21
+21,cuda,gpu,60.49346923828125,454.587392,"tensor(6, device='cuda:0')",21
+21,cpu,cpu,53.8630485534668,0.0,tensor(6),21
+21,cuda,gpu,60.218095779418945,454.562816,"tensor(7, device='cuda:0')",21
+21,cpu,cpu,53.29251289367676,0.0,tensor(7),21
+21,cuda,gpu,60.37616729736328,454.588416,"tensor(8, device='cuda:0')",21
+21,cpu,cpu,53.366899490356445,0.0,tensor(8),21

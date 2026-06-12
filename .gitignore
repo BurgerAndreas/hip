@@ -26,14 +26,14 @@ logs
 runs_*/
 runs_relaxation/
 **/Transition1x/
-results_*/
-# !**/*.csv
+# results_*/
 
 _docs
 _docs/*
 plots/
 plots_*/
-metadata/*.csv
+# metadata/*.csv
+metadata
 
 tmp_quacc*/
 vib
@@ -42,7 +42,7 @@ Data
 # .csv
 rgd1_raw/
 *.html
-# *.json
+*.json
 *.trj
 logs_gad
 logs_hormtssearch
@@ -204,3 +204,6 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+!**/*.csv
+!**/*.parquet
