@@ -2,20 +2,34 @@ import argparse
 from pathlib import Path
 
 import pandas as pd
-import plotly.graph_objects as go
-from plotly.subplots import make_subplots
 
-from hip.colours import (
-    ANNOTATION_BOLD_FONT_SIZE,
-    ANNOTATION_FONT_SIZE,
-    AXES_FONT_SIZE,
-    AXES_TITLE_FONT_SIZE,
-    LEGEND_FONT_SIZE,
-    TITLE_FONT_SIZE,
-    HESSIAN_METHOD_TO_COLOUR,
-)
+try:
+    from hip.colours import (
+        ANNOTATION_BOLD_FONT_SIZE,
+        ANNOTATION_FONT_SIZE,
+        AXES_FONT_SIZE,
+        AXES_TITLE_FONT_SIZE,
+        LEGEND_FONT_SIZE,
+        TITLE_FONT_SIZE,
+        HESSIAN_METHOD_TO_COLOUR,
+    )
+except ModuleNotFoundError:
+    ANNOTATION_BOLD_FONT_SIZE = 18
+    ANNOTATION_FONT_SIZE = 14
+    AXES_FONT_SIZE = 12
+    AXES_TITLE_FONT_SIZE = 13
+    LEGEND_FONT_SIZE = 12
+    TITLE_FONT_SIZE = 16
+    HESSIAN_METHOD_TO_COLOUR = {
+        "autograd": "#1f77b4",
+        "prediction": "#d96001",
+    }
 
 PLOTLY_TEMPLATE = "plotly_white"
+EIGVAL_MAE_COLUMNS = (
+    "eckart_eigval_mae_ev_a2",
+    "eigval_mae_eckart",
+)
 
 
 def _color_for_method(method):
@@ -44,26 +58,46 @@ def _dash_for_memory(method):
     return "solid"
 
 
+def _display_name(method):
+    method_lower = str(method).lower()
+    if method_lower == "prediction":
+        return "HIP Hessians (ours)"
+    if method_lower == "autograd":
+        return "AD Hessians (direct force)"
+    if method_lower == "autograd_conservative":
+        return "AD Hessians (conservative)"
+    if method_lower == "forward_pass":
+        return "Forward Pass"
+    if "finite_difference_bz1" in method_lower:
+        return "FD Hessians"
+    return str(method)
+
+
 def _load_eigval_curve(csv_path):
     df = pd.read_csv(csv_path)
-    required_cols = {"natoms", "eigval_mae_eckart"}
-    if not required_cols.issubset(df.columns):
+    if "status" in df.columns:
+        df = df[df["status"] == "ok"].copy()
+
+    metric_col = next((col for col in EIGVAL_MAE_COLUMNS if col in df.columns), None)
+    if "natoms" not in df.columns or metric_col is None:
         raise ValueError(
-            f"Missing required columns in {csv_path}. Need {sorted(required_cols)}."
+            f"Missing required columns in {csv_path}. Need 'natoms' and one of "
+            f"{list(EIGVAL_MAE_COLUMNS)}."
         )
-    return df.groupby("natoms")["eigval_mae_eckart"].mean().sort_index()
+    return df.groupby("natoms")[metric_col].mean().sort_index()
 
 
-def make_plot(
-    speed_csv,
-    rgd1_lambda_results,
-    pubchem_lambda_results,
-    output_path,
-    ymin_time=0.0,
-    ymax_time=3700.0,
-    ymin_memory=0.0,
-    ymax_memory=2100.0,
-):
+def _load_curves(lambda_results):
+    curves = {}
+    for label, csv_path in lambda_results.items():
+        if not Path(csv_path).exists():
+            print(f"Skipping {label}: missing {csv_path}")
+            continue
+        curves[label] = _load_eigval_curve(csv_path)
+    return curves
+
+
+def _load_speed_tables(speed_csv):
     speed_df = pd.read_csv(speed_csv)
     avg_times = speed_df.groupby(["n_atoms", "method"])["time"].mean().unstack()
     avg_memory = speed_df.groupby(["n_atoms", "method"])["memory"].mean().unstack()
@@ -76,22 +110,25 @@ def make_plot(
         "prediction",
     ]
     methods = [m for m in methods if m in avg_times.columns]
-    avg_times = avg_times[methods]
-    avg_memory = avg_memory[methods]
+    return avg_times[methods], avg_memory[methods]
 
-    rgd1_lambda_curves = {}
-    for label, csv_path in rgd1_lambda_results.items():
-        if not Path(csv_path).exists():
-            print(f"Skipping {label}: missing {csv_path}")
-            continue
-        rgd1_lambda_curves[label] = _load_eigval_curve(csv_path)
 
-    pubchem_lambda_curves = {}
-    for label, csv_path in pubchem_lambda_results.items():
-        if not Path(csv_path).exists():
-            print(f"Skipping {label}: missing {csv_path}")
-            continue
-        pubchem_lambda_curves[label] = _load_eigval_curve(csv_path)
+def make_plot_plotly(
+    speed_csv,
+    rgd1_lambda_results,
+    pubchem_lambda_results,
+    output_path,
+    ymin_time=0.0,
+    ymax_time=3700.0,
+    ymin_memory=0.0,
+    ymax_memory=2100.0,
+):
+    import plotly.graph_objects as go
+    from plotly.subplots import make_subplots
+
+    avg_times, avg_memory = _load_speed_tables(speed_csv)
+    rgd1_lambda_curves = _load_curves(rgd1_lambda_results)
+    pubchem_lambda_curves = _load_curves(pubchem_lambda_results)
 
     fig = make_subplots(
         rows=2,
@@ -108,24 +145,12 @@ def make_plot(
 
     for method in avg_times.columns:
         color = _color_for_method(method)
-        if method == "prediction":
-            name = "HIP Hessians (ours)"
-        elif method == "autograd":
-            name = "AD Hessians (direct force)"
-        elif method == "autograd_conservative":
-            name = "AD Hessians (conservative)"
-        elif method == "forward_pass":
-            name = "Forward Pass"
-        elif "finite_difference_bz1" in method:
-            name = "FD Hessians"
-        else:
-            name = method
         fig.add_trace(
             go.Scatter(
                 x=avg_times.index,
                 y=avg_times[method],
                 mode="lines+markers",
-                name=name,
+                name=_display_name(method),
                 showlegend=True,
                 line=dict(color=color),
                 marker=dict(color=color),
@@ -355,6 +380,189 @@ def make_plot(
     print(f"Plot saved to {output_path}")
 
 
+def make_plot_seaborn(
+    speed_csv,
+    rgd1_lambda_results,
+    pubchem_lambda_results,
+    output_path,
+    ymin_time=0.0,
+    ymax_time=3700.0,
+    ymin_memory=0.0,
+    ymax_memory=2100.0,
+):
+    import matplotlib.pyplot as plt
+
+    try:
+        import seaborn as sns
+
+        sns.set_theme(style="whitegrid", context="paper")
+    except ModuleNotFoundError:
+        plt.rcParams.update(
+            {
+                "axes.grid": True,
+                "axes.labelsize": AXES_TITLE_FONT_SIZE,
+                "font.size": AXES_FONT_SIZE,
+                "legend.fontsize": LEGEND_FONT_SIZE,
+                "xtick.labelsize": AXES_FONT_SIZE,
+                "ytick.labelsize": AXES_FONT_SIZE,
+            }
+        )
+
+    avg_times, avg_memory = _load_speed_tables(speed_csv)
+    rgd1_lambda_curves = _load_curves(rgd1_lambda_results)
+    pubchem_lambda_curves = _load_curves(pubchem_lambda_results)
+
+    fig, axes = plt.subplots(2, 2, figsize=(8, 7.6))
+    ax_time, ax_memory, ax_rgd1, ax_pubchem = axes.ravel()
+
+    for method in avg_times.columns:
+        color = _color_for_method(method)
+        ax_time.plot(
+            avg_times.index,
+            avg_times[method],
+            marker="o",
+            linewidth=2,
+            markersize=3,
+            label=_display_name(method),
+            color=color,
+        )
+
+    for method in avg_memory.columns:
+        color = _color_for_method(method)
+        linestyle = ":" if _dash_for_memory(method) == "dot" else "-"
+        if method == "prediction":
+            ax_memory.plot(
+                avg_memory.index,
+                avg_memory[method],
+                marker="o",
+                linestyle="None",
+                markersize=3,
+                color=color,
+            )
+        else:
+            ax_memory.plot(
+                avg_memory.index,
+                avg_memory[method],
+                marker="o",
+                linewidth=2,
+                markersize=3,
+                linestyle=linestyle,
+                color=color,
+            )
+
+    label_to_method = {"HIP": "prediction", "AD": "autograd"}
+    for label in ["HIP", "AD"]:
+        if label in rgd1_lambda_curves:
+            color = _color_for_method(label_to_method[label])
+            ax_rgd1.plot(
+                rgd1_lambda_curves[label].index,
+                rgd1_lambda_curves[label].values,
+                marker="o",
+                linewidth=2,
+                markersize=3,
+                color=color,
+            )
+        if label in pubchem_lambda_curves:
+            color = _color_for_method(label_to_method[label])
+            ax_pubchem.plot(
+                pubchem_lambda_curves[label].index,
+                pubchem_lambda_curves[label].values,
+                marker="o",
+                linewidth=2,
+                markersize=3,
+                color=color,
+            )
+
+    ax_rgd1.axvline(22, linewidth=1.5, linestyle="--", color="gray")
+    ax_rgd1.annotate(
+        "Train",
+        xy=(22, 0.95),
+        xycoords=("data", "axes fraction"),
+        xytext=(-55, 0),
+        textcoords="offset points",
+        arrowprops={"arrowstyle": "->", "color": "gray"},
+        color="gray",
+        va="center",
+    )
+
+    titles = (
+        "Time per Sample (ms)",
+        "Peak Memory (MB)",
+        "Eigenvalues λ MAE (RGD1)",
+        "Eigenvalues λ MAE (PubChem)",
+    )
+    for panel_label, ax, title in zip("abcd", axes.ravel(), titles):
+        ax.set_title(title, fontsize=TITLE_FONT_SIZE)
+        ax.set_xlabel("Number of Atoms")
+        ax.text(
+            -0.08,
+            1.04,
+            panel_label,
+            transform=ax.transAxes,
+            fontsize=ANNOTATION_BOLD_FONT_SIZE,
+            fontweight="bold",
+            va="bottom",
+            ha="right",
+        )
+
+    ax_time.set_ylim(ymin_time, ymax_time)
+    ax_memory.set_ylim(ymin_memory, ymax_memory)
+    ax_time.set_xlim(4.5, 21.5)
+    ax_memory.set_xlim(4.5, 21.5)
+    if rgd1_lambda_curves:
+        max_n = max(n for series in rgd1_lambda_curves.values() for n in series.index)
+        ax_rgd1.set_xlim(9.95, max_n + 0.5)
+    if pubchem_lambda_curves:
+        ns = [n for series in pubchem_lambda_curves.values() for n in series.index]
+        ax_pubchem.set_xlim(min(ns) - 0.5, max(ns) + 0.5)
+
+    ax_time.legend(loc="upper left", framealpha=0.6)
+    fig.tight_layout(pad=0.4)
+
+    output_path = Path(output_path)
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    fig.savefig(output_path, dpi=300, bbox_inches="tight")
+    plt.close(fig)
+    print(f"Plot saved to {output_path}")
+
+
+def make_plot(
+    speed_csv,
+    rgd1_lambda_results,
+    pubchem_lambda_results,
+    output_path,
+    ymin_time=0.0,
+    ymax_time=3700.0,
+    ymin_memory=0.0,
+    ymax_memory=2100.0,
+    backend="auto",
+):
+    kwargs = dict(
+        speed_csv=speed_csv,
+        rgd1_lambda_results=rgd1_lambda_results,
+        pubchem_lambda_results=pubchem_lambda_results,
+        output_path=output_path,
+        ymin_time=ymin_time,
+        ymax_time=ymax_time,
+        ymin_memory=ymin_memory,
+        ymax_memory=ymax_memory,
+    )
+    if backend == "plotly":
+        make_plot_plotly(**kwargs)
+        return
+    if backend == "seaborn":
+        make_plot_seaborn(**kwargs)
+        return
+    if backend != "auto":
+        raise ValueError(f"Unknown backend: {backend}")
+
+    try:
+        make_plot_plotly(**kwargs)
+    except (ImportError, ModuleNotFoundError, RuntimeError, ValueError) as exc:
+        print(f"Plotly backend unavailable ({exc}); falling back to seaborn.")
+        make_plot_seaborn(**kwargs)
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Standalone 2x2 speed/memory/lambda plot")
     parser.add_argument(
@@ -401,6 +609,12 @@ if __name__ == "__main__":
     parser.add_argument("--ymax_time", type=float, default=3700.0)
     parser.add_argument("--ymin_memory", type=float, default=0.0)
     parser.add_argument("--ymax_memory", type=float, default=2100.0)
+    parser.add_argument(
+        "--backend",
+        choices=("auto", "plotly", "seaborn"),
+        default="auto",
+        help="Plotting backend. 'auto' tries Plotly first, then seaborn/Matplotlib.",
+    )
     args = parser.parse_args()
 
     make_plot(
@@ -420,4 +634,5 @@ if __name__ == "__main__":
         ymax_time=args.ymax_time,
         ymin_memory=args.ymin_memory,
         ymax_memory=args.ymax_memory,
+        backend=args.backend,
     )

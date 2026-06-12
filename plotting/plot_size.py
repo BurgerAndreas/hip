@@ -9,13 +9,16 @@ import os
 
 import matplotlib.pyplot as plt
 import pandas as pd
-import seaborn as sns
 
 RESULTS = {
-    "HIP": "results_eval_orca_hf_hip_v3/metrics.csv",
-    "AD": "results_size_eval/eqv2_dft_geometries_autograd_metrics.csv",
+    # "HIP": "results_eval_largehessians_orca_hip_v3/metrics.csv",
+    "HIP": "results_eval_largehessians_orca_hip_v2/metrics.csv",
+    "AD": "results_eval_largehessians_orca_hf_horm_eqv2_autograd/metrics.csv",
     "AD (E-F)": "results_size_eval/eqv2_orig_dft_geometries_autograd_metrics.csv",
 }
+
+OUTLIER_METRIC = "hessian_mae_ev_a2"
+OUTLIER_MODIFIED_Z_THRESHOLD = 10.0
 
 METRICS = [
     # ("energy_mae_per_atom", "Energy MAE / atom [eV]"),
@@ -41,6 +44,130 @@ VARIANTS = [
     {"suffix": "_no_ef", "exclude": ["AD (E-F)"]},
 ]
 
+SPREADS = [
+    {"suffix": "", "column": None},
+    {"suffix": "_std", "column": "std"},
+    {"suffix": "_se", "column": "se"},
+]
+
+
+def modified_z_outliers(df, metric, threshold):
+    if metric not in df.columns or "natoms" not in df.columns:
+        return pd.Series(False, index=df.index)
+
+    values = pd.to_numeric(df[metric], errors="coerce")
+    medians = values.groupby(df["natoms"]).transform("median")
+    abs_deviation = (values - medians).abs()
+    mads = abs_deviation.groupby(df["natoms"]).transform("median")
+    modified_z = 0.6745 * (values - medians) / mads
+    return modified_z.abs() > threshold
+
+
+def remove_outlier_samples(dfs, output_dir):
+    outlier_rows = []
+    outlier_sample_names = set()
+
+    for label, df in dfs.items():
+        mask = modified_z_outliers(
+            df, OUTLIER_METRIC, OUTLIER_MODIFIED_Z_THRESHOLD
+        )
+        if not mask.any():
+            continue
+
+        label_outliers = df[mask].copy()
+        label_outliers.insert(0, "label", label)
+        outlier_rows.append(label_outliers)
+
+        if "sample_name" in label_outliers.columns:
+            outlier_sample_names.update(label_outliers["sample_name"].dropna())
+
+    if not outlier_rows:
+        print("No outliers removed")
+        return dfs
+
+    outliers = pd.concat(outlier_rows, ignore_index=True)
+    outliers_path = os.path.join(output_dir, "removed_outliers.csv")
+    outliers.to_csv(outliers_path, index=False)
+
+    print(
+        f"Removing {len(outlier_sample_names)} outlier samples identified by "
+        f"per-natoms {OUTLIER_METRIC} modified z-score > "
+        f"{OUTLIER_MODIFIED_Z_THRESHOLD}:"
+    )
+    for sample_name in sorted(outlier_sample_names):
+        print(f"  {sample_name}")
+    print(f"Saved removed outlier rows to {outliers_path}")
+
+    filtered = {}
+    for label, df in dfs.items():
+        if "sample_name" not in df.columns:
+            filtered[label] = df
+            continue
+        filtered[label] = df[~df["sample_name"].isin(outlier_sample_names)].copy()
+        print(f"Filtered {label}: {len(df)} -> {len(filtered[label])} samples")
+
+    return filtered
+
+
+def plot_metric(dfs, variant, col, ylabel, spread, plot_dir):
+    fig, ax = plt.subplots(figsize=(8, 8))
+
+    for label, df in dfs.items():
+        if label in variant["exclude"]:
+            continue
+        if col not in df.columns:
+            continue
+
+        grouped = (
+            df.groupby("natoms")[col]
+            .agg(["mean", "std", "count"])
+            .reset_index()
+            .sort_values("natoms")
+        )
+        grouped["std"] = grouped["std"].fillna(0.0)
+        grouped["se"] = grouped["std"] / (grouped["count"] ** 0.5)
+
+        x = grouped["natoms"]
+        y = grouped["mean"]
+        color = COLOURS[label]
+        ax.plot(
+            x,
+            y,
+            marker="o",
+            markersize=4,
+            linewidth=2,
+            label=label,
+            color=color,
+        )
+
+        spread_column = spread["column"]
+        if spread_column is not None:
+            spread_values = grouped[spread_column]
+            ax.fill_between(
+                x,
+                y - spread_values,
+                y + spread_values,
+                color=color,
+                alpha=0.18,
+                linewidth=0,
+            )
+
+    ax.set_xlabel("Number of Atoms")
+    ax.set_ylabel(ylabel)
+    legend = ax.legend()
+    legend.set_title("")
+    legend.get_frame().set_edgecolor("none")
+    legend.get_frame().set_alpha(1.0)
+    plt.tight_layout(pad=0.0)
+
+    plot_path = (
+        f"{plot_dir}/size_{col}{spread['suffix']}{variant['suffix']}.png"
+    )
+    plt.savefig(plot_path, dpi=300, bbox_inches="tight")
+    print(f"Saved {plot_path}")
+    plt.close()
+
+
 if __name__ == "__main__":
     plot_dir = "plots/size_eval"
     os.makedirs(plot_dir, exist_ok=True)
@@ -55,37 +182,20 @@ if __name__ == "__main__":
             dfs[label] = dfs[label][dfs[label]["status"] == "ok"].copy()
         print(f"Loaded {label}: {path} ({len(dfs[label])} samples)")
 
-    sns.set_theme(style="whitegrid", context="poster")
+    dfs = remove_outlier_samples(dfs, plot_dir)
+
+    plt.rcParams.update(
+        {
+            "axes.grid": True,
+            "axes.labelsize": 20,
+            "font.size": 18,
+            "legend.fontsize": 16,
+            "xtick.labelsize": 16,
+            "ytick.labelsize": 16,
+        }
+    )
 
     for variant in VARIANTS:
         for col, ylabel in METRICS:
-            fig, ax = plt.subplots(figsize=(8, 8))
-
-            for label, df in dfs.items():
-                if label in variant["exclude"]:
-                    continue
-                if col not in df.columns:
-                    continue
-                grouped = df.groupby("natoms")[col].mean().reset_index()
-                ax.plot(
-                    grouped["natoms"],
-                    grouped[col],
-                    marker="o",
-                    markersize=4,
-                    linewidth=2,
-                    label=label,
-                    color=COLOURS[label],
-                )
-
-            ax.set_xlabel("Number of Atoms")
-            ax.set_ylabel(ylabel)
-            legend = ax.legend()
-            legend.set_title("")
-            legend.get_frame().set_edgecolor("none")
-            legend.get_frame().set_alpha(1.0)
-            plt.tight_layout(pad=0.0)
-
-            plot_path = f"{plot_dir}/size_{col}{variant['suffix']}.png"
-            plt.savefig(plot_path, dpi=300, bbox_inches="tight")
-            print(f"Saved {plot_path}")
-            plt.close()
+            for spread in SPREADS:
+                plot_metric(dfs, variant, col, ylabel, spread, plot_dir)
