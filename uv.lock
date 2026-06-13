@@ -455,6 +455,7 @@ dependencies = [
     { name = "ase" },
     { name = "datasets" },
     { name = "e3nn" },
+    { name = "huggingface-hub" },
     { name = "hydra-core" },
     { name = "kagglehub" },
     { name = "lightning" },
@@ -467,7 +468,6 @@ dependencies = [
     { name = "pyarrow" },
     { name = "pytest" },
     { name = "pyyaml" },
-    { name = "rdkit" },
     { name = "ruff" },
     { name = "scipy" },
     { name = "tqdm" },
@@ -510,6 +510,7 @@ requires-dist = [
     { name = "ase" },
     { name = "datasets", specifier = ">=4.4.1" },
     { name = "e3nn", specifier = "==0.6.0" },
+    { name = "huggingface-hub", specifier = ">=0.27.1" },
     { name = "hydra-core" },
     { name = "kagglehub", specifier = ">=0.3.12" },
     { name = "lightning", specifier = "==2.6.1" },
@@ -524,7 +525,6 @@ requires-dist = [
     { name = "pyg-lib", marker = "extra == 'cuda126'", specifier = "==0.6.0+pt211cu126" },
     { name = "pytest", specifier = "<9" },
     { name = "pyyaml" },
-    { name = "rdkit", specifier = ">=2024.3.6" },
     { name = "ruff" },
     { name = "scipy" },
     { name = "torch", marker = "(sys_platform == 'linux' and extra == 'cuda121') or (sys_platform == 'win32' and extra == 'cuda121')", specifier = "==2.5.1", index = "https://download.pytorch.org/whl/cu121", conflict = { package = "hip", extra = "cuda121" } },
@@ -1580,21 +1580,6 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/74/93/7baea19427dcfbe1e5a372d81473250b379f04b1bd3c4c5ff825e2327202/pyyaml-6.0.3-cp312-cp312-win32.whl", hash = "sha256:96b533f0e99f6579b3d4d4995707cf36df9100d67e0c8303a0c55b27b5f99bc5", size = 137658, upload-time = "2025-09-25T21:32:20.209Z" },
     { url = "https://files.pythonhosted.org/packages/86/bf/899e81e4cce32febab4fb42bb97dcdf66bc135272882d1987881a4b519e9/pyyaml-6.0.3-cp312-cp312-win_amd64.whl", hash = "sha256:5fcd34e47f6e0b794d17de1b4ff496c00986e1c83f7ab2fb8fcfe9616ff7477b", size = 154003, upload-time = "2025-09-25T21:32:21.167Z" },
     { url = "https://files.pythonhosted.org/packages/1a/08/67bd04656199bbb51dbed1439b7f27601dfb576fb864099c7ef0c3e55531/pyyaml-6.0.3-cp312-cp312-win_arm64.whl", hash = "sha256:64386e5e707d03a7e172c0701abfb7e10f0fb753ee1d773128192742712a98fd", size = 140344, upload-time = "2025-09-25T21:32:22.617Z" },
-]
-
-[[package]]
-name = "rdkit"
-version = "2025.9.6"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "numpy" },
-    { name = "pillow" },
-]
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/43/3c/599c81d456ab2eb3e8d6af1f2f8275689eec3a7c836c3ca6e4c75fb98607/rdkit-2025.9.6-cp312-cp312-macosx_11_0_arm64.whl", hash = "sha256:95350eeb5d70c5576eca748caf59106ebeea259278ff05c3812adb12c5c4dc10", size = 29558443, upload-time = "2026-03-02T18:08:58.506Z" },
-    { url = "https://files.pythonhosted.org/packages/9a/5f/54a2d040d5ec2f21182da61d67145dd6b0cc3abf2db6737368b8bb3883ef/rdkit-2025.9.6-cp312-cp312-manylinux_2_28_aarch64.whl", hash = "sha256:7e8cda5243d586356c2a66bdf70fea3cb3fd552200556efe375da64efb047f73", size = 35119461, upload-time = "2026-03-02T18:09:03.765Z" },
-    { url = "https://files.pythonhosted.org/packages/43/8c/42dde9df1a665e3589eeeaea463b11ec89c9d0c0e82db22d8128e3e14490/rdkit-2025.9.6-cp312-cp312-manylinux_2_28_x86_64.whl", hash = "sha256:6be95b735c428ba27badf39e92078133d3a505f872d0a31467ba577d73c57676", size = 36664387, upload-time = "2026-03-02T18:09:08.01Z" },
-    { url = "https://files.pythonhosted.org/packages/27/45/69077326d9969bbf7958b7f6ef03a3111de83ddf8800d5c7dc390041bf36/rdkit-2025.9.6-cp312-cp312-win_amd64.whl", hash = "sha256:80c1fe3d1cc88540f2495272f32f02b4ec58a73db53649c9e4249087deeb62dc", size = 24315769, upload-time = "2026-03-02T18:09:11.987Z" },
 ]
 
 [[package]]

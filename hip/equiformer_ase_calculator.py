@@ -19,7 +19,11 @@ from ase.calculators.calculator import Calculator as ASECalculator
 # from ocpmodels.preprocessing import AtomsToGraphs
 
 from hip.hessian_utils import compute_hessian
-from hip.inference_utils import get_model_from_checkpoint, get_dataloader
+from hip.inference_utils import (
+    get_model_from_checkpoint,
+    get_dataloader,
+    resolve_checkpoint_path,
+)
 from hip.frequency_analysis import (
     analyze_frequencies_np,
     massweigh_and_eckartprojection_np,
@@ -93,6 +97,7 @@ class EquiformerASECalculator(ASECalculator):
 
         if model is None:
             # Load model
+            checkpoint_path = resolve_checkpoint_path(checkpoint_path)
             model = get_model_from_checkpoint(checkpoint_path, device)
 
         # Ensure model resides on the requested device

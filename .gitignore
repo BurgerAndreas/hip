@@ -32,6 +32,9 @@ runs_relaxation/
 **/Transition1x/
 results_*/
 # !**/*.csv
+*.out
+slurm_logs/
+hf_hip/
 
 _docs
 _docs/*
