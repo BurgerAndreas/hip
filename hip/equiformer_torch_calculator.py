@@ -20,6 +20,7 @@ from hip.frequency_analysis import (
     massweigh_hessian_torch,
 )
 from hip.masses import MASS_DICT
+from nets.equiformer_v2.equiformer_v2_oc20 import center_batch_positions
 
 
 def coord_atoms_to_torch_geometric(
@@ -115,6 +116,7 @@ class EquiformerTorchCalculator:
 
         # Prepare batch on calculator device
         batch = batch.to(self.device)
+        batch = center_batch_positions(batch)
 
         # Run prediction
         if do_hessian:
@@ -125,6 +127,7 @@ class EquiformerTorchCalculator:
                     energy, forces, _ = self.potential.forward(
                         batch,
                         otf_graph=True,
+                        hessian=False,
                     )
                     # Use autograd to compute hessian
                     hessian = compute_hessian(
@@ -138,6 +141,7 @@ class EquiformerTorchCalculator:
                     energy, forces, out = self.potential.forward(
                         batch,
                         otf_graph=True,
+                        hessian=True,
                     )
                     hessian = out["hessian"]
 

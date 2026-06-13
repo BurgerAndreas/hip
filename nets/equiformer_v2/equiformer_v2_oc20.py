@@ -92,6 +92,11 @@ def remove_mean_batch(x, indices):
     return x
 
 
+def center_batch_positions(data):
+    data.pos = remove_mean_batch(data.pos, data.batch)
+    return data
+
+
 @registry.register_model("equiformer_v2")
 class EquiformerV2_OC20(BaseModel):
     """
@@ -186,6 +191,7 @@ class EquiformerV2_OC20(BaseModel):
         avg_degree_hessian=_AVG_DEGREE,
         avg_num_nodes=None,
         num_layers_hessian=0,
+        enable_hessian_head=True,
         # if to also use atom type embedding or just relative distances for edge features
         # in edge_distance
         cutoff_hessian=100.0,
@@ -284,6 +290,7 @@ class EquiformerV2_OC20(BaseModel):
         self.proj_drop = proj_drop
         self.hessian_no_attn_weights = hessian_no_attn_weights
         self.attn_wo_sigmoid = attn_wo_sigmoid
+        self.enable_hessian_head = enable_hessian_head
 
         self.weight_init = weight_init
         assert self.weight_init in ["normal", "uniform"]
@@ -454,128 +461,129 @@ class EquiformerV2_OC20(BaseModel):
         self.cutoff_hessian = cutoff_hessian
         self.fully_connected_hessian = fully_connected_hessian
         self.hessian_module_list = []
-
-        # Initialize the module that compute WignerD matrices and other values for spherical harmonic calculations
-        self.SO3_rotation_hessian = torch.nn.ModuleList()
-        for i in range(self.num_resolutions):
-            self.SO3_rotation_hessian.append(SO3_Rotation(self.lmax_list[i]))
-        # self.hessian_module_list.append("SO3_rotation_hessian") # no trainable parameters
-
-        self.distance_expansion_hessian = GaussianSmearing(
-            start=0.0,
-            stop=self.cutoff_hessian,
-            num_gaussians=600,  # 600,
-            basis_width_scalar=2.0,
-        )
-        # self.hessian_module_list.append("distance_expansion_hessian") # no trainable parameters
-
-        # Initialize the sizes of radial functions (input channels and 2 hidden channels)
-        self.edge_channels_list_hessian = [
-            int(self.distance_expansion_hessian.num_output)
-        ] + [self.edge_channels] * 2
-
         self.avg_degree_hessian = avg_degree_hessian
 
-        # not used?
-        # Edge-degree embedding for initializing node features
-        self.edge_degree_embedding_hessian = EdgeDegreeEmbedding(
-            self.sphere_channels,
-            self.lmax_list,
-            self.mmax_list,
-            self.SO3_rotation_hessian,
-            self.mappingReduced,
-            self.max_num_elements,
-            self.edge_channels_list_hessian,
-            self.block_use_atom_edge_embedding,
-            rescale_factor=avg_degree_hessian,
-        )
-        self.hessian_module_list.append("edge_degree_embedding_hessian")
-
-        self.hessian_module_list += [
-            "hessian_layers",
-            "hessian_head",
-            "hessian_edge_message_proj",
-            "hessian_node_proj",
-        ]
-        # Initialize the blocks for each layer of EquiformerV2
-        self.hessian_layers = torch.nn.ModuleList()
         self.num_layers_hessian = num_layers_hessian
-        for i in range(self.num_layers_hessian):
-            hessian_block = TransBlockV2(
-                self.sphere_channels,
-                self.attn_hidden_channels,
-                self.num_heads,
-                self.attn_alpha_channels,
-                self.attn_value_channels,
-                self.ffn_hidden_channels,
+
+        if self.enable_hessian_head:
+            # Initialize the module that compute WignerD matrices and other values for spherical harmonic calculations
+            self.SO3_rotation_hessian = torch.nn.ModuleList()
+            for i in range(self.num_resolutions):
+                self.SO3_rotation_hessian.append(SO3_Rotation(self.lmax_list[i]))
+            # self.hessian_module_list.append("SO3_rotation_hessian") # no trainable parameters
+
+            self.distance_expansion_hessian = GaussianSmearing(
+                start=0.0,
+                stop=self.cutoff_hessian,
+                num_gaussians=600,  # 600,
+                basis_width_scalar=2.0,
+            )
+            # self.hessian_module_list.append("distance_expansion_hessian") # no trainable parameters
+
+            # Initialize the sizes of radial functions (input channels and 2 hidden channels)
+            self.edge_channels_list_hessian = [
+                int(self.distance_expansion_hessian.num_output)
+            ] + [self.edge_channels] * 2
+
+            # not used?
+            # Edge-degree embedding for initializing node features
+            self.edge_degree_embedding_hessian = EdgeDegreeEmbedding(
                 self.sphere_channels,
                 self.lmax_list,
                 self.mmax_list,
                 self.SO3_rotation_hessian,
                 self.mappingReduced,
-                self.SO3_grid,
                 self.max_num_elements,
                 self.edge_channels_list_hessian,
                 self.block_use_atom_edge_embedding,
-                self.use_m_share_rad,
-                self.attn_activation,
-                self.use_s2_act_attn,
-                self.use_attn_renorm,
-                self.ffn_activation,
-                self.use_gate_act,
-                self.use_grid_mlp,
-                self.use_sep_s2_act,
-                self.norm_type,
-                alpha_drop=0.0,
-                drop_path_rate=0.0,
-                proj_drop=0.0,
+                rescale_factor=avg_degree_hessian,
             )
-            self.hessian_layers.append(hessian_block)
-        # copied from force prediction head
-        self.hessian_head = SO2EquivariantGraphAttention(
-            sphere_channels=self.sphere_channels,
-            hidden_channels=self.attn_hidden_channels,
-            num_heads=self.num_heads,
-            attn_alpha_channels=self.attn_alpha_channels,
-            attn_value_channels=self.attn_value_channels,
-            # different output_channels affects the linear projection after aggregating the messages
-            # not relevant for us
-            output_channels=1,  # self.sphere_channels
-            lmax_list=self.lmax_list,
-            mmax_list=self.mmax_list,
-            SO3_rotation=self.SO3_rotation_hessian,
-            mappingReduced=self.mappingReduced,
-            SO3_grid=self.SO3_grid,
-            max_num_elements=self.max_num_elements,
-            edge_channels_list=self.edge_channels_list_hessian,
-            # Whether to use atomic embedding for edge scalar features
-            # or just relative distance
-            # different: use_atom_edge_embedding vs block_use_atom_edge_embedding
-            use_atom_edge_embedding=self.block_use_atom_edge_embedding,
-            use_m_share_rad=self.use_m_share_rad,
-            activation=self.attn_activation,
-            use_s2_act_attn=self.use_s2_act_attn,  # ?
-            use_attn_renorm=self.use_attn_renorm,  # True
-            use_gate_act=self.use_gate_act,  # False -> use S2 activation
-            use_sep_s2_act=self.use_sep_s2_act,  # True -> use Separable S2 activation
-            alpha_drop=0.0,
-        )
-        self.hessian_edge_message_proj = SO3_LinearV2(
-            in_features=self.num_heads * self.attn_value_channels,
-            out_features=1,
-            lmax=2,
-        )
-        self.hessian_node_proj = SO3_LinearV2(
-            in_features=self.sphere_channels,
-            out_features=1,
-            lmax=2,
-        )
-        self.register_buffer(
-            "hessian_cartesian_basis",
-            get_cartesian_wigner_3j_basis(dtype=torch.get_default_dtype()),
-            persistent=False,
-        )
-        self._get_hessian_from_features = blocks3x3_to_hessian
+            self.hessian_module_list.append("edge_degree_embedding_hessian")
+
+            self.hessian_module_list += [
+                "hessian_layers",
+                "hessian_head",
+                "hessian_edge_message_proj",
+                "hessian_node_proj",
+            ]
+            # Initialize the blocks for each layer of EquiformerV2
+            self.hessian_layers = torch.nn.ModuleList()
+            for i in range(self.num_layers_hessian):
+                hessian_block = TransBlockV2(
+                    self.sphere_channels,
+                    self.attn_hidden_channels,
+                    self.num_heads,
+                    self.attn_alpha_channels,
+                    self.attn_value_channels,
+                    self.ffn_hidden_channels,
+                    self.sphere_channels,
+                    self.lmax_list,
+                    self.mmax_list,
+                    self.SO3_rotation_hessian,
+                    self.mappingReduced,
+                    self.SO3_grid,
+                    self.max_num_elements,
+                    self.edge_channels_list_hessian,
+                    self.block_use_atom_edge_embedding,
+                    self.use_m_share_rad,
+                    self.attn_activation,
+                    self.use_s2_act_attn,
+                    self.use_attn_renorm,
+                    self.ffn_activation,
+                    self.use_gate_act,
+                    self.use_grid_mlp,
+                    self.use_sep_s2_act,
+                    self.norm_type,
+                    alpha_drop=0.0,
+                    drop_path_rate=0.0,
+                    proj_drop=0.0,
+                )
+                self.hessian_layers.append(hessian_block)
+            # copied from force prediction head
+            self.hessian_head = SO2EquivariantGraphAttention(
+                sphere_channels=self.sphere_channels,
+                hidden_channels=self.attn_hidden_channels,
+                num_heads=self.num_heads,
+                attn_alpha_channels=self.attn_alpha_channels,
+                attn_value_channels=self.attn_value_channels,
+                # different output_channels affects the linear projection after aggregating the messages
+                # not relevant for us
+                output_channels=1,  # self.sphere_channels
+                lmax_list=self.lmax_list,
+                mmax_list=self.mmax_list,
+                SO3_rotation=self.SO3_rotation_hessian,
+                mappingReduced=self.mappingReduced,
+                SO3_grid=self.SO3_grid,
+                max_num_elements=self.max_num_elements,
+                edge_channels_list=self.edge_channels_list_hessian,
+                # Whether to use atomic embedding for edge scalar features
+                # or just relative distance
+                # different: use_atom_edge_embedding vs block_use_atom_edge_embedding
+                use_atom_edge_embedding=self.block_use_atom_edge_embedding,
+                use_m_share_rad=self.use_m_share_rad,
+                activation=self.attn_activation,
+                use_s2_act_attn=self.use_s2_act_attn,  # ?
+                use_attn_renorm=self.use_attn_renorm,  # True
+                use_gate_act=self.use_gate_act,  # False -> use S2 activation
+                use_sep_s2_act=self.use_sep_s2_act,  # True -> use Separable S2 activation
+                alpha_drop=0.0,
+            )
+            self.hessian_edge_message_proj = SO3_LinearV2(
+                in_features=self.num_heads * self.attn_value_channels,
+                out_features=1,
+                lmax=2,
+            )
+            self.hessian_node_proj = SO3_LinearV2(
+                in_features=self.sphere_channels,
+                out_features=1,
+                lmax=2,
+            )
+            self.register_buffer(
+                "hessian_cartesian_basis",
+                get_cartesian_wigner_3j_basis(dtype=torch.get_default_dtype()),
+                persistent=False,
+            )
+            self._get_hessian_from_features = blocks3x3_to_hessian
 
         self.apply(self._init_weights)
         self.apply(self._uniform_init_rad_func_linear_weights)
@@ -715,6 +723,11 @@ class EquiformerV2_OC20(BaseModel):
                 hessian: (B*N*3*N*3)
         """
         otf_graph = self.otf_graph if otf_graph is None else otf_graph
+        if hessian and not self.enable_hessian_head:
+            raise ValueError(
+                "This EquiformerV2 checkpoint was loaded with enable_hessian_head=False. "
+                "Use hessian=False and compute autograd Hessians from the returned forces."
+            )
         require_force_grads = self.regress_forces and not self.direct_forces
         force_create_graph = require_force_grads and (self.training or hessian)
         grad_context = torch.enable_grad() if require_force_grads else nullcontext()
@@ -723,9 +736,6 @@ class EquiformerV2_OC20(BaseModel):
         with grad_context:
             if require_force_grads:
                 original_pos = original_pos.requires_grad_(True)
-
-            # I know we are equivariant, but this improves accuracy a tiny bit
-            data.pos = remove_mean_batch(original_pos, data.batch)
 
             self.batch_size = len(data.natoms)
             self.dtype = data.pos.dtype
@@ -749,16 +759,17 @@ class EquiformerV2_OC20(BaseModel):
             #     edge_distance_vec,  # [E, 3]
             # ) = self.generate_graph_nopbc(data, otf_graph=otf_graph)
 
-            # Generate graph for Hessian prediction
-            if otf_graph or not hasattr(data, "nedges_hessian"):
-                data = add_hessian_graph_batch(
-                    data,
-                    cutoff=self.cutoff_hessian,
-                    use_pbc=False,
-                    fully_connected=self.fully_connected_hessian,
-                )
-            else:
-                data = add_extra_props_for_hessian(data)
+            if hessian:
+                # Generate graph for direct Hessian prediction.
+                if otf_graph or not hasattr(data, "nedges_hessian"):
+                    data = add_hessian_graph_batch(
+                        data,
+                        cutoff=self.cutoff_hessian,
+                        use_pbc=False,
+                        fully_connected=self.fully_connected_hessian,
+                    )
+                else:
+                    data = add_extra_props_for_hessian(data)
 
             ###############################################################
             # Initialize data structures

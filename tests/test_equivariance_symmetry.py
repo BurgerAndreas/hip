@@ -8,6 +8,7 @@ from torch_geometric.data import Batch as TGBatch
 from hip.training_module import PotentialModule
 from hip.ff_lmdb import LmdbDataset
 from hip.path_config import fix_dataset_path
+from nets.equiformer_v2.equiformer_v2_oc20 import center_batch_positions
 
 
 def _compose_cfg():
@@ -55,6 +56,8 @@ def test_equivariance_energy_forces_hessian():
     cfg = _compose_cfg()
     pm, batch_base = _get_pm_and_batch(cfg)
 
+    batch_base = center_batch_positions(batch_base)
+
     # Base forward
     e1, f1, out1 = pm.potential.forward(batch_base, hessian=True, otf_graph=True)
     N = int(batch_base.natoms.sum().item())
@@ -64,6 +67,7 @@ def test_equivariance_energy_forces_hessian():
     R = _random_rotation(device=batch_base.pos.device, dtype=batch_base.pos.dtype)
     batch_rot = batch_base.clone()
     batch_rot.pos = batch_rot.pos @ R
+    batch_rot = center_batch_positions(batch_rot)
     e2, f2, out2 = pm.potential.forward(batch_rot, hessian=True, otf_graph=True)
     H2 = out2["hessian"].reshape(N * 3, N * 3)
 
@@ -104,6 +108,7 @@ def test_equivariance_energy_forces_hessian():
 def test_hessian_symmetry():
     cfg = _compose_cfg()
     pm, batch = _get_pm_and_batch(cfg)
+    batch = center_batch_positions(batch)
     e, f, out = pm.potential.forward(batch, hessian=True, otf_graph=True)
     N = int(batch.natoms.sum().item())
     H = out["hessian"].reshape(N * 3, N * 3)

@@ -19,7 +19,10 @@ from torch.optim.lr_scheduler import (
 from hip.lrscheduler import StepLR, CosineAnnealingLR
 
 from lightning.pytorch import LightningModule
-from nets.equiformer_v2.equiformer_v2_oc20 import EquiformerV2_OC20
+from nets.equiformer_v2.equiformer_v2_oc20 import (
+    EquiformerV2_OC20,
+    center_batch_positions,
+)
 from ocpmodels.hessian_graph_transform import (
     HessianGraphTransform,
 )
@@ -432,8 +435,9 @@ class PotentialModule(LightningModule):
         info = {}
         # batch.pos.requires_grad_()
 
+        batch = center_batch_positions(batch.to(self.device))
         hat_ae, hat_forces, outputs = self.potential.forward(
-            batch.to(self.device),
+            batch,
             hessian=self.do_hessian,
             otf_graph=self.training_config["otfgraph_in_model"],
         )

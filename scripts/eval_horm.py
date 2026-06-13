@@ -12,6 +12,7 @@ from torch_geometric.loader import DataLoader as TGDataLoader
 from hip.training_module import PotentialModule
 from hip.ff_lmdb import LmdbDataset, Z_TO_ATOM_SYMBOL
 from hip.path_config import fix_dataset_path
+from nets.equiformer_v2.equiformer_v2_oc20 import center_batch_positions
 
 from hip.frequency_analysis import analyze_frequencies_np
 
@@ -135,7 +136,7 @@ def evaluate(
         for _i, batch in tqdm(enumerate(dataloader), desc="Warmup", total=10):
             if _i >= 10:
                 break
-            batch = batch.to(device)
+            batch = center_batch_positions(batch.to(device))
 
             n_atoms = batch.pos.shape[0]
 
@@ -163,7 +164,7 @@ def evaluate(
         start_event_all.record()
 
         for batch in tqdm(dataloader, desc="Evaluating", total=n_total_samples):
-            batch = batch.to(device)
+            batch = center_batch_positions(batch.to(device))
 
             n_atoms = batch.pos.shape[0]
 

@@ -16,6 +16,7 @@ potential_module_class: "PotentialModule"
 model:
   hessian_alpha_drop: 0.0
   num_layers_hessian: 1
+  enable_hessian_head: true
 
   max_radius: 5.0
   max_neighbors: 32

@@ -28,6 +28,7 @@ from hip.frequency_analysis import (
     analyze_frequencies_np,
     massweigh_and_eckartprojection_np,
 )
+from nets.equiformer_v2.equiformer_v2_oc20 import center_batch_positions
 
 
 def ase_atoms_to_torch_geometric(atoms):
@@ -144,6 +145,7 @@ class EquiformerASECalculator(ASECalculator):
         # adds graph and Hessian indices
         batch = ase_atoms_to_torch_geometric(atoms)
         batch = batch.to(self.device)
+        batch = center_batch_positions(batch)
 
         # Store results
         self.results = {}
@@ -156,6 +158,7 @@ class EquiformerASECalculator(ASECalculator):
                 energy, forces, _ = self.potential.forward(
                     batch,
                     otf_graph=True,
+                    hessian=False,
                 )
                 # Use autograd to compute hessian
                 hessian = compute_hessian(
@@ -169,6 +172,7 @@ class EquiformerASECalculator(ASECalculator):
                 energy, forces, out = self.potential.forward(
                     batch,
                     otf_graph=True,
+                    hessian=True,
                 )
                 hessian = out["hessian"]
 

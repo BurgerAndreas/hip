@@ -9,6 +9,7 @@ from torch_geometric.loader import DataLoader as TGDataLoader
 from hip.ff_lmdb import LmdbDataset
 from hip.path_config import fix_dataset_path
 from hip.training_module import PotentialModule
+from nets.equiformer_v2.equiformer_v2_oc20 import center_batch_positions
 
 
 def parse_args():
@@ -141,6 +142,7 @@ def load_device_batches(args, device):
 
 
 def forward_once(model, batch, args):
+    batch = center_batch_positions(batch)
     with record_function("hip_equiformer_forward"):
         energy, forces, outputs = model.forward(
             batch,
