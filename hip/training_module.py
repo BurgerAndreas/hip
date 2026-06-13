@@ -1,7 +1,6 @@
 from typing import Dict, List, Optional, Tuple, Any, Mapping
 from collections.abc import Iterable
 from omegaconf import ListConfig, OmegaConf
-import os
 import time
 import warnings
 from pathlib import Path
@@ -30,8 +29,7 @@ from hip.qm9_hessian_dataset import QM9HessianDataset
 from hip.utils import average_over_batch_metrics
 
 # import hip.utils as diff_utils
-import yaml
-from hip.path_config import find_project_root, fix_dataset_path
+from hip.path_config import fix_dataset_path
 from hip.loss_functions import (
     get_hessian_eigen_loss_fn,
     get_eigval_eigvec_metrics,
@@ -95,17 +93,7 @@ class PotentialModule(LightningModule):
         if self.model_config["name"] != "EquiformerV2":
             raise ValueError("HIP only supports model_config.name='EquiformerV2'")
 
-        root_dir = find_project_root()
-        config_path = os.path.join(root_dir, "configs/equiformer_v2.yaml")
-        if not os.path.exists(config_path):
-            config_path = os.path.join(root_dir, "equiformer_v2.yaml")
-        if not os.path.exists(config_path):
-            raise FileNotFoundError(f"Config file not found at {config_path}")
-        with open(config_path, "r") as file:
-            config = yaml.safe_load(file)
-        model_config = config["model"]
-        model_config.update(self.model_config)
-        self.potential = EquiformerV2_OC20(**model_config)
+        self.potential = EquiformerV2_OC20(**self.model_config)
         self.pos_require_grad = False
 
         self.val_step_outputs = []

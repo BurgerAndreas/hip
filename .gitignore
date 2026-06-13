@@ -81,6 +81,7 @@ Data/RGD1
 *.log
 *.traj
 *.xyz
+*.bak
 
 # C extensions
 *.so
