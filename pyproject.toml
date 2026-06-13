@@ -32,6 +32,9 @@ dependencies = [
     "lmdb==1.5.1",
     "muon-optimizer @ git+https://github.com/KellerJordan/Muon",
     "datasets>=4.4.1",
+    "transition1x",
+    "xyzrender",
+    "h5py>=3.16.0",
 ]
 
 [project.optional-dependencies]
@@ -71,6 +74,8 @@ torch = [
   { index = "pytorch-cu121", extra = "cuda121", marker = "sys_platform == 'linux' or sys_platform == 'win32'" },
   { index = "pytorch-cu126", extra = "cuda126", marker = "sys_platform == 'linux' or sys_platform == 'win32'" },
 ]
+transition1x = { git = "https://gitlab.com/matschreiner/Transition1x.git" }
+xyzrender = { git = "https://github.com/aligfellow/xyzrender.git" }
 
 [tool.uv]
 default-groups = ["cuda121"]
