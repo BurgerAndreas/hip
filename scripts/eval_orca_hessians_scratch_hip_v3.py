@@ -87,9 +87,9 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--max-samples", type=int, default=None)
     parser.add_argument("--shard-index", type=int, default=None)
     parser.add_argument("--shard-size", type=int, default=None)
-    parser.add_argument("--cutoff", type=float, default=16.0)
-    parser.add_argument("--cutoff-hessian", type=float, default=16.0)
-    parser.add_argument("--max-neighbors", type=int, default=100000)
+    parser.add_argument("--cutoff", type=float, default=None)
+    parser.add_argument("--cutoff-hessian", type=float, default=None)
+    parser.add_argument("--max-neighbors", type=int, default=None)
     parser.add_argument("--redo", action="store_true")
     return parser.parse_args()
 
@@ -372,9 +372,19 @@ def main() -> None:
     module = load_module_for_inference(checkpoint_path, device)
     model = module.potential.to(device)
     model.eval()
-    model.cutoff = args.cutoff
-    model.cutoff_hessian = args.cutoff_hessian
-    model.max_neighbors = args.max_neighbors
+    if args.cutoff is not None:
+        model.cutoff = args.cutoff
+    if args.cutoff_hessian is not None:
+        model.cutoff_hessian = args.cutoff_hessian
+    if args.max_neighbors is not None:
+        model.max_neighbors = args.max_neighbors
+    print(
+        "Effective graph settings: "
+        f"cutoff={model.cutoff}, "
+        f"cutoff_hessian={model.cutoff_hessian}, "
+        f"max_neighbors={model.max_neighbors}, "
+        f"fully_connected_hessian={getattr(model, 'fully_connected_hessian', None)}"
+    )
 
     print(f"Evaluating {len(h5_paths)} Hugging Face ORCA HDF5 files")
     print(f"Writing per-sample metrics to {results_path}")
