@@ -13,6 +13,9 @@ Icon
 qm_calcs/
 scratch/
 external/
+runs/
+baseline_outputs/
+orca_*/
 
 orca_hessians/
 
@@ -35,6 +38,7 @@ results_*/
 *.out
 slurm_logs/
 hf_hip/
+*.svg
 
 _docs
 _docs/*

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import csv
+import re
 from pathlib import Path
 
 import numpy as np
@@ -33,6 +34,11 @@ def _default_transition1x_h5() -> Path:
 
 def _default_checkpoint() -> Path:
     return _project_root() / "ckpt" / "hip_v2.ckpt"
+
+
+def _safe_label(label: str) -> str:
+    safe = re.sub(r"[^A-Za-z0-9_.-]+", "_", label.strip())
+    return safe.strip("_") or "model"
 
 
 def _float_grid(start: float, stop: float, n: int) -> np.ndarray:
@@ -137,15 +143,18 @@ def run_hip_predictions(
     atomsymbols: list[str],
     checkpoint: Path,
     device: str,
-) -> tuple[pd.DataFrame, np.ndarray, np.ndarray, np.ndarray]:
+    hessian_method: str,
+    model_label: str,
+) -> tuple[pd.DataFrame, np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
     calculator = EquiformerTorchCalculator(
         checkpoint_path=str(checkpoint),
-        hessian_method="predict",
+        hessian_method=hessian_method,
         device=device,
     )
     atomic_nums_t = torch.tensor(atomic_nums, dtype=torch.long, device=device)
 
     rows: list[dict[str, object]] = []
+    energies: list[float] = []
     hessians: list[np.ndarray] = []
     forces_out: list[np.ndarray] = []
     eigvec0_out: list[np.ndarray] = []
@@ -164,6 +173,7 @@ def run_hip_predictions(
         else:
             energy_value = float("nan") if energy is None else float(energy)
 
+        energies.append(energy_value)
         freq = analyze_frequencies_torch(
             hessian.double(),
             coords.double(),
@@ -184,24 +194,26 @@ def run_hip_predictions(
                 if key not in {"coords"}
             }
             | {
-                "hip_v2_energy": energy_value,
-                "hip_v2_fmax": force_max(forces),
-                "hip_v2_n_negative_vib": count_negative_eigenvalues(evals_vib),
-                "hip_v2_eig0": float(evals_vib[0].detach().cpu().item()),
-                "hip_v2_eig1": float(evals_vib[1].detach().cpu().item()),
-                "hip_v2_eig2": float(evals_vib[2].detach().cpu().item()),
+                f"{model_label}_energy": energy_value,
+                f"{model_label}_fmax": force_max(forces),
+                f"{model_label}_n_negative_vib": count_negative_eigenvalues(evals_vib),
+                f"{model_label}_eig0": float(evals_vib[0].detach().cpu().item()),
+                f"{model_label}_eig1": float(evals_vib[1].detach().cpu().item()),
+                f"{model_label}_eig2": float(evals_vib[2].detach().cpu().item()),
             }
         )
 
     return (
         pd.DataFrame(rows),
+        np.asarray(energies, dtype=np.float64),
         np.stack(hessians, axis=0),
         np.stack(forces_out, axis=0),
         np.stack(eigvec0_out, axis=0),
     )
 
 
-def write_hip_energy_tables(hip_df: pd.DataFrame, out_dir: Path) -> None:
+def write_energy_tables(predictions_df: pd.DataFrame, out_dir: Path, output_prefix: str, model_label: str) -> None:
+    energy_col = f"{model_label}_energy"
     energy_cols = [
         "grid_id",
         "split",
@@ -214,14 +226,14 @@ def write_hip_energy_tables(hip_df: pd.DataFrame, out_dir: Path) -> None:
         "q_oh",
         "xyz_path",
         "orca_input_path",
-        "hip_v2_energy",
+        energy_col,
     ]
-    energy_df = hip_df[energy_cols].copy()
-    energy_df["hip_v2_energy_relative"] = (
-        energy_df["hip_v2_energy"] - energy_df["hip_v2_energy"].min()
+    energy_df = predictions_df[energy_cols].copy()
+    energy_df[f"{model_label}_energy_relative"] = (
+        energy_df[energy_col] - energy_df[energy_col].min()
     )
-    energy_df.to_parquet(out_dir / "hip_v2_energies.parquet", index=False)
-    energy_df.to_csv(out_dir / "hip_v2_energies.csv", index=False)
+    energy_df.to_parquet(out_dir / f"{output_prefix}_energies.parquet", index=False)
+    energy_df.to_csv(out_dir / f"{output_prefix}_energies.csv", index=False)
 
 
 def main() -> None:
@@ -229,6 +241,9 @@ def main() -> None:
     parser.add_argument("--h5", type=Path, default=_default_transition1x_h5())
     parser.add_argument("--checkpoint", type=Path, default=_default_checkpoint())
     parser.add_argument("--output-dir", type=Path, default=Path("runs/glycine_pt_scan"))
+    parser.add_argument("--model-label", default="hip_v2")
+    parser.add_argument("--output-prefix", default=None)
+    parser.add_argument("--hessian-method", choices=["predict", "autograd"], default="predict")
     parser.add_argument("--q-nh-min", type=float, default=1.0)
     parser.add_argument("--q-nh-max", type=float, default=2.30)
     parser.add_argument("--q-oh-min", type=float, default=0.95)
@@ -239,11 +254,13 @@ def main() -> None:
     parser.add_argument("--multiplicity", type=int, default=1)
     parser.add_argument(
         "--orca-route",
-        default="! wB97X-D3 6-31G(d) TightSCF Grid5 FinalGrid6 Freq",
+        default="! wB97X-D3 6-31G(d) TightSCF EnGrad Freq",
     )
     args = parser.parse_args()
 
     out_dir = args.output_dir
+    model_label = _safe_label(args.model_label)
+    output_prefix = _safe_label(args.output_prefix or model_label)
     xyz_dir = out_dir / "xyz"
     orca_dir = out_dir / "orca_inputs"
     xyz_dir.mkdir(parents=True, exist_ok=True)
@@ -321,19 +338,22 @@ def main() -> None:
                 list_handle.write(f"{row['orca_input_path']}\n")
                 grid_id += 1
 
-    hip_df, hessians, forces, eigvec0 = run_hip_predictions(
+    predictions_df, energies, hessians, forces, eigvec0 = run_hip_predictions(
         grid_rows,
         atomic_nums,
         symbols,
         args.checkpoint,
         args.device,
+        args.hessian_method,
+        model_label,
     )
-    hip_df.to_parquet(out_dir / "hip_v2_predictions.parquet", index=False)
-    hip_df.to_csv(out_dir / "hip_v2_predictions.csv", index=False)
-    write_hip_energy_tables(hip_df, out_dir)
+    predictions_df.to_parquet(out_dir / f"{output_prefix}_predictions.parquet", index=False)
+    predictions_df.to_csv(out_dir / f"{output_prefix}_predictions.csv", index=False)
+    write_energy_tables(predictions_df, out_dir, output_prefix, model_label)
     np.savez_compressed(
-        out_dir / "hip_v2_arrays.npz",
+        out_dir / f"{output_prefix}_arrays.npz",
         atomic_numbers=atomic_nums,
+        energies=energies,
         hessians_cartesian=hessians,
         forces=forces,
         unstable_modes_mw=eigvec0,
@@ -348,6 +368,8 @@ def main() -> None:
         "o_atom": O_ATOM,
         "h_atom": H_ATOM,
         "checkpoint": str(args.checkpoint),
+        "model_label": model_label,
+        "hessian_method": args.hessian_method,
         "orca_route": args.orca_route,
         "charge": args.charge,
         "multiplicity": args.multiplicity,
@@ -362,8 +384,8 @@ def main() -> None:
     print(f"Manifest: {manifest_path}")
     print(f"ORCA input list: {orca_input_list_path}")
     print(f"ORCA inputs: {orca_dir}")
-    print(f"HIP predictions: {out_dir / 'hip_v2_predictions.parquet'}")
-    print(f"HIP arrays: {out_dir / 'hip_v2_arrays.npz'}")
+    print(f"Predictions: {out_dir / f'{output_prefix}_predictions.parquet'}")
+    print(f"Arrays: {out_dir / f'{output_prefix}_arrays.npz'}")
 
 
 if __name__ == "__main__":

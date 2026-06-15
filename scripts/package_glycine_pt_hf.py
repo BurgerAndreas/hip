@@ -14,7 +14,7 @@ import numpy as np
 import pandas as pd
 
 
-DATASET_NAME = "orca_wb97x_631gd_glycine_pt_nh_oh_scan_80"
+DATASET_NAME = "orca_wb97x_631gd_glycine_pt_nh_oh_scan_1285"
 
 
 def parse_engrad(path: Path) -> tuple[int, float, np.ndarray, np.ndarray, np.ndarray]:
@@ -76,21 +76,24 @@ def copy_xyz_files(scan_dir: Path, out_dir: Path) -> None:
             shutil.copy2(src, xyz_dir / name)
 
 
-def write_raw_archive(scan_dir: Path, out_dir: Path) -> None:
+def write_raw_archive(scan_dir: Path, out_dir: Path, orca_output_dir: Path, orca_engrad_dir: Path) -> None:
     raw_dir = out_dir / "raw"
     raw_dir.mkdir(parents=True, exist_ok=True)
     archive = raw_dir / "orca_outputs.tar.gz"
     with tarfile.open(archive, "w:gz") as tar:
-        for path in sorted((scan_dir / "orca_outputs").glob("*")):
+        for path in sorted(orca_output_dir.glob("*")):
+            if path.is_file():
+                tar.add(path, arcname=f"orca_outputs/{path.name}")
+        for path in sorted(orca_engrad_dir.glob("*.engrad")):
             if path.is_file():
                 tar.add(path, arcname=f"orca_outputs/{path.name}")
 
 
-def write_readme(out_dir: Path) -> None:
+def write_readme(out_dir: Path, n_samples: int) -> None:
     (out_dir / "README.md").write_text(
-        """# ORCA wB97X/6-31G(d) Glycine Proton-Transfer Scan
+        f"""# ORCA wB97X/6-31G(d) Glycine Proton-Transfer Scan
 
-This folder contains 80 ORCA analytical Hessian calculations for a 2D scan of
+This folder contains {n_samples} ORCA analytical Hessian calculations for a 2D scan of
 glycine intramolecular proton transfer.
 
 - Source reaction: Transition1x `test` split, `sample_id=5`, `rxn1961`
@@ -103,7 +106,9 @@ glycine intramolecular proton transfer.
   the transferring H atom is moved to satisfy the two scan distances.
 - Geometry files: `xyz/*.xyz` in Angstrom
 - Targets: `h5/glycine_pt_scan.h5`
-- Raw ORCA outputs: `raw/orca_outputs.tar.gz`
+- Raw ORCA outputs: `raw/orca_outputs.tar.gz`; Hessian outputs and `.hess`
+  files come from the analytical-frequency runs, and `.engrad` files come from
+  matching gradient-only ORCA runs.
 
 The HDF5 file uses atomic units for model targets:
 `coordinates_bohr`, `energy_hartree`, `gradient_hartree_per_bohr`,
@@ -119,14 +124,36 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--scan-dir", type=Path, default=Path("runs/glycine_pt_scan"))
     parser.add_argument(
+        "--orca-output-dir",
+        type=Path,
+        default=None,
+        help="Directory containing ORCA Hessian outputs. Defaults to scan-dir/orca_outputs.",
+    )
+    parser.add_argument(
+        "--orca-engrad-dir",
+        type=Path,
+        default=None,
+        help=(
+            "Directory containing ORCA .engrad files. Defaults to --orca-output-dir, "
+            "or scan-dir/orca_engrad_outputs when present."
+        ),
+    )
+    parser.add_argument("--dataset-name", default=DATASET_NAME)
+    parser.add_argument(
         "--output-dir",
         type=Path,
-        default=Path("runs/hf_upload") / DATASET_NAME,
+        default=None,
     )
     args = parser.parse_args()
 
     scan_dir = args.scan_dir
-    out_dir = args.output_dir
+    orca_output_dir = args.orca_output_dir or scan_dir / "orca_outputs"
+    orca_engrad_dir = args.orca_engrad_dir or (
+        scan_dir / "orca_engrad_outputs"
+        if (scan_dir / "orca_engrad_outputs").exists()
+        else orca_output_dir
+    )
+    out_dir = args.output_dir or Path("runs/hf_upload") / args.dataset_name
     if out_dir.exists():
         shutil.rmtree(out_dir)
     (out_dir / "h5").mkdir(parents=True)
@@ -159,8 +186,8 @@ def main() -> None:
 
     for row in rows.to_dict(orient="records"):
         stem = Path(row["orca_input_path"]).stem
-        engrad_path = scan_dir / "orca_outputs" / f"{stem}.engrad"
-        hess_path = scan_dir / "orca_outputs" / f"{stem}.hess"
+        engrad_path = orca_engrad_dir / f"{stem}.engrad"
+        hess_path = orca_output_dir / f"{stem}.hess"
         n_atoms, energy, gradient, coords_bohr, atomic_numbers = parse_engrad(engrad_path)
         hessian = parse_hessian(hess_path)
         if hessian.shape != (3 * n_atoms, 3 * n_atoms):
@@ -195,7 +222,7 @@ def main() -> None:
         h5.create_dataset("q_nh_angstrom", data=rows["q_nh"].to_numpy(dtype=np.float64))
         h5.create_dataset("q_oh_angstrom", data=rows["q_oh"].to_numpy(dtype=np.float64))
         h5.create_dataset("grid_id", data=rows["grid_id"].to_numpy(dtype=np.int64))
-        h5.attrs["dataset"] = DATASET_NAME
+        h5.attrs["dataset"] = args.dataset_name
         h5.attrs["method"] = "wB97X"
         h5.attrs["basis"] = "6-31G(d)"
         h5.attrs["charge"] = 0
@@ -236,7 +263,7 @@ def main() -> None:
         writer.writerows(metadata_rows)
 
     summary = {
-        "dataset": DATASET_NAME,
+        "dataset": args.dataset_name,
         "num_samples": int(len(rows)),
         "atom_counts": {"min": 10, "max": 10},
         "source": {
@@ -273,8 +300,8 @@ def main() -> None:
     )
 
     copy_xyz_files(scan_dir, out_dir)
-    write_raw_archive(scan_dir, out_dir)
-    write_readme(out_dir)
+    write_raw_archive(scan_dir, out_dir, orca_output_dir, orca_engrad_dir)
+    write_readme(out_dir, len(rows))
 
     print(f"Wrote {out_dir}")
     print(f"HDF5: {h5_path}")
