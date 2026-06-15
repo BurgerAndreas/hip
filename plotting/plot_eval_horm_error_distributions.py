@@ -17,6 +17,9 @@ import pandas as pd
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt  # noqa: E402
+import seaborn as sns  # noqa: E402
+
+from plot_style import AD_COLOR, ACCENT_COLOR, HIP_COLOR, SUCCESS_COLOR, finish_axis, model_color
 
 
 DEFAULT_RESULTS = (
@@ -213,21 +216,24 @@ def plot_histograms(
                 values = np.log10(values)
             if len(values) == 0:
                 continue
-            ax.hist(
-                values,
+            sns.histplot(
+                x=values,
+                ax=ax,
                 bins=bins,
-                histtype="step",
-                density=True,
+                stat="density",
+                element="step",
+                fill=False,
                 linewidth=1.8,
+                color=model_color(result.label),
                 label=f"{result.label} (n={len(values)})",
             )
 
         ax.set_xlabel(f"{metric_label} (log10)" if plot_log_error else metric_label)
         ax.set_ylabel("Density")
-        ax.grid(alpha=0.25)
+        finish_axis(ax)
 
     axes[0].legend(frameon=False)
-    fig.tight_layout()
+    fig.tight_layout(pad=0.01)
     fig.savefig(output_path, dpi=250, bbox_inches="tight")
     plt.close(fig)
 
@@ -280,7 +286,7 @@ def plot_within_model_correlations(
             y = y[keep]
 
             if len(x):
-                ax.scatter(x, y, color="tab:blue", **SCATTER_KWARGS)
+                sns.scatterplot(x=x, y=y, ax=ax, color=model_color(result.label, AD_COLOR), legend=False, **SCATTER_KWARGS)
                 corr = np.corrcoef(np.log10(x + 1e-12), np.log10(y + 1e-12))[0, 1]
                 ax.text(
                     0.03,
@@ -296,9 +302,9 @@ def plot_within_model_correlations(
             if use_log:
                 ax.set_xscale("log")
                 ax.set_yscale("log")
-            ax.grid(alpha=0.2)
+            finish_axis(ax)
 
-    fig.tight_layout()
+    fig.tight_layout(pad=0.01)
     fig.savefig(output_path, dpi=dpi, bbox_inches="tight")
     plt.close(fig)
 
@@ -334,7 +340,7 @@ def plot_model_comparison_correlations(
         y = y[keep]
 
         if len(x):
-            ax.scatter(x, y, color="tab:purple", **SCATTER_KWARGS)
+            sns.scatterplot(x=x, y=y, ax=ax, color=ACCENT_COLOR, legend=False, **SCATTER_KWARGS)
             corr = np.corrcoef(np.log10(x + 1e-12), np.log10(y + 1e-12))[0, 1]
             lo = min(x.min(), y.min())
             hi = max(x.max(), y.max())
@@ -353,9 +359,9 @@ def plot_model_comparison_correlations(
         if use_log:
             ax.set_xscale("log")
             ax.set_yscale("log")
-        ax.grid(alpha=0.2)
+        finish_axis(ax)
 
-    fig.tight_layout()
+    fig.tight_layout(pad=0.01)
     fig.savefig(output_path, dpi=dpi, bbox_inches="tight")
     plt.close(fig)
 
@@ -386,12 +392,7 @@ def plot_single_model_comparison(
 
     fig, ax = plt.subplots(figsize=(5.5, 5))
     if len(x):
-        ax.scatter(
-            x,
-            y,
-            color="tab:blue",
-            **SCATTER_KWARGS,
-        )
+        sns.scatterplot(x=x, y=y, ax=ax, color=AD_COLOR, legend=False, **SCATTER_KWARGS)
         corr_values_x = np.log10(x) if use_log else x
         corr_values_y = np.log10(y) if use_log else y
         corr = np.corrcoef(corr_values_x, corr_values_y)[0, 1]
@@ -413,8 +414,8 @@ def plot_single_model_comparison(
     if use_log:
         ax.set_xscale("log")
         ax.set_yscale("log")
-    ax.grid(alpha=0.2)
-    fig.tight_layout()
+    finish_axis(ax)
+    fig.tight_layout(pad=0.01)
     fig.savefig(output_path, dpi=dpi, bbox_inches="tight")
     plt.close(fig)
 
@@ -450,12 +451,7 @@ def plot_single_model_ratio(
 
     fig, ax = plt.subplots(figsize=(5.5, 4))
     if len(x):
-        ax.scatter(
-            x,
-            ratio,
-            color="tab:purple",
-            **SCATTER_KWARGS,
-        )
+        sns.scatterplot(x=x, y=ratio, ax=ax, color=ACCENT_COLOR, legend=False, **SCATTER_KWARGS)
         median_ratio = float(np.median(ratio))
         ax.axhline(1.0, color="0.25", linewidth=1.0, alpha=0.8)
         ax.text(
@@ -473,8 +469,8 @@ def plot_single_model_ratio(
     if use_log:
         ax.set_xscale("log")
         ax.set_yscale("log")
-    ax.grid(alpha=0.2)
-    fig.tight_layout()
+    finish_axis(ax)
+    fig.tight_layout(pad=0.01)
     fig.savefig(output_path, dpi=dpi, bbox_inches="tight")
     plt.close(fig)
 
@@ -549,7 +545,7 @@ def plot_dft_comparison(
             y = y - offset
 
         if len(x):
-            ax.scatter(x, y, color="tab:blue", **SCATTER_KWARGS)
+            sns.scatterplot(x=x, y=y, ax=ax, color=model_color(result.label, AD_COLOR), legend=False, **SCATTER_KWARGS)
             corr_x = np.log10(x) if use_log_axes else x
             corr_y = np.log10(y) if use_log_axes else y
             corr = np.corrcoef(corr_x, corr_y)[0, 1]
@@ -583,9 +579,9 @@ def plot_dft_comparison(
         if use_log_axes:
             ax.set_xscale("log")
             ax.set_yscale("log")
-        ax.grid(alpha=0.2)
+        finish_axis(ax)
 
-    fig.tight_layout()
+    fig.tight_layout(pad=0.01)
     fig.savefig(output_path, dpi=dpi, bbox_inches="tight")
     plt.close(fig)
     return True
@@ -681,7 +677,7 @@ def plot_force_diagnostics(
             y = y[keep]
 
             if len(x):
-                ax.scatter(x, y, color="tab:green", **SCATTER_KWARGS)
+                sns.scatterplot(x=x, y=y, ax=ax, color=SUCCESS_COLOR, legend=False, **SCATTER_KWARGS)
                 if diagonal:
                     lo = min(x.min(), y.min())
                     hi = max(x.max(), y.max())
@@ -705,9 +701,9 @@ def plot_force_diagnostics(
                 ax.set_xscale("log")
             if use_log and log_y:
                 ax.set_yscale("log")
-            ax.grid(alpha=0.2)
+            finish_axis(ax)
 
-    fig.tight_layout()
+    fig.tight_layout(pad=0.01)
     fig.savefig(output_path, dpi=dpi, bbox_inches="tight")
     plt.close(fig)
     return True
@@ -757,7 +753,7 @@ def plot_eigen_scatter(
 
     fig, ax = plt.subplots(figsize=(5.5, 5))
     if len(x):
-        ax.scatter(x, y, color="tab:blue", **SCATTER_KWARGS)
+        sns.scatterplot(x=x, y=y, ax=ax, color=AD_COLOR, legend=False, **SCATTER_KWARGS)
         corr_x = np.log10(x) if use_log else x
         corr_y = np.log10(y) if use_log else y
         corr = np.corrcoef(corr_x, corr_y)[0, 1]
@@ -779,8 +775,8 @@ def plot_eigen_scatter(
     if use_log:
         ax.set_xscale("log")
         ax.set_yscale("log")
-    ax.grid(alpha=0.2)
-    fig.tight_layout()
+    finish_axis(ax)
+    fig.tight_layout(pad=0.01)
     fig.savefig(output_path, dpi=dpi, bbox_inches="tight")
     plt.close(fig)
 
@@ -801,7 +797,7 @@ def plot_eigen_ratio(
 
     fig, ax = plt.subplots(figsize=(5.5, 4))
     if len(x):
-        ax.scatter(x, ratio, color="tab:purple", **SCATTER_KWARGS)
+        sns.scatterplot(x=x, y=ratio, ax=ax, color=ACCENT_COLOR, legend=False, **SCATTER_KWARGS)
         ax.axhline(1.0, color="0.25", linewidth=1.0, alpha=0.8)
         ax.text(
             0.03,
@@ -818,8 +814,8 @@ def plot_eigen_ratio(
     if use_log:
         ax.set_xscale("log")
         ax.set_yscale("log")
-    ax.grid(alpha=0.2)
-    fig.tight_layout()
+    finish_axis(ax)
+    fig.tight_layout(pad=0.01)
     fig.savefig(output_path, dpi=dpi, bbox_inches="tight")
     plt.close(fig)
 
@@ -882,16 +878,17 @@ def plot_eigen_ratio_by_structure(
         if not data:
             ax.set_axis_off()
             continue
-        ax.boxplot(data, tick_labels=labels, showfliers=False)
+        sns.boxplot(data=data, ax=ax, showfliers=False, color=HIP_COLOR)
+        ax.set_xticks(range(len(labels)), labels=labels)
         ax.axhline(1.0, color="0.25", linewidth=1.0, alpha=0.8)
         ax.set_title(title)
         ax.set_yscale("log")
-        ax.grid(axis="y", alpha=0.2)
+        finish_axis(ax)
 
     axes[0, 0].set_ylabel("HIP / AD")
     axes[1, 0].set_ylabel("HIP / AD")
     fig.suptitle(f"HIP / AD by structure: {metric_label}", y=0.995)
-    fig.tight_layout()
+    fig.tight_layout(pad=0.01)
     fig.savefig(output_path, dpi=dpi, bbox_inches="tight")
     plt.close(fig)
 
@@ -937,7 +934,7 @@ def plot_negative_mode_confusion(
         ax.set_yticks(range(4), labels=labels)
         fig.colorbar(image, ax=ax, fraction=0.046, pad=0.04)
 
-    fig.tight_layout()
+    fig.tight_layout(pad=0.01)
     fig.savefig(output_path, dpi=dpi, bbox_inches="tight")
     plt.close(fig)
 
@@ -967,12 +964,12 @@ def plot_negative_mode_outcomes(
     ]
 
     fig, ax = plt.subplots(figsize=(6.5, 4))
-    ax.bar(labels, counts, color=["tab:green", "tab:blue", "tab:purple", "tab:red"])
+    sns.barplot(x=labels, y=counts, ax=ax, palette=[SUCCESS_COLOR, AD_COLOR, HIP_COLOR, ACCENT_COLOR], hue=labels, legend=False)
     ax.set_ylabel("Samples")
     ax.set_title("Negative-mode classification outcomes")
     ax.tick_params(axis="x", rotation=20)
-    ax.grid(axis="y", alpha=0.2)
-    fig.tight_layout()
+    finish_axis(ax)
+    fig.tight_layout(pad=0.01)
     fig.savefig(output_path, dpi=dpi, bbox_inches="tight")
     plt.close(fig)
 
@@ -1014,14 +1011,14 @@ def plot_eigen_worst_cases(
         tick_labels.append("\n".join(parts))
 
     fig, ax = plt.subplots(figsize=(max(8, 0.5 * len(top_positions)), 4.5))
-    ax.bar(range(len(top_positions)), improvement[top_positions], color="tab:orange")
+    sns.barplot(x=list(range(len(top_positions))), y=improvement[top_positions], ax=ax, color=HIP_COLOR)
     ax.axhline(1.0, color="0.25", linewidth=1.0, alpha=0.8)
     ax.set_yscale("log")
     ax.set_xticks(range(len(top_positions)), labels=tick_labels, rotation=60, ha="right")
     ax.set_ylabel("AD / HIP")
     ax.set_title(f"Largest AD/HIP error ratios: {metric_label}")
-    ax.grid(axis="y", alpha=0.2)
-    fig.tight_layout()
+    finish_axis(ax)
+    fig.tight_layout(pad=0.01)
     fig.savefig(output_path, dpi=dpi, bbox_inches="tight")
     plt.close(fig)
 

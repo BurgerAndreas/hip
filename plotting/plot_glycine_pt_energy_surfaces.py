@@ -13,6 +13,9 @@ import pandas as pd
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt  # noqa: E402
+import seaborn as sns  # noqa: E402
+
+from plot_style import DFT_COLOR, LINE_WIDTH, MARKER_SIZE, THIN_LINE_WIDTH, finish_axis, model_color
 
 
 EV_TO_KCALMOL = 23.060548867
@@ -490,15 +493,16 @@ def save_parity(df: pd.DataFrame, models: list[EnergyModel], output_dir: Path, d
     for model in models:
         y = df[f"{model.key}_relative_kcalmol"].to_numpy(dtype=float)
         max_y = max(max_y, float(np.nanmax(y)))
-        ax.scatter(x, y, s=42, edgecolor="k", linewidth=0.3, label=model.label)
+        sns.scatterplot(x=x, y=y, ax=ax, s=42, edgecolor="k", linewidth=0.3, color=model_color(model.label), label=model.label)
     lim = [0.0, max_y * 1.03]
-    ax.plot(lim, lim, "k--", linewidth=1.0)
+    sns.lineplot(x=lim, y=lim, ax=ax, color=DFT_COLOR, linestyle="--", linewidth=THIN_LINE_WIDTH)
     ax.set_xlim(lim)
     ax.set_ylim(lim)
     ax.set_xlabel(rf"{DFT_LABEL} relative energy [kcal mol$^{{-1}}$]")
     ax.set_ylabel(r"model relative energy [kcal mol$^{-1}$]")
     ax.set_title(f"Model vs {DFT_LABEL} energy parity")
     ax.legend(fontsize=8)
+    finish_axis(ax)
     fig.savefig(output_dir / "glycine_pt_model_orca_parity.png", dpi=dpi)
     plt.close(fig)
 
@@ -599,31 +603,17 @@ def save_linecuts(
 
     fig, ax = plt.subplots(figsize=(7.2, 5.2), constrained_layout=True)
     profile = min_profile_along_pt_cv(df, "orca_relative_kcalmol")
-    ax.plot(
-        profile["pt_cv"],
-        profile["orca_relative_kcalmol"],
-        "o-",
-        ms=3.5,
-        linewidth=1.5,
-        label=DFT_LABEL,
-    )
+    sns.lineplot(x=profile["pt_cv"], y=profile["orca_relative_kcalmol"], ax=ax, marker="o", markersize=MARKER_SIZE, linewidth=LINE_WIDTH, label=DFT_LABEL, color=DFT_COLOR)
 
     for model in models:
         value_col = f"{model.key}_relative_kcalmol"
         profile = min_profile_along_pt_cv(df, value_col)
-        ax.plot(
-            profile["pt_cv"],
-            profile[value_col],
-            "o--",
-            ms=3.0,
-            linewidth=1.25,
-            label=model.label,
-        )
+        sns.lineplot(x=profile["pt_cv"], y=profile[value_col], ax=ax, marker="o", markersize=MARKER_SIZE, linestyle="--", linewidth=LINE_WIDTH, label=model.label, color=model_color(model.label))
 
     ax.set_xlabel(r"proton-transfer CV $q_\mathrm{NH} - q_\mathrm{OH}$ [$\AA$]")
     ax.set_ylabel(r"minimum relative energy [kcal mol$^{-1}$]")
     ax.set_title("Minimum-energy profile along glycine proton-transfer CV")
-    ax.grid(alpha=0.25)
+    finish_axis(ax)
     ax.legend(fontsize=8)
 
     fig.savefig(output_dir / "glycine_pt_energy_linecuts.png", dpi=dpi)

@@ -25,9 +25,10 @@ import numpy as np
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt  # noqa: E402
+import seaborn as sns  # noqa: E402
 
+from plot_style import ACCENT_COLOR, AD_COLOR, DFT_COLOR, LINE_WIDTH, THIN_LINE_WIDTH, finish_axis
 
-AD_COLOR = "tab:red"
 
 
 def parse_args() -> argparse.Namespace:
@@ -51,7 +52,7 @@ def detrend(x: np.ndarray, y: np.ndarray, degree: int) -> np.ndarray:
 
 
 def savefig(fig: plt.Figure, path: Path, dpi: int) -> None:
-    fig.tight_layout()
+    fig.tight_layout(pad=0.01)
     fig.savefig(path, dpi=dpi)
     plt.close(fig)
     print(f"Wrote {path}")
@@ -68,20 +69,20 @@ def plot_energy_force(output_dir: Path, dpi: int, xi: np.ndarray, energy: np.nda
     fig, axes = plt.subplots(1, 2, figsize=(11.5, 4.0))
     xlabel = r"$\xi = q_\mathrm{NH} - q_\mathrm{OH}$ [$\AA$]"
 
-    axes[0].plot(xi, energy - np.nanmin(energy), color=AD_COLOR, lw=1.3, label="AD")
+    sns.lineplot(x=xi, y=energy - np.nanmin(energy), ax=axes[0], color=AD_COLOR, lw=LINE_WIDTH, label="AD")
     axes[0].set_title("Energy Looks Smooth")
     axes[0].set_ylabel(r"$E - \min E$ [eV]")
     axes[0].set_xlabel(xlabel)
     axes[0].legend(fontsize=8)
 
-    axes[1].plot(xi, force, color=AD_COLOR, lw=1.1, label="AD")
+    sns.lineplot(x=xi, y=force, ax=axes[1], color=AD_COLOR, lw=LINE_WIDTH, label="AD")
     axes[1].set_title(r"Projected Force Looks Smooth")
     axes[1].set_ylabel(r"$g=\hat t\cdot F$ [eV/$\AA$]")
     axes[1].set_xlabel(xlabel)
     axes[1].legend(fontsize=8)
 
     for ax in axes:
-        ax.grid(alpha=0.25)
+        finish_axis(ax)
     fig.suptitle("AD force field passes the usual 1D sanity checks", fontsize=12)
     savefig(fig, output_dir / "glycine_pt_ad_energy_force.png", dpi)
 
@@ -98,22 +99,22 @@ def plot_force_residual(
     xlabel = r"$\xi = q_\mathrm{NH} - q_\mathrm{OH}$ [$\AA$]"
     trend = force - residual
 
-    axes[0].plot(xi, force, color=AD_COLOR, lw=1.0, alpha=0.55, label="AD force")
-    axes[0].plot(xi, trend, color="k", lw=1.1, label=f"degree-{detrend_degree} trend")
+    sns.lineplot(x=xi, y=force, ax=axes[0], color=AD_COLOR, lw=LINE_WIDTH, alpha=0.55, label="AD force")
+    sns.lineplot(x=xi, y=trend, ax=axes[0], color=DFT_COLOR, lw=LINE_WIDTH, label=f"degree-{detrend_degree} trend")
     axes[0].set_title("Force = Smooth Trend + Small Wiggle")
     axes[0].set_ylabel(r"$g$ [eV/$\AA$]")
     axes[0].set_xlabel(xlabel)
     axes[0].legend(fontsize=8)
 
-    axes[1].plot(xi, residual, color=AD_COLOR, lw=0.9, label="AD residual")
-    axes[1].axhline(0.0, color="grey", lw=0.6)
+    sns.lineplot(x=xi, y=residual, ax=axes[1], color=AD_COLOR, lw=THIN_LINE_WIDTH, label="AD residual")
+    axes[1].axhline(0.0, color="grey", lw=THIN_LINE_WIDTH)
     axes[1].set_title("Hidden High-Frequency Force Residual")
     axes[1].set_ylabel(r"$g - \mathrm{trend}$ [eV/$\AA$]")
     axes[1].set_xlabel(xlabel)
     axes[1].legend(fontsize=8)
 
     for ax in axes:
-        ax.grid(alpha=0.25)
+        finish_axis(ax)
     fig.suptitle("The force error can be visually small before differentiation", fontsize=12)
     savefig(fig, output_dir / "glycine_pt_ad_force_residual.png", dpi)
 
@@ -128,30 +129,23 @@ def plot_curvature_failure(
     fig, axes = plt.subplots(1, 2, figsize=(11.5, 4.0))
     xlabel = r"$\xi = q_\mathrm{NH} - q_\mathrm{OH}$ [$\AA$]"
 
-    axes[0].plot(xi, kappa_auto, color=AD_COLOR, lw=1.1, label=r"AD Hessian $\hat t^\top H\hat t$")
-    axes[0].plot(
-        xi,
-        kappa_fd,
-        color=AD_COLOR,
-        lw=0.75,
-        alpha=0.35,
-        label=r"AD force FD $-dg/d\lambda$",
-    )
-    axes[0].axhline(0.0, color="grey", lw=0.6)
+    sns.lineplot(x=xi, y=kappa_auto, ax=axes[0], color=AD_COLOR, lw=LINE_WIDTH, label=r"AD Hessian $\hat t^\top H\hat t$")
+    sns.lineplot(x=xi, y=kappa_fd, ax=axes[0], color=AD_COLOR, lw=THIN_LINE_WIDTH, alpha=0.35, label=r"AD force FD $-dg/d\lambda$")
+    axes[0].axhline(0.0, color="grey", lw=THIN_LINE_WIDTH)
     axes[0].set_title("Differentiating Force Exposes Wiggle")
     axes[0].set_ylabel(r"$\kappa$ [eV/$\AA^2$]")
     axes[0].set_xlabel(xlabel)
     axes[0].legend(fontsize=8)
 
     mismatch = kappa_auto - kappa_fd
-    axes[1].plot(xi, mismatch, color="tab:purple", lw=0.9)
-    axes[1].axhline(0.0, color="grey", lw=0.6)
+    sns.lineplot(x=xi, y=mismatch, ax=axes[1], color=ACCENT_COLOR, lw=THIN_LINE_WIDTH)
+    axes[1].axhline(0.0, color="grey", lw=THIN_LINE_WIDTH)
     axes[1].set_title("AD Hessian vs Sampled Force Derivative")
     axes[1].set_ylabel(r"$\kappa_\mathrm{AD} - (-dg/d\lambda)$ [eV/$\AA^2$]")
     axes[1].set_xlabel(xlabel)
 
     for ax in axes:
-        ax.grid(alpha=0.25)
+        finish_axis(ax)
     fig.suptitle("Autograd Hessians inherit and amplify force-field roughness", fontsize=12)
     savefig(fig, output_dir / "glycine_pt_ad_curvature_failure.png", dpi)
 
@@ -167,14 +161,16 @@ def plot_spectral_amplification(
     fig, axes = plt.subplots(1, 2, figsize=(11.5, 4.0))
     weighted = (2.0 * np.pi * freqs) ** 2 * mag
 
-    axes[0].semilogy(freqs, mag + 1e-30, color=AD_COLOR, lw=0.9, label="AD")
+    sns.lineplot(x=freqs, y=mag + 1e-30, ax=axes[0], color=AD_COLOR, lw=THIN_LINE_WIDTH, label="AD")
+    axes[0].set_yscale("log")
     axes[0].axvline(cutoff, color="grey", ls=":", lw=1)
     axes[0].set_title(r"Force Spectrum $|\mathrm{FFT}(g)|$")
     axes[0].set_xlabel(r"spatial frequency [cycles/$\AA$]")
     axes[0].set_ylabel(r"$|\mathrm{FFT}(g)|$")
     axes[0].legend(fontsize=8)
 
-    axes[1].semilogy(freqs, weighted + 1e-30, color=AD_COLOR, lw=0.9, label="AD")
+    sns.lineplot(x=freqs, y=weighted + 1e-30, ax=axes[1], color=AD_COLOR, lw=THIN_LINE_WIDTH, label="AD")
+    axes[1].set_yscale("log")
     axes[1].axvline(cutoff, color="grey", ls=":", lw=1)
     axes[1].set_title(r"Curvature-Weighted Spectrum $(2\pi k)^2|\mathrm{FFT}(g)|$")
     axes[1].set_xlabel(r"spatial frequency [cycles/$\AA$]")
@@ -200,7 +196,7 @@ def plot_spectral_amplification(
         )
 
     for ax in axes:
-        ax.grid(alpha=0.25)
+        finish_axis(ax)
     fig.suptitle("Differentiation turns small high-frequency force noise into Hessian noise", fontsize=12)
     savefig(fig, output_dir / "glycine_pt_ad_spectral_amplification.png", dpi)
 
@@ -224,25 +220,18 @@ def plot_full_hessian_diagnostics(
     xlabel = r"$\xi = q_\mathrm{NH} - q_\mathrm{OH}$ [$\AA$]"
 
     for mode_idx, ls in zip(range(n_modes), ("-", "--", ":", "-."), strict=False):
-        axes[0, 0].plot(
-            xi,
-            evals[:, mode_idx],
-            color=AD_COLOR,
-            ls=ls,
-            lw=1.1,
-            label=fr"AD $\lambda_{mode_idx}$",
-        )
-    axes[0, 0].axhline(0.0, color="grey", lw=0.6)
+        sns.lineplot(x=xi, y=evals[:, mode_idx], ax=axes[0, 0], color=AD_COLOR, ls=ls, lw=LINE_WIDTH, label=fr"AD $\lambda_{mode_idx}$")
+    axes[0, 0].axhline(0.0, color="grey", lw=THIN_LINE_WIDTH)
     axes[0, 0].set_title("Lowest AD Vibrational Eigenvalues")
     axes[0, 0].set_ylabel(r"$\lambda$ [eV/$\AA^2$/amu]")
     axes[0, 0].legend(fontsize=7, ncol=2)
 
-    axes[0, 1].step(xi, n_negative, where="mid", color=AD_COLOR, lw=1.2, label="AD")
+    axes[0, 1].step(xi, n_negative, where="mid", color=AD_COLOR, lw=LINE_WIDTH, label="AD")
     axes[0, 1].set_title("AD Negative-Mode Count")
     axes[0, 1].set_ylabel("count")
     axes[0, 1].legend(fontsize=8)
 
-    axes[1, 0].plot(xi, asym, color=AD_COLOR, lw=1.0, label="AD")
+    sns.lineplot(x=xi, y=asym, ax=axes[1, 0], color=AD_COLOR, lw=LINE_WIDTH, label="AD")
     axes[1, 0].set_title(r"AD Hessian Asymmetry $\|H-H^\top\|/\|H\|$")
     axes[1, 0].set_ylabel("relative asymmetry")
     axes[1, 0].legend(fontsize=8)
@@ -271,7 +260,7 @@ def plot_full_hessian_diagnostics(
     for ax in axes.ravel():
         if ax is not axes[1, 1]:
             ax.set_xlabel(xlabel)
-            ax.grid(alpha=0.25)
+            finish_axis(ax)
     fig.suptitle("AD Hessian failure also appears in the full vibrational spectrum", fontsize=12)
     savefig(fig, output_dir / "glycine_pt_ad_full_hessian_diagnostics.png", dpi)
 

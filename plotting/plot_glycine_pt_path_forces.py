@@ -25,10 +25,11 @@ import numpy as np
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt  # noqa: E402
+import seaborn as sns  # noqa: E402
 
+from plot_style import AD_COLOR, HIP_COLOR, LINE_WIDTH, THIN_LINE_WIDTH, finish_axis
 
-HIP_COLOR = "tab:blue"
-EQV2_COLOR = "tab:red"
+EQV2_COLOR = AD_COLOR
 
 
 def parse_args() -> argparse.Namespace:
@@ -115,25 +116,24 @@ def main() -> None:
     xlabel = r"$\xi = q_\mathrm{NH} - q_\mathrm{OH}$ [$\AA$]"
 
     ax = axes[0, 0]
-    ax.plot(xi, g_hip, color=HIP_COLOR, lw=1.1, label="HIP")
-    ax.plot(xi, g_eqv2, color=EQV2_COLOR, lw=1.1, label="EQV2")
+    sns.lineplot(x=xi, y=g_hip, ax=ax, color=HIP_COLOR, lw=LINE_WIDTH, label="HIP")
+    sns.lineplot(x=xi, y=g_eqv2, ax=ax, color=EQV2_COLOR, lw=LINE_WIDTH, label="EQV2")
     ax.set_title(r"A  Projected force $g=\hat t\cdot F$ (H9 along N$\to$O)")
     ax.set_ylabel(r"$g$ [eV/$\AA$]")
     ax.legend(fontsize=8)
 
     ax = axes[0, 1]
-    ax.plot(xi, res_g_hip, color=HIP_COLOR, lw=0.9, alpha=0.85, label="HIP")
-    ax.plot(xi, res_g_eqv2, color=EQV2_COLOR, lw=0.9, label="EQV2")
-    ax.axhline(0.0, color="grey", lw=0.6)
+    sns.lineplot(x=xi, y=res_g_hip, ax=ax, color=HIP_COLOR, lw=THIN_LINE_WIDTH, alpha=0.85, label="HIP")
+    sns.lineplot(x=xi, y=res_g_eqv2, ax=ax, color=EQV2_COLOR, lw=THIN_LINE_WIDTH, label="EQV2")
+    ax.axhline(0.0, color="grey", lw=THIN_LINE_WIDTH)
     ax.set_title(f"B  Projected-force residual (deg-{args.detrend_degree})")
     ax.set_ylabel(r"$g - \mathrm{trend}$ [eV/$\AA$]")
     ax.legend(fontsize=8)
 
     ax = axes[0, 2]
-    ax.semilogy(np.asarray(data["hip_g_freqs"]), np.asarray(data["hip_g_mag"]) + 1e-30,
-                color=HIP_COLOR, lw=0.9, label="HIP")
-    ax.semilogy(np.asarray(data["eqv2_g_freqs"]), np.asarray(data["eqv2_g_mag"]) + 1e-30,
-                color=EQV2_COLOR, lw=0.9, label="EQV2")
+    sns.lineplot(x=np.asarray(data["hip_g_freqs"]), y=np.asarray(data["hip_g_mag"]) + 1e-30, ax=ax, color=HIP_COLOR, lw=THIN_LINE_WIDTH, label="HIP")
+    sns.lineplot(x=np.asarray(data["eqv2_g_freqs"]), y=np.asarray(data["eqv2_g_mag"]) + 1e-30, ax=ax, color=EQV2_COLOR, lw=THIN_LINE_WIDTH, label="EQV2")
+    ax.set_yscale("log")
     ax.axvline(cutoff, color="grey", ls=":", lw=1)
     ax.set_title("C  Force spectrum |FFT($g$)|")
     ax.set_xlabel(r"spatial frequency [cycles/$\AA$]")
@@ -141,38 +141,38 @@ def main() -> None:
     ax.legend(fontsize=8)
 
     ax = axes[1, 0]
-    ax.plot(xi, fmax_hip, color=HIP_COLOR, lw=1.1, label="HIP")
-    ax.plot(xi, fmax_eqv2, color=EQV2_COLOR, lw=1.1, label="EQV2")
+    sns.lineplot(x=xi, y=fmax_hip, ax=ax, color=HIP_COLOR, lw=LINE_WIDTH, label="HIP")
+    sns.lineplot(x=xi, y=fmax_eqv2, ax=ax, color=EQV2_COLOR, lw=LINE_WIDTH, label="EQV2")
     ax.set_title(r"D  Max force component $\max_i|F_i|$ (off-axis sensitive)")
     ax.set_ylabel(r"$f_\mathrm{max}$ [eV/$\AA$]")
     ax.set_xlabel(xlabel)
     ax.legend(fontsize=8)
 
     ax = axes[1, 1]
-    ax.plot(xi, res_fmax_hip, color=HIP_COLOR, lw=0.9, alpha=0.85, label="HIP")
-    ax.plot(xi, res_fmax_eqv2, color=EQV2_COLOR, lw=0.9, label="EQV2")
-    ax.axhline(0.0, color="grey", lw=0.6)
+    sns.lineplot(x=xi, y=res_fmax_hip, ax=ax, color=HIP_COLOR, lw=THIN_LINE_WIDTH, alpha=0.85, label="HIP")
+    sns.lineplot(x=xi, y=res_fmax_eqv2, ax=ax, color=EQV2_COLOR, lw=THIN_LINE_WIDTH, label="EQV2")
+    ax.axhline(0.0, color="grey", lw=THIN_LINE_WIDTH)
     ax.set_title(f"E  $f_\\mathrm{{max}}$ residual (deg-{args.detrend_degree})")
     ax.set_ylabel(r"$f_\mathrm{max} - \mathrm{trend}$ [eV/$\AA$]")
     ax.set_xlabel(xlabel)
     ax.legend(fontsize=8)
 
     ax = axes[1, 2]
-    ax.plot(xi, nc_hip, color=HIP_COLOR, lw=0.9, alpha=0.85, label="HIP")
-    ax.plot(xi, nc_eqv2, color=EQV2_COLOR, lw=0.9, label="EQV2")
-    ax.axhline(0.0, color="grey", lw=0.6)
+    sns.lineplot(x=xi, y=nc_hip, ax=ax, color=HIP_COLOR, lw=THIN_LINE_WIDTH, alpha=0.85, label="HIP")
+    sns.lineplot(x=xi, y=nc_eqv2, ax=ax, color=EQV2_COLOR, lw=THIN_LINE_WIDTH, label="EQV2")
+    ax.axhline(0.0, color="grey", lw=THIN_LINE_WIDTH)
     ax.set_title(r"F  Non-conservativeness  $g + dE/d\lambda$")
     ax.set_ylabel(r"$g + dE/d\lambda$ [eV/$\AA$]")
     ax.set_xlabel(xlabel)
     ax.legend(fontsize=8)
 
     for ax in axes.ravel():
-        ax.grid(alpha=0.25)
+        finish_axis(ax)
     for ax in (axes[0, 0], axes[0, 1]):
         ax.set_xlabel(xlabel)
 
     fig.suptitle("Glycine proton transfer: MLIP forces along the path", fontsize=13)
-    fig.tight_layout()
+    fig.tight_layout(pad=0.01)
     out_path = output_dir / "glycine_pt_path_forces.png"
     fig.savefig(out_path, dpi=args.dpi)
     plt.close(fig)

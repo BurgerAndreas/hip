@@ -48,7 +48,9 @@ N_ATOM = 4
 O_ATOM = 3
 H_ATOM = 9
 Z_TO_SYMBOL = {1: "H", 6: "C", 7: "N", 8: "O", 9: "F", 15: "P", 16: "S", 17: "Cl"}
-DEFAULT_ORCA_ROUTE = "! wB97X-D3 6-31G(d) TightSCF Grid5 FinalGrid6 EnGrad Freq"
+# NOTE: ORCA 6.1.1 rejects `EnGrad Freq` together (reports grids as duplicated).
+# A Freq job already yields energy + Cartesian gradient (forces) + Hessian.
+DEFAULT_ORCA_ROUTE = "! wB97X-D3 6-31G(d) TightSCF Grid5 FinalGrid6 Freq"
 
 
 def project_root() -> Path:

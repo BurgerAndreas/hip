@@ -20,6 +20,9 @@ import pandas as pd
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt  # noqa: E402
+import seaborn as sns  # noqa: E402
+
+from plot_style import DFT_COLOR, LINE_WIDTH, MARKER_SIZE, THIN_LINE_WIDTH, finish_axis, model_color, model_palette
 
 
 HARTREE_TO_EV = 27.211386245988
@@ -642,7 +645,7 @@ def save_energy_figure(
             cmap="magma",
             contour_values=orca_energy_kcal,
         )
-    fig.tight_layout()
+    fig.tight_layout(pad=0.01)
     fig.savefig(output_dir / "glycine_pt_pes_surfaces.png", dpi=dpi)
     plt.close(fig)
 
@@ -718,7 +721,7 @@ def save_hessian_metric_figure(
         cmap="coolwarm",
         contour_values=orca_energy_kcal,
     )
-    fig.tight_layout()
+    fig.tight_layout(pad=0.01)
     safe_label = model.label.lower().replace(" ", "_").replace("/", "_")
     fig.savefig(output_dir / f"glycine_pt_hessian_metrics_{safe_label}.png", dpi=dpi)
     plt.close(fig)
@@ -767,23 +770,29 @@ def save_method_summary_figure(
 
         if suffix == "nneg_delta":
             means = [float(np.nanmean(v)) for v in values]
-            ax.bar(np.arange(len(labels)), means, color="tab:blue", alpha=0.8)
+            sns.barplot(x=labels, y=means, ax=ax, palette=model_palette(labels), hue=labels, legend=False, alpha=0.8)
             ax.set_ylim(0.0, 1.05)
             ax.set_ylabel("fraction of grid points")
             for idx, mean in enumerate(means):
                 ax.text(idx, mean + 0.025, f"{mean:.2f}", ha="center", va="bottom", fontsize=8)
         else:
-            ax.boxplot(values, tick_labels=tick_labels, showfliers=False)
+            plot_df = pd.DataFrame(
+                {
+                    "label": np.concatenate([np.repeat(label, len(data)) for label, data in zip(tick_labels, values, strict=True)]),
+                    "value": np.concatenate(values),
+                }
+            )
+            sns.boxplot(data=plot_df, x="label", y="value", ax=ax, palette=model_palette(tick_labels), hue="label", legend=False, showfliers=False)
             if suffix in {"relative_hessian_error", "reaction_center_error"}:
                 ax.set_yscale("log")
             ax.set_ylabel(title)
 
         ax.set_title(title)
         ax.tick_params(axis="x", labelrotation=25)
-        ax.grid(axis="y", alpha=0.25)
+        finish_axis(ax)
 
     fig.suptitle(f"Glycine Hessian Method Summary vs {DFT_LABEL}")
-    fig.tight_layout()
+    fig.tight_layout(pad=0.01)
     fig.savefig(output_dir / "glycine_pt_hessian_method_summary.png", dpi=dpi)
     plt.close(fig)
 
@@ -843,7 +852,7 @@ def save_force_projection_figure(
         axes[row_idx, 2].collections[0].set_clim(-error_lim, error_lim)
 
     fig.suptitle("Projected Forces Along Glycine Proton-Transfer CV")
-    fig.tight_layout()
+    fig.tight_layout(pad=0.01)
     fig.savefig(output_dir / "glycine_pt_force_projection_pt.png", dpi=dpi)
     plt.close(fig)
 
@@ -876,14 +885,20 @@ def save_force_summary_figure(
             if suffix != "force_cartesian_mae":
                 data = np.abs(data)
             values.append(data)
-        ax.boxplot(values, tick_labels=labels, showfliers=False)
+        plot_df = pd.DataFrame(
+            {
+                "label": np.concatenate([np.repeat(label, len(data)) for label, data in zip(labels, values, strict=True)]),
+                "value": np.concatenate(values),
+            }
+        )
+        sns.boxplot(data=plot_df, x="label", y="value", ax=ax, palette=model_palette(labels), hue="label", legend=False, showfliers=False)
         ax.set_title(title)
         ax.set_ylabel("eV/A")
         ax.tick_params(axis="x", labelrotation=25)
-        ax.grid(axis="y", alpha=0.25)
+        finish_axis(ax)
 
     fig.suptitle(f"Glycine Force Summary vs {DFT_LABEL}")
-    fig.tight_layout()
+    fig.tight_layout(pad=0.01)
     fig.savefig(output_dir / "glycine_pt_force_method_summary.png", dpi=dpi)
     plt.close(fig)
 
@@ -905,10 +920,10 @@ def save_low_mode_figure(
     row = df.iloc[selected]
     fig, ax = plt.subplots(figsize=(7.5, 4.5))
     mode_ids = np.arange(ref_diag.evals.shape[1])
-    ax.plot(mode_ids, ref_diag.evals[selected], "o-", label=DFT_LABEL)
+    sns.lineplot(x=mode_ids, y=ref_diag.evals[selected], ax=ax, marker="o", markersize=MARKER_SIZE, linewidth=LINE_WIDTH, label=DFT_LABEL, color=DFT_COLOR)
     for label, diag in model_diags.items():
-        ax.plot(mode_ids, diag.evals[selected], "o--", label=label)
-    ax.axhline(0.0, color="k", linewidth=0.8)
+        sns.lineplot(x=mode_ids, y=diag.evals[selected], ax=ax, marker="o", markersize=MARKER_SIZE, linewidth=LINE_WIDTH, linestyle="--", label=label, color=model_color(label))
+    ax.axhline(0.0, color="k", linewidth=THIN_LINE_WIDTH)
     ax.set_xlabel("vibrational mode index")
     ax.set_ylabel(r"projected Hessian eigenvalue [eV A$^{-2}$ amu$^{-1}$]")
     ax.set_title(
@@ -916,7 +931,8 @@ def save_low_mode_figure(
         f"($q_{{NH}}$={row.q_nh:.3f} A, $q_{{OH}}$={row.q_oh:.3f} A)"
     )
     ax.legend()
-    fig.tight_layout()
+    finish_axis(ax)
+    fig.tight_layout(pad=0.01)
     fig.savefig(output_dir / "glycine_pt_low_mode_spectrum.png", dpi=dpi)
     plt.close(fig)
     return selected
@@ -957,7 +973,7 @@ def save_reaction_center_blocks(
         f"O-N-H block at grid {int(row.grid_id)} "
         f"($q_{{NH}}$={row.q_nh:.3f} A, $q_{{OH}}$={row.q_oh:.3f} A)"
     )
-    fig.tight_layout()
+    fig.tight_layout(pad=0.01)
     fig.savefig(output_dir / "glycine_pt_reaction_center_hessian_blocks.png", dpi=dpi)
     plt.close(fig)
 
@@ -1014,7 +1030,7 @@ def save_method_comparison_figure(
         cmap="coolwarm",
         contour_values=orca_energy_kcal,
     )
-    fig.tight_layout()
+    fig.tight_layout(pad=0.01)
     left_key = safe_label(left.label)
     right_key = safe_label(right.label)
     fig.savefig(output_dir / f"glycine_pt_hessian_compare_{left_key}_vs_{right_key}.png", dpi=dpi)

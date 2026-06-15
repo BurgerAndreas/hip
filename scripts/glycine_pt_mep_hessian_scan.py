@@ -29,7 +29,9 @@ SAMPLE_ID = 5
 O_ATOM = 3
 N_ATOM = 4
 H_ATOM = 9
-DEFAULT_ORCA_ROUTE = "! wB97X-D3 6-31G(d) TightSCF Grid5 FinalGrid6 EnGrad Freq"
+# NOTE: ORCA 6.1.1 rejects `EnGrad Freq` together (reports grids as duplicated).
+# A Freq job already yields energy + Cartesian gradient (forces) + Hessian.
+DEFAULT_ORCA_ROUTE = "! wB97X-D3 6-31G(d) TightSCF EnGrad Freq"
 Z_TO_SYMBOL = {1: "H", 6: "C", 7: "N", 8: "O", 9: "F", 15: "P", 16: "S", 17: "Cl"}
 
 
@@ -77,7 +79,7 @@ def write_orca_input(
     multiplicity: int,
 ) -> None:
     with path.open("w") as handle:
-        handle.write(f"{route}\n\n%pal nprocs 16 end\n%maxcore 4000\n\n")
+        handle.write(f"{route}\n\n%pal nprocs 4 end\n%maxcore 4000\n\n")
         handle.write(f"* xyz {charge} {multiplicity}\n")
         for symbol, xyz in zip(symbols, coords, strict=True):
             handle.write(f"  {symbol:2s} {xyz[0]: .10f} {xyz[1]: .10f} {xyz[2]: .10f}\n")

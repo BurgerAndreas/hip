@@ -32,6 +32,9 @@ import pandas as pd
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt  # noqa: E402
+import seaborn as sns  # noqa: E402
+
+from plot_style import AD_COLOR, DFT_COLOR, LINE_WIDTH, MARKER_SIZE, THIN_LINE_WIDTH, finish_axis
 
 
 NEG_THRESHOLD = 1e-6
@@ -206,23 +209,23 @@ def main() -> None:
         sel = int(idx1[np.argmin(dft_evals[idx1, 0])]) if idx1.size else int(np.argmin(dft_evals[:, 0]))
     k = min(args.n_eigs, dft_evals.shape[1], ad_evals.shape[1])
     modes = np.arange(k)
-    ax.plot(modes, dft_evals[sel, :k], "o-", color="k", label=f"DFT ($n_-$={dft_nneg[sel]})")
-    ax.plot(modes, ad_evals[sel, :k], "s--", color="tab:red", label=f"EQV2 AD ($n_-$={ad_nneg[sel]})")
-    ax.axhline(0.0, color="grey", lw=0.8)
+    sns.lineplot(x=modes, y=dft_evals[sel, :k], ax=ax, marker="o", markersize=MARKER_SIZE, linewidth=LINE_WIDTH, color=DFT_COLOR, label=f"DFT ($n_-$={dft_nneg[sel]})")
+    sns.lineplot(x=modes, y=ad_evals[sel, :k], ax=ax, marker="s", markersize=MARKER_SIZE, linewidth=LINE_WIDTH, linestyle="--", color=AD_COLOR, label=f"EQV2 AD ($n_-$={ad_nneg[sel]})")
+    ax.axhline(0.0, color="grey", lw=THIN_LINE_WIDTH)
     lo = min(float(dft_evals[sel, :k].min()), float(ad_evals[sel, :k].min()))
     ax.set_ylim(max(lo, -5.0) - 0.5, float(np.maximum(dft_evals[sel, :k], ad_evals[sel, :k]).max()) * 1.1 + 0.5)
     ax.set_title(f"H  low-mode spectrum, AD adds a mode\n($q_{{NH}}$={q_nh[sel]:.2f}, $q_{{OH}}$={q_oh[sel]:.2f})", fontsize=10)
     ax.set_xlabel("vibrational mode index")
     ax.set_ylabel(r"$\lambda$ [eV $\AA^{-2}$ amu$^{-1}$]")
     ax.legend(fontsize=8)
-    ax.grid(alpha=0.25)
+    finish_axis(ax)
 
     fig.suptitle(
         "EQV2 autograd Hessian failure: accurate forces, inaccurate force-Jacobian "
         "(non-conservative + unsupervised)",
         fontsize=13,
     )
-    fig.tight_layout()
+    fig.tight_layout(pad=0.01)
     out_path = args.output_dir / "glycine_ad_hessian_failure.png"
     fig.savefig(out_path, dpi=args.dpi)
     plt.close(fig)

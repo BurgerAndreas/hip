@@ -22,10 +22,11 @@ import numpy as np
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt  # noqa: E402
+import seaborn as sns  # noqa: E402
 
+from plot_style import ACCENT_COLOR, AD_COLOR, DFT_COLOR, HIP_COLOR, LINE_WIDTH, THIN_LINE_WIDTH, finish_axis
 
-EQV2_COLOR = "tab:red"
-DFT_COLOR = "k"
+EQV2_COLOR = AD_COLOR
 NEG_THRESHOLD = 1e-6
 
 
@@ -80,10 +81,8 @@ def main() -> None:
     ad_nneg = col("eqv2_n_negative")
     ad_asym = col("eqv2_asym")
     have_full_h = "eqv2_hessian_cartesian" in data.files
-    h_ad = None
     if have_full_h:
         h_raw = np.asarray(data["eqv2_hessian_cartesian"], dtype=float)[order]
-        h_ad = 0.5 * (h_raw + np.swapaxes(h_raw, -1, -2))
 
     dft = load_dft(cache_path)
     aligned = dft is not None and dft["xi"].shape == xi.shape and np.allclose(dft["xi"], xi, atol=1e-6)
@@ -97,13 +96,11 @@ def main() -> None:
     # A: lowest-k eigenvalue traces, AD vs DFT
     ax = axes[0, 0]
     for m in range(k):
-        ax.plot(xi, ad_evals[:, m], color=EQV2_COLOR, lw=1.1, alpha=0.85,
-                label="EQV2 AD" if m == 0 else None)
+        sns.lineplot(x=xi, y=ad_evals[:, m], ax=ax, color=EQV2_COLOR, lw=LINE_WIDTH, alpha=0.85, label="EQV2 AD" if m == 0 else None)
     if dft is not None:
         for m in range(min(k, dft["evals"].shape[1])):
-            ax.plot(dft["xi"], dft["evals"][:, m], color=DFT_COLOR, lw=1.2, ls="--",
-                    label="DFT" if m == 0 else None)
-    ax.axhline(0.0, color="grey", lw=0.7)
+            sns.lineplot(x=dft["xi"], y=dft["evals"][:, m], ax=ax, color=DFT_COLOR, lw=LINE_WIDTH, ls="--", label="DFT" if m == 0 else None)
+    ax.axhline(0.0, color="grey", lw=THIN_LINE_WIDTH)
     ax.set_title(f"A  lowest {k} vibrational eigenvalues")
     ax.set_ylabel(r"$\lambda$ [eV $\AA^{-2}$ amu$^{-1}$]")
     ax.set_xlabel(xlabel)
@@ -111,9 +108,9 @@ def main() -> None:
 
     # B: negative-mode count along the path
     ax = axes[0, 1]
-    ax.plot(xi, ad_nneg, color=EQV2_COLOR, lw=1.3, label="EQV2 AD")
+    sns.lineplot(x=xi, y=ad_nneg, ax=ax, color=EQV2_COLOR, lw=LINE_WIDTH, label="EQV2 AD")
     if dft is not None:
-        ax.plot(dft["xi"], dft["n_negative"], color=DFT_COLOR, lw=1.3, ls="--", label="DFT")
+        sns.lineplot(x=dft["xi"], y=dft["n_negative"], ax=ax, color=DFT_COLOR, lw=LINE_WIDTH, ls="--", label="DFT")
     ax.set_title("B  number of negative modes")
     ax.set_ylabel(r"$n_\mathrm{neg}$")
     ax.set_xlabel(xlabel)
@@ -121,7 +118,7 @@ def main() -> None:
 
     # C: AD asymmetry (non-conservativeness)
     ax = axes[0, 2]
-    ax.plot(xi, ad_asym, color=EQV2_COLOR, lw=1.1)
+    sns.lineplot(x=xi, y=ad_asym, ax=ax, color=EQV2_COLOR, lw=LINE_WIDTH)
     ax.set_title(r"C  AD asymmetry $\|H_{AD}-H_{AD}^\top\|/\|H_{AD}\|$")
     ax.set_ylabel("fraction (non-conservativeness)")
     ax.set_xlabel(xlabel)
@@ -131,8 +128,8 @@ def main() -> None:
     if aligned:
         kk = min(k, dft["evals"].shape[1])
         for m in range(kk):
-            ax.plot(xi, ad_evals[:, m] - dft["evals"][:, m], lw=1.0, label=f"mode {m}")
-        ax.axhline(0.0, color="grey", lw=0.7)
+            sns.lineplot(x=xi, y=ad_evals[:, m] - dft["evals"][:, m], ax=ax, lw=THIN_LINE_WIDTH, label=f"mode {m}")
+        ax.axhline(0.0, color="grey", lw=THIN_LINE_WIDTH)
         ax.set_title("D  AD eigenvalue error vs DFT")
         ax.set_ylabel(r"$\lambda_{AD}-\lambda^{*}$")
         ax.legend(fontsize=7, ncol=2)
@@ -145,8 +142,8 @@ def main() -> None:
     ax = axes[1, 1]
     if aligned:
         delta = ad_nneg - dft["n_negative"]
-        ax.plot(xi, delta, color=EQV2_COLOR, lw=1.2)
-        ax.axhline(0.0, color="grey", lw=0.7)
+        sns.lineplot(x=xi, y=delta, ax=ax, color=EQV2_COLOR, lw=LINE_WIDTH)
+        ax.axhline(0.0, color="grey", lw=THIN_LINE_WIDTH)
         frac = float((delta == 0).mean())
         ax.set_title(f"E  neg-count error (correct {100*frac:.0f}%)")
         ax.set_ylabel(r"$n_\mathrm{neg}^{AD}-n_\mathrm{neg}^{*}$")
@@ -165,9 +162,9 @@ def main() -> None:
         total_rel = fro(h_raw - h_star) / norm_star
         sym_rel = fro(sym - h_star) / norm_star
         asym_rel = fro(asym) / norm_star
-        ax.plot(xi, total_rel, color=EQV2_COLOR, lw=1.3, label=r"total $\|H_{AD}-H^*\|/\|H^*\|$")
-        ax.plot(xi, sym_rel, color="tab:orange", lw=1.1, label=r"sym part (unsupervised)")
-        ax.plot(xi, asym_rel, color="tab:purple", lw=1.1, label=r"asym part (non-cons.)")
+        sns.lineplot(x=xi, y=total_rel, ax=ax, color=EQV2_COLOR, lw=LINE_WIDTH, label=r"total $\|H_{AD}-H^*\|/\|H^*\|$")
+        sns.lineplot(x=xi, y=sym_rel, ax=ax, color=HIP_COLOR, lw=LINE_WIDTH, label=r"sym part (unsupervised)")
+        sns.lineplot(x=xi, y=asym_rel, ax=ax, color=ACCENT_COLOR, lw=LINE_WIDTH, label=r"asym part (non-cons.)")
         ax.set_title("F  AD vs DFT error decomposition")
         ax.set_ylabel("relative Frobenius")
         ax.legend(fontsize=7)
@@ -177,11 +174,11 @@ def main() -> None:
     ax.set_xlabel(xlabel)
 
     for ax in axes.ravel():
-        ax.grid(alpha=0.25)
+        finish_axis(ax)
 
     status = "with DFT" if aligned else "MLIP only (no DFT yet)"
     fig.suptitle(f"EQV2 autograd Hessian failure along the glycine PT path ({status})", fontsize=13)
-    fig.tight_layout()
+    fig.tight_layout(pad=0.01)
     out_path = output_dir / "glycine_pt_path_ad_failure.png"
     fig.savefig(out_path, dpi=args.dpi)
     plt.close(fig)

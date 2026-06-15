@@ -12,6 +12,7 @@ import pandas as pd
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt  # noqa: E402
 
+from plot_style import finish_axis
 from scripts.cache_glycine_pt_orca_vibrations import mode_alignment, normalized_curvature, vibrational_eigh
 
 
@@ -82,6 +83,7 @@ def heatmap(
     ax.set_xlabel(r"$q_\mathrm{NH}=d(\mathrm{N4,H9})$ [$\AA$]")
     ax.set_ylabel(r"$q_\mathrm{OH}=d(\mathrm{O3,H9})$ [$\AA$]")
     ax.set_aspect("equal", adjustable="box")
+    finish_axis(ax)
     cbar.set_label(cbar_label)
     fig.savefig(output_path, dpi=dpi)
     plt.close(fig)
@@ -163,6 +165,7 @@ def plot_force_field(df: pd.DataFrame, output_path: Path, dpi: int) -> None:
     ax.set_xlabel(r"$q_\mathrm{NH}=d(\mathrm{N4,H9})$ [$\AA$]")
     ax.set_ylabel(r"$q_\mathrm{OH}=d(\mathrm{O3,H9})$ [$\AA$]")
     ax.set_aspect("equal", adjustable="box")
+    finish_axis(ax)
     cbar = fig.colorbar(mesh, ax=ax)
     cbar.set_label(r"ORCA relative energy [kcal mol$^{-1}$]")
     fig.savefig(output_path, dpi=dpi)
@@ -186,6 +189,7 @@ def plot_curvatures(df: pd.DataFrame, output_path: Path, dpi: int) -> None:
         ax.set_xlabel(r"$q_\mathrm{NH}$ [$\AA$]")
         ax.set_ylabel(r"$q_\mathrm{OH}$ [$\AA$]")
         ax.set_aspect("equal", adjustable="box")
+        finish_axis(ax)
         cbar = fig.colorbar(mesh, ax=ax)
         cbar.set_label(r"projected curvature [eV $\AA^{-2}$]")
     fig.savefig(output_path, dpi=dpi)
@@ -206,6 +210,7 @@ def plot_alignment(df: pd.DataFrame, output_path: Path, dpi: int, zero_threshold
     ax.set_xlabel(r"$q_\mathrm{NH}$ [$\AA$]")
     ax.set_ylabel(r"$q_\mathrm{OH}$ [$\AA$]")
     ax.set_aspect("equal", adjustable="box")
+    finish_axis(ax)
     cbar = fig.colorbar(mesh, ax=ax, extend="min")
     cbar.set_label(rf"mode alignment ($|\cos\theta|<{zero_threshold:g}$ in gray)")
     fig.savefig(output_path, dpi=dpi)
@@ -299,6 +304,7 @@ def plot_method_alignment(df: pd.DataFrame, output_path: Path, dpi: int, zero_th
         ax.set_xlabel(r"$q_\mathrm{NH}$ [$\AA$]")
         ax.set_ylabel(r"$q_\mathrm{OH}$ [$\AA$]" if idx == 0 else "")
         ax.set_aspect("equal", adjustable="box")
+        finish_axis(ax)
 
     fig.suptitle("Unstable-mode alignment with glycine proton-transfer CV")
     fig.subplots_adjust(left=0.065, right=0.885, bottom=0.15, top=0.84, wspace=0.08)
@@ -362,8 +368,7 @@ def plot_method_heatmaps(
         ax.set_xlabel(r"$q_\mathrm{NH}$ [$\AA$]")
         ax.set_ylabel(r"$q_\mathrm{OH}$ [$\AA$]" if idx == 0 else "")
         ax.set_aspect("equal", adjustable="box")
-        if idx > 0:
-            ax.yaxis.set_major_formatter(matplotlib.ticker.NullFormatter())
+        finish_axis(ax)
 
     assert mesh is not None
     fig.suptitle(title)

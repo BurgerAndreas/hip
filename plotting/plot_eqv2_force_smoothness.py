@@ -36,14 +36,16 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
+import seaborn as sns
 import torch
 
 from hip.frequency_analysis import analyze_frequencies_torch
+from plot_style import AD_COLOR, ACCENT_COLOR, GUIDE_COLOR, GUIDE_LINE_WIDTH, HIP_COLOR, LINE_WIDTH, THIN_LINE_WIDTH, finish_axis
 
 GEOMS = ["transition_state", "reactant"]
 GEOM_LABEL = {"transition_state": "transition state (saddle)", "reactant": "reactant (minimum)"}
 DIRS = ["lowest_hess", "random"]
-DIR_COLOR = {"lowest_hess": "C0", "random": "C3"}
+DIR_COLOR = {"lowest_hess": AD_COLOR, "random": HIP_COLOR}
 MODEL = "EquiformerV2 baseline (eqv2.ckpt)"
 
 
@@ -74,16 +76,24 @@ def fig_fd_convergence(data: dict, out: Path) -> Path:
         h = npz["h_values"]
         # ax.loglog(h, npz["dir_err"], "o-", color="C0", ms=4,
         #           label=r"directional  $\|H_{fd}\,d - H d\| / \|H d\|$")
-        ax.loglog(npz["h_full"], npz["full_err"], "s-", color="C1", ms=5,
-                  label=r"full Jacobian  $\|H_{fd} - H\| / \|H\|$")
+        sns.lineplot(
+            x=npz["h_full"],
+            y=npz["full_err"],
+            ax=ax,
+            marker="s",
+            color=HIP_COLOR,
+            label=r"full Jacobian  $\|H_{fd} - H\| / \|H\|$",
+        )
         # ax.loglog(h, npz["noise_floor"], ":", color="grey",
         #           label=r"$\sim$ float-noise floor ($\epsilon|F|/h$)")
         # O(h^2) guide anchored at the smallest-h directional point
         anchor = npz["dir_err"][0]
-        ax.loglog(h, anchor * (h / h[0]) ** 2, "--", color="k", alpha=0.4, label=r"$O(h^2)$")
+        sns.lineplot(x=h, y=anchor * (h / h[0]) ** 2, ax=ax, color=GUIDE_COLOR, linestyle="--", linewidth=GUIDE_LINE_WIDTH, alpha=0.7, label=r"$O(h^2)$")
+        ax.set_xscale("log")
+        ax.set_yscale("log")
         ax.set_title(f"{GEOM_LABEL[geom]}", fontsize=10)
         ax.set_xlabel(r"FD step size  $h$  [$\AA$]")
-        ax.grid(alpha=0.3, which="both")
+        finish_axis(ax)
     axes[0].set_ylabel("relative error vs autograd Hessian")
     axes[0].legend(fontsize=8, loc="lower right")
     # fig.suptitle(
@@ -91,7 +101,7 @@ def fig_fd_convergence(data: dict, out: Path) -> Path:
     #     "flat & far above the noise floor (ignores the $O(h^2)$ guide) ⇒ force field is not smooth",
     #     fontsize=11,
     # )
-    fig.tight_layout()
+    fig.tight_layout(pad=0.01)
     p = out / "eqv2_fd_convergence.png"
     fig.savefig(p, dpi=150)
     plt.close(fig)
@@ -106,18 +116,18 @@ def fig_force_spectrum(data: dict, out: Path) -> Path:
             freqs = npz[f"scan_{kind}_freqs"]
             mag = npz[f"scan_{kind}_mag"]
             hf = summ["hf_power_fraction"][kind]
-            ax.semilogy(freqs, mag + 1e-30, lw=0.8, color=DIR_COLOR[kind],
-                        label=f"{kind}  (HF frac={hf:.1e})")
+            sns.lineplot(x=freqs, y=mag + 1e-30, ax=ax, lw=THIN_LINE_WIDTH, color=DIR_COLOR[kind], label=f"{kind}  (HF frac={hf:.1e})")
+        ax.set_yscale("log")
         ax.axvline(20.0, color="grey", ls=":", lw=1)
         ax.set_title(GEOM_LABEL[geom], fontsize=10)
         ax.set_xlabel("spatial frequency [cycles/$\\AA$]")
-        ax.grid(alpha=0.3)
+        finish_axis(ax)
         ax.legend(fontsize=8)
     axes[0].set_ylabel(r"$|\mathrm{FFT}(d\cdot F)|$")
     fig.suptitle(
         f"Force power spectrum along a line scan"
     )
-    fig.tight_layout()
+    fig.tight_layout(pad=0.01)
     p = out / "eqv2_force_spectrum.png"
     fig.savefig(p, dpi=150)
     plt.close(fig)
@@ -137,16 +147,16 @@ def fig_conservativeness(data: dict, out: Path) -> Path:
         resid = g - minus_dEdl
 
         top, bot = axes[0, col], axes[1, col]
-        top.plot(lam, g, lw=1.1, color="C0", label=r"$d\cdot F$ (directional force)")
-        top.plot(lam, minus_dEdl, lw=1.1, ls="--", color="C3", label=r"$-dE/d\lambda$ (from energy)")
+        sns.lineplot(x=lam, y=g, ax=top, lw=LINE_WIDTH, color=AD_COLOR, label=r"$d\cdot F$ (directional force)")
+        sns.lineplot(x=lam, y=minus_dEdl, ax=top, lw=LINE_WIDTH, ls="--", color=HIP_COLOR, label=r"$-dE/d\lambda$ (from energy)")
         top.set_title(f"{GEOM_LABEL[geom]}", fontsize=10)
-        top.grid(alpha=0.3)
+        finish_axis(top)
         top.legend(fontsize=8)
 
-        bot.plot(lam, resid, lw=1.0, color="C4")
-        bot.axhline(0, color="k", lw=0.7, alpha=0.5)
+        sns.lineplot(x=lam, y=resid, ax=bot, lw=THIN_LINE_WIDTH, color=ACCENT_COLOR)
+        bot.axhline(0, color="k", lw=GUIDE_LINE_WIDTH, alpha=0.5)
         bot.set_xlabel(r"random displacement $\lambda$ [$\AA$]")
-        bot.grid(alpha=0.3)
+        finish_axis(bot)
     axes[0, 0].set_ylabel("force [eV/$\\AA$]")
     axes[1, 0].set_ylabel(r"residual $d\cdot F - (-dE/d\lambda)$ [eV/$\AA$]")
     # fig.suptitle(
@@ -154,7 +164,7 @@ def fig_conservativeness(data: dict, out: Path) -> Path:
     #     r"gap between $d\cdot F$ and $-dE/d\lambda$ = non-conservativeness (random direction)",
     #     fontsize=11,
     # )
-    fig.tight_layout()
+    fig.tight_layout(pad=0.01)
     p = out / "eqv2_conservativeness.png"
     fig.savefig(p, dpi=150)
     plt.close(fig)
@@ -179,12 +189,12 @@ def fig_hessian_asymmetry(data: dict, out: Path) -> Path:
             fig.colorbar(im, ax=ax, fraction=0.046, pad=0.04)
         anti_frac = float(np.linalg.norm(anti) / (np.linalg.norm(H) + 1e-30))
         axes[row, 2].text(0.5, -0.14, f"antisym fraction = {anti_frac:.3f}",
-                          transform=axes[row, 2].transAxes, ha="center", fontsize=9, color="C3")
+                          transform=axes[row, 2].transAxes, ha="center", fontsize=9, color=HIP_COLOR)
     fig.suptitle(
         f"Autograd Hessian symmetry",
         fontsize=11,
     )
-    fig.tight_layout(rect=[0, 0.02, 1, 1])
+    fig.tight_layout(pad=0.01, rect=[0, 0.02, 1, 1])
     p = out / "eqv2_hessian_asymmetry.png"
     fig.savefig(p, dpi=150)
     plt.close(fig)
@@ -204,14 +214,14 @@ def fig_vib_eigenspectrum(data: dict, out: Path) -> Path:
         ev = freq["eigvals"].detach().cpu().numpy()
         neg = int(freq["neg_num"])
         idx = np.arange(ev.size)
-        colors = np.where(ev < 0, "C3", "C0")
-        ax.bar(idx, ev, color=colors, width=0.9)
+        colors = np.where(ev < 0, HIP_COLOR, AD_COLOR)
+        sns.barplot(x=idx, y=ev, ax=ax, palette=colors.tolist(), hue=idx, legend=False)
         ax.axhline(0, color="k", lw=0.7)
         expected = 1 if geom == "transition_state" else 0
         ok = "✓" if neg == expected else "✗"
         ax.set_title(f"{GEOM_LABEL[geom]}\nnegative modes: {neg} (expected {expected}) {ok}", fontsize=10)
         ax.set_xlabel("mode index (sorted)")
-        ax.grid(alpha=0.3, axis="y")
+        finish_axis(ax)
         rows.append((geom, neg, expected))
     axes[0].set_ylabel("Eigenvalue (mass-weighted, Eckart-projected)")
     # fig.suptitle(
@@ -219,7 +229,7 @@ def fig_vib_eigenspectrum(data: dict, out: Path) -> Path:
     #     "red = negative (imaginary) modes; non-smoothness can inject/remove spurious curvature",
     #     fontsize=11,
     # )
-    fig.tight_layout()
+    fig.tight_layout(pad=0.01)
     p = out / "eqv2_vib_eigenspectrum.png"
     fig.savefig(p, dpi=150)
     plt.close(fig)

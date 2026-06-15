@@ -36,6 +36,7 @@ dependencies = [
     "xyzrender",
     "geodesic-interpolate",
     "h5py>=3.16.0",
+    "seaborn>=0.13.2",
 ]
 
 [project.optional-dependencies]
