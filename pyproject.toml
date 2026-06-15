@@ -34,6 +34,7 @@ dependencies = [
     "datasets>=4.4.1",
     "transition1x",
     "xyzrender",
+    "geodesic-interpolate",
     "h5py>=3.16.0",
 ]
 
@@ -76,6 +77,7 @@ torch = [
 ]
 transition1x = { git = "https://gitlab.com/matschreiner/Transition1x.git" }
 xyzrender = { git = "https://github.com/aligfellow/xyzrender.git" }
+geodesic-interpolate = { git = "https://github.com/virtualzx-nad/geodesic-interpolate.git" }
 
 [tool.uv]
 default-groups = ["cuda121"]
