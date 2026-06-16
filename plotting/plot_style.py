@@ -14,7 +14,8 @@ GUIDE_COLOR = "#8A8A8A"
 ACCENT_COLOR = "#B75DAE"
 SUCCESS_COLOR = "#5AA469"
 EQV2_FORCE_COLOR = "#295c7e"
-EQV2_NO_H_FORCE_COLOR = "#4A2C1A" 
+AD_NO_H_COLOR = "#5a5255"
+EQV2_NO_H_FORCE_COLOR = AD_NO_H_COLOR
 HIP_FORCE_COLOR = "#ffb482"
 LEFTNET_CF_FORCE_COLOR = "#4a8a72"
 LEFTNET_DF_FORCE_COLOR = "#8A3F3F" # #8A3F3F #743737
@@ -26,6 +27,7 @@ SMALL_MARKER_SIZE = 4.5
 
 MODEL_COLORS: dict[str, str] = {
     "AD": AD_COLOR,
+    "AD (no H)": AD_NO_H_COLOR,
     "AD Hessians": AD_COLOR,
     "EQV2": EQV2_FORCE_COLOR,
     "EQV2 AD": EQV2_FORCE_COLOR,
@@ -33,7 +35,7 @@ MODEL_COLORS: dict[str, str] = {
     "EqV2 (no H)": EQV2_NO_H_FORCE_COLOR,
     "Autograd": AD_COLOR,
     "DFT": DFT_COLOR,
-    "HIP": HIP_FORCE_COLOR,
+    "HIP": HIP_COLOR,
     "HIP Hessians": HIP_COLOR,
     "LeftNet-CF": LEFTNET_CF_FORCE_COLOR,
     "LeftNet-CF (no H)": LEFTNET_CF_FORCE_COLOR,
@@ -75,6 +77,8 @@ def apply_plot_style() -> None:
 def model_color(label: str | None, fallback: str | None = None) -> str | None:
     if label is None:
         return fallback
+    if label in MODEL_COLORS:
+        return MODEL_COLORS[label]
     normalized = label.casefold()
     if "hip" in normalized:
         return HIP_COLOR

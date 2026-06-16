@@ -53,43 +53,6 @@ def add_energy_contours(ax: plt.Axes, df: pd.DataFrame) -> None:
     ax.contour(x, y, z, levels=levels, colors="k", linewidths=0.5, alpha=0.55)
 
 
-def heatmap(
-    df: pd.DataFrame,
-    value_col: str,
-    output_path: Path,
-    title: str,
-    cbar_label: str,
-    cmap: str = "viridis",
-    dpi: int = 300,
-    discrete: bool = False,
-) -> None:
-    x, y, z = as_grid(df, value_col)
-    fig, ax = plt.subplots(figsize=(6.4, 5.3))
-    if discrete:
-        finite = z.compressed()
-        vmin = int(np.nanmin(finite))
-        vmax = int(np.nanmax(finite))
-        n_levels = vmax - vmin + 1
-        discrete_cmap = plt.get_cmap(cmap, n_levels)
-        boundaries = np.arange(vmin - 0.5, vmax + 1.5, 1.0)
-        norm = matplotlib.colors.BoundaryNorm(boundaries, discrete_cmap.N)
-        mesh = ax.pcolormesh(x, y, z, shading="nearest", cmap=discrete_cmap, norm=norm)
-        cbar = fig.colorbar(mesh, ax=ax, ticks=np.arange(vmin, vmax + 1), spacing="proportional")
-    else:
-        mesh = ax.pcolormesh(x, y, z, shading="nearest", cmap=cmap)
-        cbar = fig.colorbar(mesh, ax=ax)
-    add_energy_contours(ax, df)
-    ax.set_title(title)
-    ax.set_xlabel(r"$q_\mathrm{NH}=d(\mathrm{N4,H9})$ [$\AA$]")
-    ax.set_ylabel(r"$q_\mathrm{OH}=d(\mathrm{O3,H9})$ [$\AA$]")
-    ax.set_aspect("equal", adjustable="box")
-    finish_axis(ax)
-    cbar.set_label(cbar_label)
-    fig.tight_layout(pad=0.01)
-    fig.savefig(output_path, dpi=dpi)
-    plt.close(fig)
-
-
 def finite_difference_force(df: pd.DataFrame) -> pd.DataFrame:
     pivot = (
         df.pivot(index="q_oh", columns="q_nh", values="orca_relative_kcalmol")
@@ -162,60 +125,13 @@ def plot_force_field(df: pd.DataFrame, output_path: Path, dpi: int) -> None:
         width=0.004,
         scale=3600,
     )
-    ax.set_title(r"DFT CV force field $(-\nabla E)$ over ORCA energy contours")
     ax.set_xlabel(r"$q_\mathrm{NH}=d(\mathrm{N4,H9})$ [$\AA$]")
     ax.set_ylabel(r"$q_\mathrm{OH}=d(\mathrm{O3,H9})$ [$\AA$]")
     ax.set_aspect("equal", adjustable="box")
     finish_axis(ax)
     cbar = fig.colorbar(mesh, ax=ax)
-    cbar.set_label(r"ORCA relative energy [kcal mol$^{-1}$]")
-    fig.tight_layout(pad=0.01)
-    fig.savefig(output_path, dpi=dpi)
-    plt.close(fig)
-
-
-def plot_curvatures(df: pd.DataFrame, output_path: Path, dpi: int) -> None:
-    specs = [
-        ("curvature_q_nh_ev_ang2", r"$q_\mathrm{NH}$ curvature"),
-        ("curvature_q_oh_ev_ang2", r"$q_\mathrm{OH}$ curvature"),
-        ("curvature_pt_ev_ang2", r"$q_\mathrm{NH}-q_\mathrm{OH}$ curvature"),
-    ]
-    fig, axes = plt.subplots(1, 3, figsize=(16.5, 4.9))
-    for ax, (col, title) in zip(axes, specs, strict=True):
-        x, y, z = as_grid(df, col)
-        finite = z.compressed()
-        lim = max(abs(float(np.nanmin(finite))), abs(float(np.nanmax(finite))))
-        mesh = ax.pcolormesh(x, y, z, shading="nearest", cmap="coolwarm", vmin=-lim, vmax=lim)
-        add_energy_contours(ax, df)
-        ax.set_title(title)
-        ax.set_xlabel(r"$q_\mathrm{NH}$ [$\AA$]")
-        ax.set_ylabel(r"$q_\mathrm{OH}$ [$\AA$]")
-        ax.set_aspect("equal", adjustable="box")
-        finish_axis(ax)
-        cbar = fig.colorbar(mesh, ax=ax)
-        cbar.set_label(r"projected curvature [eV $\AA^{-2}$]")
-    fig.tight_layout(pad=0.01)
-    fig.savefig(output_path, dpi=dpi)
-    plt.close(fig)
-
-
-def plot_alignment(df: pd.DataFrame, output_path: Path, dpi: int, zero_threshold: float = 0.05) -> None:
-    fig, ax = plt.subplots(figsize=(6.4, 5.3))
-    x, y, z = as_grid(df, "unstable_mode_pt_abs_alignment")
-    finite = z.compressed()
-    vmax = float(np.ceil(finite.max() * 20.0) / 20.0) if finite.size else 1.0
-    cmap = plt.get_cmap("viridis").copy()
-    cmap.set_under("0.8")
-    cmap.set_bad("white")
-    mesh = ax.pcolormesh(x, y, z, shading="nearest", cmap=cmap, vmin=zero_threshold, vmax=vmax)
-    add_energy_contours(ax, df)
-    ax.set_title(r"$|\cos\theta(v_1, pt = q_{NH} - q_{OH})|$")
-    ax.set_xlabel(r"$q_\mathrm{NH}$ [$\AA$]")
-    ax.set_ylabel(r"$q_\mathrm{OH}$ [$\AA$]")
-    ax.set_aspect("equal", adjustable="box")
-    finish_axis(ax)
-    cbar = fig.colorbar(mesh, ax=ax, extend="min")
-    cbar.set_label(rf"mode alignment ($|\cos\theta|<{zero_threshold:g}$ in gray)")
+    cbar.set_label(r"DFT relative energy [kcal mol$^{-1}$]")
+    cbar.outline.set_visible(False)
     fig.tight_layout(pad=0.01)
     fig.savefig(output_path, dpi=dpi)
     plt.close(fig)
@@ -284,7 +200,7 @@ def add_model_alignment(
     return df
 
 
-def plot_method_alignment(df: pd.DataFrame, output_path: Path, dpi: int, zero_threshold: float = 0.05) -> None:
+def plot_method_alignment(df: pd.DataFrame, output_path: Path, dpi: int, zero_threshold: float = 0.4) -> None:
     specs = [
         ("unstable_mode_pt_abs_alignment", "DFT"),
         ("hip_unstable_mode_pt_abs_alignment", "HIP"),
@@ -294,7 +210,7 @@ def plot_method_alignment(df: pd.DataFrame, output_path: Path, dpi: int, zero_th
     if len(specs) < 2:
         return
 
-    fig, axes = plt.subplots(1, len(specs), figsize=(3.35 * len(specs), 3.55), constrained_layout=False)
+    fig, axes = plt.subplots(1, len(specs), figsize=(3.35 * len(specs), 3.9), constrained_layout=True)
     axes = np.atleast_1d(axes)
     cmap = plt.get_cmap("viridis").copy()
     cmap.set_under("0.8")
@@ -307,15 +223,39 @@ def plot_method_alignment(df: pd.DataFrame, output_path: Path, dpi: int, zero_th
         ax.set_title(label)
         ax.set_xlabel(r"$q_\mathrm{NH}$ [$\AA$]")
         ax.set_ylabel(r"$q_\mathrm{OH}$ [$\AA$]" if idx == 0 else "")
+        ax.set_ylim(top=2.3)
+        ax.set_xticks([1.0, 1.4, 1.8, 2.2])
+        ax.set_yticks([1.0, 1.4, 1.8, 2.2])
         ax.set_aspect("equal", adjustable="box")
         finish_axis(ax)
+        ax.tick_params(
+            axis="both",
+            which="major",
+            length=3.0,
+            width=0.8,
+            bottom=True,
+            left=True,
+            color="#2F4565",
+        )
 
-    fig.suptitle("Unstable-mode alignment with glycine proton-transfer CV")
+    # fig.suptitle("Unstable-mode alignment with glycine proton-transfer CV")
     assert mesh is not None
-    cbar = fig.colorbar(mesh, ax=axes.ravel().tolist(), extend="min", pad=0.01)
-    cbar.set_label(rf"$|\cos\theta(v_1, q_\mathrm{{NH}} - q_\mathrm{{OH}})|$ ($<{zero_threshold:g}$ in gray)")
-    fig.tight_layout(pad=0.01, rect=[0, 0, 0.9, 0.94])
-    fig.savefig(output_path, dpi=dpi)
+    # Anchor the colorbar to the last panel's drawn box so it matches the
+    # (aspect="equal") subplot height exactly, regardless of the y-range crop.
+    fig.draw_without_rendering()
+    cax = axes[-1].inset_axes([1.05, 0.0, 0.05, 1.0])
+    cbar = fig.colorbar(
+        mesh,
+        cax=cax,
+        extend="min",
+        ticks=np.linspace(zero_threshold, 1.0, 4),
+    )
+    cbar.ax.yaxis.set_major_formatter(matplotlib.ticker.FormatStrFormatter("%.1f"))
+    cbar.ax.minorticks_off()
+    cbar.ax.tick_params(which="both", axis="both", length=1.5, width=0.8)
+    cbar.set_label(rf"$|\cos\theta(v_1, q_\mathrm{{NH}} - q_\mathrm{{OH}})|$")
+    cbar.outline.set_visible(False)
+    fig.savefig(output_path, dpi=dpi, bbox_inches="tight")
     plt.close(fig)
 
 
@@ -323,16 +263,39 @@ def plot_method_heatmaps(
     df: pd.DataFrame,
     specs: list[tuple[str, str]],
     output_path: Path,
-    title: str,
+    title: str | None,
     cbar_label: str,
     dpi: int,
-    cmap: str = "viridis",
+    cmap: str | matplotlib.colors.Colormap = "viridis",
     symmetric: bool = False,
     discrete: bool = False,
+    ylim_top: float | None = None,
+    vlim: tuple[float, float] | None = None,
+    extend: str = "neither",
+    mask_top_n: int = 0,
+    mask_corner_diagonals: int = 0,
 ) -> None:
     specs = [(col, label) for col, label in specs if col in df.columns]
     if len(specs) < 2:
         return
+
+    if mask_top_n > 0:
+        df = df.copy()
+        reference_col = specs[0][0]
+        top_idx = df[reference_col].nlargest(mask_top_n).index
+        for col, _ in specs:
+            df.loc[top_idx, col] = np.nan
+
+    if mask_corner_diagonals > 0:
+        df = df.copy()
+        ux = np.sort(df["q_nh"].unique())
+        uy = np.sort(df["q_oh"].unique())
+        anti_diag = np.searchsorted(ux, df["q_nh"].to_numpy()) + np.searchsorted(
+            uy, df["q_oh"].to_numpy()
+        )
+        corner = df.index[anti_diag < anti_diag.min() + mask_corner_diagonals]
+        for col, _ in specs:
+            df.loc[corner, col] = np.nan
 
     grids = [as_grid(df, col) for col, _ in specs]
     finite_parts = [grid[2].compressed() for grid in grids if grid[2].compressed().size]
@@ -340,7 +303,7 @@ def plot_method_heatmaps(
         return
     finite = np.concatenate(finite_parts)
 
-    fig, axes = plt.subplots(1, len(specs), figsize=(3.15 * len(specs), 3.45), constrained_layout=False)
+    fig, axes = plt.subplots(1, len(specs), figsize=(3.15 * len(specs), 3.9), constrained_layout=True)
     axes = np.atleast_1d(axes)
     mesh = None
     if discrete:
@@ -351,7 +314,9 @@ def plot_method_heatmaps(
         boundaries = np.arange(vmin - 0.5, vmax + 1.5, 1.0)
         norm = matplotlib.colors.BoundaryNorm(boundaries, plot_cmap.N)
     else:
-        if symmetric:
+        if vlim is not None:
+            vmin, vmax = vlim
+        elif symmetric:
             lim = max(abs(float(np.nanmin(finite))), abs(float(np.nanmax(finite))))
             vmin = -lim
             vmax = lim
@@ -371,24 +336,44 @@ def plot_method_heatmaps(
         ax.set_title(label)
         ax.set_xlabel(r"$q_\mathrm{NH}$ [$\AA$]")
         ax.set_ylabel(r"$q_\mathrm{OH}$ [$\AA$]" if idx == 0 else "")
+        if ylim_top is not None:
+            ax.set_ylim(top=ylim_top)
         ax.set_aspect("equal", adjustable="box")
+        ax.set_xticks([1.0, 1.4, 1.8, 2.2])
+        ax.set_yticks([1.0, 1.4, 1.8, 2.2])
         finish_axis(ax)
+        ax.tick_params(
+            axis="both",
+            which="major",
+            length=3.0,
+            width=0.8,
+            labelsize=11,
+            bottom=True,
+            left=True,
+            color="#2F4565",
+        )
 
     assert mesh is not None
-    fig.suptitle(title)
+    if title:
+        fig.suptitle(title)
+    # Anchor the colorbar to the last panel's drawn box so it matches the
+    # (aspect="equal") subplot height exactly, regardless of the y-range crop.
+    fig.draw_without_rendering()
+    cax = axes[-1].inset_axes([1.05, 0.0, 0.05, 1.0])
     if discrete:
         cbar = fig.colorbar(
             mesh,
-            ax=axes.ravel().tolist(),
+            cax=cax,
             ticks=np.arange(vmin, vmax + 1),
             spacing="proportional",
-            pad=0.01,
         )
     else:
-        cbar = fig.colorbar(mesh, ax=axes.ravel().tolist(), pad=0.01)
-    cbar.set_label(cbar_label)
-    fig.tight_layout(pad=0.01, rect=[0, 0, 0.9, 0.94])
-    fig.savefig(output_path, dpi=dpi)
+        cbar = fig.colorbar(mesh, cax=cax, extend=extend)
+    cbar.set_label(cbar_label, fontsize=12)
+    cbar.ax.minorticks_off()
+    cbar.ax.tick_params(which="both", axis="both", length=0, labelsize=9)
+    cbar.outline.set_visible(False)
+    fig.savefig(output_path, dpi=dpi, bbox_inches="tight")
     plt.close(fig)
 
 
@@ -462,15 +447,15 @@ def main() -> None:
     )
 
     plot_force_field(df, output_dir / "glycine_pt_dft_cv_force_field.png", args.dpi)
-    heatmap(
-        df,
-        "lowest_vib_eval_ev_ang2_amu",
-        output_dir / "glycine_pt_dft_lowest_hessian_eigenvalue.png",
-        "DFT lowest vibrational Hessian eigenvalue",
-        r"lowest eigenvalue [eV $\AA^{-2}$ amu$^{-1}$]",
-        cmap="coolwarm",
-        dpi=args.dpi,
+    # Map the negative range [-22, 0] onto viridis up to its green tone (so 0 is
+    # green, the color previously at -5) and reserve the bright yellow top of
+    # viridis for the few positive (truly stable) pixels via the "over" color.
+    viridis = matplotlib.colormaps["viridis"]
+    green_fraction = 1.0 - 5.0 / 22.0  # color at lambda = -5 on the [-22, 0] scale
+    lam_min_cmap = matplotlib.colors.LinearSegmentedColormap.from_list(
+        "viridis_to_green", viridis(np.linspace(0.0, green_fraction, 256))
     )
+    lam_min_cmap.set_over(viridis(1.0))
     plot_method_heatmaps(
         df,
         [
@@ -479,21 +464,22 @@ def main() -> None:
             ("ad_lowest_vib_eval_ev_ang2_amu", "AD"),
         ],
         output_dir / "glycine_pt_lowest_hessian_eigenvalue_methods.png",
-        "Lowest vibrational Hessian eigenvalue",
-        r"lowest eigenvalue [eV $\AA^{-2}$ amu$^{-1}$]",
+        None,
+        r"$\lambda_\mathrm{min}$ [eV $\AA^{-2}$ amu$^{-1}$]",
         args.dpi,
-        cmap="coolwarm",
-        symmetric=True,
+        cmap=lam_min_cmap,
+        ylim_top=2.3,
+        vlim=(-22.0, 0.0),
+        extend="both",
+        mask_corner_diagonals=2,
     )
-    heatmap(
-        df,
-        "lowest_two_vib_eval_product_ev2_ang4_amu2",
-        output_dir / "glycine_pt_dft_lowest_two_hessian_eigenvalue_product.png",
-        "DFT product of lowest two vibrational Hessian eigenvalues",
-        r"eigenvalue product [eV$^2$ $\AA^{-4}$ amu$^{-2}$]",
-        cmap="coolwarm",
-        dpi=args.dpi,
+    # Reversed scale (green at 0 -> dark purple at 45) with the bright-yellow
+    # viridis tone reserved (set_under) for the negative-product pixels, which
+    # mark the single-unstable-mode (saddle) regions.
+    product_cmap = matplotlib.colors.LinearSegmentedColormap.from_list(
+        "viridis_green_to_dark", viridis(np.linspace(green_fraction, 0.0, 256))
     )
+    product_cmap.set_under(viridis(1.0))
     plot_method_heatmaps(
         df,
         [
@@ -502,47 +488,42 @@ def main() -> None:
             ("ad_lowest_two_vib_eval_product_ev2_ang4_amu2", "AD"),
         ],
         output_dir / "glycine_pt_lowest_two_hessian_eigenvalue_product_methods.png",
-        "Product of lowest two vibrational Hessian eigenvalues",
-        r"eigenvalue product [eV$^2$ $\AA^{-4}$ amu$^{-2}$]",
+        None,
+        r"$\lambda_1\lambda_2$ [eV$^2$ $\AA^{-4}$ amu$^{-2}$]",
         args.dpi,
-        cmap="coolwarm",
-        symmetric=True,
+        cmap=product_cmap,
+        ylim_top=2.3,
+        vlim=(0.0, 45.0),
+        extend="both",
+        mask_corner_diagonals=2,
     )
-    heatmap(
+    n_negative_specs = [
+        ("n_negative", "DFT"),
+        ("hip_n_negative", "HIP"),
+        ("ad_n_negative", "AD"),
+    ]
+    plot_method_heatmaps(
         df,
-        "n_negative",
-        output_dir / "glycine_pt_dft_n_negative_modes.png",
-        "DFT number of negative vibrational modes",
+        n_negative_specs,
+        output_dir / "glycine_pt_n_negative_modes_methods.png",
+        None,
         "negative mode count",
+        args.dpi,
         cmap="viridis",
-        dpi=args.dpi,
         discrete=True,
     )
     plot_method_heatmaps(
         df,
-        [
-            ("n_negative", "DFT"),
-            ("hip_n_negative", "HIP"),
-            ("ad_n_negative", "AD"),
-        ],
-        output_dir / "glycine_pt_n_negative_modes_methods.png",
-        "Number of negative vibrational modes",
+        n_negative_specs,
+        output_dir / "glycine_pt_n_negative_modes_methods_qoh_crop2p3.png",
+        None,
         "negative mode count",
         args.dpi,
         cmap="viridis",
         discrete=True,
+        ylim_top=2.3,
     )
-    plot_alignment(df, output_dir / "glycine_pt_dft_unstable_mode_alignment.png", args.dpi)
     plot_method_alignment(df, output_dir / "glycine_pt_unstable_mode_alignment_methods.png", args.dpi)
-    heatmap(
-        df,
-        "reaction_center_hessian_frobenius_ev_ang2",
-        output_dir / "glycine_pt_dft_reaction_center_hessian_norm.png",
-        "DFT O-N-H Hessian block norm",
-        r"Frobenius norm [eV $\AA^{-2}$]",
-        cmap="magma",
-        dpi=args.dpi,
-    )
     plot_method_heatmaps(
         df,
         [
@@ -555,12 +536,12 @@ def main() -> None:
         r"Frobenius norm [eV $\AA^{-2}$]",
         args.dpi,
         cmap="magma",
+        ylim_top=2.3,
+        mask_corner_diagonals=2,
     )
-    plot_curvatures(df, output_dir / "glycine_pt_dft_cv_curvatures.png", args.dpi)
-    for col_suffix, label in [
-        ("curvature_q_nh_ev_ang2", r"$q_\mathrm{NH}$ curvature"),
-        ("curvature_q_oh_ev_ang2", r"$q_\mathrm{OH}$ curvature"),
-        ("curvature_pt_ev_ang2", r"$q_\mathrm{NH}-q_\mathrm{OH}$ curvature"),
+    for col_suffix in [
+        "curvature_q_nh_ev_ang2",
+        "curvature_q_oh_ev_ang2",
     ]:
         plot_method_heatmaps(
             df,
@@ -570,12 +551,33 @@ def main() -> None:
                 (f"ad_{col_suffix}", "AD"),
             ],
             output_dir / f"glycine_pt_{col_suffix.removesuffix('_ev_ang2')}_methods.png",
-            label,
+            "",
             r"projected curvature [eV $\AA^{-2}$]",
             args.dpi,
             cmap="coolwarm",
             symmetric=True,
+            ylim_top=2.3,
+            mask_corner_diagonals=2,
         )
+    # PT-projected curvature: green at 0 -> dark purple at 80, with the bright
+    # viridis yellow (set_under) reserved for the rare negative-curvature pixels.
+    plot_method_heatmaps(
+        df,
+        [
+            ("curvature_pt_ev_ang2", "DFT"),
+            ("hip_curvature_pt_ev_ang2", "HIP"),
+            ("ad_curvature_pt_ev_ang2", "AD"),
+        ],
+        output_dir / "glycine_pt_curvature_pt_methods.png",
+        "",
+        r"projected curvature [eV $\AA^{-2}$]",
+        args.dpi,
+        cmap=product_cmap,
+        vlim=(0.0, 60.0),
+        extend="both",
+        ylim_top=2.3,
+        mask_corner_diagonals=2,
+    )
     df.to_csv(output_dir / "glycine_pt_dft_cv_diagnostics.csv", index=False)
     print(f"Wrote DFT CV diagnostics to {output_dir}")
 

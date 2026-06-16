@@ -26,6 +26,7 @@ from plot_style import AD_COLOR, ACCENT_COLOR, HIP_COLOR, SUCCESS_COLOR, finish_
 DEFAULT_RESULTS = (
     ("AD", Path("results_evalhorm/eqv2_ts1x-val_autograd_metrics.csv")),
     ("HIP", Path("results_evalhorm/hip_v2_ts1x-val_predict_metrics.csv")),
+    ("AD (no H)", Path("results_evalhorm/eqv2_orig_ts1xval10k_29148768_ts1x-val_autograd_metrics.csv")),
 )
 
 ENERGY_METRICS = (
@@ -167,7 +168,7 @@ def parse_args() -> argparse.Namespace:
         type=Path,
         default=Path("plots/eval_horm/error_distributions"),
     )
-    parser.add_argument("--bins", type=int, default=80)
+    parser.add_argument("--bins", type=int, default=60)
     parser.add_argument("--dpi", type=int, default=250)
     parser.add_argument(
         "--no-log",
@@ -325,6 +326,61 @@ def plot_within_model_correlations(
                 ax.set_xscale("log")
                 ax.set_yscale("log")
             finish_axis(ax)
+
+    fig.tight_layout(pad=0.01)
+    fig.savefig(output_path, dpi=dpi, bbox_inches="tight")
+    plt.close(fig)
+
+
+def plot_force_hessian_scatter_by_model(
+    results: list[ResultTable],
+    output_path: Path,
+    use_log: bool,
+    dpi: int,
+) -> None:
+    fig, axes = plt.subplots(1, len(results), figsize=(5 * len(results), 4), squeeze=False)
+    axes = axes[0]
+    plot_values: list[tuple[np.ndarray, np.ndarray]] = []
+
+    for result in results:
+        x = pd.to_numeric(result.df["forces_error"], errors="coerce").to_numpy(dtype=float)
+        y = pd.to_numeric(result.df["hessian_error"], errors="coerce").to_numpy(dtype=float)
+        keep = np.isfinite(x) & np.isfinite(y)
+        if use_log:
+            keep &= (x > 0) & (y > 0)
+        plot_values.append((x[keep], y[keep]))
+
+    all_x = np.concatenate([x for x, _ in plot_values if len(x)])
+    all_y = np.concatenate([y for _, y in plot_values if len(y)])
+    xlim = (float(all_x.min()), float(all_x.max())) if len(all_x) else None
+    ylim = (float(all_y.min()), float(all_y.max())) if len(all_y) else None
+
+    for ax, result, (x, y) in zip(axes, results, plot_values):
+        if len(x):
+            sns.scatterplot(x=x, y=y, ax=ax, color=model_color(result.label, AD_COLOR), legend=False, **SCATTER_KWARGS)
+            corr_x = np.log10(x) if use_log else x
+            corr_y = np.log10(y) if use_log else y
+            corr = np.corrcoef(corr_x, corr_y)[0, 1]
+            ax.text(
+                0.03,
+                0.97,
+                f"{'log-' if use_log else ''}r={corr:.2f}",
+                transform=ax.transAxes,
+                va="top",
+                bbox={"facecolor": "white", "alpha": 0.8, "edgecolor": "none"},
+            )
+
+        ax.set_title(result.label)
+        ax.set_xlabel(r"Force MAE [$\mathrm{eV}/\AA$]")
+        ax.set_ylabel(r"Hessian MAE [$\mathrm{eV}/\AA^2$]")
+        if use_log:
+            ax.set_xscale("log")
+            ax.set_yscale("log")
+        if xlim is not None:
+            ax.set_xlim(xlim)
+        if ylim is not None:
+            ax.set_ylim(ylim)
+        finish_axis(ax)
 
     fig.tight_layout(pad=0.01)
     fig.savefig(output_path, dpi=dpi, bbox_inches="tight")
@@ -1164,6 +1220,12 @@ def main() -> None:
     plot_within_model_correlations(
         results,
         args.output_dir / "within_model_error_correlations.png",
+        use_log=use_log,
+        dpi=args.dpi,
+    )
+    plot_force_hessian_scatter_by_model(
+        results,
+        args.output_dir / "force_hessian_scatter_by_model.png",
         use_log=use_log,
         dpi=args.dpi,
     )

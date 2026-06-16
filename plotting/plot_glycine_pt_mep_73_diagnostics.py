@@ -372,7 +372,6 @@ def save_energy_plot(x: np.ndarray, x_label: str, methods: list[MethodData], out
     for method in methods:
         rel_kcal = (method.energies_ev - np.nanmin(method.energies_ev)) * EV_TO_KCALMOL
         sns.lineplot(x=x, y=rel_kcal, ax=ax, marker="o", markersize=MARKER_SIZE, lw=LINE_WIDTH, label=method.label, color=METHOD_COLORS.get(method.label))
-    ax.set_title("Energy Along MEP")
     ax.set_ylabel(r"relative energy [kcal mol$^{-1}$]")
     setup_axis(ax, x_label)
     ax.legend(frameon=True, edgecolor="none")
@@ -491,7 +490,6 @@ def save_negative_mode_plot(
             color=METHOD_COLORS.get(label),
             legend=False,
         )
-    ax.set_title("Negative Vibrational Modes Along MEP")
     ax.set_ylabel("negative mode count")
     ax.yaxis.get_major_locator().set_params(integer=True)
     setup_axis(ax, x_label)

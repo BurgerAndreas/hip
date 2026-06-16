@@ -791,7 +791,7 @@ def save_method_summary_figure(
         ax.tick_params(axis="x", labelrotation=25)
         finish_axis(ax)
 
-    fig.suptitle(f"Glycine Hessian Method Summary vs {DFT_LABEL}")
+    # fig.suptitle(f"Glycine Hessian Method Summary vs {DFT_LABEL}")
     fig.tight_layout(pad=0.01)
     fig.savefig(output_dir / "glycine_pt_hessian_method_summary.png", dpi=dpi)
     plt.close(fig)
@@ -851,7 +851,7 @@ def save_force_projection_figure(
         )
         axes[row_idx, 2].collections[0].set_clim(-error_lim, error_lim)
 
-    fig.suptitle("Projected Forces Along Glycine Proton-Transfer CV")
+    # fig.suptitle("Projected Forces Along Glycine Proton-Transfer CV")
     fig.tight_layout(pad=0.01)
     fig.savefig(output_dir / "glycine_pt_force_projection_pt.png", dpi=dpi)
     plt.close(fig)
@@ -897,45 +897,45 @@ def save_force_summary_figure(
         ax.tick_params(axis="x", labelrotation=25)
         finish_axis(ax)
 
-    fig.suptitle(f"Glycine Force Summary vs {DFT_LABEL}")
+    # fig.suptitle(f"Glycine Force Summary vs {DFT_LABEL}")
     fig.tight_layout(pad=0.01)
     fig.savefig(output_dir / "glycine_pt_force_method_summary.png", dpi=dpi)
     plt.close(fig)
 
 
-def save_low_mode_figure(
-    df: pd.DataFrame,
-    ref_diag: VibDiagnostics,
-    model_diags: dict[str, VibDiagnostics],
-    output_dir: Path,
-    dpi: int,
-) -> int:
-    # Pick the DFT point closest to an index-1 saddle with the most negative lowest mode.
-    index1 = np.where(ref_diag.n_negative == 1)[0]
-    if len(index1) > 0:
-        selected = int(index1[np.argmin(ref_diag.evals[index1, 0])])
-    else:
-        selected = int(np.argmin(ref_diag.evals[:, 0]))
+# def save_low_mode_figure(
+#     df: pd.DataFrame,
+#     ref_diag: VibDiagnostics,
+#     model_diags: dict[str, VibDiagnostics],
+#     output_dir: Path,
+#     dpi: int,
+# ) -> int:
+#     # Pick the DFT point closest to an index-1 saddle with the most negative lowest mode.
+#     index1 = np.where(ref_diag.n_negative == 1)[0]
+#     if len(index1) > 0:
+#         selected = int(index1[np.argmin(ref_diag.evals[index1, 0])])
+#     else:
+#         selected = int(np.argmin(ref_diag.evals[:, 0]))
 
-    row = df.iloc[selected]
-    fig, ax = plt.subplots(figsize=(7.5, 4.5))
-    mode_ids = np.arange(ref_diag.evals.shape[1])
-    sns.lineplot(x=mode_ids, y=ref_diag.evals[selected], ax=ax, marker="o", markersize=MARKER_SIZE, linewidth=LINE_WIDTH, label=DFT_LABEL, color=DFT_COLOR)
-    for label, diag in model_diags.items():
-        sns.lineplot(x=mode_ids, y=diag.evals[selected], ax=ax, marker="o", markersize=MARKER_SIZE, linewidth=LINE_WIDTH, linestyle="--", label=label, color=model_color(label))
-    ax.axhline(0.0, color="k", linewidth=THIN_LINE_WIDTH)
-    ax.set_xlabel("vibrational mode index")
-    ax.set_ylabel(r"projected Hessian eigenvalue [eV A$^{-2}$ amu$^{-1}$]")
-    ax.set_title(
-        f"Low-mode spectrum at grid {int(row.grid_id)} "
-        f"($q_{{NH}}$={row.q_nh:.3f} A, $q_{{OH}}$={row.q_oh:.3f} A)"
-    )
-    ax.legend(frameon=True, edgecolor="none")
-    finish_axis(ax)
-    fig.tight_layout(pad=0.01)
-    fig.savefig(output_dir / "glycine_pt_low_mode_spectrum.png", dpi=dpi)
-    plt.close(fig)
-    return selected
+#     row = df.iloc[selected]
+#     fig, ax = plt.subplots(figsize=(7.5, 4.5))
+#     mode_ids = np.arange(ref_diag.evals.shape[1])
+#     sns.lineplot(x=mode_ids, y=ref_diag.evals[selected], ax=ax, marker="o", markersize=MARKER_SIZE, linewidth=LINE_WIDTH, label=DFT_LABEL, color=DFT_COLOR)
+#     for label, diag in model_diags.items():
+#         sns.lineplot(x=mode_ids, y=diag.evals[selected], ax=ax, marker="o", markersize=MARKER_SIZE, linewidth=LINE_WIDTH, linestyle="--", label=label, color=model_color(label))
+#     ax.axhline(0.0, color="k", linewidth=THIN_LINE_WIDTH)
+#     ax.set_xlabel("vibrational mode index")
+#     ax.set_ylabel(r"projected Hessian eigenvalue [eV A$^{-2}$ amu$^{-1}$]")
+#     ax.set_title(
+#         f"Low-mode spectrum at grid {int(row.grid_id)} "
+#         f"($q_{{NH}}$={row.q_nh:.3f} A, $q_{{OH}}$={row.q_oh:.3f} A)"
+#     )
+#     ax.legend(frameon=True, edgecolor="none")
+#     finish_axis(ax)
+#     fig.tight_layout(pad=0.01)
+#     fig.savefig(output_dir / "glycine_pt_low_mode_spectrum.png", dpi=dpi)
+#     plt.close(fig)
+#     return selected
 
 
 def save_reaction_center_blocks(
@@ -969,10 +969,10 @@ def save_reaction_center_blocks(
         ax.set_title(f"{model.label} - {DFT_LABEL}")
         plt.colorbar(im, ax=ax, fraction=0.046)
 
-    fig.suptitle(
-        f"O-N-H block at grid {int(row.grid_id)} "
-        f"($q_{{NH}}$={row.q_nh:.3f} A, $q_{{OH}}$={row.q_oh:.3f} A)"
-    )
+    # fig.suptitle(
+    #     f"O-N-H block at grid {int(row.grid_id)} "
+    #     f"($q_{{NH}}$={row.q_nh:.3f} A, $q_{{OH}}$={row.q_oh:.3f} A)"
+    # )
     fig.tight_layout(pad=0.01)
     fig.savefig(output_dir / "glycine_pt_reaction_center_hessian_blocks.png", dpi=dpi)
     plt.close(fig)
@@ -1176,8 +1176,8 @@ def main() -> None:
         )
         metrics_frames.append(method_metrics.drop(columns=["q_nh", "q_oh"]))
 
-    selected = save_low_mode_figure(df, ref_diag, model_diags, output_dir, args.dpi)
-    save_reaction_center_blocks(selected, df, ref_hessians, models, output_dir, args.dpi)
+    # selected = save_low_mode_figure(df, ref_diag, model_diags, output_dir, args.dpi)
+    # save_reaction_center_blocks(selected, df, ref_hessians, models, output_dir, args.dpi)
 
     metrics_df = metrics_frames[0]
     for frame in metrics_frames[1:]:

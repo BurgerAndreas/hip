@@ -197,9 +197,9 @@ def load_dft_hessians(eqv2_orig_targets: pd.DataFrame) -> dict[tuple[int, int], 
     return dft_hessians
 
 
-def load_eqv2_orig_eckart_targets(eqv2_orig_targets: pd.DataFrame, target_metric: str) -> pd.DataFrame:
+def load_eqv2_npz_targets(eqv2_targets: pd.DataFrame, target_metric: str) -> pd.DataFrame:
     rows: list[dict[str, float | int]] = []
-    for row in eqv2_orig_targets.itertuples(index=False):
+    for row in eqv2_targets.itertuples(index=False):
         npz = np.load(row.sample_npz_path)
         model_hessian = npz["hessian_ad_ev_ang2"].astype(float)
         dft_hessian = npz["hessian_dft_ev_ang2"].astype(float)
@@ -219,6 +219,16 @@ def load_eqv2_orig_eckart_targets(eqv2_orig_targets: pd.DataFrame, target_metric
             }
         )
     return pd.DataFrame(rows)
+
+
+def load_eqv2_raw_targets(scan_dir: Path, tag: str, target_metric: str) -> pd.DataFrame | None:
+    csv_path = scan_dir / "ad_hessians" / tag / f"{tag}_selected_ad_hessian_metrics.csv"
+    if not csv_path.exists():
+        return None
+    targets = pd.read_csv(csv_path)
+    if target_metric == "hessian_error":
+        return targets[["geom_rank", "dataset_idx", "hessian_error"]].copy()
+    return load_eqv2_npz_targets(targets, target_metric)
 
 
 def load_leftnet_targets(
@@ -330,15 +340,19 @@ def load_all_data(scan_dir: Path, horm_dir: Path, target_metric: str) -> pd.Data
     tables: list[pd.DataFrame] = []
     for spec in default_model_specs(scan_dir, horm_dir):
         if spec.label == "eqv2.ckpt" and target_metric == "hessian_error":
-            targets = pd.read_csv(spec.spectra_csv).groupby(["geom_rank", "dataset_idx"], as_index=False)["hessian_error"].mean()
+            targets = load_eqv2_raw_targets(scan_dir, "eqv2", target_metric)
+            if targets is None:
+                targets = pd.read_csv(spec.spectra_csv).groupby(["geom_rank", "dataset_idx"], as_index=False)["hessian_error"].mean()
         elif spec.label == "eqv2_orig":
             if target_metric == "hessian_error":
                 targets = eqv2_orig_targets[["geom_rank", "dataset_idx", "hessian_error"]].copy()
             else:
-                targets = load_eqv2_orig_eckart_targets(eqv2_orig_targets, target_metric)
+                targets = load_eqv2_npz_targets(eqv2_orig_targets, target_metric)
         elif spec.label == "eqv2.ckpt":
-            print(f"Skipping {spec.label:16s}: raw Hessian NPZs are not available for {target_metric}.")
-            continue
+            targets = load_eqv2_raw_targets(scan_dir, "eqv2", target_metric)
+            if targets is None:
+                print(f"Skipping {spec.label:16s}: raw Hessian NPZs are not available for {target_metric}.")
+                continue
         else:
             targets = load_leftnet_targets(spec, dft_hessians, target_metric)
         table = compute_line_table(spec, targets, target_metric)
@@ -363,8 +377,14 @@ def target_short_name(target_metric: str) -> str:
     return "Hessian MAE"
 
 
+def seaborn_model_palette(models: pd.Series) -> dict[str, tuple[float, float, float]]:
+    labels = list(dict.fromkeys(models.tolist()))
+    colors = sns.color_palette("deep", n_colors=len(labels))
+    return dict(zip(labels, colors, strict=True))
+
+
 def save_combined_scatter(df: pd.DataFrame, out_dir: Path, target_metric: str) -> Path:
-    palette = {spec.label: spec.color for spec in default_model_specs(DEFAULT_SCAN_DIR, DEFAULT_HORM_DIR)}
+    palette = seaborn_model_palette(df["model"])
     fig, axes = plt.subplots(3, 3, figsize=(17, 14), sharey=False)
     axes_flat = axes.ravel()
 
@@ -404,8 +424,7 @@ def save_combined_scatter(df: pd.DataFrame, out_dir: Path, target_metric: str) -
         ax.axis("off")
     handles, labels = axes_flat[0].get_legend_handles_labels()
     fig.legend(handles, labels, loc="lower center", ncol=6, frameon=True, edgecolor="none")
-    fig.suptitle(f"Line-level force residual diagnostics vs center {target_short_name(target_metric)}", fontsize=18)
-    fig.tight_layout(rect=(0, 0.045, 1, 0.97), pad=0.35)
+    fig.tight_layout(rect=(0, 0.045, 1, 1), pad=0.35)
     path = out_dir / f"ad_hessian_frequency_diagnostic_scatters_vs_{target_metric}.png"
     fig.savefig(path, dpi=180)
     plt.close(fig)
@@ -414,14 +433,11 @@ def save_combined_scatter(df: pd.DataFrame, out_dir: Path, target_metric: str) -
 
 def save_per_model_scatter(df: pd.DataFrame, out_dir: Path, target_metric: str) -> list[Path]:
     paths: list[Path] = []
+    palette = seaborn_model_palette(df["model"])
     for model, group in df.groupby("model", sort=False):
         fig, axes = plt.subplots(3, 3, figsize=(17, 14), sharey=True)
         axes_flat = axes.ravel()
-        color = default_model_specs(DEFAULT_SCAN_DIR, DEFAULT_HORM_DIR)[0].color
-        for spec in default_model_specs(DEFAULT_SCAN_DIR, DEFAULT_HORM_DIR):
-            if spec.label == model:
-                color = spec.color
-                break
+        color = palette[model]
         for ax, (column, label, scale) in zip(axes_flat, DIAGNOSTICS):
             ax.scatter(group[column], group[target_metric], s=24, alpha=0.42, color=color, edgecolors="none")
             rho = spearman(group[column], group[target_metric])
@@ -446,8 +462,7 @@ def save_per_model_scatter(df: pd.DataFrame, out_dir: Path, target_metric: str) 
             finish_axis(ax)
         for ax in axes_flat[len(DIAGNOSTICS) :]:
             ax.axis("off")
-        fig.suptitle(f"{model}: all line points vs center {target_short_name(target_metric)}", fontsize=18)
-        fig.tight_layout(rect=(0, 0, 1, 0.97), pad=0.35)
+        fig.tight_layout(pad=0.35)
         path = out_dir / f"{model.replace('.', '_').replace('-', '_')}_frequency_diagnostic_scatters_vs_{target_metric}.png"
         fig.savefig(path, dpi=180)
         plt.close(fig)
@@ -499,12 +514,21 @@ def main() -> None:
         help="Metric to plot on the y-axis.",
     )
     parser.add_argument("--write-per-model", action="store_true", help="Also write one multi-panel scatter figure per model.")
+    parser.add_argument(
+        "--reuse-line-points",
+        action="store_true",
+        help="Load the cached line-points CSV instead of recomputing diagnostics from the raw NPZs.",
+    )
     args = parser.parse_args()
 
     args.out_dir.mkdir(parents=True, exist_ok=True)
-    df = load_all_data(args.scan_dir, args.horm_dir, args.target_metric)
     data_csv = args.out_dir / f"ad_hessian_frequency_diagnostic_line_points_vs_{args.target_metric}.csv"
-    df.to_csv(data_csv, index=False)
+    if args.reuse_line_points and data_csv.exists():
+        print(f"Reusing cached line points: {data_csv}")
+        df = pd.read_csv(data_csv)
+    else:
+        df = load_all_data(args.scan_dir, args.horm_dir, args.target_metric)
+        df.to_csv(data_csv, index=False)
     corr_csv = save_correlations(df, args.out_dir, args.target_metric)
     combined_png = save_combined_scatter(df, args.out_dir, args.target_metric)
     written = [data_csv, corr_csv, combined_png]
