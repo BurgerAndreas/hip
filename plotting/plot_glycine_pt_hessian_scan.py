@@ -1048,7 +1048,7 @@ def save_method_comparison_figure(
 def main() -> None:
     args = parse_args()
     scan_dir = args.scan_dir
-    output_dir = args.output_dir or scan_dir / "plots"
+    output_dir = args.output_dir or Path("plots") / scan_dir.name / "hessian_scan"
     output_dir.mkdir(parents=True, exist_ok=True)
     vib_cache = args.vib_cache or scan_dir / "glycine_pt_vib_cache.npz"
     orca_vib_cache = args.orca_vib_cache or (

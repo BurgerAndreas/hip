@@ -294,7 +294,7 @@ def fig_residual_source(data: dict, out: Path) -> Path:
         r"the direct force $d\cdot F$ is smooth; $-dE/d\lambda$ is spiky because the predicted energy is slightly kinky",
         fontsize=11,
     )
-    fig.tight_layout(rect=[0, 0, 1, 0.97])
+    fig.tight_layout(pad=0.01, rect=[0, 0, 1, 0.97])
     p = out / "eqv2_residual_source.png"
     fig.savefig(p, dpi=150)
     plt.close(fig)
@@ -378,7 +378,7 @@ def fig_autograd_fidelity(data: dict, out: Path) -> tuple[Path, list]:
         r"smooth forces (HF$(d\cdot F)\sim10^{-5}$) ⇒ autograd $d^THd$ matches finite differences of the scan",
         fontsize=11,
     )
-    fig.tight_layout(rect=[0, 0, 1, 0.96])
+    fig.tight_layout(pad=0.01, rect=[0, 0, 1, 0.96])
     p = out / "eqv2_autograd_fidelity.png"
     fig.savefig(p, dpi=150)
     plt.close(fig)
@@ -388,7 +388,7 @@ def fig_autograd_fidelity(data: dict, out: Path) -> tuple[Path, list]:
 def main():
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--run-dir", type=Path, default=_project_root() / "runs" / "force_smoothness")
-    ap.add_argument("--out-dir", type=Path, default=_project_root() / "runs" / "force_smoothness" / "eqv2_figures")
+    ap.add_argument("--out-dir", type=Path, default=_project_root() / "plots" / "force_smoothness" / "eqv2_figures")
     args = ap.parse_args()
     args.out_dir.mkdir(parents=True, exist_ok=True)
 

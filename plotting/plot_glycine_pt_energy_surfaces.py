@@ -399,7 +399,7 @@ def save_derivative_surface_comparison(
         ax.set_visible(False)
 
     fig.suptitle(title_prefix)
-    fig.subplots_adjust(left=0.055, right=0.97, bottom=0.075, top=0.92, wspace=0.25, hspace=0.28)
+    fig.tight_layout(pad=0.01, rect=[0, 0, 1, 0.95])
     fig.savefig(output_dir / output_name, dpi=dpi)
     plt.close(fig)
 
@@ -460,13 +460,13 @@ def save_surface_comparison(
         ax.set_visible(False)
 
     fig.suptitle("Glycine intramolecular proton-transfer scan, Transition1x test sample 5")
-    fig.subplots_adjust(left=0.055, right=0.97, bottom=0.075, top=0.92, wspace=0.25, hspace=0.28)
+    fig.tight_layout(pad=0.01, rect=[0, 0, 1, 0.95])
     fig.savefig(output_dir / "glycine_pt_energy_surfaces.png", dpi=dpi)
     plt.close(fig)
 
 
 def save_overlay(df: pd.DataFrame, models: list[EnergyModel], output_dir: Path, dpi: int, step: float, vmax: float | None) -> None:
-    fig, ax = plt.subplots(figsize=(6.4, 5.3), constrained_layout=True)
+    fig, ax = plt.subplots(figsize=(6.4, 5.3))
     plot_surface(
         ax,
         df,
@@ -482,12 +482,13 @@ def save_overlay(df: pd.DataFrame, models: list[EnergyModel], output_dir: Path, 
         x, y, z_model = as_grid(df, f"{model.key}_relative_kcalmol")
         levels = contour_levels(z_model.compressed(), step, vmax=vmax)
         ax.contour(x, y, z_model, levels=levels, colors=color, linewidths=0.85, linestyles="--")
+    fig.tight_layout(pad=0.01)
     fig.savefig(output_dir / "glycine_pt_orca_with_model_contours.png", dpi=dpi)
     plt.close(fig)
 
 
 def save_parity(df: pd.DataFrame, models: list[EnergyModel], output_dir: Path, dpi: int) -> None:
-    fig, ax = plt.subplots(figsize=(5.8, 5.3), constrained_layout=True)
+    fig, ax = plt.subplots(figsize=(5.8, 5.3))
     x = df["orca_relative_kcalmol"].to_numpy(dtype=float)
     max_y = float(np.nanmax(x))
     for model in models:
@@ -503,6 +504,7 @@ def save_parity(df: pd.DataFrame, models: list[EnergyModel], output_dir: Path, d
     ax.set_title(f"Model vs {DFT_LABEL} energy parity")
     ax.legend(fontsize=8, frameon=True, edgecolor="none")
     finish_axis(ax)
+    fig.tight_layout(pad=0.01)
     fig.savefig(output_dir / "glycine_pt_model_orca_parity.png", dpi=dpi)
     plt.close(fig)
 
@@ -601,7 +603,7 @@ def save_linecuts(
 ) -> None:
     del requested_q_oh, requested_q_nh
 
-    fig, ax = plt.subplots(figsize=(7.2, 5.2), constrained_layout=True)
+    fig, ax = plt.subplots(figsize=(7.2, 5.2))
     profile = min_profile_along_pt_cv(df, "orca_relative_kcalmol")
     sns.lineplot(x=profile["pt_cv"], y=profile["orca_relative_kcalmol"], ax=ax, marker="o", markersize=MARKER_SIZE, linewidth=LINE_WIDTH, label=DFT_LABEL, color=DFT_COLOR)
 
@@ -616,6 +618,7 @@ def save_linecuts(
     finish_axis(ax)
     ax.legend(fontsize=8, frameon=True, edgecolor="none")
 
+    fig.tight_layout(pad=0.01)
     fig.savefig(output_dir / "glycine_pt_energy_linecuts.png", dpi=dpi)
     plt.close(fig)
 
@@ -623,7 +626,7 @@ def save_linecuts(
 def main() -> None:
     args = parse_args()
     orca_path = args.orca_energies or args.orca_dir / "metadata.csv"
-    output_dir = args.output_dir or args.scan_dir / "plots"
+    output_dir = args.output_dir or Path("plots") / args.scan_dir.name / "energy_surfaces"
     output_dir.mkdir(parents=True, exist_ok=True)
 
     models = default_models(args)

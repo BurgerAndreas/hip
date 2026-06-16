@@ -222,7 +222,7 @@ def assemble_panel(image_paths: list[Path], labels: list[str], output_path: Path
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--h5", type=Path, default=default_transition1x_h5())
-    parser.add_argument("--output-dir", type=Path, default=Path("runs/glycine_pt_xyzrender"))
+    parser.add_argument("--output-dir", type=Path, default=Path("plots/glycine_pt_xyzrender"))
     parser.add_argument("--frames-per-leg", type=int, default=8)
     parser.add_argument(
         "--mep-initial-images",

@@ -116,10 +116,40 @@ and follow their workflow from here:
 
 ## Plots
 
-Regenerate all force median spectra plots:
+Plotting scripts read generated data from `runs/` and write rendered figures under `plots/` by default.
+
+Regenerate the current plot set:
 
 ```bash
-uv run python plotting/plot_t1x_val_force_spectra.py && uv run python plotting/plot_t1x_val_force_spectra.py --model-force-dir runs/t1x_val_force_spectra_100x2x51/eqv2_orig_force_outputs --model-label 'EqV2 orig' --out-dir runs/t1x_val_force_spectra_100x2x51/force_spectra_analysis_eqv2_orig --hessian-metrics-csv runs/t1x_val_force_spectra_100x2x51/nonexistent_hessian_metrics.csv && uv run python plotting/plot_t1x_val_force_spectra.py --model-force-dir runs/t1x_val_force_spectra_100x2x51/hip_v2_force_outputs --model-label 'HIP v2' --out-dir runs/t1x_val_force_spectra_100x2x51/force_spectra_analysis_hip_v2 --hessian-metrics-csv runs/t1x_val_force_spectra_100x2x51/nonexistent_hessian_metrics.csv && uv run python plotting/plot_t1x_val_force_spectra.py --model-force-dir runs/t1x_val_force_spectra_100x2x51/t1x_val_force_spectra_leftnet/leftnet-cf --model-label 'LeftNet CF' --out-dir runs/t1x_val_force_spectra_100x2x51/t1x_val_force_spectra_leftnet/force_spectra_analysis/leftnet-cf --hessian-metrics-csv runs/t1x_val_force_spectra_100x2x51/nonexistent_hessian_metrics.csv && uv run python plotting/plot_t1x_val_force_spectra.py --model-force-dir runs/t1x_val_force_spectra_100x2x51/t1x_val_force_spectra_leftnet/leftnet-df --model-label 'LeftNet DF' --out-dir runs/t1x_val_force_spectra_100x2x51/t1x_val_force_spectra_leftnet/force_spectra_analysis/leftnet-df --hessian-metrics-csv runs/t1x_val_force_spectra_100x2x51/nonexistent_hessian_metrics.csv && uv run python plotting/plot_t1x_val_force_spectra.py --model-force-dir runs/t1x_val_force_spectra_100x2x51/t1x_val_force_spectra_leftnet/leftnet-cf-orig --model-label 'LeftNet CF orig' --out-dir runs/t1x_val_force_spectra_100x2x51/t1x_val_force_spectra_leftnet/force_spectra_analysis/leftnet-cf-orig --hessian-metrics-csv runs/t1x_val_force_spectra_100x2x51/nonexistent_hessian_metrics.csv && uv run python plotting/plot_t1x_val_force_spectra.py --model-force-dir runs/t1x_val_force_spectra_100x2x51/t1x_val_force_spectra_leftnet/leftnet-df-orig --model-label 'LeftNet DF orig' --out-dir runs/t1x_val_force_spectra_100x2x51/t1x_val_force_spectra_leftnet/force_spectra_analysis/leftnet-df-orig --hessian-metrics-csv runs/t1x_val_force_spectra_100x2x51/nonexistent_hessian_metrics.csv && uv run python plotting/plot_leftnet_joint_force_spectra.py && uv run python plotting/plot_eqv2_hip_joint_force_spectra.py
+uv run python plotting/plot_eqv2_detach_no_detach_fd_convergence.py
+uv run python plotting/plot_eqv2_roughness_vs_dft.py
+uv run python plotting/plot_eqv2_force_smoothness.py
+uv run python plotting/plot_t1x_val_force_spectra.py --scan-dir runs/t1x_val_force_spectra_100x2x51
+uv run python plotting/plot_leftnet_joint_force_spectra.py
+uv run python plotting/plot_eqv2_hip_joint_force_spectra.py
+uv run python plotting/plot_glycine_pt_energy_surfaces.py --scan-dir runs/glycine_pt_scan --orca-dir orca_wb97x_631gd_glycine_pt_nh_oh_scan_80
+uv run python plotting/plot_glycine_pt_hessian_scan.py --scan-dir runs/glycine_pt_scan --orca-dir orca_wb97x_631gd_glycine_pt_nh_oh_scan_80
+uv run python plotting/plot_glycine_pt_dft_cv_diagnostics.py --scan-dir runs/glycine_pt_scan_n36
+uv run python plotting/plot_glycine_pt_path_forces.py --path-dir runs/glycine_pt_path
+uv run python plotting/plot_glycine_pt_path_mechanism.py --path-dir runs/glycine_pt_path
+uv run python plotting/plot_glycine_pt_path_ad_failure.py --path-dir runs/glycine_pt_path_dft
+uv run python plotting/plot_glycine_pt_path_hessian_diag.py --path-dir runs/glycine_pt_path_dft
+uv run python plotting/plot_glycine_ad_hessian_failure.py
+uv run python plotting/plot_glycine_pt_mep_73_diagnostics.py --mep-dir runs/glycine_pt_mep_73
+uv run python plotting/plot_eval_horm_error_distributions.py
+uv run python plotting/visualize_glycine_pt_xyzrender.py
+```
+
+Regenerate the individual force median spectra summaries used by the joint spectra plots:
+
+```bash
+uv run python plotting/plot_t1x_val_force_spectra.py --scan-dir runs/t1x_val_force_spectra_100x2x51
+uv run python plotting/plot_t1x_val_force_spectra.py --scan-dir runs/t1x_val_force_spectra_100x2x51 --model-force-dir runs/t1x_val_force_spectra_100x2x51/eqv2_orig_force_outputs --model-label 'EqV2 orig' --out-dir plots/t1x_val_force_spectra_100x2x51/force_spectra_analysis_eqv2_orig --hessian-metrics-csv runs/t1x_val_force_spectra_100x2x51/nonexistent_hessian_metrics.csv
+uv run python plotting/plot_t1x_val_force_spectra.py --scan-dir runs/t1x_val_force_spectra_100x2x51 --model-force-dir runs/t1x_val_force_spectra_100x2x51/hip_v2_force_outputs --model-label 'HIP v2' --out-dir plots/t1x_val_force_spectra_100x2x51/force_spectra_analysis_hip_v2 --hessian-metrics-csv runs/t1x_val_force_spectra_100x2x51/nonexistent_hessian_metrics.csv
+uv run python plotting/plot_t1x_val_force_spectra.py --scan-dir runs/t1x_val_force_spectra_100x2x51 --model-force-dir runs/t1x_val_force_spectra_100x2x51/t1x_val_force_spectra_leftnet/leftnet-cf --model-label 'LeftNet CF' --out-dir plots/t1x_val_force_spectra_100x2x51/t1x_val_force_spectra_leftnet/force_spectra_analysis/leftnet-cf --hessian-metrics-csv runs/t1x_val_force_spectra_100x2x51/nonexistent_hessian_metrics.csv
+uv run python plotting/plot_t1x_val_force_spectra.py --scan-dir runs/t1x_val_force_spectra_100x2x51 --model-force-dir runs/t1x_val_force_spectra_100x2x51/t1x_val_force_spectra_leftnet/leftnet-df --model-label 'LeftNet DF' --out-dir plots/t1x_val_force_spectra_100x2x51/t1x_val_force_spectra_leftnet/force_spectra_analysis/leftnet-df --hessian-metrics-csv runs/t1x_val_force_spectra_100x2x51/nonexistent_hessian_metrics.csv
+uv run python plotting/plot_t1x_val_force_spectra.py --scan-dir runs/t1x_val_force_spectra_100x2x51 --model-force-dir runs/t1x_val_force_spectra_100x2x51/t1x_val_force_spectra_leftnet/leftnet-cf-orig --model-label 'LeftNet CF orig' --out-dir plots/t1x_val_force_spectra_100x2x51/t1x_val_force_spectra_leftnet/force_spectra_analysis/leftnet-cf-orig --hessian-metrics-csv runs/t1x_val_force_spectra_100x2x51/nonexistent_hessian_metrics.csv
+uv run python plotting/plot_t1x_val_force_spectra.py --scan-dir runs/t1x_val_force_spectra_100x2x51 --model-force-dir runs/t1x_val_force_spectra_100x2x51/t1x_val_force_spectra_leftnet/leftnet-df-orig --model-label 'LeftNet DF orig' --out-dir plots/t1x_val_force_spectra_100x2x51/t1x_val_force_spectra_leftnet/force_spectra_analysis/leftnet-df-orig --hessian-metrics-csv runs/t1x_val_force_spectra_100x2x51/nonexistent_hessian_metrics.csv
 ```
 
 ## Citation

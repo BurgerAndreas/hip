@@ -46,7 +46,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--ad-arrays", type=Path, default=Path("runs/glycine_pt_eqv2_autograd_n36/eqv2_autograd_arrays.npz"))
     parser.add_argument("--ad-predictions", type=Path, default=Path("runs/glycine_pt_eqv2_autograd_n36/eqv2_autograd_predictions.csv"))
     parser.add_argument("--orca-cache", type=Path, default=Path("runs/glycine_pt_scan_n36/orca_vib_cache.npz"))
-    parser.add_argument("--output-dir", type=Path, default=Path("runs/glycine_pt_path/plots"))
+    parser.add_argument("--output-dir", type=Path, default=Path("plots/glycine_pt_path/ad_hessian_failure"))
     parser.add_argument("--n-eigs", type=int, default=8)
     parser.add_argument("--dpi", type=int, default=220)
     return parser.parse_args()

@@ -64,7 +64,7 @@ def heatmap(
     discrete: bool = False,
 ) -> None:
     x, y, z = as_grid(df, value_col)
-    fig, ax = plt.subplots(figsize=(6.4, 5.3), constrained_layout=True)
+    fig, ax = plt.subplots(figsize=(6.4, 5.3))
     if discrete:
         finite = z.compressed()
         vmin = int(np.nanmin(finite))
@@ -85,6 +85,7 @@ def heatmap(
     ax.set_aspect("equal", adjustable="box")
     finish_axis(ax)
     cbar.set_label(cbar_label)
+    fig.tight_layout(pad=0.01)
     fig.savefig(output_path, dpi=dpi)
     plt.close(fig)
 
@@ -141,7 +142,7 @@ def finite_difference_force(df: pd.DataFrame) -> pd.DataFrame:
 def plot_force_field(df: pd.DataFrame, output_path: Path, dpi: int) -> None:
     force_df = finite_difference_force(df)
     x, y, z = as_grid(df, "orca_relative_kcalmol")
-    fig, ax = plt.subplots(figsize=(6.7, 5.5), constrained_layout=True)
+    fig, ax = plt.subplots(figsize=(6.7, 5.5))
     levels = contour_levels(z.compressed(), step=10.0)
     mesh = ax.contourf(x, y, z, levels=levels, cmap="turbo", extend="max")
     ax.contour(x, y, z, levels=levels, colors="k", linewidths=0.45, alpha=0.55)
@@ -168,6 +169,7 @@ def plot_force_field(df: pd.DataFrame, output_path: Path, dpi: int) -> None:
     finish_axis(ax)
     cbar = fig.colorbar(mesh, ax=ax)
     cbar.set_label(r"ORCA relative energy [kcal mol$^{-1}$]")
+    fig.tight_layout(pad=0.01)
     fig.savefig(output_path, dpi=dpi)
     plt.close(fig)
 
@@ -178,7 +180,7 @@ def plot_curvatures(df: pd.DataFrame, output_path: Path, dpi: int) -> None:
         ("curvature_q_oh_ev_ang2", r"$q_\mathrm{OH}$ curvature"),
         ("curvature_pt_ev_ang2", r"$q_\mathrm{NH}-q_\mathrm{OH}$ curvature"),
     ]
-    fig, axes = plt.subplots(1, 3, figsize=(16.5, 4.9), constrained_layout=True)
+    fig, axes = plt.subplots(1, 3, figsize=(16.5, 4.9))
     for ax, (col, title) in zip(axes, specs, strict=True):
         x, y, z = as_grid(df, col)
         finite = z.compressed()
@@ -192,12 +194,13 @@ def plot_curvatures(df: pd.DataFrame, output_path: Path, dpi: int) -> None:
         finish_axis(ax)
         cbar = fig.colorbar(mesh, ax=ax)
         cbar.set_label(r"projected curvature [eV $\AA^{-2}$]")
+    fig.tight_layout(pad=0.01)
     fig.savefig(output_path, dpi=dpi)
     plt.close(fig)
 
 
 def plot_alignment(df: pd.DataFrame, output_path: Path, dpi: int, zero_threshold: float = 0.05) -> None:
-    fig, ax = plt.subplots(figsize=(6.4, 5.3), constrained_layout=True)
+    fig, ax = plt.subplots(figsize=(6.4, 5.3))
     x, y, z = as_grid(df, "unstable_mode_pt_abs_alignment")
     finite = z.compressed()
     vmax = float(np.ceil(finite.max() * 20.0) / 20.0) if finite.size else 1.0
@@ -213,6 +216,7 @@ def plot_alignment(df: pd.DataFrame, output_path: Path, dpi: int, zero_threshold
     finish_axis(ax)
     cbar = fig.colorbar(mesh, ax=ax, extend="min")
     cbar.set_label(rf"mode alignment ($|\cos\theta|<{zero_threshold:g}$ in gray)")
+    fig.tight_layout(pad=0.01)
     fig.savefig(output_path, dpi=dpi)
     plt.close(fig)
 
@@ -307,10 +311,10 @@ def plot_method_alignment(df: pd.DataFrame, output_path: Path, dpi: int, zero_th
         finish_axis(ax)
 
     fig.suptitle("Unstable-mode alignment with glycine proton-transfer CV")
-    fig.subplots_adjust(left=0.065, right=0.885, bottom=0.15, top=0.84, wspace=0.08)
     assert mesh is not None
     cbar = fig.colorbar(mesh, ax=axes.ravel().tolist(), extend="min", pad=0.01)
     cbar.set_label(rf"$|\cos\theta(v_1, q_\mathrm{{NH}} - q_\mathrm{{OH}})|$ ($<{zero_threshold:g}$ in gray)")
+    fig.tight_layout(pad=0.01, rect=[0, 0, 0.9, 0.94])
     fig.savefig(output_path, dpi=dpi)
     plt.close(fig)
 
@@ -372,7 +376,6 @@ def plot_method_heatmaps(
 
     assert mesh is not None
     fig.suptitle(title)
-    fig.subplots_adjust(left=0.07, right=0.89, bottom=0.15, top=0.84, wspace=0.015)
     if discrete:
         cbar = fig.colorbar(
             mesh,
@@ -384,6 +387,7 @@ def plot_method_heatmaps(
     else:
         cbar = fig.colorbar(mesh, ax=axes.ravel().tolist(), pad=0.01)
     cbar.set_label(cbar_label)
+    fig.tight_layout(pad=0.01, rect=[0, 0, 0.9, 0.94])
     fig.savefig(output_path, dpi=dpi)
     plt.close(fig)
 
@@ -393,7 +397,7 @@ def main() -> None:
     scan_dir = args.scan_dir
     vib_cache = args.vib_cache or scan_dir / "orca_vib_cache.npz"
     orca_energies = args.orca_energies or scan_dir / "orca_energies.csv"
-    output_dir = args.output_dir or scan_dir / "plots_dft_only"
+    output_dir = args.output_dir or Path("plots") / scan_dir.name / "dft_cv_diagnostics"
     output_dir.mkdir(parents=True, exist_ok=True)
 
     energies = pd.read_csv(orca_energies)

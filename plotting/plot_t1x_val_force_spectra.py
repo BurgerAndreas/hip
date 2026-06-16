@@ -376,7 +376,7 @@ def main() -> None:
     args = parser.parse_args()
 
     scan_dir = args.scan_dir
-    out_dir = args.out_dir or scan_dir / "force_spectra_analysis"
+    out_dir = args.out_dir or project_root() / "plots" / scan_dir.name / "force_spectra_analysis"
     out_dir.mkdir(parents=True, exist_ok=True)
 
     manifest = pd.read_csv(scan_dir / "scan_manifest.csv")

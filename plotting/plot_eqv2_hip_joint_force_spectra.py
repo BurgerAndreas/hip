@@ -84,7 +84,8 @@ def main() -> None:
     finish_axis(ax, legend=True)
     fig.tight_layout(pad=0.01)
 
-    out_path = args.output or args.scan_dir / "eqv2_eqv2_orig_hip_v2_median_force_spectra.png"
+    out_path = args.output or project_root() / "plots" / args.scan_dir.name / "eqv2_eqv2_orig_hip_v2_median_force_spectra.png"
+    out_path.parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(out_path, dpi=180)
     plt.close(fig)
     print(f"Saved {out_path}")

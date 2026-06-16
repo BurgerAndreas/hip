@@ -82,7 +82,7 @@ NO_DETACH_FULL_REL_ERR = np.array(
 def default_output_path() -> Path:
     return (
         Path(__file__).resolve().parents[1]
-        / "runs"
+        / "plots"
         / "eqv2_fd_convergence_detach_vs_no_detach_sample35070_dense.png"
     )
 

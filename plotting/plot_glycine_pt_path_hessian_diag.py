@@ -45,7 +45,7 @@ def parse_args() -> argparse.Namespace:
 def main() -> None:
     args = parse_args()
     arrays_path = args.path_arrays or args.path_dir / "path_arrays.npz"
-    output_dir = args.output_dir or args.path_dir / "plots"
+    output_dir = args.output_dir or Path("plots") / args.path_dir.name / "hessian_diag"
     output_dir.mkdir(parents=True, exist_ok=True)
 
     data = np.load(arrays_path)

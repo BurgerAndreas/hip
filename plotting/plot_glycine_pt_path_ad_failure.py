@@ -66,7 +66,7 @@ def main() -> None:
     path_dir = args.path_dir
     arrays_path = args.path_arrays or path_dir / "path_arrays.npz"
     cache_path = args.orca_cache or path_dir / "orca_vib_cache.npz"
-    output_dir = args.output_dir or path_dir / "plots"
+    output_dir = args.output_dir or Path("plots") / path_dir.name / "ad_failure"
     output_dir.mkdir(parents=True, exist_ok=True)
 
     data = np.load(arrays_path)

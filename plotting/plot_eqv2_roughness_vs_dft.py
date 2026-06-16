@@ -33,6 +33,13 @@ def _spearman(a, b) -> float:
     return float(np.corrcoef(ra, rb)[0, 1])
 
 
+FD_PLATEAU_LABEL = (
+    r"$\min_h \|H_{\mathrm{FD}}(h)-H_{\mathrm{AG}}\|_F / "
+    r"\|H_{\mathrm{AG}}\|_F$"
+)
+ASYM_LABEL = r"$\|H-H^T\|/\|H\|$"
+
+
 def _scatter(ax, x, y, c, label_x, label_y):
     sc = ax.scatter(x, y, c=c, cmap="viridis", s=28, alpha=0.8, edgecolor="k", linewidth=0.3)
     rho = _spearman(x, y)
@@ -49,15 +56,24 @@ def _scatter(ax, x, y, c, label_x, label_y):
     )
     ax.set_xlabel(label_x)
     ax.set_ylabel(label_y)
-    ax.set_title(rf"Spearman $\rho$ = {rho:+.2f}", fontsize=10)
+    ax.text(
+        0.05,
+        0.95,
+        rf"Spearman $\rho_s = {rho:+.2f}$",
+        transform=ax.transAxes,
+        ha="left",
+        va="top",
+        fontsize=9,
+        bbox=dict(boxstyle="round,pad=0.25", facecolor="white", edgecolor="none", alpha=0.8),
+    )
     finish_axis(ax)
     return sc
 
 
 def fig_distributions(df, out):
     metrics = [
-        ("fd_plateau", "FD self-inconsistency (roughness)"),
-        ("asym", r"non-conservativeness $\|H-H^T\|/\|H\|$"),
+        ("fd_plateau", FD_PLATEAU_LABEL),
+        ("asym", ASYM_LABEL),
         ("hess_rel_err", "autograd-H vs DFT  (rel. Frobenius)"),
         ("eigval_mae", "eigenvalue MAE vs DFT [eV/$\\AA^2$]"),
         ("vib_eigval_mae", "vib. eigenvalue MAE vs DFT"),
@@ -69,11 +85,8 @@ def fig_distributions(df, out):
         ax.axvline(df[col].median(), color=HIP_COLOR, ls="--", lw=1.4, label=f"median={df[col].median():.3g}")
         ax.set_xlabel(lab)
         ax.set_ylabel("count")
-        ax.legend(fontsize=8, frameon=True, edgecolor="none")
+        ax.legend(fontsize=10, frameon=True, edgecolor="none")
         finish_axis(ax)
-    fig.suptitle(
-        f"eqv2 roughness & autograd-Hessian accuracy — {len(df)} HORM samples", fontsize=12
-    )
     fig.tight_layout(pad=0.01)
     p = out / "eqv2_rough_distributions.png"
     fig.savefig(p, dpi=150)
@@ -84,21 +97,17 @@ def fig_distributions(df, out):
 def fig_scatter(df, out):
     fig, axes = plt.subplots(2, 2, figsize=(12, 10))
     combos = [
-        ("fd_plateau", "hess_rel_err", "FD self-inconsistency (roughness)", "autograd-H vs DFT (rel.)"),
-        ("fd_plateau", "vib_eigval_mae", "FD self-inconsistency (roughness)", "vib. eigval MAE vs DFT"),
-        ("asym", "hess_rel_err", r"non-conservativeness $\|H-H^T\|/\|H\|$", "autograd-H vs DFT (rel.)"),
-        ("asym", "vib_eigval_mae", r"non-conservativeness $\|H-H^T\|/\|H\|$", "vib. eigval MAE vs DFT"),
+        ("fd_plateau", "hess_rel_err", FD_PLATEAU_LABEL, "autograd-H vs DFT (rel.)"),
+        ("fd_plateau", "vib_eigval_mae", FD_PLATEAU_LABEL, "vib. eigval MAE vs DFT"),
+        ("asym", "hess_rel_err", ASYM_LABEL, "autograd-H vs DFT (rel.)"),
+        ("asym", "vib_eigval_mae", ASYM_LABEL, "vib. eigval MAE vs DFT"),
     ]
     sc = None
     for ax, (xc, yc, xl, yl) in zip(axes.ravel(), combos):
         sc = _scatter(ax, df[xc].values, df[yc].values, df["natoms"].values, xl, yl)
+    fig.tight_layout(pad=0.01)
     cbar = fig.colorbar(sc, ax=axes, fraction=0.025, pad=0.02)
-    cbar.set_label("n atoms")
-    fig.suptitle(
-        f"Does eqv2 force-field roughness predict autograd-Hessian error vs DFT? "
-        f"({len(df)} HORM samples)",
-        fontsize=12,
-    )
+    cbar.set_label("Number of Atoms")
     p = out / "eqv2_rough_vs_dft_scatter.png"
     fig.savefig(p, dpi=150)
     plt.close(fig)
@@ -109,17 +118,17 @@ def fig_controls(df, out):
     fig, axes = plt.subplots(1, 3, figsize=(15, 4.8))
     _scatter(axes[0], df["force_rel_err"].values, df["hess_rel_err"].values,
              df["natoms"].values, "force vs DFT (rel.)", "autograd-H vs DFT (rel.)")
-    axes[0].set_title("control: is H-error just overall inaccuracy?\n" + axes[0].get_title(), fontsize=9)
+    axes[0].set_title("control: is H-error just overall inaccuracy?", fontsize=9)
     _scatter(axes[1], df["fd_plateau"].values, df["force_rel_err"].values,
-             df["natoms"].values, "FD self-inconsistency (roughness)", "force vs DFT (rel.)")
-    axes[1].set_title("roughness vs force accuracy\n" + axes[1].get_title(), fontsize=9)
+             df["natoms"].values, FD_PLATEAU_LABEL, "force vs DFT (rel.)")
+    axes[1].set_title("roughness vs force accuracy", fontsize=9)
     # neg-mode classification accuracy as a function of roughness (binned)
     ax = axes[2]
     q = pd.qcut(df["fd_plateau"], q=min(5, df["fd_plateau"].nunique()), duplicates="drop")
     agree = df.groupby(q, observed=True)["neg_match"].mean()
     centers = [iv.mid for iv in agree.index]
     sns.lineplot(x=centers, y=agree.values * 100, ax=ax, marker="o", color=AD_COLOR)
-    ax.set_xlabel("FD self-inconsistency (roughness), binned")
+    ax.set_xlabel(FD_PLATEAU_LABEL + ", binned")
     ax.set_ylabel("neg-mode agreement w/ DFT [%]")
     ax.set_ylim(0, 105)
     ax.set_title("does roughness break TS/min classification?", fontsize=9)
@@ -137,7 +146,7 @@ def main():
     ap.add_argument("--csv", type=Path,
                     default=_project_root() / "runs" / "eqv2_roughness_vs_dft" / "eqv2_sample100.csv")
     ap.add_argument("--out-dir", type=Path,
-                    default=_project_root() / "runs" / "eqv2_roughness_vs_dft" / "figures")
+                    default=_project_root() / "plots" / "eqv2_roughness_vs_dft")
     args = ap.parse_args()
     args.out_dir.mkdir(parents=True, exist_ok=True)
     df = pd.read_csv(args.csv)

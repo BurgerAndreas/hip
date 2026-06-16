@@ -649,7 +649,7 @@ def build_metrics_frame(
 def main() -> None:
     args = parse_args()
     mep_dir = args.mep_dir
-    output_dir = args.output_dir or mep_dir / "plots_mep_diagnostics"
+    output_dir = args.output_dir or Path("plots") / mep_dir.name / "mep_diagnostics"
     output_dir.mkdir(parents=True, exist_ok=True)
 
     orca_path = args.orca_cache or mep_dir / "orca_vib_cache.npz"

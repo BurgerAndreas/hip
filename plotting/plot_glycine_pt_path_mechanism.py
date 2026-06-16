@@ -269,7 +269,7 @@ def main() -> None:
     args = parse_args()
     path_dir = args.path_dir
     arrays_path = args.path_arrays or path_dir / "path_arrays.npz"
-    output_dir = args.output_dir or path_dir / "plots"
+    output_dir = args.output_dir or Path("plots") / path_dir.name / "mechanism"
     output_dir.mkdir(parents=True, exist_ok=True)
 
     data = np.load(arrays_path)
