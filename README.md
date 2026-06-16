@@ -114,6 +114,14 @@ For that you would need to install:
 and follow their workflow from here:  
 [https://github.com/Quantum-Accelerators/quacc/blob/main/src/quacc/recipes/newtonnet/ts.py](https://github.com/Quantum-Accelerators/quacc/blob/main/src/quacc/recipes/newtonnet/ts.py)
 
+## Plots
+
+Regenerate all force median spectra plots:
+
+```bash
+uv run python plotting/plot_t1x_val_force_spectra.py && uv run python plotting/plot_t1x_val_force_spectra.py --model-force-dir runs/t1x_val_force_spectra_100x2x51/eqv2_orig_force_outputs --model-label 'EqV2 orig' --out-dir runs/t1x_val_force_spectra_100x2x51/force_spectra_analysis_eqv2_orig --hessian-metrics-csv runs/t1x_val_force_spectra_100x2x51/nonexistent_hessian_metrics.csv && uv run python plotting/plot_t1x_val_force_spectra.py --model-force-dir runs/t1x_val_force_spectra_100x2x51/hip_v2_force_outputs --model-label 'HIP v2' --out-dir runs/t1x_val_force_spectra_100x2x51/force_spectra_analysis_hip_v2 --hessian-metrics-csv runs/t1x_val_force_spectra_100x2x51/nonexistent_hessian_metrics.csv && uv run python plotting/plot_t1x_val_force_spectra.py --model-force-dir runs/t1x_val_force_spectra_100x2x51/t1x_val_force_spectra_leftnet/leftnet-cf --model-label 'LeftNet CF' --out-dir runs/t1x_val_force_spectra_100x2x51/t1x_val_force_spectra_leftnet/force_spectra_analysis/leftnet-cf --hessian-metrics-csv runs/t1x_val_force_spectra_100x2x51/nonexistent_hessian_metrics.csv && uv run python plotting/plot_t1x_val_force_spectra.py --model-force-dir runs/t1x_val_force_spectra_100x2x51/t1x_val_force_spectra_leftnet/leftnet-df --model-label 'LeftNet DF' --out-dir runs/t1x_val_force_spectra_100x2x51/t1x_val_force_spectra_leftnet/force_spectra_analysis/leftnet-df --hessian-metrics-csv runs/t1x_val_force_spectra_100x2x51/nonexistent_hessian_metrics.csv && uv run python plotting/plot_t1x_val_force_spectra.py --model-force-dir runs/t1x_val_force_spectra_100x2x51/t1x_val_force_spectra_leftnet/leftnet-cf-orig --model-label 'LeftNet CF orig' --out-dir runs/t1x_val_force_spectra_100x2x51/t1x_val_force_spectra_leftnet/force_spectra_analysis/leftnet-cf-orig --hessian-metrics-csv runs/t1x_val_force_spectra_100x2x51/nonexistent_hessian_metrics.csv && uv run python plotting/plot_t1x_val_force_spectra.py --model-force-dir runs/t1x_val_force_spectra_100x2x51/t1x_val_force_spectra_leftnet/leftnet-df-orig --model-label 'LeftNet DF orig' --out-dir runs/t1x_val_force_spectra_100x2x51/t1x_val_force_spectra_leftnet/force_spectra_analysis/leftnet-df-orig --hessian-metrics-csv runs/t1x_val_force_spectra_100x2x51/nonexistent_hessian_metrics.csv && uv run python plotting/plot_leftnet_joint_force_spectra.py && uv run python plotting/plot_eqv2_hip_joint_force_spectra.py
+```
+
 ## Citation
 
 If I can help you run the code or setup your own project, please email me at: `<firstname>.<lastname>(at)mail.utoronto.ca`

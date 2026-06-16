@@ -17,6 +17,7 @@ import pandas as pd
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt  # noqa: E402
+from matplotlib.ticker import FixedFormatter, FixedLocator, NullFormatter  # noqa: E402
 import seaborn as sns  # noqa: E402
 
 from plot_style import AD_COLOR, ACCENT_COLOR, HIP_COLOR, SUCCESS_COLOR, finish_axis, model_color
@@ -27,8 +28,11 @@ DEFAULT_RESULTS = (
     ("HIP", Path("results_evalhorm/hip_v2_ts1x-val_predict_metrics.csv")),
 )
 
-PRIMARY_METRICS = (
+ENERGY_METRICS = (
     ("energy_error", r"Energy MAE [$\mathrm{eV}$]"),
+)
+
+PRIMARY_METRICS = (
     ("forces_error", r"Force MAE [$\mathrm{eV}/\AA$]"),
     ("hessian_error", r"Hessian MAE [$\mathrm{eV}/\AA^2$]"),
 )
@@ -176,7 +180,7 @@ def parse_args() -> argparse.Namespace:
 def load_results(args: argparse.Namespace) -> list[ResultTable]:
     result_specs = args.result or [(label, str(path)) for label, path in DEFAULT_RESULTS]
     results = []
-    required = {"dataset_idx", *(metric for metric, _ in PRIMARY_METRICS)}
+    required = {"dataset_idx", *(metric for metric, _ in ENERGY_METRICS), *(metric for metric, _ in PRIMARY_METRICS)}
 
     for label, path_str in result_specs:
         path = Path(path_str)
@@ -194,6 +198,22 @@ def load_results(args: argparse.Namespace) -> list[ResultTable]:
 def finite_values(df: pd.DataFrame, metric: str) -> np.ndarray:
     values = pd.to_numeric(df[metric], errors="coerce").to_numpy(dtype=float)
     return values[np.isfinite(values)]
+
+
+def format_log10_hist_axis(ax: plt.Axes) -> None:
+    xmin, xmax = ax.get_xlim()
+    major_exponents = np.arange(np.floor(xmin), np.ceil(xmax) + 1, dtype=int)
+    major_ticks = major_exponents[(major_exponents >= xmin) & (major_exponents <= xmax)]
+    minor_ticks = []
+    for exponent in major_exponents:
+        minor_ticks.extend(np.log10(np.arange(2, 10, dtype=float)) + exponent)
+    minor_ticks = [tick for tick in minor_ticks if xmin <= tick <= xmax]
+
+    ax.xaxis.set_major_locator(FixedLocator(major_ticks))
+    ax.xaxis.set_major_formatter(FixedFormatter([rf"$10^{{{exponent}}}$" for exponent in major_ticks]))
+    ax.xaxis.set_minor_locator(FixedLocator(minor_ticks))
+    ax.xaxis.set_minor_formatter(NullFormatter())
+    ax.grid(True, which="minor", axis="x", color="#F1F1F1", linewidth=0.7, alpha=0.85)
 
 
 def plot_histograms(
@@ -225,14 +245,16 @@ def plot_histograms(
                 fill=False,
                 linewidth=1.8,
                 color=model_color(result.label),
-                label=f"{result.label} (n={len(values)})",
+                label=result.label,
             )
 
-        ax.set_xlabel(f"{metric_label} (log10)" if plot_log_error else metric_label)
+        ax.set_xlabel(metric_label)
         ax.set_ylabel("Density")
         finish_axis(ax)
+        if plot_log_error:
+            format_log10_hist_axis(ax)
 
-    axes[0].legend(frameon=False)
+    axes[0].legend(frameon=True, edgecolor="none")
     fig.tight_layout(pad=0.01)
     fig.savefig(output_path, dpi=250, bbox_inches="tight")
     plt.close(fig)
@@ -1112,6 +1134,13 @@ def main() -> None:
     args.output_dir.mkdir(parents=True, exist_ok=True)
     use_log = not args.no_log
 
+    plot_histograms(
+        results,
+        ENERGY_METRICS,
+        args.output_dir / "energy_error_histogram.png",
+        bins=args.bins,
+        use_log=use_log,
+    )
     plot_histograms(
         results,
         PRIMARY_METRICS,

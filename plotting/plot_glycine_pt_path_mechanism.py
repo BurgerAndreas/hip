@@ -73,13 +73,13 @@ def plot_energy_force(output_dir: Path, dpi: int, xi: np.ndarray, energy: np.nda
     axes[0].set_title("Energy Looks Smooth")
     axes[0].set_ylabel(r"$E - \min E$ [eV]")
     axes[0].set_xlabel(xlabel)
-    axes[0].legend(fontsize=8)
+    axes[0].legend(fontsize=8, frameon=True, edgecolor="none")
 
     sns.lineplot(x=xi, y=force, ax=axes[1], color=AD_COLOR, lw=LINE_WIDTH, label="AD")
     axes[1].set_title(r"Projected Force Looks Smooth")
     axes[1].set_ylabel(r"$g=\hat t\cdot F$ [eV/$\AA$]")
     axes[1].set_xlabel(xlabel)
-    axes[1].legend(fontsize=8)
+    axes[1].legend(fontsize=8, frameon=True, edgecolor="none")
 
     for ax in axes:
         finish_axis(ax)
@@ -104,14 +104,14 @@ def plot_force_residual(
     axes[0].set_title("Force = Smooth Trend + Small Wiggle")
     axes[0].set_ylabel(r"$g$ [eV/$\AA$]")
     axes[0].set_xlabel(xlabel)
-    axes[0].legend(fontsize=8)
+    axes[0].legend(fontsize=8, frameon=True, edgecolor="none")
 
     sns.lineplot(x=xi, y=residual, ax=axes[1], color=AD_COLOR, lw=THIN_LINE_WIDTH, label="AD residual")
     axes[1].axhline(0.0, color="grey", lw=THIN_LINE_WIDTH)
     axes[1].set_title("Hidden High-Frequency Force Residual")
     axes[1].set_ylabel(r"$g - \mathrm{trend}$ [eV/$\AA$]")
     axes[1].set_xlabel(xlabel)
-    axes[1].legend(fontsize=8)
+    axes[1].legend(fontsize=8, frameon=True, edgecolor="none")
 
     for ax in axes:
         finish_axis(ax)
@@ -135,7 +135,7 @@ def plot_curvature_failure(
     axes[0].set_title("Differentiating Force Exposes Wiggle")
     axes[0].set_ylabel(r"$\kappa$ [eV/$\AA^2$]")
     axes[0].set_xlabel(xlabel)
-    axes[0].legend(fontsize=8)
+    axes[0].legend(fontsize=8, frameon=True, edgecolor="none")
 
     mismatch = kappa_auto - kappa_fd
     sns.lineplot(x=xi, y=mismatch, ax=axes[1], color=ACCENT_COLOR, lw=THIN_LINE_WIDTH)
@@ -167,7 +167,7 @@ def plot_spectral_amplification(
     axes[0].set_title(r"Force Spectrum $|\mathrm{FFT}(g)|$")
     axes[0].set_xlabel(r"spatial frequency [cycles/$\AA$]")
     axes[0].set_ylabel(r"$|\mathrm{FFT}(g)|$")
-    axes[0].legend(fontsize=8)
+    axes[0].legend(fontsize=8, frameon=True, edgecolor="none")
 
     sns.lineplot(x=freqs, y=weighted + 1e-30, ax=axes[1], color=AD_COLOR, lw=THIN_LINE_WIDTH, label="AD")
     axes[1].set_yscale("log")
@@ -175,7 +175,7 @@ def plot_spectral_amplification(
     axes[1].set_title(r"Curvature-Weighted Spectrum $(2\pi k)^2|\mathrm{FFT}(g)|$")
     axes[1].set_xlabel(r"spatial frequency [cycles/$\AA$]")
     axes[1].set_ylabel(r"curvature-amplified amplitude")
-    axes[1].legend(fontsize=8)
+    axes[1].legend(fontsize=8, frameon=True, edgecolor="none")
 
     force_hf = meta.get("hf_fraction_force_eqv2")
     curvature_hf = meta.get("hf_fraction_curvature_eqv2")
@@ -224,17 +224,17 @@ def plot_full_hessian_diagnostics(
     axes[0, 0].axhline(0.0, color="grey", lw=THIN_LINE_WIDTH)
     axes[0, 0].set_title("Lowest AD Vibrational Eigenvalues")
     axes[0, 0].set_ylabel(r"$\lambda$ [eV/$\AA^2$/amu]")
-    axes[0, 0].legend(fontsize=7, ncol=2)
+    axes[0, 0].legend(fontsize=7, ncol=2, frameon=True, edgecolor="none")
 
     axes[0, 1].step(xi, n_negative, where="mid", color=AD_COLOR, lw=LINE_WIDTH, label="AD")
     axes[0, 1].set_title("AD Negative-Mode Count")
     axes[0, 1].set_ylabel("count")
-    axes[0, 1].legend(fontsize=8)
+    axes[0, 1].legend(fontsize=8, frameon=True, edgecolor="none")
 
     sns.lineplot(x=xi, y=asym, ax=axes[1, 0], color=AD_COLOR, lw=LINE_WIDTH, label="AD")
     axes[1, 0].set_title(r"AD Hessian Asymmetry $\|H-H^\top\|/\|H\|$")
     axes[1, 0].set_ylabel("relative asymmetry")
-    axes[1, 0].legend(fontsize=8)
+    axes[1, 0].legend(fontsize=8, frameon=True, edgecolor="none")
 
     axes[1, 1].axis("off")
     emin, emax = finite_range(evals[:, 0])

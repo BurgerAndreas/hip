@@ -95,7 +95,7 @@ def fig_fd_convergence(data: dict, out: Path) -> Path:
         ax.set_xlabel(r"FD step size  $h$  [$\AA$]")
         finish_axis(ax)
     axes[0].set_ylabel("relative error vs autograd Hessian")
-    axes[0].legend(fontsize=8, loc="lower right")
+    axes[0].legend(fontsize=8, loc="lower right", frameon=True, edgecolor="none")
     # fig.suptitle(
     #     f"Autograd Hessian never converges to finite differences — {MODEL}\n"
     #     "flat & far above the noise floor (ignores the $O(h^2)$ guide) ⇒ force field is not smooth",
@@ -122,7 +122,7 @@ def fig_force_spectrum(data: dict, out: Path) -> Path:
         ax.set_title(GEOM_LABEL[geom], fontsize=10)
         ax.set_xlabel("spatial frequency [cycles/$\\AA$]")
         finish_axis(ax)
-        ax.legend(fontsize=8)
+        ax.legend(fontsize=8, frameon=True, edgecolor="none")
     axes[0].set_ylabel(r"$|\mathrm{FFT}(d\cdot F)|$")
     fig.suptitle(
         f"Force power spectrum along a line scan"
@@ -151,20 +151,20 @@ def fig_conservativeness(data: dict, out: Path) -> Path:
         sns.lineplot(x=lam, y=minus_dEdl, ax=top, lw=LINE_WIDTH, ls="--", color=HIP_COLOR, label=r"$-dE/d\lambda$ (from energy)")
         top.set_title(f"{GEOM_LABEL[geom]}", fontsize=10)
         finish_axis(top)
-        top.legend(fontsize=8)
+        top.legend(fontsize=10, frameon=True, edgecolor="none")
 
         sns.lineplot(x=lam, y=resid, ax=bot, lw=THIN_LINE_WIDTH, color=ACCENT_COLOR)
         bot.axhline(0, color="k", lw=GUIDE_LINE_WIDTH, alpha=0.5)
         bot.set_xlabel(r"random displacement $\lambda$ [$\AA$]")
         finish_axis(bot)
-    axes[0, 0].set_ylabel("force [eV/$\\AA$]")
-    axes[1, 0].set_ylabel(r"residual $d\cdot F - (-dE/d\lambda)$ [eV/$\AA$]")
+    axes[0, 0].set_ylabel("Force [eV/$\\AA$]")
+    axes[1, 0].set_ylabel(r"residual $d\cdot F\  -\  (-dE/d\lambda)$ [eV/$\AA$]")
     # fig.suptitle(
     #     f"Are the direct forces conservative? — {MODEL}\n"
     #     r"gap between $d\cdot F$ and $-dE/d\lambda$ = non-conservativeness (random direction)",
     #     fontsize=11,
     # )
-    fig.tight_layout(pad=0.01)
+    fig.tight_layout(pad=0.01, h_pad=0.5)
     p = out / "eqv2_conservativeness.png"
     fig.savefig(p, dpi=150)
     plt.close(fig)
@@ -236,6 +236,155 @@ def fig_vib_eigenspectrum(data: dict, out: Path) -> Path:
     return p, rows
 
 
+def fig_residual_source(data: dict, out: Path) -> Path:
+    """Show that the conservativeness-residual spikes come from the energy channel
+    (-dE/dl), not the directly-predicted force (d.F)."""
+    from scipy.signal import savgol_filter
+
+    fig, axes = plt.subplots(3, 2, figsize=(13, 11))
+    kind = "random"  # well-excited direction
+    for col, geom in enumerate(GEOMS):
+        npz, summ = data[geom]
+        lam = npz[f"scan_{kind}_lam"]
+        g = npz[f"scan_{kind}_g"]          # d.F  (direct force)
+        E = npz[f"scan_{kind}_E"]
+        dl = float(lam[1] - lam[0])
+        mdedl = -np.gradient(E, dl)        # energy-derived force
+        win = 51
+        g_hf = g - savgol_filter(g, win, 3)
+        m_hf = mdedl - savgol_filter(mdedl, win, 3)
+        ratio = m_hf.std() / (g_hf.std() + 1e-30)
+
+        # row 1: the two force signals
+        a0 = axes[0, col]
+        a0.plot(lam, g, lw=1.1, color="C0", label=r"$d\cdot F$ (direct force) — smooth")
+        a0.plot(lam, mdedl, lw=1.0, ls="--", color="C3", label=r"$-dE/d\lambda$ (energy) — spiky")
+        a0.set_title(f"{GEOM_LABEL[geom]}", fontsize=10)
+        a0.grid(alpha=0.3)
+        a0.legend(fontsize=8)
+
+        # row 2: high-pass (spike) content of each channel
+        a1 = axes[1, col]
+        a1.plot(lam, m_hf, lw=0.8, color="C3", label=r"HF$(-dE/d\lambda)$ energy")
+        a1.plot(lam, g_hf, lw=0.9, color="C0", label=r"HF$(d\cdot F)$ force")
+        a1.set_title(f"spike content: energy is {ratio:.0f}× the force", fontsize=10)
+        a1.grid(alpha=0.3)
+        a1.legend(fontsize=8)
+
+        # row 3: zoom on the largest energy spike -> E steps while d.F stays smooth
+        i = int(np.argmax(np.abs(m_hf)))
+        lo, hi = max(0, i - 40), min(lam.size, i + 41)
+        a2 = axes[2, col]
+        a2.plot(lam[lo:hi], E[lo:hi] - E[lo:hi].min(), color="C2", lw=1.2, marker=".", ms=3,
+                label=r"$E(\lambda)$ (left)")
+        a2.set_ylabel("E - min(E) [eV]", color="C2")
+        a2.tick_params(axis="y", labelcolor="C2")
+        a2b = a2.twinx()
+        a2b.plot(lam[lo:hi], g[lo:hi], color="C0", lw=1.4, label=r"$d\cdot F$ (right)")
+        a2b.set_ylabel(r"$d\cdot F$ [eV/$\AA$]", color="C0")
+        a2b.tick_params(axis="y", labelcolor="C0")
+        a2.axvline(lam[i], color="C3", ls=":", lw=1)
+        a2.set_title(r"zoom at largest spike: $E$ has a kink, $d\cdot F$ does not", fontsize=10)
+        a2.set_xlabel(r"displacement $\lambda$ [$\AA$]")
+        a2.grid(alpha=0.3)
+    axes[0, 0].set_ylabel("force [eV/$\\AA$]")
+    axes[1, 0].set_ylabel("high-pass force [eV/$\\AA$]")
+    fig.suptitle(
+        f"Residual spikes come from the energy head, not the forces — {MODEL}\n"
+        r"the direct force $d\cdot F$ is smooth; $-dE/d\lambda$ is spiky because the predicted energy is slightly kinky",
+        fontsize=11,
+    )
+    fig.tight_layout(rect=[0, 0, 1, 0.97])
+    p = out / "eqv2_residual_source.png"
+    fig.savefig(p, dpi=150)
+    plt.close(fig)
+    return p
+
+
+def fig_autograd_fidelity(data: dict, out: Path) -> tuple[Path, list]:
+    """Does the autograd Hessian capture the model's *own* curvature?
+
+    Compares, for each geometry/direction, the autograd directional curvature
+    c_ag = d^T H_sym d  against the curvature read off the smooth fine line scan
+    c_scan = -dg/dl (g = d.F). For a faithful derivative of a smooth force field
+    these agree; large relative gaps only appear for soft (near-zero-curvature)
+    modes where the *relative* metric is ill-conditioned.
+    """
+    from scipy.signal import savgol_filter
+
+    rows = []
+    fig = plt.figure(figsize=(13, 9))
+    gs = fig.add_gridspec(2, 2, height_ratios=[1.0, 0.9])
+    # ---- top row: tangent-slope overlay on the well-excited (random) direction ----
+    for col, geom in enumerate(GEOMS):
+        npz, summ = data[geom]
+        H = npz["H_autograd"]; Hs = 0.5 * (H + H.T)
+        kind = "random"
+        lam = npz[f"scan_{kind}_lam"]; g = npz[f"scan_{kind}_g"]; d = npz[f"scan_{kind}_d"]
+        dl = float(lam[1] - lam[0]); c = lam.size // 2
+        gs_smooth = savgol_filter(g, 51, 3)
+        c_scan = -float(np.gradient(gs_smooth, dl)[c])     # -dg/dl
+        c_ag = float(d @ Hs @ d)                            # d^T H d
+        g0 = float(gs_smooth[c])
+        ax = fig.add_subplot(gs[0, col])
+        m = np.abs(lam) <= 0.05
+        ax.plot(lam[m], g[m], lw=1.4, color="C0", label=r"$d\cdot F$ (scan)")
+        ax.plot(lam[m], g0 - c_scan * lam[m], "--", color="C2", lw=1.6,
+                label=fr"scan slope $-dg/d\lambda$ = {c_scan:.2f}")
+        ax.plot(lam[m], g0 - c_ag * lam[m], ":", color="C3", lw=1.8,
+                label=fr"autograd $d^THd$ = {c_ag:.2f}")
+        rel = abs(c_ag - c_scan) / (abs(c_scan) + 1e-12)
+        ax.set_title(f"{GEOM_LABEL[geom]} — random direction\n"
+                     f"curvature agreement: {rel:.1%}", fontsize=10)
+        ax.set_xlabel(r"displacement $\lambda$ [$\AA$]")
+        ax.set_ylabel(r"$d\cdot F$ [eV/$\AA$]")
+        ax.grid(alpha=0.3)
+        ax.legend(fontsize=8)
+
+    # ---- bottom row: bar comparison across geometries & directions ----
+    ax = fig.add_subplot(gs[1, :])
+    labels, c_ags, c_scans, rels, hf = [], [], [], [], []
+    for geom in GEOMS:
+        npz, summ = data[geom]
+        H = npz["H_autograd"]; Hs = 0.5 * (H + H.T)
+        for kind in DIRS:
+            lam = npz[f"scan_{kind}_lam"]; g = npz[f"scan_{kind}_g"]; d = npz[f"scan_{kind}_d"]
+            dl = float(lam[1] - lam[0]); c = lam.size // 2
+            gss = savgol_filter(g, 51, 3)
+            cs = -float(np.gradient(gss, dl)[c]); ca = float(d @ Hs @ d)
+            g_hf = (g - gss).std()
+            labels.append(f"{geom.split('_')[0]}\n{kind}")
+            c_ags.append(ca); c_scans.append(cs); rels.append(abs(ca - cs) / (abs(cs) + 1e-12)); hf.append(g_hf)
+            rows.append((geom, kind, ca, cs, abs(ca - cs) / (abs(cs) + 1e-12), g_hf))
+    x = np.arange(len(labels)); w = 0.38
+    ax.bar(x - w / 2, c_scans, w, color="C2", label=r"scan  $-dg/d\lambda$")
+    ax.bar(x + w / 2, c_ags, w, color="C3", label=r"autograd  $d^THd$")
+    for xi, (ca, cs, r) in enumerate(zip(c_ags, c_scans, rels)):
+        top = max(ca, cs)
+        tag = f"{r:.1%}" if abs(cs) > 1.0 else f"{r:.0%}\n(soft)"
+        ax.annotate(tag, (xi, top), textcoords="offset points", xytext=(0, 4),
+                    ha="center", fontsize=8, color="k")
+    ax.axhline(0, color="k", lw=0.7)
+    ax.set_xticks(x); ax.set_xticklabels(labels, fontsize=9)
+    ax.set_ylabel("directional curvature [eV/$\\AA^2$]")
+    ax.set_title("autograd curvature vs smooth-scan curvature "
+                 "(stiff/random dirs agree to ~1–2%; soft modes are ill-conditioned in the relative metric)",
+                 fontsize=10)
+    ax.legend(fontsize=9)
+    ax.grid(alpha=0.3, axis="y")
+
+    fig.suptitle(
+        f"Autograd Hessian faithfully captures the model's own curvature — {MODEL}\n"
+        r"smooth forces (HF$(d\cdot F)\sim10^{-5}$) ⇒ autograd $d^THd$ matches finite differences of the scan",
+        fontsize=11,
+    )
+    fig.tight_layout(rect=[0, 0, 1, 0.96])
+    p = out / "eqv2_autograd_fidelity.png"
+    fig.savefig(p, dpi=150)
+    plt.close(fig)
+    return p, rows
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--run-dir", type=Path, default=_project_root() / "runs" / "force_smoothness")
@@ -250,10 +399,17 @@ def main():
     written.append(fig_force_spectrum(data, args.out_dir))
     written.append(fig_conservativeness(data, args.out_dir))
     written.append(fig_hessian_asymmetry(data, args.out_dir))
+    written.append(fig_residual_source(data, args.out_dir))
+    fid_png, fid_rows = fig_autograd_fidelity(data, args.out_dir)
+    written.append(fid_png)
     vib_png, vib_rows = fig_vib_eigenspectrum(data, args.out_dir)
     written.append(vib_png)
 
-    print("Negative-mode check (autograd Hessian, symmetrised):")
+    print("Autograd vs smooth-scan directional curvature:")
+    for geom, kind, ca, cs, rel, ghf in fid_rows:
+        print(f"  {geom:17s} {kind:11s}: d^THd={ca:+8.3f}  -dg/dl={cs:+8.3f}  "
+              f"rel={rel:7.2%}  HF(d.F) std={ghf:.2e}")
+    print("\nNegative-mode check (autograd Hessian, symmetrised):")
     for geom, neg, exp in vib_rows:
         print(f"  {geom:18s}: {neg} negative (expected {exp})")
     print("\nWrote figures:")

@@ -930,7 +930,7 @@ def save_low_mode_figure(
         f"Low-mode spectrum at grid {int(row.grid_id)} "
         f"($q_{{NH}}$={row.q_nh:.3f} A, $q_{{OH}}$={row.q_oh:.3f} A)"
     )
-    ax.legend()
+    ax.legend(frameon=True, edgecolor="none")
     finish_axis(ax)
     fig.tight_layout(pad=0.01)
     fig.savefig(output_dir / "glycine_pt_low_mode_spectrum.png", dpi=dpi)

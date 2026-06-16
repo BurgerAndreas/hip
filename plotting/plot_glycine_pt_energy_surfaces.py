@@ -501,7 +501,7 @@ def save_parity(df: pd.DataFrame, models: list[EnergyModel], output_dir: Path, d
     ax.set_xlabel(rf"{DFT_LABEL} relative energy [kcal mol$^{{-1}}$]")
     ax.set_ylabel(r"model relative energy [kcal mol$^{-1}$]")
     ax.set_title(f"Model vs {DFT_LABEL} energy parity")
-    ax.legend(fontsize=8)
+    ax.legend(fontsize=8, frameon=True, edgecolor="none")
     finish_axis(ax)
     fig.savefig(output_dir / "glycine_pt_model_orca_parity.png", dpi=dpi)
     plt.close(fig)
@@ -614,7 +614,7 @@ def save_linecuts(
     ax.set_ylabel(r"minimum relative energy [kcal mol$^{-1}$]")
     ax.set_title("Minimum-energy profile along glycine proton-transfer CV")
     finish_axis(ax)
-    ax.legend(fontsize=8)
+    ax.legend(fontsize=8, frameon=True, edgecolor="none")
 
     fig.savefig(output_dir / "glycine_pt_energy_linecuts.png", dpi=dpi)
     plt.close(fig)

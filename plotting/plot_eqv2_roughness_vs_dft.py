@@ -69,7 +69,7 @@ def fig_distributions(df, out):
         ax.axvline(df[col].median(), color=HIP_COLOR, ls="--", lw=1.4, label=f"median={df[col].median():.3g}")
         ax.set_xlabel(lab)
         ax.set_ylabel("count")
-        ax.legend(fontsize=8)
+        ax.legend(fontsize=8, frameon=True, edgecolor="none")
         finish_axis(ax)
     fig.suptitle(
         f"eqv2 roughness & autograd-Hessian accuracy — {len(df)} HORM samples", fontsize=12

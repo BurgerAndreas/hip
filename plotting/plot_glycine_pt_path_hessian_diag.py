@@ -34,7 +34,7 @@ EQV2_COLOR = AD_COLOR
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--path-dir", type=Path, default=Path("runs/glycine_pt_path"))
+    parser.add_argument("--path-dir", type=Path, default=Path("runs/glycine_pt_path_dft"))
     parser.add_argument("--path-arrays", type=Path, default=None)
     parser.add_argument("--output-dir", type=Path, default=None)
     parser.add_argument("--dpi", type=int, default=220)
@@ -77,7 +77,7 @@ def main() -> None:
     ax.axhline(0.0, color="grey", lw=LINE_WIDTH)
     ax.set_title(r"A  Lowest vibrational eigenvalues")
     ax.set_ylabel(r"$\lambda$ [eV/$\AA^2$/amu]")
-    ax.legend(fontsize=7, ncol=3)
+    ax.legend(fontsize=7, ncol=3, frameon=True, edgecolor="none")
 
     # B: negative-mode count
     ax = axes[0, 1]
@@ -86,7 +86,7 @@ def main() -> None:
     ax.set_title("B  Number of negative modes")
     ax.set_ylabel("count")
     ax.set_yticks(range(int(max(eqv2_neg.max(), hip_neg.max())) + 1))
-    ax.legend(fontsize=8)
+    ax.legend(fontsize=8, frameon=True, edgecolor="none")
 
     # C: per-mode RMS eigenvalue difference
     ax = axes[0, 2]
@@ -103,7 +103,7 @@ def main() -> None:
     ax.set_title(r"D  Non-conservativeness $\|H-H^\top\|/\|H\|$")
     ax.set_xlabel(r"$\xi = q_\mathrm{NH}-q_\mathrm{OH}$ [$\AA$]")
     ax.set_ylabel("relative asymmetry")
-    ax.legend(fontsize=8)
+    ax.legend(fontsize=8, frameon=True, edgecolor="none")
 
     # E: model-model Hessian difference
     ax = axes[1, 1]

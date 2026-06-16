@@ -42,6 +42,26 @@ METHOD_COLORS = {
     HIP_LABEL: model_color(HIP_LABEL),
     EQV2_LABEL: model_color(EQV2_LABEL),
 }
+METHOD_MARKERS = {
+    DFT_LABEL: "D",
+    HIP_LABEL: "s",
+    EQV2_LABEL: "o",
+}
+METHOD_LINESTYLES = {
+    DFT_LABEL: "-",
+    HIP_LABEL: "-",
+    EQV2_LABEL: "-",
+}
+METHOD_ALPHAS = {
+    DFT_LABEL: 1.0,
+    HIP_LABEL: 0.7,
+    EQV2_LABEL: 1.0,
+}
+NEGATIVE_MODE_DODGE = {
+    DFT_LABEL: -0.06,
+    HIP_LABEL: 0.0,
+    EQV2_LABEL: 0.06,
+}
 
 
 @dataclass
@@ -199,6 +219,11 @@ def frobenius_absolute_error(model_h: np.ndarray, ref_h: np.ndarray) -> np.ndarr
     return np.linalg.norm(diff.reshape(diff.shape[0], -1), axis=1)
 
 
+def hessian_element_mae(model_h: np.ndarray, ref_h: np.ndarray) -> np.ndarray:
+    diff = symmetrize(model_h) - symmetrize(ref_h)
+    return np.mean(np.abs(diff.reshape(diff.shape[0], -1)), axis=1)
+
+
 def reaction_center_error(model_h: np.ndarray, ref_h: np.ndarray, atoms: tuple[int, ...]) -> np.ndarray:
     idx = np.asarray([3 * atom + comp for atom in atoms for comp in range(3)], dtype=int)
     model_block = symmetrize(model_h)[:, idx[:, None], idx]
@@ -213,6 +238,13 @@ def reaction_center_absolute_error(model_h: np.ndarray, ref_h: np.ndarray, atoms
     model_block = symmetrize(model_h)[:, idx[:, None], idx]
     ref_block = symmetrize(ref_h)[:, idx[:, None], idx]
     return np.linalg.norm((model_block - ref_block).reshape(model_block.shape[0], -1), axis=1)
+
+
+def reaction_center_element_mae(model_h: np.ndarray, ref_h: np.ndarray, atoms: tuple[int, ...]) -> np.ndarray:
+    idx = np.asarray([3 * atom + comp for atom in atoms for comp in range(3)], dtype=int)
+    model_block = symmetrize(model_h)[:, idx[:, None], idx]
+    ref_block = symmetrize(ref_h)[:, idx[:, None], idx]
+    return np.mean(np.abs((model_block - ref_block).reshape(model_block.shape[0], -1)), axis=1)
 
 
 def masses_from_z(atomic_numbers: np.ndarray) -> np.ndarray:
@@ -343,7 +375,7 @@ def save_energy_plot(x: np.ndarray, x_label: str, methods: list[MethodData], out
     ax.set_title("Energy Along MEP")
     ax.set_ylabel(r"relative energy [kcal mol$^{-1}$]")
     setup_axis(ax, x_label)
-    ax.legend()
+    ax.legend(frameon=True, edgecolor="none")
     fig.tight_layout(pad=0.01)
     save_png(fig, output_dir / "mep_energy.png", dpi)
     plt.close(fig)
@@ -365,13 +397,21 @@ def save_force_projection_plot(
     fig, axes = plt.subplots(2, 2, figsize=(12.8, 8.3), sharex=True)
     for ax, (key, title) in zip(axes.ravel(), specs, strict=True):
         for label, projections in force_projections.items():
-            sns.lineplot(x=x, y=projections[key], ax=ax, marker="o", markersize=SMALL_MARKER_SIZE, lw=THIN_LINE_WIDTH, label=label, color=METHOD_COLORS.get(label))
+            sns.lineplot(
+                x=x,
+                y=projections[key],
+                ax=ax,
+                marker=METHOD_MARKERS.get(label, "o"),
+                markersize=SMALL_MARKER_SIZE,
+                lw=THIN_LINE_WIDTH,
+                label=label,
+                color=METHOD_COLORS.get(label),
+            )
         ax.axhline(0.0, color="grey", lw=THIN_LINE_WIDTH)
         ax.set_title(title)
         ax.set_ylabel(r"projected force [eV $\AA^{-1}$]")
         setup_axis(ax, x_label)
-    axes[0, 0].legend(fontsize=8)
-    fig.suptitle("Projected Force Along MEP and Proton-Transfer CVs")
+    axes[0, 0].legend(fontsize=8, frameon=True, edgecolor="none")
     fig.tight_layout(pad=0.01)
     save_png(fig, output_dir / "mep_projected_forces.png", dpi)
     plt.close(fig)
@@ -389,18 +429,36 @@ def save_lowest_eigenvalue_plot(
     ncols = min(3, n_eigs)
     nrows = int(np.ceil(n_eigs / ncols))
     fig, axes = plt.subplots(nrows, ncols, figsize=(4.7 * ncols, 3.4 * nrows), sharex=True, squeeze=False)
+    plot_labels = [DFT_LABEL] + [label for label in vib if label != DFT_LABEL]
     for idx, ax in enumerate(axes.ravel()):
         if idx >= n_eigs:
             ax.axis("off")
             continue
-        for label, diag in vib.items():
-            sns.lineplot(x=x, y=diag.evals[:, idx], ax=ax, marker="o", markersize=SMALL_MARKER_SIZE, lw=THIN_LINE_WIDTH, label=label, color=METHOD_COLORS.get(label))
         ax.axhline(0.0, color="grey", lw=THIN_LINE_WIDTH)
-        ax.set_title(f"mode {idx}")
+        for label in plot_labels:
+            diag = vib[label]
+            sns.lineplot(
+                x=x,
+                y=diag.evals[:, idx],
+                ax=ax,
+                marker=METHOD_MARKERS.get(label, "o"),
+                markersize=MARKER_SIZE,
+                lw=THIN_LINE_WIDTH,
+                linestyle=METHOD_LINESTYLES.get(label, "-"),
+                label=label,
+                color=METHOD_COLORS.get(label),
+                alpha=METHOD_ALPHAS.get(label, 1.0),
+                zorder=2 if label == DFT_LABEL else 3,
+            )
+        ax.set_title(f"mode {idx + 1}")
         ax.set_ylabel(r"$\lambda$ [eV $\AA^{-2}$ amu$^{-1}$]")
         setup_axis(ax, x_label)
-    axes[0, 0].legend(fontsize=8)
-    fig.suptitle("Lowest Vibrational Hessian Eigenvalues Along MEP")
+    for idx, ax in enumerate(axes.ravel()):
+        legend = ax.get_legend()
+        if idx == 0:
+            ax.legend(fontsize=16, markerscale=1.6, frameon=True, edgecolor="none")
+        elif legend is not None:
+            legend.remove()
     fig.tight_layout(pad=0.01)
     save_png(fig, output_dir / "mep_lowest_hessian_eigenvalues.png", dpi)
     plt.close(fig)
@@ -415,13 +473,29 @@ def save_negative_mode_plot(
 ) -> None:
     fig, ax = plt.subplots(figsize=(7.2, 4.2))
     for label, diag in vib.items():
-        ax.step(x, diag.n_negative, where="mid", lw=LINE_WIDTH, label=label, color=METHOD_COLORS.get(label))
-        sns.scatterplot(x=x, y=diag.n_negative, ax=ax, s=36, color=METHOD_COLORS.get(label), legend=False)
-    ax.set_title("Number of Negative Vibrational Modes Along MEP")
+        y_values = diag.n_negative + NEGATIVE_MODE_DODGE.get(label, 0.0)
+        ax.step(
+            x,
+            y_values,
+            where="mid",
+            lw=LINE_WIDTH,
+            label=label,
+            color=METHOD_COLORS.get(label),
+        )
+        sns.scatterplot(
+            x=x,
+            y=y_values,
+            ax=ax,
+            s=36,
+            marker=METHOD_MARKERS.get(label, "o"),
+            color=METHOD_COLORS.get(label),
+            legend=False,
+        )
+    ax.set_title("Negative Vibrational Modes Along MEP")
     ax.set_ylabel("negative mode count")
     ax.yaxis.get_major_locator().set_params(integer=True)
     setup_axis(ax, x_label)
-    ax.legend()
+    ax.legend(frameon=True, edgecolor="none")
     fig.tight_layout(pad=0.01)
     save_png(fig, output_dir / "mep_negative_modes.png", dpi)
     plt.close(fig)
@@ -445,7 +519,7 @@ def save_hessian_error_plot(
         ax.set_ylabel(r"$||H-H_\mathrm{DFT}||_F \ / \ ||H_\mathrm{DFT}||_F$")
         ax.set_yscale("log")
         setup_axis(ax, x_label)
-    axes[0].legend()
+    axes[0].legend(frameon=True, edgecolor="none")
     fig.tight_layout(pad=0.01)
     save_png(fig, output_dir / "mep_hessian_error_vs_dft.png", dpi)
     plt.close(fig)
@@ -469,9 +543,33 @@ def save_hessian_absolute_error_plot(
         ax.set_ylabel(r"$||H-H_\mathrm{DFT}||_F$ [eV $\AA^{-2}$]")
         ax.set_yscale("log")
         setup_axis(ax, x_label)
-    axes[0].legend()
+    axes[0].legend(frameon=True, edgecolor="none")
     fig.tight_layout(pad=0.01)
     save_png(fig, output_dir / "mep_hessian_absolute_error_vs_dft.png", dpi)
+    plt.close(fig)
+
+
+def save_hessian_element_mae_plot(
+    x: np.ndarray,
+    x_label: str,
+    errors: dict[str, dict[str, np.ndarray]],
+    output_dir: Path,
+    dpi: int,
+) -> None:
+    fig, axes = plt.subplots(1, 2, figsize=(12.2, 4.4), sharex=True)
+    for ax, key, title in (
+        (axes[0], "full", "Full Hessian Element MAE vs DFT"),
+        (axes[1], "reaction_center", "O-N-H Block Element MAE vs DFT"),
+    ):
+        for label, values in errors.items():
+            sns.lineplot(x=x, y=values[key], ax=ax, marker="o", markersize=MARKER_SIZE, lw=LINE_WIDTH, label=label, color=METHOD_COLORS.get(label))
+        ax.set_title(title)
+        ax.set_ylabel(r"mean $|H-H_\mathrm{DFT}|$ [eV $\AA^{-2}$]")
+        ax.set_yscale("log")
+        setup_axis(ax, x_label)
+    axes[0].legend(frameon=True, edgecolor="none")
+    fig.tight_layout(pad=0.01)
+    save_png(fig, output_dir / "mep_hessian_element_mae_vs_dft.png", dpi)
     plt.close(fig)
 
 
@@ -493,7 +591,7 @@ def save_mode_alignment_plot(
         ax.set_ylabel(r"$|\cos\theta|$")
         ax.set_ylim(-0.02, 1.02)
         setup_axis(ax, x_label)
-    axes[0].legend()
+    axes[0].legend(frameon=True, edgecolor="none")
     fig.tight_layout(pad=0.01)
     save_png(fig, output_dir / "mep_mode_alignment.png", dpi)
     plt.close(fig)
@@ -507,6 +605,7 @@ def build_metrics_frame(
     force_projections: dict[str, dict[str, np.ndarray]],
     hessian_errors: dict[str, dict[str, np.ndarray]],
     hessian_absolute_errors: dict[str, dict[str, np.ndarray]],
+    hessian_element_maes: dict[str, dict[str, np.ndarray]],
     alignments: dict[str, dict[str, np.ndarray]],
     n_eigs: int,
 ) -> pd.DataFrame:
@@ -540,6 +639,10 @@ def build_metrics_frame(
         prefix = safe_label(label)
         frame[f"{prefix}_hessian_absolute_error_ev_ang2"] = values["full"]
         frame[f"{prefix}_reaction_center_absolute_error_ev_ang2"] = values["reaction_center"]
+    for label, values in hessian_element_maes.items():
+        prefix = safe_label(label)
+        frame[f"{prefix}_hessian_element_mae_ev_ang2"] = values["full"]
+        frame[f"{prefix}_reaction_center_element_mae_ev_ang2"] = values["reaction_center"]
     return frame
 
 
@@ -616,6 +719,20 @@ def main() -> None:
             ),
         },
     }
+    hessian_element_maes = {
+        HIP_LABEL: {
+            "full": hessian_element_mae(hip.hessians_ev_ang2, dft.hessians_ev_ang2),
+            "reaction_center": reaction_center_element_mae(
+                hip.hessians_ev_ang2, dft.hessians_ev_ang2, reaction_center_atoms
+            ),
+        },
+        EQV2_LABEL: {
+            "full": hessian_element_mae(eqv2.hessians_ev_ang2, dft.hessians_ev_ang2),
+            "reaction_center": reaction_center_element_mae(
+                eqv2.hessians_ev_ang2, dft.hessians_ev_ang2, reaction_center_atoms
+            ),
+        },
+    }
 
     alignments = {
         label: {
@@ -635,6 +752,7 @@ def main() -> None:
     save_negative_mode_plot(x, x_label, vib, output_dir, args.dpi)
     save_hessian_error_plot(x, x_label, hessian_errors, output_dir, args.dpi)
     save_hessian_absolute_error_plot(x, x_label, hessian_absolute_errors, output_dir, args.dpi)
+    save_hessian_element_mae_plot(x, x_label, hessian_element_maes, output_dir, args.dpi)
     save_mode_alignment_plot(x, x_label, alignments, output_dir, args.dpi)
 
     metrics = build_metrics_frame(
@@ -645,6 +763,7 @@ def main() -> None:
         force_projections=force_projections,
         hessian_errors=hessian_errors,
         hessian_absolute_errors=hessian_absolute_errors,
+        hessian_element_maes=hessian_element_maes,
         alignments=alignments,
         n_eigs=args.n_eigs,
     )

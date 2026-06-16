@@ -217,7 +217,7 @@ def main() -> None:
     ax.set_title(f"H  low-mode spectrum, AD adds a mode\n($q_{{NH}}$={q_nh[sel]:.2f}, $q_{{OH}}$={q_oh[sel]:.2f})", fontsize=10)
     ax.set_xlabel("vibrational mode index")
     ax.set_ylabel(r"$\lambda$ [eV $\AA^{-2}$ amu$^{-1}$]")
-    ax.legend(fontsize=8)
+    ax.legend(fontsize=8, frameon=True, edgecolor="none")
     finish_axis(ax)
 
     fig.suptitle(

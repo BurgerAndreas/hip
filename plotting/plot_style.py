@@ -13,6 +13,11 @@ DFT_COLOR = "#2B2B2B"
 GUIDE_COLOR = "#8A8A8A"
 ACCENT_COLOR = "#B75DAE"
 SUCCESS_COLOR = "#5AA469"
+EQV2_FORCE_COLOR = "#295c7e"
+EQV2_NO_H_FORCE_COLOR = "#4A2C1A" 
+HIP_FORCE_COLOR = "#ffb482"
+LEFTNET_CF_FORCE_COLOR = "#4a8a72"
+LEFTNET_DF_FORCE_COLOR = "#8A3F3F" # #8A3F3F #743737
 LINE_WIDTH = 2.2
 THIN_LINE_WIDTH = 1.6
 GUIDE_LINE_WIDTH = 1.4
@@ -22,12 +27,18 @@ SMALL_MARKER_SIZE = 4.5
 MODEL_COLORS: dict[str, str] = {
     "AD": AD_COLOR,
     "AD Hessians": AD_COLOR,
-    "EQV2": AD_COLOR,
-    "EQV2 AD": AD_COLOR,
+    "EQV2": EQV2_FORCE_COLOR,
+    "EQV2 AD": EQV2_FORCE_COLOR,
+    "EqV2": EQV2_FORCE_COLOR,
+    "EqV2 (no H)": EQV2_NO_H_FORCE_COLOR,
     "Autograd": AD_COLOR,
     "DFT": DFT_COLOR,
-    "HIP": HIP_COLOR,
+    "HIP": HIP_FORCE_COLOR,
     "HIP Hessians": HIP_COLOR,
+    "LeftNet-CF": LEFTNET_CF_FORCE_COLOR,
+    "LeftNet-CF (no H)": LEFTNET_CF_FORCE_COLOR,
+    "LeftNet-DF": LEFTNET_DF_FORCE_COLOR,
+    "LeftNet-DF (no H)": LEFTNET_DF_FORCE_COLOR,
 }
 
 
@@ -47,7 +58,8 @@ def apply_plot_style() -> None:
             "font.family": "sans-serif",
             "grid.color": "#E9E9E9",
             "grid.linewidth": 1.0,
-            "legend.frameon": False,
+            "legend.frameon": True,
+            "legend.edgecolor": "none",
             "legend.fontsize": 14,
             "lines.linewidth": LINE_WIDTH,
             "lines.markersize": MARKER_SIZE,
@@ -89,7 +101,7 @@ def finish_axis(ax: matplotlib.axes.Axes, *, legend: bool = False) -> None:
         ax.grid(True, which="minor", axis="y", color="#F1F1F1", linewidth=0.7, alpha=0.85)
     sns.despine(ax=ax, trim=False)
     if legend:
-        ax.legend(frameon=False)
+        ax.legend(frameon=True, edgecolor="none")
 
 
 apply_plot_style()

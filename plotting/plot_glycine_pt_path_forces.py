@@ -120,7 +120,7 @@ def main() -> None:
     sns.lineplot(x=xi, y=g_eqv2, ax=ax, color=EQV2_COLOR, lw=LINE_WIDTH, label="EQV2")
     ax.set_title(r"A  Projected force $g=\hat t\cdot F$ (H9 along N$\to$O)")
     ax.set_ylabel(r"$g$ [eV/$\AA$]")
-    ax.legend(fontsize=8)
+    ax.legend(fontsize=8, frameon=True, edgecolor="none")
 
     ax = axes[0, 1]
     sns.lineplot(x=xi, y=res_g_hip, ax=ax, color=HIP_COLOR, lw=THIN_LINE_WIDTH, alpha=0.85, label="HIP")
@@ -128,7 +128,7 @@ def main() -> None:
     ax.axhline(0.0, color="grey", lw=THIN_LINE_WIDTH)
     ax.set_title(f"B  Projected-force residual (deg-{args.detrend_degree})")
     ax.set_ylabel(r"$g - \mathrm{trend}$ [eV/$\AA$]")
-    ax.legend(fontsize=8)
+    ax.legend(fontsize=8, frameon=True, edgecolor="none")
 
     ax = axes[0, 2]
     sns.lineplot(x=np.asarray(data["hip_g_freqs"]), y=np.asarray(data["hip_g_mag"]) + 1e-30, ax=ax, color=HIP_COLOR, lw=THIN_LINE_WIDTH, label="HIP")
@@ -138,7 +138,7 @@ def main() -> None:
     ax.set_title("C  Force spectrum |FFT($g$)|")
     ax.set_xlabel(r"spatial frequency [cycles/$\AA$]")
     ax.set_ylabel(r"|FFT($g$)|")
-    ax.legend(fontsize=8)
+    ax.legend(fontsize=8, frameon=True, edgecolor="none")
 
     ax = axes[1, 0]
     sns.lineplot(x=xi, y=fmax_hip, ax=ax, color=HIP_COLOR, lw=LINE_WIDTH, label="HIP")
@@ -146,7 +146,7 @@ def main() -> None:
     ax.set_title(r"D  Max force component $\max_i|F_i|$ (off-axis sensitive)")
     ax.set_ylabel(r"$f_\mathrm{max}$ [eV/$\AA$]")
     ax.set_xlabel(xlabel)
-    ax.legend(fontsize=8)
+    ax.legend(fontsize=8, frameon=True, edgecolor="none")
 
     ax = axes[1, 1]
     sns.lineplot(x=xi, y=res_fmax_hip, ax=ax, color=HIP_COLOR, lw=THIN_LINE_WIDTH, alpha=0.85, label="HIP")
@@ -155,7 +155,7 @@ def main() -> None:
     ax.set_title(f"E  $f_\\mathrm{{max}}$ residual (deg-{args.detrend_degree})")
     ax.set_ylabel(r"$f_\mathrm{max} - \mathrm{trend}$ [eV/$\AA$]")
     ax.set_xlabel(xlabel)
-    ax.legend(fontsize=8)
+    ax.legend(fontsize=8, frameon=True, edgecolor="none")
 
     ax = axes[1, 2]
     sns.lineplot(x=xi, y=nc_hip, ax=ax, color=HIP_COLOR, lw=THIN_LINE_WIDTH, alpha=0.85, label="HIP")
@@ -164,7 +164,7 @@ def main() -> None:
     ax.set_title(r"F  Non-conservativeness  $g + dE/d\lambda$")
     ax.set_ylabel(r"$g + dE/d\lambda$ [eV/$\AA$]")
     ax.set_xlabel(xlabel)
-    ax.legend(fontsize=8)
+    ax.legend(fontsize=8, frameon=True, edgecolor="none")
 
     for ax in axes.ravel():
         finish_axis(ax)

@@ -104,7 +104,7 @@ def main() -> None:
     ax.set_title(f"A  lowest {k} vibrational eigenvalues")
     ax.set_ylabel(r"$\lambda$ [eV $\AA^{-2}$ amu$^{-1}$]")
     ax.set_xlabel(xlabel)
-    ax.legend(fontsize=8)
+    ax.legend(fontsize=8, frameon=True, edgecolor="none")
 
     # B: negative-mode count along the path
     ax = axes[0, 1]
@@ -114,7 +114,7 @@ def main() -> None:
     ax.set_title("B  number of negative modes")
     ax.set_ylabel(r"$n_\mathrm{neg}$")
     ax.set_xlabel(xlabel)
-    ax.legend(fontsize=8)
+    ax.legend(fontsize=8, frameon=True, edgecolor="none")
 
     # C: AD asymmetry (non-conservativeness)
     ax = axes[0, 2]
@@ -132,7 +132,7 @@ def main() -> None:
         ax.axhline(0.0, color="grey", lw=THIN_LINE_WIDTH)
         ax.set_title("D  AD eigenvalue error vs DFT")
         ax.set_ylabel(r"$\lambda_{AD}-\lambda^{*}$")
-        ax.legend(fontsize=7, ncol=2)
+        ax.legend(fontsize=7, ncol=2, frameon=True, edgecolor="none")
     else:
         ax.text(0.5, 0.5, "needs DFT on the same grid", ha="center", va="center", transform=ax.transAxes)
         ax.set_title("D  AD eigenvalue error vs DFT")
@@ -167,7 +167,7 @@ def main() -> None:
         sns.lineplot(x=xi, y=asym_rel, ax=ax, color=ACCENT_COLOR, lw=LINE_WIDTH, label=r"asym part (non-cons.)")
         ax.set_title("F  AD vs DFT error decomposition")
         ax.set_ylabel("relative Frobenius")
-        ax.legend(fontsize=7)
+        ax.legend(fontsize=7, frameon=True, edgecolor="none")
     else:
         ax.text(0.5, 0.5, "needs DFT + full AD Hessians", ha="center", va="center", transform=ax.transAxes)
         ax.set_title("F  AD vs DFT error decomposition")
