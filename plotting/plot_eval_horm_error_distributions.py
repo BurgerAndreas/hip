@@ -20,7 +20,7 @@ import matplotlib.pyplot as plt  # noqa: E402
 from matplotlib.ticker import FixedFormatter, FixedLocator, NullFormatter  # noqa: E402
 import seaborn as sns  # noqa: E402
 
-from plot_style import AD_COLOR, ACCENT_COLOR, HIP_COLOR, SUCCESS_COLOR, finish_axis, model_color
+from plot_style import AD_COLOR, ACCENT_COLOR, HIP_COLOR, SUCCESS_COLOR, finish_axis, model_color, model_palette
 
 matplotlib.rcParams.update(
     {
@@ -160,6 +160,16 @@ def comparison_color_values(merged: pd.DataFrame, column: str, *keys: str) -> np
     return None
 
 
+def result_color_values(result: ResultTable, column: str) -> np.ndarray | None:
+    if column not in result.df.columns:
+        return None
+    values = pd.to_numeric(result.df[column], errors="coerce").to_numpy(dtype=float)
+    if column == "true_neg_num":
+        values = values.copy()
+        values[values > 1] = 2
+    return values
+
+
 def comparison_colorbar_settings(
     color_column: str | None,
     color_values: np.ndarray | None,
@@ -180,6 +190,13 @@ def comparison_colorbar_settings(
         None,
         None,
     )
+
+
+def style_colorbar_ticks(cbar, discrete: bool) -> None:
+    if discrete:
+        cbar.ax.tick_params(which="both", length=0, width=0)
+    else:
+        cbar.ax.tick_params(which="both", length=2.5, width=0.8)
 
 
 def scatter_comparison(
@@ -216,7 +233,7 @@ def scatter_comparison(
         return
     cbar = ax.figure.colorbar(points, ax=ax, pad=0.01)
     cbar.outline.set_visible(False)
-    cbar.ax.tick_params(length=2.5, width=0.8)
+    style_colorbar_ticks(cbar, discrete=colorbar_ticklabels == TRUE_NEG_COLORBAR_TICK_LABELS)
     if colorbar_ticks is not None:
         cbar.set_ticks(colorbar_ticks)
     if colorbar_ticklabels is not None:
@@ -325,6 +342,7 @@ def plot_histograms(
 ) -> None:
     fig, axes = plt.subplots(1, len(metrics), figsize=(5 * len(metrics), 4))
     axes = np.atleast_1d(axes)
+    palette = model_palette(tuple(result.label for result in results))
 
     for ax, (metric, metric_label) in zip(axes, metrics):
         values_by_model = [finite_values(result.df, metric) for result in results]
@@ -344,7 +362,7 @@ def plot_histograms(
                 element="step",
                 fill=False,
                 linewidth=1.8,
-                color=model_color(result.label),
+                color=palette[result.label],
                 label=result.label,
             )
 
@@ -354,7 +372,7 @@ def plot_histograms(
         if plot_log_error:
             format_log10_hist_axis(ax)
 
-    axes[0].legend(frameon=True, edgecolor="none")
+    axes[-1].legend(loc="upper left", frameon=True, edgecolor="none")
     fig.tight_layout(pad=0.01)
     fig.savefig(output_path, dpi=250, bbox_inches="tight")
     plt.close(fig)
@@ -437,27 +455,55 @@ def plot_force_hessian_scatter_by_model(
     output_path: Path,
     use_log: bool,
     dpi: int,
+    color_column: str | None = None,
+    color_label: str | None = None,
 ) -> None:
-    fig, axes = plt.subplots(1, len(results), figsize=(5 * len(results), 4), squeeze=False)
+    fig, axes = plt.subplots(1, len(results), figsize=(5 * len(results), 4.2), squeeze=False, layout="constrained")
     axes = axes[0]
-    plot_values: list[tuple[np.ndarray, np.ndarray]] = []
+    plot_values: list[tuple[np.ndarray, np.ndarray, np.ndarray | None]] = []
 
     for result in results:
         x = pd.to_numeric(result.df["forces_error"], errors="coerce").to_numpy(dtype=float)
         y = pd.to_numeric(result.df["hessian_error"], errors="coerce").to_numpy(dtype=float)
+        color_all = result_color_values(result, color_column) if color_column is not None else None
+        if color_column is not None and color_all is None:
+            print(f"Skipping {output_path}: missing color column {color_column} for {result.label}")
+            return
         keep = np.isfinite(x) & np.isfinite(y)
         if use_log:
             keep &= (x > 0) & (y > 0)
-        plot_values.append((x[keep], y[keep]))
+        if color_all is not None:
+            keep &= np.isfinite(color_all)
+        plot_values.append((x[keep], y[keep], color_all[keep] if color_all is not None else None))
 
-    all_x = np.concatenate([x for x, _ in plot_values if len(x)])
-    all_y = np.concatenate([y for _, y in plot_values if len(y)])
+    all_x = np.concatenate([x for x, _, _ in plot_values if len(x)])
+    all_y = np.concatenate([y for _, y, _ in plot_values if len(y)])
+    color_value_arrays = [c for _, _, c in plot_values if c is not None and len(c)]
+    all_color_values = np.concatenate(color_value_arrays) if color_value_arrays else None
     xlim = (float(all_x.min()), float(all_x.max())) if len(all_x) else None
     ylim = (float(all_y.min()), float(all_y.max())) if len(all_y) else None
+    color_norm, color_cmap, colorbar_ticks, colorbar_ticklabels = comparison_colorbar_settings(
+        color_column,
+        all_color_values,
+    )
+    color_mappable = None
 
-    for ax, result, (x, y) in zip(axes, results, plot_values):
+    for ax, result, (x, y, c) in zip(axes, results, plot_values):
         if len(x):
-            sns.scatterplot(x=x, y=y, ax=ax, color=model_color(result.label, AD_COLOR), legend=False, **SCATTER_KWARGS)
+            if c is None:
+                sns.scatterplot(x=x, y=y, ax=ax, color=model_color(result.label, AD_COLOR), legend=False, **SCATTER_KWARGS)
+            else:
+                color_mappable = ax.scatter(
+                    x,
+                    y,
+                    c=c,
+                    cmap=color_cmap,
+                    norm=color_norm,
+                    s=SCATTER_KWARGS["s"],
+                    alpha=0.35,
+                    linewidths=SCATTER_KWARGS["linewidths"],
+                    rasterized=SCATTER_KWARGS["rasterized"],
+                )
             corr_x = np.log10(x) if use_log else x
             corr_y = np.log10(y) if use_log else y
             corr = np.corrcoef(corr_x, corr_y)[0, 1]
@@ -483,7 +529,17 @@ def plot_force_hessian_scatter_by_model(
             ax.set_ylim(ylim)
         finish_axis(ax)
 
-    fig.tight_layout(pad=0.01)
+    if color_mappable is not None:
+        cbar = fig.colorbar(color_mappable, ax=axes, pad=0.01, fraction=0.035)
+        cbar.outline.set_visible(False)
+        style_colorbar_ticks(cbar, discrete=color_column == "true_neg_num")
+        if colorbar_ticks is not None:
+            cbar.set_ticks(colorbar_ticks)
+        if colorbar_ticklabels is not None:
+            cbar.set_ticklabels(colorbar_ticklabels)
+        if color_label is not None:
+            cbar.set_label(color_label)
+
     fig.savefig(output_path, dpi=dpi, bbox_inches="tight")
     plt.close(fig)
 
@@ -581,7 +637,7 @@ def plot_model_comparison_correlations(
     if color_mappable is not None:
         cbar = fig.colorbar(color_mappable, ax=axes, pad=0.01, fraction=0.035, shrink=0.89)
         cbar.outline.set_visible(False)
-        cbar.ax.tick_params(length=0 if color_column == "true_neg_num" else 2.5, width=0.8)
+        style_colorbar_ticks(cbar, discrete=color_column == "true_neg_num")
         if colorbar_ticks is not None:
             cbar.set_ticks(colorbar_ticks)
         if colorbar_ticklabels is not None:
@@ -1392,6 +1448,13 @@ def main() -> None:
         bins=args.bins,
         use_log=use_log,
     )
+    plot_histograms(
+        results,
+        PRIMARY_METRICS,
+        args.output_dir / "primary_error_histograms_larger_bins.png",
+        bins=max(1, args.bins // 2),
+        use_log=use_log,
+    )
     available_extra_metrics = tuple(
         (metric, label)
         for metric, label in EXTRA_METRICS
@@ -1417,6 +1480,26 @@ def main() -> None:
         use_log=use_log,
         dpi=args.dpi,
     )
+    force_hessian_scatter_path = args.output_dir / "force_hessian_scatter_by_model.png"
+    two_panel_results = results[:2]
+    for color_column, color_label in COMPARISON_COLOR_FIELDS:
+        plot_force_hessian_scatter_by_model(
+            results,
+            add_suffix_to_path(force_hessian_scatter_path, f"by_{color_column}"),
+            use_log=use_log,
+            dpi=args.dpi,
+            color_column=color_column,
+            color_label=color_label,
+        )
+        if len(two_panel_results) == 2:
+            plot_force_hessian_scatter_by_model(
+                two_panel_results,
+                add_suffix_to_path(force_hessian_scatter_path, f"ad_hip_by_{color_column}"),
+                use_log=use_log,
+                dpi=args.dpi,
+                color_column=color_column,
+                color_label=color_label,
+            )
     comparison_correlations_path = args.output_dir / "error_correlations.png"
     plot_model_comparison_correlations(
         results,

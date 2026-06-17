@@ -7,18 +7,24 @@ import matplotlib
 import seaborn as sns
 # import plotly.colors
 
-AD_COLOR = "#2F6B8F"
-HIP_COLOR = "#E76F00"
+AD_COLOR = "#295c7e" # Plotly: "#2F6B8F"
+HIP_COLOR = "#d96001" # Plotly: "#E76F00" Old: "#ffb482"
+AD_NO_H_COLOR = "#5a5255" 
 DFT_COLOR = "#2B2B2B"
 GUIDE_COLOR = "#8A8A8A"
 ACCENT_COLOR = "#B75DAE"
 SUCCESS_COLOR = "#5AA469"
 EQV2_FORCE_COLOR = "#295c7e"
-AD_NO_H_COLOR = "#5a5255"
+# Forward Pass: #68c4af
+# FD Hessians / finite difference bz1: #5a5255
+# Finite difference bz32, if present: #ff8b94
+# Fallback/unknown method: #cfcfcf
+# Annotation/train line uses named gray (#808080)
 EQV2_NO_H_FORCE_COLOR = AD_NO_H_COLOR
-HIP_FORCE_COLOR = "#ffb482"
+HIP_FORCE_COLOR = HIP_COLOR
 LEFTNET_CF_FORCE_COLOR = "#4a8a72"
 LEFTNET_DF_FORCE_COLOR = "#8A3F3F" # #8A3F3F #743737
+PLOTLY_FONT_COLOR = "#2F4565"
 LINE_WIDTH = 2.2
 THIN_LINE_WIDTH = 1.6
 GUIDE_LINE_WIDTH = 1.4
@@ -51,10 +57,10 @@ def apply_plot_style() -> None:
         palette=[AD_COLOR, HIP_COLOR, SUCCESS_COLOR, ACCENT_COLOR, DFT_COLOR],
         rc={
             "axes.edgecolor": "#E6E6E6",
-            "axes.labelcolor": "#2F4565",
+            "axes.labelcolor": PLOTLY_FONT_COLOR,
             "axes.labelsize": 17,
             "axes.linewidth": 1.1,
-            "axes.titlecolor": "#2F4565",
+            "axes.titlecolor": PLOTLY_FONT_COLOR,
             "axes.titlesize": 20,
             "figure.facecolor": "white",
             "font.family": "sans-serif",
@@ -66,9 +72,9 @@ def apply_plot_style() -> None:
             "lines.linewidth": LINE_WIDTH,
             "lines.markersize": MARKER_SIZE,
             "savefig.facecolor": "white",
-            "xtick.color": "#2F4565",
+            "xtick.color": PLOTLY_FONT_COLOR,
             "xtick.labelsize": 14,
-            "ytick.color": "#2F4565",
+            "ytick.color": PLOTLY_FONT_COLOR,
             "ytick.labelsize": 14,
         },
     )
@@ -113,6 +119,7 @@ apply_plot_style()
 
 ##########################################################
 # Old
+##########################################################
 
 # SNSPALETTE = sns.color_palette("pastel", 10).as_hex()
 # # ['#a1c9f4', '#ffb482', '#8de5a1', '#ff9f9b', '#d0bbff', '#debb9b', '#fab0e4', '#cfcfcf', '#fffea3', '#b9f2f0']
