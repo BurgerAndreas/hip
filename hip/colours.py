@@ -1,102 +1,13 @@
 import seaborn as sns
 
-SNSPALETTE = sns.color_palette("pastel", 10).as_hex()
-# ['#a1c9f4', '#ffb482', '#8de5a1', '#ff9f9b', '#d0bbff', '#debb9b', '#fab0e4', '#cfcfcf', '#fffea3', '#b9f2f0']
-
-try:
-    import plotly.colors
-
-    PLOTLY_DEFAULT_COLOURS = plotly.colors.qualitative.Plotly
-except ModuleNotFoundError:
-    PLOTLY_DEFAULT_COLOURS = [
-        "#636EFA",
-        "#EF553B",
-        "#00CC96",
-        "#AB63FA",
-        "#FFA15A",
-        "#19D3F3",
-        "#FF6692",
-        "#B6E880",
-        "#FF97FF",
-        "#FECB52",
-    ]
-# ['#636EFA', '#EF553B', '#00CC96', '#AB63FA', '#FFA15A', '#19D3F3', '#FF6692', '#B6E880', '#FF97FF', '#FECB52']
-
-
-COLOUR_LIST = [
-    "#1b85b8",
-    "#89CFF0",
-    "#68c4af",
-    "#a8e6cf",
-    "#dcedc1",
-    # "#f6cf71",
-    # "#d96002",
-    "#fedd8d",
-    "#ffd3b6",
-    # "#ffa8c6",
-    "#ffbad2",
-    "#ffaaa5",
-    "#ff8b94",
-    # dimmer backup colours
-    "#cfcbc5",
-    "#d6c8e8",
-    "#b8d6ec",
-    "#295c7e",
-    "#444f97",
-    "#b5e2da",
-    "#95b3c0",
-    "#656a95",
-    "#db95a6",
-    "#5a5255",
-    "#559e83",
-    "#ae5a41",
-    "#c3cb71",
-]
-
-METHOD_TO_COLOUR = {
-    "alphanet": "#444f97",  # "#ffaaa5",
-    "leftnet": "#68c4af",
-    "leftnet-df": "#a8e6cf",
-    "mace": "#cfcbc5",
-    "eqv2": "#89CFF0",  # "#b8d6ec", #89CFF0
-    "hesspred": "#f6cf71",
-}
-# autograd is red
-# HESSIAN_METHOD_TO_COLOUR = {
-#     "predict": "#295c7e",
-#     "autograd": "#db95a6",
-# }
-# HESSIAN_METHOD_TO_COLOUR = {
-#     "predict": "#1b85b8",
-#     "autograd": "#db95a6",
-# }
-# HESSIAN_METHOD_TO_COLOUR = {
-#     "predict": "#295c7e",
-#     "autograd": "#ae5a41",
-# }
-# brighter colours
-# HESSIAN_METHOD_TO_COLOUR = {
-#     "predict": "#68c4af",
-#     "autograd": "#db95a6",
-# }
-# HESSIAN_METHOD_TO_COLOUR = {
-#     "predict": "#ffb482",
-#     "autograd": "#cfcfcf",
-# }
-# our method with signalling colours
-# HESSIAN_METHOD_TO_COLOUR = {
-#     "predict": "#ae5a41",
-#     "autograd": "#295c7e",
-# }
-
 HESSIAN_METHOD_TO_COLOUR = {
-    "autograd": "#5e859e",
+    "autograd": "#5e859e", '#a1c9f4'
     "autograd_conservative": "#b482c8",
     "forward_pass": "#8ed3c3",
     "finite_difference_bz1": "#837d80",
     "finite_difference_bz32": "#ffa8af",
-    "prediction": "#d96001", # "#ffb482"
-    "ef": "#837d80", # "#5a5255",  
+    "prediction": "#d96001", # "#ffb482" #ae5a41 #db95a6
+    "ef": "#837d80", # "#5a5255",  #debb9b
 }
 HESSIAN_METHOD_TO_COLOUR["predict"] = HESSIAN_METHOD_TO_COLOUR["prediction"]
 HESSIAN_METHOD_TO_COLOUR["learned"] = HESSIAN_METHOD_TO_COLOUR["prediction"]
