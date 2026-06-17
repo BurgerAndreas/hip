@@ -105,16 +105,20 @@ Image contents:
 - `Energy-Force-Hessian (HIP)`
 
 Where to find it:
-- Plot script refs in this repo:
+- Local plotting script:
+  - `plotting/plot_datascaling.py`
+- Local plotting support:
+  - `hip/colours.py`
+- Source plot script refs in this repo:
   - `fd:plotting/plot_datascaling.py`
   - `origin/fd:plotting/plot_datascaling.py`
   - `origin/results:plotting/plot_datascaling.py`
-- Data refs in this repo:
+- Source data ref in this repo:
   - `origin/datascaling`
-- Output path from the plotting script:
+- Rendered output:
   - `plots/datascaling/datascaling_energy_force_hessian.png`
 
-Data inputs on `origin/datascaling`:
+Local data inputs copied from `origin/datascaling`:
 - `scaling/wandb_datascaling_loss_energy2.csv`
 - `scaling/wandb_datascaling_loss_force2.csv`
 - `scaling/wandb_datascaling_loss_hessian2.csv`
@@ -127,12 +131,13 @@ Related older/non-final data on `origin/datascaling`:
 
 Important caveat:
 - The script titles panel c as `Hessian`; the shared image title is `HIP Hessian`. The plotted data/legend/axes otherwise match the figure.
-- The exact script and CSV inputs are split across branches: the final three-panel assembly script is on `fd`/`origin/results`, while the CSV inputs are on `origin/datascaling`.
+- The exact script and CSV inputs were split across branches: the final three-panel assembly script was on `fd`/`origin/results`, while the CSV inputs were on `origin/datascaling`.
+- `uv run python plotting/plot_datascaling.py` needs `plotly` and image export support. On this cluster, the transient command below worked with `kaleido<1`; newer Kaleido failed because Chrome is not installed.
 
 Useful commands:
 
 ```bash
-git show fd:plotting/plot_datascaling.py
+uv run --with plotly --with 'kaleido<1' python plotting/plot_datascaling.py
 ```
 
 ```bash

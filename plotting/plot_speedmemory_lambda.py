@@ -25,9 +25,8 @@ except ModuleNotFoundError:
         "prediction": "#d96001",
     }
 
-PLOTLY_TEMPLATE = "plotly_white"
-PLOTLY_FONT_COLOR = "#2a3f5f"
-PLOTLY_FONT_FAMILY = ("Open Sans", "Arial", "Helvetica", "DejaVu Sans", "sans-serif")
+PLOT_FONT_COLOR = "#2a3f5f"
+PLOT_FONT_FAMILY = ("Open Sans", "Arial", "Helvetica", "DejaVu Sans", "sans-serif")
 EIGVAL_MAE_COLUMNS = (
     "eckart_eigval_mae_ev_a2",
     "eigval_mae_eckart",
@@ -237,20 +236,6 @@ def _rgd1_outliers_output_path(output_path):
     return output_path.with_name(f"{output_path.stem}_rgd1_removed_outliers.csv")
 
 
-def _hex_to_rgba(hex_color, alpha):
-    if not isinstance(hex_color, str) or not hex_color.startswith("#"):
-        return hex_color
-
-    hex_color = hex_color.lstrip("#")
-    if len(hex_color) != 6:
-        return f"#{hex_color}"
-
-    red = int(hex_color[0:2], 16)
-    green = int(hex_color[2:4], 16)
-    blue = int(hex_color[4:6], 16)
-    return f"rgba({red}, {green}, {blue}, {alpha})"
-
-
 def _load_speed_tables(speed_csv):
     print(f"Loading {speed_csv}")
     speed_df = pd.read_csv(speed_csv)
@@ -266,359 +251,6 @@ def _load_speed_tables(speed_csv):
     ]
     methods = [m for m in methods if m in avg_times.columns]
     return avg_times[methods], avg_memory[methods]
-
-
-def make_plot_plotly(
-    speed_csv,
-    rgd1_lambda_results,
-    pubchem_lambda_results,
-    output_path,
-    ymin_time=0.0,
-    ymax_time=3700.0,
-    ymin_memory=0.0,
-    ymax_memory=2100.0,
-):
-    import plotly.graph_objects as go
-    from plotly.subplots import make_subplots
-
-    avg_times, avg_memory = _load_speed_tables(speed_csv)
-    rgd1_lambda_curves = _load_curves_with_outlier_filter(
-        rgd1_lambda_results,
-        outliers_output_path=_rgd1_outliers_output_path(output_path),
-        dataset_name="RGD1",
-    )
-    pubchem_lambda_curves = _load_curves_with_outlier_filter(
-        pubchem_lambda_results,
-        outliers_output_path=_outliers_output_path(output_path),
-        dataset_name="PubChem",
-    )
-
-    fig = make_subplots(
-        rows=2,
-        cols=2,
-        subplot_titles=(
-            "Time per Sample (ms)",
-            "Peak Memory (MB)",
-            "Eigenvalues λ MAE (RGD1)",
-            "Eigenvalues λ MAE (PubChem)",
-        ),
-        horizontal_spacing=0.05,
-        vertical_spacing=0.10,
-    )
-
-    for method in avg_times.columns:
-        color = _color_for_method(method)
-        fig.add_trace(
-            go.Scatter(
-                x=avg_times.index,
-                y=avg_times[method],
-                mode="lines+markers",
-                name=_display_name(method),
-                showlegend=True,
-                line=dict(color=color),
-                marker=dict(color=color),
-            ),
-            row=1,
-            col=1,
-        )
-
-    for method in avg_memory.columns:
-        color = _color_for_method(method)
-        dash_pattern = _dash_for_memory(method)
-        if dash_pattern == "":
-            mode = "markers"
-            line_dict = None
-        else:
-            mode = "lines+markers"
-            line_dict = dict(color=color, dash=dash_pattern)
-        fig.add_trace(
-            go.Scatter(
-                x=avg_memory.index,
-                y=avg_memory[method],
-                mode=mode,
-                name=method,
-                showlegend=False,
-                line=line_dict,
-                marker=dict(color=color),
-            ),
-            row=1,
-            col=2,
-        )
-
-    rgd1_label_to_method = {
-        "HIP": "prediction",
-        "AD": "autograd",
-    }
-    for label in ["HIP", "AD"]:
-        if label not in rgd1_lambda_curves:
-            continue
-        method = rgd1_label_to_method[label]
-        color = _color_for_method(method)
-        stats = rgd1_lambda_curves[label]
-        x_values = stats.index
-        mean = stats["mean"]
-        std = stats["std"]
-        band_color = _hex_to_rgba(color, STD_BAND_ALPHA)
-        transparent_color = _hex_to_rgba(color, 0.0)
-        fig.add_trace(
-            go.Scatter(
-                x=x_values,
-                y=mean + std,
-                mode="lines",
-                name=f"{label} +1 std",
-                showlegend=False,
-                hoverinfo="skip",
-                line=dict(color=transparent_color, width=0),
-            ),
-            row=2,
-            col=1,
-        )
-        fig.add_trace(
-            go.Scatter(
-                x=x_values,
-                y=mean - std,
-                mode="lines",
-                name=f"{label} ±1 std",
-                showlegend=False,
-                hoverinfo="skip",
-                line=dict(color=transparent_color, width=0),
-                fill="tonexty",
-                fillcolor=band_color,
-            ),
-            row=2,
-            col=1,
-        )
-        fig.add_trace(
-            go.Scatter(
-                x=x_values,
-                y=mean,
-                mode="lines+markers",
-                name=label,
-                showlegend=False,
-                line=dict(color=color),
-                marker=dict(color=color),
-            ),
-            row=2,
-            col=1,
-        )
-    # Mark train-size boundary for RGD1 panel
-    fig.add_vline(
-        x=22,
-        line_width=2.5,
-        line_dash="dash",
-        line_color="gray",
-        row=2,
-        col=1,
-    )
-    fig.add_annotation(
-        x=16.0,
-        y=0.95,
-        xref="x3",
-        yref="y3 domain",
-        text=" Train",
-        showarrow=True,
-        ax=55,
-        ay=0,
-        arrowhead=2,
-        arrowsize=1.0,
-        arrowwidth=2.0,
-        arrowcolor="gray",
-        font=dict(size=AXES_FONT_SIZE, color="gray"),
-    )
-
-    pubchem_label_to_method = {
-        "HIP": "prediction",
-        "AD": "autograd",
-    }
-    for label in ["HIP", "AD"]:
-        if label not in pubchem_lambda_curves:
-            continue
-        method = pubchem_label_to_method[label]
-        color = _color_for_method(method)
-        stats = pubchem_lambda_curves[label]
-        x_values = stats.index
-        mean = stats["mean"]
-        std = stats["std"]
-        band_color = _hex_to_rgba(color, STD_BAND_ALPHA)
-        transparent_color = _hex_to_rgba(color, 0.0)
-        fig.add_trace(
-            go.Scatter(
-                x=x_values,
-                y=mean + std,
-                mode="lines",
-                name=f"{label} +1 std",
-                showlegend=False,
-                hoverinfo="skip",
-                line=dict(color=transparent_color, width=0),
-            ),
-            row=2,
-            col=2,
-        )
-        fig.add_trace(
-            go.Scatter(
-                x=x_values,
-                y=mean - std,
-                mode="lines",
-                name=f"{label} ±1 std",
-                showlegend=False,
-                hoverinfo="skip",
-                line=dict(color=transparent_color, width=0),
-                fill="tonexty",
-                fillcolor=band_color,
-            ),
-            row=2,
-            col=2,
-        )
-        fig.add_trace(
-            go.Scatter(
-                x=x_values,
-                y=mean,
-                mode="lines+markers",
-                name=label,
-                showlegend=False,
-                line=dict(color=color),
-                marker=dict(color=color),
-            ),
-            row=2,
-            col=2,
-        )
-
-    fig.update_xaxes(title_text="Number of Atoms", title_standoff=5, row=1, col=1)
-    fig.update_xaxes(title_text="Number of Atoms", title_standoff=5, row=1, col=2)
-    fig.update_xaxes(title_text="Number of Atoms", title_standoff=5, row=2, col=1)
-    fig.update_xaxes(title_text="Number of Atoms", title_standoff=5, row=2, col=2)
-    fig.update_yaxes(title_text="", row=1, col=1)
-    fig.update_yaxes(title_text="", row=1, col=2)
-    fig.update_yaxes(title_text="", row=2, col=1)
-    fig.update_yaxes(title_text="", row=2, col=2)
-
-    fig.update_yaxes(range=[ymin_time, ymax_time], autorange=False, row=1, col=1)
-    fig.update_yaxes(range=[ymin_memory, ymax_memory], autorange=False, row=1, col=2)
-    fig.update_xaxes(range=[4.5, 21.5], autorange=False, row=1, col=1)
-    fig.update_xaxes(range=[4.5, 21.5], autorange=False, row=1, col=2)
-
-    rgd1_lambda_n = sorted(
-        {
-            n
-            for stats in rgd1_lambda_curves.values()
-            for n in stats.index.tolist()
-        }
-    )
-    if rgd1_lambda_n:
-        fig.update_xaxes(
-            range=[9.95, max(rgd1_lambda_n) + 0.5],
-            autorange=False,
-            row=2,
-            col=1,
-        )
-        # rgd1_ymax = max(
-        #     float((stats["mean"] + stats["std"]).max())
-        #     for stats in rgd1_lambda_curves.values()
-        # )
-        fig.update_yaxes(
-            range=[0.0, 0.6],
-            autorange=False,
-            row=2,
-            col=1,
-        )
-    pubchem_lambda_n = sorted(
-        {
-            n
-            for stats in pubchem_lambda_curves.values()
-            for n in stats.index.tolist()
-        }
-    )
-    if pubchem_lambda_n:
-        fig.update_xaxes(
-            range=[min(pubchem_lambda_n) - 0.5, max(pubchem_lambda_n) + 0.5],
-            autorange=False,
-            row=2,
-            col=2,
-        )
-
-    fig.update_traces(line=dict(width=3))
-    fig.update_xaxes(
-        tickfont=dict(size=AXES_FONT_SIZE), title_font=dict(size=AXES_TITLE_FONT_SIZE)
-    )
-    fig.update_yaxes(
-        tickfont=dict(size=AXES_FONT_SIZE), title_font=dict(size=AXES_TITLE_FONT_SIZE)
-    )
-    fig.update_annotations(font=dict(size=ANNOTATION_FONT_SIZE))
-    for ann in fig.layout.annotations:
-        ann.update(font=dict(size=TITLE_FONT_SIZE))
-
-    dom1 = fig.layout.xaxis.domain
-    dom2 = fig.layout.xaxis2.domain
-    dom3 = fig.layout.xaxis3.domain
-    dom4 = fig.layout.xaxis4.domain
-    y_top = 0.999
-    y_bottom = fig.layout.yaxis3.domain[1]
-    fig.add_annotation(
-        x=dom1[0],
-        y=y_top,
-        xref="paper",
-        yref="paper",
-        text="<b>a</b>",
-        showarrow=False,
-        xanchor="right",
-        yanchor="bottom",
-        font=dict(size=ANNOTATION_BOLD_FONT_SIZE),
-    )
-    fig.add_annotation(
-        x=dom2[0],
-        y=y_top,
-        xref="paper",
-        yref="paper",
-        text="<b>b</b>",
-        showarrow=False,
-        xanchor="right",
-        yanchor="bottom",
-        font=dict(size=ANNOTATION_BOLD_FONT_SIZE),
-    )
-    fig.add_annotation(
-        x=dom3[0],
-        y=y_bottom,
-        xref="paper",
-        yref="paper",
-        text="<b>c</b>",
-        showarrow=False,
-        xanchor="right",
-        yanchor="bottom",
-        font=dict(size=ANNOTATION_BOLD_FONT_SIZE),
-    )
-    fig.add_annotation(
-        x=dom4[0],
-        y=y_bottom,
-        xref="paper",
-        yref="paper",
-        text="<b>d</b>",
-        showarrow=False,
-        xanchor="right",
-        yanchor="bottom",
-        font=dict(size=ANNOTATION_BOLD_FONT_SIZE),
-    )
-
-    legend_x = dom1[0] + 0.005
-    fig.update_layout(
-        template=PLOTLY_TEMPLATE,
-        margin=dict(l=10, r=0, b=10, t=30),
-        width=800,
-        height=760,
-        legend=dict(
-            x=legend_x,
-            y=0.995,
-            xanchor="left",
-            yanchor="top",
-            orientation="v",
-            bgcolor="rgba(255,255,255,0.6)",
-            font=dict(size=LEGEND_FONT_SIZE - 2),
-        ),
-    )
-
-    output_path = Path(output_path)
-    output_path.parent.mkdir(parents=True, exist_ok=True)
-    fig.write_image(output_path, width=800, height=760, scale=2)
-    print(f"Plot saved to {output_path}")
 
 
 def make_plot_seaborn(
@@ -639,7 +271,7 @@ def make_plot_seaborn(
     font_family = next(
         (
             family
-            for family in PLOTLY_FONT_FAMILY
+            for family in PLOT_FONT_FAMILY
             if family == "sans-serif" or family in available_fonts
         ),
         "sans-serif",
@@ -647,12 +279,12 @@ def make_plot_seaborn(
 
     seaborn_rc = {
         "font.family": font_family,
-        "text.color": PLOTLY_FONT_COLOR,
-        "axes.labelcolor": PLOTLY_FONT_COLOR,
-        "axes.titlecolor": PLOTLY_FONT_COLOR,
-        "xtick.color": PLOTLY_FONT_COLOR,
-        "ytick.color": PLOTLY_FONT_COLOR,
-        "legend.labelcolor": PLOTLY_FONT_COLOR,
+        "text.color": PLOT_FONT_COLOR,
+        "axes.labelcolor": PLOT_FONT_COLOR,
+        "axes.titlecolor": PLOT_FONT_COLOR,
+        "xtick.color": PLOT_FONT_COLOR,
+        "ytick.color": PLOT_FONT_COLOR,
+        "legend.labelcolor": PLOT_FONT_COLOR,
         "grid.color": "#e6e6e6", # #e6e6e6 #eeeeee
     }
     try:
@@ -684,7 +316,7 @@ def make_plot_seaborn(
         dataset_name="PubChem",
     )
 
-    fig, axes = plt.subplots(2, 2, figsize=(8, 7.6))
+    fig, axes = plt.subplots(2, 2, figsize=(8, 5.0))
     ax_time, ax_memory, ax_rgd1, ax_pubchem = axes.ravel()
 
     for method in avg_times.columns:
@@ -692,7 +324,8 @@ def make_plot_seaborn(
         ax_time.plot(
             avg_times.index,
             avg_times[method],
-            marker="o",
+            marker="D" if method == "prediction" else "o",
+            linestyle="--" if method == "prediction" else "-",
             linewidth=2,
             markersize=3,
             label=_display_name(method),
@@ -707,7 +340,7 @@ def make_plot_seaborn(
             ax_memory.plot(
                 avg_memory.index,
                 avg_memory[method],
-                marker="o",
+                marker="D",
                 linestyle="None",
                 markersize=3,
                 color=color,
@@ -745,7 +378,7 @@ def make_plot_seaborn(
             ax_rgd1.plot(
                 x_values,
                 mean,
-                marker="o",
+                marker="D" if label == "HIP" else "o",
                 linewidth=2,
                 markersize=3,
                 color=color,
@@ -769,7 +402,7 @@ def make_plot_seaborn(
             ax_pubchem.plot(
                 x_values,
                 mean,
-                marker="o",
+                marker="D" if label == "HIP" else "o",
                 linewidth=2,
                 markersize=3,
                 color=color,
@@ -811,8 +444,11 @@ def make_plot_seaborn(
         "Eigenvalues λ MAE (PubChem)",
     )
     for panel_label, ax, title in zip("abcd", axes.ravel(), titles):
-        ax.set_title(title, fontsize=TITLE_FONT_SIZE)
-        ax.set_xlabel("Number of Atoms")
+        ax.set_title(title, fontsize=TITLE_FONT_SIZE - 2)
+        ax.set_xlabel(
+            "Number of Atoms",
+            color="white" if ax in (ax_time, ax_memory) else PLOT_FONT_COLOR,
+        )
         ax.set_axisbelow(True)
         ax.grid(True, zorder=0)
         ax.tick_params(axis="both", which="both", length=0)
@@ -827,11 +463,13 @@ def make_plot_seaborn(
         )
         ax.text(
             -0.08,
-            1.04,
+            1.06,
             panel_label,
             transform=panel_label_transform,
-            fontsize=ANNOTATION_BOLD_FONT_SIZE,
+            fontsize=ANNOTATION_BOLD_FONT_SIZE - 2,
+            fontfamily="DejaVu Sans",
             fontweight="bold",
+            color=PLOT_FONT_COLOR,
             va="bottom",
             ha="right",
         )
@@ -850,19 +488,23 @@ def make_plot_seaborn(
         ns = [n for stats in pubchem_lambda_curves.values() for n in stats.index]
         ax_pubchem.set_xlim(min(ns) - 0.5, max(ns) + 0.5)
 
-    legend = ax_time.legend(
+    handles, labels = ax_time.get_legend_handles_labels()
+    legend = ax_memory.legend(
+        handles,
+        labels,
         loc="upper left",
+        bbox_to_anchor=(-0.01, 1.04),
         framealpha=0.6,
         fontsize=LEGEND_FONT_SIZE - 2,
     )
     legend.set_zorder(1)
     legend.get_frame().set_linewidth(0)
     legend.get_frame().set_edgecolor("none")
-    fig.tight_layout(pad=0.4)
+    fig.tight_layout(pad=0.01)
 
     output_path = Path(output_path)
     output_path.parent.mkdir(parents=True, exist_ok=True)
-    fig.savefig(output_path, dpi=300, bbox_inches="tight")
+    fig.savefig(output_path, dpi=300, bbox_inches="tight", pad_inches=0.01)
     plt.close(fig)
     print(f"Plot saved to {output_path}")
 
@@ -876,9 +518,8 @@ def make_plot(
     ymax_time=3700.0,
     ymin_memory=0.0,
     ymax_memory=2100.0,
-    backend="auto",
 ):
-    kwargs = dict(
+    make_plot_seaborn(
         speed_csv=speed_csv,
         rgd1_lambda_results=rgd1_lambda_results,
         pubchem_lambda_results=pubchem_lambda_results,
@@ -888,20 +529,6 @@ def make_plot(
         ymin_memory=ymin_memory,
         ymax_memory=ymax_memory,
     )
-    if backend == "plotly":
-        make_plot_plotly(**kwargs)
-        return
-    if backend == "seaborn":
-        make_plot_seaborn(**kwargs)
-        return
-    if backend != "auto":
-        raise ValueError(f"Unknown backend: {backend}")
-
-    try:
-        make_plot_plotly(**kwargs)
-    except (ImportError, ModuleNotFoundError, RuntimeError, ValueError) as exc:
-        print(f"Plotly backend unavailable ({exc}); falling back to seaborn.")
-        make_plot_seaborn(**kwargs)
 
 
 if __name__ == "__main__":
@@ -956,12 +583,6 @@ if __name__ == "__main__":
     parser.add_argument("--ymax_time", type=float, default=3700.0)
     parser.add_argument("--ymin_memory", type=float, default=0.0)
     parser.add_argument("--ymax_memory", type=float, default=2100.0)
-    parser.add_argument(
-        "--backend",
-        choices=("auto", "plotly", "seaborn"),
-        default="auto",
-        help="Plotting backend. 'auto' tries Plotly first, then seaborn/Matplotlib.",
-    )
     args = parser.parse_args()
 
     make_plot(
@@ -981,5 +602,4 @@ if __name__ == "__main__":
         ymax_time=args.ymax_time,
         ymin_memory=args.ymin_memory,
         ymax_memory=args.ymax_memory,
-        backend=args.backend,
     )

@@ -37,6 +37,8 @@ dependencies = [
     "geodesic-interpolate",
     "h5py>=3.16.0",
     "seaborn>=0.13.2",
+    "plotly",
+    "kaleido<1",
 ]
 
 [project.optional-dependencies]
