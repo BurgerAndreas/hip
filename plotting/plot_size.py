@@ -11,10 +11,10 @@ import matplotlib.pyplot as plt
 import pandas as pd
 
 RESULTS = {
-    # "HIP": "results_eval_largehessians_orca_hip_v3/metrics.csv",
-    "HIP": "results_eval_largehessians_orca_hip_v2/metrics.csv",
-    "AD": "results_eval_largehessians_orca_hf_horm_eqv2_autograd/metrics.csv",
-    "AD (E-F)": "results_size_eval/eqv2_orig_dft_geometries_autograd_metrics.csv",
+    # "HIP": "results_eval_largehessians_orca_hip_v3/metrics.parquet",
+    "HIP": "results_eval_largehessians_orca_hip_v2/metrics.parquet",
+    "AD": "results_eval_largehessians_orca_hf_horm_eqv2_autograd/metrics.parquet",
+    "AD (E-F)": "results_size_eval/eqv2_orig_dft_geometries_autograd_metrics.parquet",
 }
 
 OUTLIER_METRIC = "hessian_mae_ev_a2"
@@ -177,7 +177,7 @@ if __name__ == "__main__":
         if not os.path.exists(path):
             print(f"Skipping {label}: {path} not found")
             continue
-        dfs[label] = pd.read_csv(path)
+        dfs[label] = pd.read_parquet(path)
         if "status" in dfs[label].columns:
             dfs[label] = dfs[label][dfs[label]["status"] == "ok"].copy()
         print(f"Loaded {label}: {path} ({len(dfs[label])} samples)")

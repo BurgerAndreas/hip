@@ -11,7 +11,7 @@ Image contents:
 - `Eigenvalues λ MAE (PubChem)`
 
 Where to find it:
-- Branch: `large-samples-v3`
+- Branch: `natcompsci-rebuttal`
 - Main plotting script: `plotting/plot_speedmemory_lambda.py`
 - Additional PubChem subpanel scripts:
   - `plotting/plot_orca_pubchem_lambda_mae.py`
@@ -21,22 +21,29 @@ Where to find it:
   - `plots/speed_memory_lambda_scaling_rebuttal.png`
   - `plots/speed_memory_lambda_scaling_seaborn.png`
 
-Data inputs on `large-samples-v3`:
+Data inputs in this repository on `natcompsci-rebuttal`:
+
+Current inputs used by `plotting/plot_speedmemory_lambda.py`:
 - `results_speed2/ts1x-val.lmdb_speed_comparison_extended_10_r100.0_rh100.0.csv`
-- `results_evalhorm/hesspred_v2_RGD1_predict_metrics.csv`
-- `results_evalhorm/eqv2_RGD1_autograd_metrics.csv`
-- `results_evalhorm/eqv2_orig_RGD1_autograd_metrics.csv`
-- `results_size_eval/eqv2_orig_dft_geometries_autograd_metrics.csv`
+- `results_evalhorm/hesspred_v2_RGD1_predict_metrics.parquet`
+- `results_evalhorm/eqv2_RGD1_autograd_metrics.parquet`
+- `results_evalhorm/eqv2_orig_RGD1_autograd_metrics.parquet`
+- `results_size_eval/eqv2_orig_dft_geometries_autograd_metrics.parquet`
 - `results_speed/orca_pubchem_lambda_mae_outliers.csv`
 - `results_speed/orca_pubchem_lambda_subpanel_removed_outliers.csv`
-- `results_eval_largehessians_orca_hf_horm_eqv2_autograd/metrics.csv`
-- `results_eval_largehessians_orca_hip_v2/metrics.csv`
+- `results_eval_largehessians_orca_hf_horm_eqv2_autograd/metrics.parquet`
+- `results_eval_largehessians_orca_hip_v2/metrics.parquet`
 - `results_eval_largehessians_orca_hip_v3/metrics.csv`
+
+Parquet metric files now used by related TS1x validation diagnostics:
+- `results_evalhorm/eqv2_ts1x-val_autograd_metrics.parquet`
+- `results_evalhorm/hip_v2_ts1x-val_predict_metrics.parquet`
+- `results_evalhorm/eqv2_orig_ts1xval10k_29148768_ts1x-val_autograd_metrics.parquet`
 
 Useful commands:
 
 ```bash
-git switch large-samples-v3
+git switch natcompsci-rebuttal
 ```
 
 ```bash

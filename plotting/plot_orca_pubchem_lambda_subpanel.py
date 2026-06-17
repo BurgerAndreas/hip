@@ -1,5 +1,5 @@
 """
-Plot the standalone PubChem lambda MAE subpanel from ORCA evaluation CSVs.
+Plot the standalone PubChem lambda MAE subpanel from ORCA evaluation Parquet files.
 
 Usage:
     .venv-plotting/bin/python plotting/plot_orca_pubchem_lambda_subpanel.py
@@ -31,8 +31,8 @@ TITLE_FONT_SIZE = 16
 
 
 RESULTS = {
-    "HIP": "results_eval_largehessians_orca_hip_v2/metrics.csv",
-    "AD": "results_eval_largehessians_orca_hf_horm_eqv2_autograd/metrics.csv",
+    "HIP": "results_eval_largehessians_orca_hip_v2/metrics.parquet",
+    "AD": "results_eval_largehessians_orca_hf_horm_eqv2_autograd/metrics.parquet",
 }
 
 DEFAULT_METRIC = "eckart_eigval_mae_ev_a2"
@@ -56,15 +56,15 @@ def _load_metrics(results, metric, only_successful=True):
     required_columns = {"natoms", metric, OUTLIER_METRIC}
 
     for label, path in results.items():
-        csv_path = Path(path)
-        if not csv_path.exists():
-            raise FileNotFoundError(f"Missing input for {label}: {csv_path}")
+        metrics_path = Path(path)
+        if not metrics_path.exists():
+            raise FileNotFoundError(f"Missing input for {label}: {metrics_path}")
 
-        df = pd.read_csv(csv_path)
+        df = pd.read_parquet(metrics_path)
         missing = required_columns - set(df.columns)
         if missing:
             missing_text = ", ".join(sorted(missing))
-            raise ValueError(f"{csv_path} is missing required columns: {missing_text}")
+            raise ValueError(f"{metrics_path} is missing required columns: {missing_text}")
 
         if only_successful and "status" in df.columns:
             df = df[df["status"] == "ok"].copy()

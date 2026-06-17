@@ -167,11 +167,11 @@ def _eigval_curve_from_frame(df, csv_path):
     return df.groupby("natoms")[metric_col].mean().sort_index()
 
 
-def _eigval_curve_stats_from_frame(df, csv_path):
+def _eigval_curve_stats_from_frame(df, metrics_path):
     metric_col = next((col for col in EIGVAL_MAE_COLUMNS if col in df.columns), None)
     if "natoms" not in df.columns or metric_col is None:
         raise ValueError(
-            f"Missing required columns in {csv_path}. Need 'natoms' and one of "
+            f"Missing required columns in {metrics_path}. Need 'natoms' and one of "
             f"{list(EIGVAL_MAE_COLUMNS)}."
         )
     stats = df.groupby("natoms")[metric_col].agg(["mean", "std"]).sort_index()
@@ -179,21 +179,22 @@ def _eigval_curve_stats_from_frame(df, csv_path):
     return stats
 
 
-def _load_eigval_curve(csv_path):
-    df = pd.read_csv(csv_path)
+def _load_eigval_curve(metrics_path):
+    print(f"Loading {metrics_path}")
+    df = pd.read_parquet(metrics_path)
     if "status" in df.columns:
         df = df[df["status"] == "ok"].copy()
 
-    return _eigval_curve_stats_from_frame(df, csv_path)
+    return _eigval_curve_stats_from_frame(df, metrics_path)
 
 
 def _load_curves(lambda_results):
     curves = {}
-    for label, csv_path in lambda_results.items():
-        if not Path(csv_path).exists():
-            print(f"Skipping {label}: missing {csv_path}")
+    for label, metrics_path in lambda_results.items():
+        if not Path(metrics_path).exists():
+            print(f"Skipping {label}: missing {metrics_path}")
             continue
-        curves[label] = _load_eigval_curve(csv_path)
+        curves[label] = _load_eigval_curve(metrics_path)
     return curves
 
 
@@ -204,15 +205,16 @@ def _load_curves_with_outlier_filter(
 ):
     frames = {}
     paths = {}
-    for label, csv_path in lambda_results.items():
-        if not Path(csv_path).exists():
-            print(f"Skipping {label}: missing {csv_path}")
+    for label, metrics_path in lambda_results.items():
+        if not Path(metrics_path).exists():
+            print(f"Skipping {label}: missing {metrics_path}")
             continue
-        df = pd.read_csv(csv_path)
+        print(f"Loading {metrics_path}")
+        df = pd.read_parquet(metrics_path)
         if "status" in df.columns:
             df = df[df["status"] == "ok"].copy()
         frames[label] = df.reset_index(drop=True)
-        paths[label] = csv_path
+        paths[label] = metrics_path
 
     frames = _remove_outlier_samples(
         frames,
@@ -250,6 +252,7 @@ def _hex_to_rgba(hex_color, alpha):
 
 
 def _load_speed_tables(speed_csv):
+    print(f"Loading {speed_csv}")
     speed_df = pd.read_csv(speed_csv)
     avg_times = speed_df.groupby(["n_atoms", "method"])["time"].mean().unstack()
     avg_memory = speed_df.groupby(["n_atoms", "method"])["memory"].mean().unstack()
@@ -909,40 +912,40 @@ if __name__ == "__main__":
         default="results_speed2/ts1x-val.lmdb_speed_comparison_extended_10_r100.0_rh100.0.csv",
     )
     parser.add_argument(
-        "--rgd1_hip_metrics_csv",
+        "--rgd1_hip_metrics_parquet",
         type=str,
-        default="results_evalhorm/hesspred_v2_RGD1_predict_metrics.csv",
+        default="results_evalhorm/hesspred_v2_RGD1_predict_metrics.parquet",
     )
     parser.add_argument(
-        "--rgd1_ad_metrics_csv",
+        "--rgd1_ad_metrics_parquet",
         type=str,
-        default="results_evalhorm/eqv2_RGD1_autograd_metrics.csv",
+        default="results_evalhorm/eqv2_RGD1_autograd_metrics.parquet",
     )
     parser.add_argument(
-        "--rgd1_ad_ef_metrics_csv",
+        "--rgd1_ad_ef_metrics_parquet",
         type=str,
-        default="results_evalhorm/eqv2_orig_RGD1_autograd_metrics.csv",
+        default="results_evalhorm/eqv2_orig_RGD1_autograd_metrics.parquet",
     )
     parser.add_argument(
-        "--pubchem_hip_metrics_csv",
+        "--pubchem_hip_metrics_parquet",
         type=str,
         # default="results_size_eval/
         # hesspred_v2_dft_geometries_pr
         # edict_metrics.csv",
-        default="results_eval_largehessians_orca_hip_v2/metrics.csv",
+        default="results_eval_largehessians_orca_hip_v2/metrics.parquet",
     )
     parser.add_argument(
-        "--pubchem_ad_metrics_csv",
+        "--pubchem_ad_metrics_parquet",
         type=str,
         # default="results_size_eval/
         # eqv2_dft_geometries_autograd_
         # metrics.csv",
-        default="results_eval_largehessians_orca_hf_horm_eqv2_autograd/metrics.csv",
+        default="results_eval_largehessians_orca_hf_horm_eqv2_autograd/metrics.parquet",
     )
     parser.add_argument(
-        "--pubchem_ad_ef_metrics_csv",
+        "--pubchem_ad_ef_metrics_parquet",
         type=str,
-        default="results_size_eval/eqv2_orig_dft_geometries_autograd_metrics.csv",
+        default="results_size_eval/eqv2_orig_dft_geometries_autograd_metrics.parquet",
     )
     parser.add_argument(
         "--output",
@@ -964,14 +967,14 @@ if __name__ == "__main__":
     make_plot(
         speed_csv=args.speed_csv,
         rgd1_lambda_results={
-            "HIP": args.rgd1_hip_metrics_csv,
-            "AD": args.rgd1_ad_metrics_csv,
-            "AD (E-F)": args.rgd1_ad_ef_metrics_csv,
+            "HIP": args.rgd1_hip_metrics_parquet,
+            "AD": args.rgd1_ad_metrics_parquet,
+            "AD (E-F)": args.rgd1_ad_ef_metrics_parquet,
         },
         pubchem_lambda_results={
-            "HIP": args.pubchem_hip_metrics_csv,
-            "AD": args.pubchem_ad_metrics_csv,
-            "AD (E-F)": args.pubchem_ad_ef_metrics_csv,
+            "HIP": args.pubchem_hip_metrics_parquet,
+            "AD": args.pubchem_ad_metrics_parquet,
+            "AD (E-F)": args.pubchem_ad_ef_metrics_parquet,
         },
         output_path=args.output,
         ymin_time=args.ymin_time,
