@@ -20,7 +20,7 @@ dependencies = [
     "ase",
     "ruff",
     "tqdm",
-    "pyarrow",
+    "pyarrow==23.0.1",
     "lightning==2.6.1",
     "e3nn==0.6.0",
     "omegaconf",

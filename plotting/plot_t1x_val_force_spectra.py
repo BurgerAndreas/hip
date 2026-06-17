@@ -59,7 +59,9 @@ def line_npz_path(base: Path, geom_rank: int, dataset_idx: int, direction_id: in
 def detrended_spectrum(signal: np.ndarray, dlam: float, detrend_degree: int) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
     x = np.arange(signal.size, dtype=np.float64)
     degree = min(detrend_degree, signal.size - 2)
-    if degree >= 0:
+    if detrend_degree <= -2:
+        resid = signal
+    elif degree >= 0:
         coeffs = np.polyfit(x, signal, degree)
         resid = signal - np.polyval(coeffs, x)
     else:
@@ -367,7 +369,12 @@ def main() -> None:
     )
     parser.add_argument("--model-label", default="EqV2")
     parser.add_argument("--cutoff", type=float, default=20.0)
-    parser.add_argument("--detrend-degree", type=int, default=3)
+    parser.add_argument(
+        "--detrend-degree",
+        type=int,
+        default=3,
+        help="Polynomial detrend degree. Use -1 for mean removal only and -2 for no detrending.",
+    )
     parser.add_argument(
         "--hessian-metrics-csv",
         type=Path,

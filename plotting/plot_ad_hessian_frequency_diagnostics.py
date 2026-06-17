@@ -394,7 +394,7 @@ def save_combined_scatter(df: pd.DataFrame, out_dir: Path, target_metric: str) -
                 group[column],
                 group[target_metric],
                 s=22,
-                alpha=0.32,
+                alpha=0.65,
                 color=palette.get(model),
                 edgecolors="none",
                 label=model,
@@ -439,7 +439,7 @@ def save_per_model_scatter(df: pd.DataFrame, out_dir: Path, target_metric: str) 
         axes_flat = axes.ravel()
         color = palette[model]
         for ax, (column, label, scale) in zip(axes_flat, DIAGNOSTICS):
-            ax.scatter(group[column], group[target_metric], s=24, alpha=0.42, color=color, edgecolors="none")
+            ax.scatter(group[column], group[target_metric], s=24, alpha=0.7, color=color, edgecolors="none")
             rho = spearman(group[column], group[target_metric])
             ax.text(
                 0.04,

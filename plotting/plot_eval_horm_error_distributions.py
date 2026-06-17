@@ -22,11 +22,20 @@ import seaborn as sns  # noqa: E402
 
 from plot_style import AD_COLOR, ACCENT_COLOR, HIP_COLOR, SUCCESS_COLOR, finish_axis, model_color
 
+matplotlib.rcParams.update(
+    {
+        "xtick.major.size": 0.9,
+        "xtick.minor.size": 0.9,
+        "ytick.major.size": 0.9,
+        "ytick.minor.size": 0.9,
+    }
+)
+
 
 DEFAULT_RESULTS = (
-    ("AD", Path("results_evalhorm/eqv2_ts1x-val_autograd_metrics.csv")),
-    ("HIP", Path("results_evalhorm/hip_v2_ts1x-val_predict_metrics.csv")),
-    ("AD (no H)", Path("results_evalhorm/eqv2_orig_ts1xval10k_29148768_ts1x-val_autograd_metrics.csv")),
+    ("AD", Path("results_evalhorm/eqv2_ts1x-val_autograd_metrics.parquet")),
+    ("HIP", Path("results_evalhorm/hip_v2_ts1x-val_predict_metrics.parquet")),
+    ("AD (no H)", Path("results_evalhorm/eqv2_orig_ts1xval10k_29148768_ts1x-val_autograd_metrics.parquet")),
 )
 
 ENERGY_METRICS = (
@@ -95,6 +104,15 @@ SCATTER_KWARGS = {
     "rasterized": True,
 }
 
+COMPARISON_COLOR_FIELDS = (
+    ("natoms", "Number of Atoms"),
+    ("true_neg_num", "true negative-mode count"),
+)
+TRUE_NEG_COLORBAR_TICKS = [0, 1, 2]
+TRUE_NEG_COLORBAR_TICK_LABELS = ["0", "1", ">1"]
+TRUE_NEG_COLORMAP = matplotlib.colors.ListedColormap(["#440154", "#21918C", "#FDE725"])
+TRUE_NEG_NORM = matplotlib.colors.BoundaryNorm([-0.5, 0.5, 1.5, 2.5], TRUE_NEG_COLORMAP.N)
+
 
 @dataclass
 class ResultTable:
@@ -124,6 +142,87 @@ def merged_column(merged: pd.DataFrame, column: str, key: str) -> str | None:
     if column in merged.columns:
         return column
     return None
+
+
+def add_suffix_to_path(path: Path, suffix: str) -> Path:
+    return path.with_name(f"{path.stem}_{suffix}{path.suffix}")
+
+
+def comparison_color_values(merged: pd.DataFrame, column: str, *keys: str) -> np.ndarray | None:
+    for key in keys:
+        color_col = merged_column(merged, column, key)
+        if color_col is not None:
+            values = pd.to_numeric(merged[color_col], errors="coerce").to_numpy(dtype=float)
+            if column == "true_neg_num":
+                values = values.copy()
+                values[values > 1] = 2
+            return values
+    return None
+
+
+def comparison_colorbar_settings(
+    color_column: str | None,
+    color_values: np.ndarray | None,
+) -> tuple[matplotlib.colors.Normalize | None, str | matplotlib.colors.Colormap, list[int] | None, list[str] | None]:
+    if color_column == "true_neg_num":
+        return TRUE_NEG_NORM, TRUE_NEG_COLORMAP, TRUE_NEG_COLORBAR_TICKS, TRUE_NEG_COLORBAR_TICK_LABELS
+
+    if color_values is None:
+        return None, "viridis", None, None
+
+    finite_color = color_values[np.isfinite(color_values)]
+    if not len(finite_color):
+        return None, "viridis", None, None
+
+    return (
+        matplotlib.colors.Normalize(vmin=float(finite_color.min()), vmax=float(finite_color.max())),
+        "viridis",
+        None,
+        None,
+    )
+
+
+def scatter_comparison(
+    ax: plt.Axes,
+    x: np.ndarray,
+    y: np.ndarray,
+    *,
+    use_log: bool,
+    color: str,
+    color_values: np.ndarray | None = None,
+    color_label: str | None = None,
+    norm: matplotlib.colors.Normalize | None = None,
+    cmap: str | matplotlib.colors.Colormap = "viridis",
+    colorbar_ticks: list[int] | None = None,
+    colorbar_ticklabels: list[str] | None = None,
+    add_colorbar: bool = True,
+) -> None:
+    if color_values is None:
+        sns.scatterplot(x=x, y=y, ax=ax, color=color, legend=False, **SCATTER_KWARGS)
+        return
+
+    points = ax.scatter(
+        x,
+        y,
+        c=color_values,
+        cmap=cmap,
+        norm=norm,
+        s=SCATTER_KWARGS["s"],
+        alpha=0.35,
+        linewidths=SCATTER_KWARGS["linewidths"],
+        rasterized=SCATTER_KWARGS["rasterized"],
+    )
+    if not add_colorbar:
+        return
+    cbar = ax.figure.colorbar(points, ax=ax, pad=0.01)
+    cbar.outline.set_visible(False)
+    cbar.ax.tick_params(length=2.5, width=0.8)
+    if colorbar_ticks is not None:
+        cbar.set_ticks(colorbar_ticks)
+    if colorbar_ticklabels is not None:
+        cbar.set_ticklabels(colorbar_ticklabels)
+    if color_label is not None:
+        cbar.set_label(color_label)
 
 
 def comparison_values(
@@ -156,10 +255,10 @@ def parse_args() -> argparse.Namespace:
         "--result",
         action="append",
         nargs=2,
-        metavar=("LABEL", "CSV"),
+        metavar=("LABEL", "PARQUET"),
         default=[],
         help=(
-            "Result CSV to plot. May be repeated. Defaults to the EqV2 autograd "
+            "Result Parquet file to plot. May be repeated. Defaults to the EqV2 autograd "
             "and HIP eval_horm result files."
         ),
     )
@@ -187,7 +286,7 @@ def load_results(args: argparse.Namespace) -> list[ResultTable]:
         path = Path(path_str)
         if not path.exists():
             raise FileNotFoundError(path)
-        df = pd.read_csv(path)
+        df = pd.read_parquet(path)
         missing = sorted(required - set(df.columns))
         if missing:
             raise ValueError(f"{path} is missing required columns: {missing}")
@@ -317,6 +416,7 @@ def plot_within_model_correlations(
                     f"log-r={corr:.2f}",
                     transform=ax.transAxes,
                     va="top",
+                    color=matplotlib.rcParams["xtick.color"],
                     bbox={"facecolor": "white", "alpha": 0.8, "edgecolor": "none"},
                 )
 
@@ -367,6 +467,7 @@ def plot_force_hessian_scatter_by_model(
                 f"{'log-' if use_log else ''}r={corr:.2f}",
                 transform=ax.transAxes,
                 va="top",
+                color=matplotlib.rcParams["xtick.color"],
                 bbox={"facecolor": "white", "alpha": 0.8, "edgecolor": "none"},
             )
 
@@ -392,33 +493,69 @@ def plot_model_comparison_correlations(
     output_path: Path,
     use_log: bool,
     dpi: int,
+    color_column: str | None = None,
+    color_label: str | None = None,
 ) -> None:
     if len(results) != 2:
         return
 
     left, right = results
+    left_key = safe_label(left.label)
+    right_key = safe_label(right.label)
     merged = left.df.merge(
         right.df,
         on="dataset_idx",
-        suffixes=(f"_{safe_label(left.label)}", f"_{safe_label(right.label)}"),
+        suffixes=(f"_{left_key}", f"_{right_key}"),
+    )
+    color_all = comparison_color_values(merged, color_column, left_key, right_key) if color_column is not None else None
+    if color_column is not None and color_all is None:
+        print(f"Skipping {output_path}: missing color column {color_column}")
+        return
+    color_norm, color_cmap, colorbar_ticks, colorbar_ticklabels = comparison_colorbar_settings(
+        color_column,
+        color_all,
     )
 
-    comparison_metrics = PRIMARY_METRICS[1:]
-    fig, axes = plt.subplots(1, len(comparison_metrics), figsize=(10, 4))
+    comparison_metrics = PRIMARY_METRICS
+    fig, axes = plt.subplots(
+        1,
+        len(comparison_metrics),
+        figsize=(5.6 * len(comparison_metrics), 5.2),
+        layout="constrained",
+    )
     axes = np.atleast_1d(axes)
+    color_mappable = None
     for ax, (metric, metric_label) in zip(axes, comparison_metrics):
-        x_col = f"{metric}_{safe_label(left.label)}"
-        y_col = f"{metric}_{safe_label(right.label)}"
+        x_col = f"{metric}_{left_key}"
+        y_col = f"{metric}_{right_key}"
         x = pd.to_numeric(merged[x_col], errors="coerce").to_numpy(dtype=float)
         y = pd.to_numeric(merged[y_col], errors="coerce").to_numpy(dtype=float)
         keep = np.isfinite(x) & np.isfinite(y)
         if use_log:
             keep &= (x > 0) & (y > 0)
+        if color_all is not None:
+            keep &= np.isfinite(color_all)
         x = x[keep]
         y = y[keep]
+        c = color_all[keep] if color_all is not None else None
 
         if len(x):
-            sns.scatterplot(x=x, y=y, ax=ax, color=ACCENT_COLOR, legend=False, **SCATTER_KWARGS)
+            scatter_comparison(
+                ax,
+                x,
+                y,
+                use_log=use_log,
+                color=ACCENT_COLOR,
+                color_values=c,
+                color_label=color_label,
+                norm=color_norm,
+                cmap=color_cmap,
+                colorbar_ticks=colorbar_ticks,
+                colorbar_ticklabels=colorbar_ticklabels,
+                add_colorbar=color_norm is None,
+            )
+            if color_norm is not None and c is not None:
+                color_mappable = matplotlib.cm.ScalarMappable(norm=color_norm, cmap=color_cmap)
             corr = np.corrcoef(np.log10(x + 1e-12), np.log10(y + 1e-12))[0, 1]
             lo = min(x.min(), y.min())
             hi = max(x.max(), y.max())
@@ -429,6 +566,7 @@ def plot_model_comparison_correlations(
                 f"log-r={corr:.2f}",
                 transform=ax.transAxes,
                 va="top",
+                color=matplotlib.rcParams["xtick.color"],
                 bbox={"facecolor": "white", "alpha": 0.8, "edgecolor": "none"},
             )
 
@@ -437,9 +575,20 @@ def plot_model_comparison_correlations(
         if use_log:
             ax.set_xscale("log")
             ax.set_yscale("log")
+        ax.set_box_aspect(1)
         finish_axis(ax)
 
-    fig.tight_layout(pad=0.01)
+    if color_mappable is not None:
+        cbar = fig.colorbar(color_mappable, ax=axes, pad=0.01, fraction=0.035, shrink=0.89)
+        cbar.outline.set_visible(False)
+        cbar.ax.tick_params(length=0 if color_column == "true_neg_num" else 2.5, width=0.8)
+        if colorbar_ticks is not None:
+            cbar.set_ticks(colorbar_ticks)
+        if colorbar_ticklabels is not None:
+            cbar.set_ticklabels(colorbar_ticklabels)
+        if color_label is not None:
+            cbar.set_label(color_label)
+
     fig.savefig(output_path, dpi=dpi, bbox_inches="tight")
     plt.close(fig)
 
@@ -453,6 +602,8 @@ def plot_single_model_comparison(
     output_path: Path,
     use_log: bool,
     dpi: int,
+    color_column: str | None = None,
+    color_label: str | None = None,
 ) -> None:
     left_key = safe_label(left_label)
     right_key = safe_label(right_label)
@@ -462,15 +613,38 @@ def plot_single_model_comparison(
     y_col = f"{metric}_{right_key}"
     x = pd.to_numeric(merged[x_col], errors="coerce").to_numpy(dtype=float)
     y = pd.to_numeric(merged[y_col], errors="coerce").to_numpy(dtype=float)
+    color_all = comparison_color_values(merged, color_column, left_key, right_key) if color_column is not None else None
+    if color_column is not None and color_all is None:
+        print(f"Skipping {output_path}: missing color column {color_column}")
+        return
+    color_norm, color_cmap, colorbar_ticks, colorbar_ticklabels = comparison_colorbar_settings(
+        color_column,
+        color_all,
+    )
     keep = np.isfinite(x) & np.isfinite(y)
     if use_log:
         keep &= (x > 0) & (y > 0)
+    if color_all is not None:
+        keep &= np.isfinite(color_all)
     x = x[keep]
     y = y[keep]
+    c = color_all[keep] if color_all is not None else None
 
     fig, ax = plt.subplots(figsize=(5.5, 5))
     if len(x):
-        sns.scatterplot(x=x, y=y, ax=ax, color=AD_COLOR, legend=False, **SCATTER_KWARGS)
+        scatter_comparison(
+            ax,
+            x,
+            y,
+            use_log=use_log,
+            color=AD_COLOR,
+            color_values=c,
+            color_label=color_label,
+            norm=color_norm,
+            cmap=color_cmap,
+            colorbar_ticks=colorbar_ticks,
+            colorbar_ticklabels=colorbar_ticklabels,
+        )
         corr_values_x = np.log10(x) if use_log else x
         corr_values_y = np.log10(y) if use_log else y
         corr = np.corrcoef(corr_values_x, corr_values_y)[0, 1]
@@ -569,16 +743,30 @@ def plot_separate_model_comparisons(
         suffixes=(f"_{safe_label(left.label)}", f"_{safe_label(right.label)}"),
     )
     for metric, metric_label in PRIMARY_METRICS:
+        comparison_path = output_dir / f"{metric}.png"
         plot_single_model_comparison(
             merged=merged,
             left_label=left.label,
             right_label=right.label,
             metric=metric,
             metric_label=metric_label,
-            output_path=output_dir / f"{metric}.png",
+            output_path=comparison_path,
             use_log=use_log,
             dpi=dpi,
         )
+        for color_column, color_label in COMPARISON_COLOR_FIELDS:
+            plot_single_model_comparison(
+                merged=merged,
+                left_label=left.label,
+                right_label=right.label,
+                metric=metric,
+                metric_label=metric_label,
+                output_path=add_suffix_to_path(comparison_path, f"by_{color_column}"),
+                use_log=use_log,
+                dpi=dpi,
+                color_column=color_column,
+                color_label=color_label,
+            )
         plot_single_model_ratio(
             merged=merged,
             left_label=left.label,
@@ -1229,12 +1417,22 @@ def main() -> None:
         use_log=use_log,
         dpi=args.dpi,
     )
+    comparison_correlations_path = args.output_dir / "error_correlations.png"
     plot_model_comparison_correlations(
         results,
-        args.output_dir / "error_correlations.png",
+        comparison_correlations_path,
         use_log=use_log,
         dpi=args.dpi,
     )
+    for color_column, color_label in COMPARISON_COLOR_FIELDS:
+        plot_model_comparison_correlations(
+            results,
+            add_suffix_to_path(comparison_correlations_path, f"by_{color_column}"),
+            use_log=use_log,
+            dpi=args.dpi,
+            color_column=color_column,
+            color_label=color_label,
+        )
     plot_separate_model_comparisons(
         results,
         args.output_dir,

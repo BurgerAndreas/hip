@@ -28,9 +28,9 @@ def str2bool(value):
     raise argparse.ArgumentTypeError("Expected a boolean value")
 
 
-def save_results_csv(df, path):
+def save_results_parquet(df, path):
     tmp_path = f"{path}.tmp"
-    df.to_csv(tmp_path, index=False)
+    df.to_parquet(tmp_path, index=False, compression="zstd")
     os.replace(tmp_path, path)
 
 
@@ -121,7 +121,7 @@ def evaluate(
     os.makedirs(results_dir, exist_ok=True)
     ckpt_name = checkpoint_path.split("/")[-1].split(".")[0]
     results_file = (
-        f"{results_dir}/{ckpt_name}_{dataset_name}_{hessian_method}_metrics.csv"
+        f"{results_dir}/{ckpt_name}_{dataset_name}_{hessian_method}_metrics.parquet"
     )
 
     time_taken_all = None
@@ -144,7 +144,7 @@ def evaluate(
     df_existing = None
 
     if not redo and os.path.exists(results_file):
-        df_existing = pd.read_csv(results_file)
+        df_existing = pd.read_parquet(results_file)
 
     if df_existing is not None and "dataset_idx" not in df_existing.columns:
         missing_columns = [
@@ -453,7 +453,7 @@ def evaluate(
                 sample_metrics.append(sample_data)
                 df_results = pd.DataFrame(sample_metrics)
                 df_results = df_results.sort_values("sample_idx")
-                save_results_csv(df_results, results_file)
+                save_results_parquet(df_results, results_file)
 
                 # Memory management
                 torch.cuda.empty_cache()
@@ -468,7 +468,7 @@ def evaluate(
             df_results = df_results.sort_values("sample_idx")
 
             # Save DataFrame
-            save_results_csv(df_results, results_file)
+            save_results_parquet(df_results, results_file)
             print(f"Saved results to {results_file}")
 
     aggregated_results = {

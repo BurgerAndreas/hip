@@ -716,7 +716,7 @@ requires-dist = [
     { name = "numpy" },
     { name = "omegaconf" },
     { name = "pandas" },
-    { name = "pyarrow" },
+    { name = "pyarrow", specifier = "==23.0.1" },
     { name = "pyg-lib", marker = "extra == 'cuda121'", specifier = "==0.4.0+pt25cu121" },
     { name = "pyg-lib", marker = "extra == 'cuda126'", specifier = "==0.6.0+pt211cu126" },
     { name = "pytest", specifier = "<9" },
