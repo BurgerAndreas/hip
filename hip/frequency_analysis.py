@@ -169,8 +169,32 @@ def eigval_to_wavenumber(ev):
 
 
 def analyze_frequencies_np(
-    hessian: np.ndarray | str,  # Hartree/Bohr^2
-    cart_coords: np.ndarray,  # Bohr
+    hessian: np.ndarray | str, # any units
+    cart_coords: np.ndarray, # any units
+    atomsymbols: list[str],
+    ev_thresh: float = -1e-6,
+):
+    proj_hessian = massweigh_and_eckartprojection_np(hessian, cart_coords, atomsymbols)
+    eigvals, eigvecs = np.linalg.eigh(proj_hessian)
+    sorted_inds = np.argsort(eigvals)
+    eigvals = eigvals[sorted_inds]
+    eigvecs = eigvecs[:, sorted_inds]
+
+    neg_inds = eigvals < ev_thresh
+    neg_eigvals = eigvals[neg_inds]
+    neg_num = sum(neg_inds)
+
+    return {
+        "eigvals": eigvals,
+        "eigvecs": eigvecs,
+        "neg_eigvals": neg_eigvals,
+        "neg_num": neg_num,
+        "natoms": len(atomsymbols),
+    }
+
+def analyze_frequencies_np_wavenumbers_hartree_bohr(
+    hessian: np.ndarray | str,  
+    cart_coords: np.ndarray,  
     atomsymbols: list[str],
     ev_thresh: float = -1e-6,
 ):
@@ -339,8 +363,8 @@ def massweigh_and_eckartprojection_torch(
 
 
 def analyze_frequencies_torch(
-    hessian: torch.Tensor,  # eV/Angstrom^2
-    cart_coords: torch.Tensor,  # Angstrom
+    hessian: torch.Tensor,  # any units, eV/Angstrom^2
+    cart_coords: torch.Tensor,  # any units,Angstrom
     atomsymbols: list[str],
     ev_thresh: float = -1e-6,
 ):
@@ -361,16 +385,10 @@ def analyze_frequencies_torch(
     neg_inds = eigvals < ev_thresh
     neg_eigvals = eigvals[neg_inds]
     neg_num = sum(neg_inds)
-    # # eigval_str = np.array2string(eigvals[:10], precision=4)
-    # if neg_num > 0:
-    #     wavenumbers = eigval_to_wavenumber(neg_eigvals)
-    #     # wavenum_str = np.array2string(wavenumbers, precision=2)
-    # else:
-    #     wavenumbers = None
+    
     return {
         "eigvals": eigvals,
         "eigvecs": eigvecs,
-        # "wavenumbers": wavenumbers,
         "neg_eigvals": neg_eigvals,
         "neg_num": neg_num,
         "natoms": len(atomsymbols),

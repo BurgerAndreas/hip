@@ -18,6 +18,8 @@ baseline_outputs/
 orca_*/
 
 orca_hessians/
+hf_hip/
+slurm_logs/
 
 .matplotlib/
 outputs/
