@@ -1,19 +1,25 @@
 import argparse
 from pathlib import Path
 
+import matplotlib
 import pandas as pd
 
-from plot_style import PLOT_FONT_COLOR, PLOT_FONT_FAMILY
+matplotlib.use("Agg")
+import matplotlib.pyplot as plt  # noqa: E402
+from matplotlib.transforms import offset_copy  # noqa: E402
+
+from plot_style import (  # noqa: E402
+    LINE_WIDTH,
+    MARKER_SIZE,
+    PLOTLY_FONT_COLOR as PLOT_FONT_COLOR,
+    apply_plot_style,
+    finish_axis,
+)
 
 from hip.colours import (
     HESSIAN_METHOD_TO_COLOUR,
 )
-ANNOTATION_BOLD_FONT_SIZE = 18
-ANNOTATION_FONT_SIZE = 14
-AXES_FONT_SIZE = 12
-AXES_TITLE_FONT_SIZE = 13
-LEGEND_FONT_SIZE = 12
-TITLE_FONT_SIZE = 16
+PANEL_LABEL_SIZE = 18
 
 
 EIGVAL_MAE_COLUMNS = (
@@ -245,52 +251,18 @@ def make_plot_seaborn(
     pubchem_lambda_results,
     output_path,
     ymin_time=0.0,
-    ymax_time=3700.0,
+    ymax_time=3.7,
     ymin_memory=0.0,
-    ymax_memory=2100.0,
+    ymax_memory=2.1,
+    dpi=250,
 ):
-    import matplotlib.pyplot as plt
-    from matplotlib import font_manager
-    from matplotlib.transforms import offset_copy
-
-    available_fonts = {font.name for font in font_manager.fontManager.ttflist}
-    font_family = next(
-        (
-            family
-            for family in PLOT_FONT_FAMILY
-            if family == "sans-serif" or family in available_fonts
-        ),
-        "sans-serif",
-    )
-
-    seaborn_rc = {
-        "font.family": font_family,
-        "text.color": PLOT_FONT_COLOR,
-        "axes.labelcolor": PLOT_FONT_COLOR,
-        "axes.titlecolor": PLOT_FONT_COLOR,
-        "xtick.color": PLOT_FONT_COLOR,
-        "ytick.color": PLOT_FONT_COLOR,
-        "legend.labelcolor": PLOT_FONT_COLOR,
-        "grid.color": "#e6e6e6", # #e6e6e6 #eeeeee
-    }
-    try:
-        import seaborn as sns
-
-        sns.set_theme(style="whitegrid", context="paper", rc=seaborn_rc)
-    except ModuleNotFoundError:
-        plt.rcParams.update(
-            {
-                "axes.grid": True,
-                "axes.labelsize": AXES_TITLE_FONT_SIZE,
-                "font.size": AXES_FONT_SIZE,
-                "legend.fontsize": LEGEND_FONT_SIZE,
-                "xtick.labelsize": AXES_FONT_SIZE,
-                "ytick.labelsize": AXES_FONT_SIZE,
-                **seaborn_rc,
-            }
-        )
+    apply_plot_style()
 
     avg_times, std_times, avg_memory, std_memory = _load_speed_tables(speed_csv)
+    avg_times = avg_times / 1000.0
+    std_times = std_times / 1000.0
+    avg_memory = avg_memory / 1000.0
+    std_memory = std_memory / 1000.0
     rgd1_lambda_curves = _load_curves_with_outlier_filter(
         rgd1_lambda_results,
         outliers_output_path=_rgd1_outliers_output_path(output_path),
@@ -302,7 +274,7 @@ def make_plot_seaborn(
         dataset_name="PubChem",
     )
 
-    fig, axes = plt.subplots(2, 2, figsize=(8, 5.0))
+    fig, axes = plt.subplots(2, 2, figsize=(10.0, 7.2), layout="constrained")
     ax_time, ax_memory, ax_rgd1, ax_pubchem = axes.ravel()
 
     for method in avg_times.columns:
@@ -321,8 +293,8 @@ def make_plot_seaborn(
             avg_times[method],
             marker="D" if method == "prediction" else "o",
             linestyle="--" if method == "prediction" else "-",
-            linewidth=2,
-            markersize=3,
+            linewidth=LINE_WIDTH,
+            markersize=MARKER_SIZE,
             label=_display_name(method),
             color=color,
             zorder=3,
@@ -346,7 +318,7 @@ def make_plot_seaborn(
                 avg_memory[method],
                 marker="D",
                 linestyle="None",
-                markersize=3,
+                markersize=MARKER_SIZE,
                 color=color,
                 zorder=3,
             )
@@ -355,8 +327,8 @@ def make_plot_seaborn(
                 avg_memory.index,
                 avg_memory[method],
                 marker="o",
-                linewidth=2,
-                markersize=3,
+                linewidth=LINE_WIDTH,
+                markersize=MARKER_SIZE,
                 linestyle=linestyle,
                 color=color,
                 zorder=3,
@@ -383,8 +355,8 @@ def make_plot_seaborn(
                 x_values,
                 mean,
                 marker="D" if label == "HIP" else "o",
-                linewidth=2,
-                markersize=3,
+                linewidth=LINE_WIDTH,
+                markersize=MARKER_SIZE,
                 color=color,
                 zorder=3,
             )
@@ -407,13 +379,13 @@ def make_plot_seaborn(
                 x_values,
                 mean,
                 marker="D" if label == "HIP" else "o",
-                linewidth=2,
-                markersize=3,
+                linewidth=LINE_WIDTH,
+                markersize=MARKER_SIZE,
                 color=color,
                 zorder=3,
             )
 
-    ax_rgd1.axvline(22, linewidth=1.5, linestyle="--", color="gray", zorder=2)
+    ax_rgd1.axvline(22, linewidth=1.4, linestyle="--", color="gray", zorder=2)
     train_annotation_transform = offset_copy(
         ax_rgd1.get_xaxis_transform(),
         fig=fig,
@@ -434,7 +406,7 @@ def make_plot_seaborn(
             "mutation_scale": 12,
         },
         color="gray",
-        fontsize=AXES_FONT_SIZE * 1.1,
+        fontsize=matplotlib.rcParams["font.size"],
         va="center",
         ha="left",
         bbox={"facecolor": "white", "edgecolor": "none", "pad": 0.2},
@@ -442,35 +414,37 @@ def make_plot_seaborn(
     )
 
     titles = (
-        "Time per Sample (ms)",
-        "Peak Memory (MB)",
-        "Eigenvalues λ MAE (RGD1)",
-        "Eigenvalues λ MAE (PubChem)",
+        "Time per Sample",
+        "Peak Memory",
+        "RGD1",
+        "PubChem",
     )
-    for panel_label, ax, title in zip("abcd", axes.ravel(), titles):
-        ax.set_title(title, fontsize=TITLE_FONT_SIZE - 2)
-        ax.set_xlabel(
-            "Number of Atoms",
-            color="white" if ax in (ax_time, ax_memory) else PLOT_FONT_COLOR,
-        )
+    ylabels = (
+        "Time per Sample [s]",
+        "Peak Memory [GB]",
+        r"Eigenvalue $\lambda$ MAE [$\mathrm{eV}\,\AA^{-2}$]",
+        r"Eigenvalue $\lambda$ MAE [$\mathrm{eV}\,\AA^{-2}$]",
+    )
+    for panel_label, ax, title, ylabel in zip("abcd", axes.ravel(), titles, ylabels):
+        ax.set_title(title)
+        ax.set_xlabel("Number of Atoms")
+        ax.set_ylabel(ylabel)
         ax.set_axisbelow(True)
-        ax.grid(True, zorder=0)
         ax.tick_params(axis="both", which="both", length=0)
-        for spine in ax.spines.values():
-            spine.set_visible(False)
+        finish_axis(ax)
         panel_label_transform = offset_copy(
             ax.transAxes,
             fig=fig,
-            x=60,
-            y=-30,
+            x=-28,
+            y=2,
             units="dots",
         )
         ax.text(
-            -0.08,
-            1.06,
+            0,
+            1,
             panel_label,
             transform=panel_label_transform,
-            fontsize=ANNOTATION_BOLD_FONT_SIZE - 2,
+            fontsize=PANEL_LABEL_SIZE,
             fontfamily="DejaVu Sans",
             fontweight="bold",
             color=PLOT_FONT_COLOR,
@@ -485,30 +459,34 @@ def make_plot_seaborn(
     ax_pubchem.set_ylim(bottom=0.0, top=9.8)
     ax_time.set_xlim(4.5, 21.5)
     ax_memory.set_xlim(4.5, 21.5)
+    ax_time.xaxis.set_major_locator(matplotlib.ticker.MaxNLocator(integer=True))
+    ax_memory.xaxis.set_major_locator(matplotlib.ticker.MaxNLocator(integer=True))
     if rgd1_lambda_curves:
         max_n = max(n for stats in rgd1_lambda_curves.values() for n in stats.index)
         ax_rgd1.set_xlim(9.95, max_n + 0.5)
+        ax_rgd1.set_xticks([15, 20, 25, 30])
     if pubchem_lambda_curves:
         ns = [n for stats in pubchem_lambda_curves.values() for n in stats.index]
         ax_pubchem.set_xlim(min(ns) - 0.5, max(ns) + 0.5)
+    ax_pubchem.yaxis.set_label_coords(-0.13, 0.5)
 
     handles, labels = ax_time.get_legend_handles_labels()
     legend = ax_memory.legend(
         handles,
         labels,
         loc="upper left",
-        bbox_to_anchor=(-0.01, 1.04),
-        framealpha=0.6,
-        fontsize=LEGEND_FONT_SIZE - 2,
+        bbox_to_anchor=(-0.02, 1.02),
+        bbox_transform=offset_copy(ax_memory.transAxes, fig=fig, x=-1, y=2, units="dots"),
+        frameon=True,
+        edgecolor="none",
+        fontsize=12.5,
+        labelcolor=PLOT_FONT_COLOR,
     )
-    legend.set_zorder(1)
-    legend.get_frame().set_linewidth(0)
-    legend.get_frame().set_edgecolor("none")
-    fig.tight_layout(pad=0.01)
+    legend.get_frame().set_alpha(0.75)
 
     output_path = Path(output_path)
     output_path.parent.mkdir(parents=True, exist_ok=True)
-    fig.savefig(output_path, dpi=300, bbox_inches="tight", pad_inches=0.01)
+    fig.savefig(output_path, dpi=dpi, bbox_inches="tight", pad_inches=0.01)
     plt.close(fig)
     print(f"Plot saved to {output_path}")
 
@@ -519,9 +497,10 @@ def make_plot(
     pubchem_lambda_results,
     output_path,
     ymin_time=0.0,
-    ymax_time=3700.0,
+    ymax_time=3.7,
     ymin_memory=0.0,
-    ymax_memory=2100.0,
+    ymax_memory=2.1,
+    dpi=250,
 ):
     make_plot_seaborn(
         speed_csv=speed_csv,
@@ -532,6 +511,7 @@ def make_plot(
         ymax_time=ymax_time,
         ymin_memory=ymin_memory,
         ymax_memory=ymax_memory,
+        dpi=dpi,
     )
 
 
@@ -584,9 +564,10 @@ if __name__ == "__main__":
         default="results_speed2/speed_memory_lambda_scaling_eval_horm_colours.png",
     )
     parser.add_argument("--ymin_time", type=float, default=0.0)
-    parser.add_argument("--ymax_time", type=float, default=3700.0)
+    parser.add_argument("--ymax_time", type=float, default=3.7)
     parser.add_argument("--ymin_memory", type=float, default=0.0)
-    parser.add_argument("--ymax_memory", type=float, default=2100.0)
+    parser.add_argument("--ymax_memory", type=float, default=2.1)
+    parser.add_argument("--dpi", type=int, default=250)
     args = parser.parse_args()
 
     make_plot(
@@ -606,4 +587,5 @@ if __name__ == "__main__":
         ymax_time=args.ymax_time,
         ymin_memory=args.ymin_memory,
         ymax_memory=args.ymax_memory,
+        dpi=args.dpi,
     )

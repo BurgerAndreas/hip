@@ -52,11 +52,6 @@ METHOD_LINESTYLES = {
     HIP_LABEL: "-",
     EQV2_LABEL: "-",
 }
-METHOD_ALPHAS = {
-    DFT_LABEL: 1.0,
-    HIP_LABEL: 0.7,
-    EQV2_LABEL: 1.0,
-}
 NEGATIVE_MODE_DODGE = {
     DFT_LABEL: -0.06,
     HIP_LABEL: 0.0,
@@ -446,10 +441,9 @@ def save_lowest_eigenvalue_plot(
                 linestyle=METHOD_LINESTYLES.get(label, "-"),
                 label=label,
                 color=METHOD_COLORS.get(label),
-                alpha=METHOD_ALPHAS.get(label, 1.0),
                 zorder=2 if label == DFT_LABEL else 3,
             )
-        ax.set_title(f"mode {idx + 1}")
+        ax.set_title(f"Mode {idx + 1}")
         ax.set_ylabel(r"$\lambda$ [eV $\AA^{-2}$ amu$^{-1}$]")
         setup_axis(ax, x_label)
     for idx, ax in enumerate(axes.ravel()):

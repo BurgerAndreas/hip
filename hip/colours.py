@@ -8,6 +8,9 @@ HESSIAN_METHOD_TO_COLOUR = {
     "finite_difference_bz32": "#ffa8af",
     "prediction": "#d96001", # "#ffb482" #ae5a41 #db95a6
     "ef": "#837d80", # "#5a5255",  #debb9b
+    "hessian_approx": "#4a8a72",
+    "leftnet_df": "#4a8a72",
+    "leftnet_cf": "#8A3F3F",
 }
 HESSIAN_METHOD_TO_COLOUR["predict"] = HESSIAN_METHOD_TO_COLOUR["prediction"]
 HESSIAN_METHOD_TO_COLOUR["learned"] = HESSIAN_METHOD_TO_COLOUR["prediction"]

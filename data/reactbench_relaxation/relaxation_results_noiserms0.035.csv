@@ -1,0 +1,721 @@
+name,converged,steps,grad_calls,hessian_calls,energy_calls,calculate_calls,calculate_energy_calls,calculate_gradient_calls,calculate_hessian_calls,cnt_not_pd,wall_time_s,dft_hessian_is_pd,sample_index,coord,source
+NaiveSteepestDescent,False,149,151,0,0,0,0,0,0,0,3.908657271997072,False,0,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+FIRE,True,62,63,0,0,0,0,0,0,0,1.6758480470161885,False,0,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (unit init),True,15,16,0,0,0,0,0,0,0,0.4628257479926105,False,0,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (NumHess init),True,6,7,0,0,0,0,0,0,0,0.2082758820033632,False,0,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (learned init),True,3,3,1,0,0,0,0,0,1,0.1282180070120375,False,0,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (autograd init),True,11,12,0,0,0,0,0,0,0,0.3915916460100561,False,0,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (learned),True,4,4,5,0,0,0,0,0,5,0.3210154809930827,False,0,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (autograd),False,149,150,150,0,0,0,0,0,150,44.36441912598093,False,0,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (NumHess),True,5,5,6,0,0,0,0,0,6,6.530565752997063,False,0,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+NaiveSteepestDescent,False,149,151,0,0,0,0,0,0,0,4.000902414991288,False,1,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+FIRE,True,57,58,0,0,0,0,0,0,0,1.5225253490207251,False,1,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (unit init),True,15,16,0,0,0,0,0,0,0,0.4399810580071062,False,1,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (NumHess init),True,5,6,0,0,0,0,0,0,0,0.1665082989784423,False,1,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (learned init),True,3,3,1,0,0,0,0,0,1,0.1262593329884112,False,1,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (autograd init),True,13,14,0,0,0,0,0,0,0,0.4131347530055791,False,1,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (learned),True,5,5,6,0,0,0,0,0,6,0.3894514379790053,False,1,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (autograd),False,149,150,150,0,0,0,0,0,150,44.59056788499584,False,1,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (NumHess),True,11,11,12,0,0,0,0,0,12,13.182031486008782,False,1,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+NaiveSteepestDescent,False,149,151,0,0,0,0,0,0,0,4.005968860001303,False,2,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+FIRE,True,42,43,0,0,0,0,0,0,0,1.123284199013142,False,2,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (unit init),True,7,8,0,0,0,0,0,0,0,0.2194100409979,False,2,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (NumHess init),True,7,8,0,0,0,0,0,0,0,0.2255238099896814,False,2,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (learned init),True,3,3,1,0,0,0,0,0,1,0.1322233760147355,False,2,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (autograd init),True,15,16,0,0,0,0,0,0,0,0.5080139789788518,False,2,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (learned),True,3,3,4,0,0,0,0,0,4,0.2609979889821261,False,2,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (autograd),False,149,150,150,0,0,0,0,0,149,44.3294413270196,False,2,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (NumHess),True,5,5,6,0,0,0,0,0,6,6.494552957010455,False,2,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+NaiveSteepestDescent,False,149,151,0,0,0,0,0,0,0,4.023780351009918,False,3,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+FIRE,True,94,95,0,0,0,0,0,0,0,2.5897503230080474,False,3,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (unit init),True,18,19,0,0,0,0,0,0,0,0.5871897840115707,False,3,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (NumHess init),True,10,11,0,0,0,0,0,0,0,0.3137593680003192,False,3,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (learned init),True,4,4,1,0,0,0,0,0,1,0.1563352630182635,False,3,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (autograd init),True,14,15,0,0,0,0,0,0,0,0.4477532919845544,False,3,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (learned),True,6,6,7,0,0,0,0,0,7,0.4596279340039473,False,3,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (autograd),False,149,150,150,0,0,0,0,0,145,44.93164199899184,False,3,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (NumHess),True,99,99,100,0,0,0,0,0,100,108.88659080900834,False,3,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+NaiveSteepestDescent,False,149,151,0,0,0,0,0,0,0,4.085239264008123,False,4,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+FIRE,True,64,65,0,0,0,0,0,0,0,1.7102683320117649,False,4,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (unit init),True,14,15,0,0,0,0,0,0,0,0.4156935649807565,False,4,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (NumHess init),True,4,5,0,0,0,0,0,0,0,0.1495537069858983,False,4,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (learned init),True,3,3,1,0,0,0,0,0,1,0.133752572000958,False,4,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (autograd init),True,10,11,0,0,0,0,0,0,0,0.355918560991995,False,4,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (learned),True,13,13,14,0,0,0,0,0,14,0.9637258989969268,False,4,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (autograd),False,149,150,150,0,0,0,0,0,145,44.56071094798972,False,4,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (NumHess),True,56,56,57,0,0,0,0,0,57,62.02310371299973,False,4,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+NaiveSteepestDescent,False,149,151,0,0,0,0,0,0,0,4.0301386209903285,False,5,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+FIRE,True,75,76,0,0,0,0,0,0,0,1.9997110839758532,False,5,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (unit init),True,18,19,0,0,0,0,0,0,0,0.5446162759908475,False,5,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (NumHess init),True,6,7,0,0,0,0,0,0,0,0.2004018480074592,False,5,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (learned init),True,3,3,1,0,0,0,0,0,1,0.1297729680081829,False,5,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (autograd init),True,14,15,0,0,0,0,0,0,0,0.4619544640008826,False,5,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (learned),True,9,9,10,0,0,0,0,0,10,0.6792047170165461,False,5,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (autograd),False,149,150,150,0,0,0,0,0,147,44.92660232700291,False,5,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (NumHess),True,17,17,18,0,0,0,0,0,18,19.79903314099647,False,5,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+NaiveSteepestDescent,False,149,151,0,0,0,0,0,0,0,3.985683633974986,False,6,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+FIRE,True,61,62,0,0,0,0,0,0,0,1.6719579249911476,False,6,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (unit init),True,13,14,0,0,0,0,0,0,0,0.4083337589981965,False,6,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (NumHess init),True,7,8,0,0,0,0,0,0,0,0.2376713159901555,False,6,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (learned init),True,3,3,1,0,0,0,0,0,1,0.1362150759960059,False,6,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (autograd init),True,14,15,0,0,0,0,0,0,0,0.4571694190090056,False,6,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (learned),True,4,4,5,0,0,0,0,0,5,0.3317301679926459,False,6,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (autograd),False,149,150,150,0,0,0,0,0,147,44.58232515200507,False,6,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (NumHess),True,84,84,85,0,0,0,0,0,85,92.6831830299925,False,6,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+NaiveSteepestDescent,False,149,151,0,0,0,0,0,0,0,4.072574257996166,False,7,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+FIRE,True,57,58,0,0,0,0,0,0,0,1.531724700005725,False,7,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (unit init),True,12,13,0,0,0,0,0,0,0,0.3588954669830855,False,7,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (NumHess init),True,7,8,0,0,0,0,0,0,0,0.2231987989798654,False,7,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (learned init),True,5,5,1,0,0,0,0,0,1,0.1860095309966709,False,7,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (autograd init),True,23,24,0,0,0,0,0,0,0,0.7445876800047699,False,7,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (learned),True,6,6,7,0,0,0,0,0,7,0.4786849929951131,False,7,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (autograd),False,149,150,150,0,0,0,0,0,148,44.79523074699682,False,7,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (NumHess),True,21,21,22,0,0,0,0,0,22,24.21944968600292,False,7,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+NaiveSteepestDescent,False,149,151,0,0,0,0,0,0,0,4.00086878699949,False,8,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+FIRE,True,67,68,0,0,0,0,0,0,0,1.991685912013054,False,8,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (unit init),True,15,16,0,0,0,0,0,0,0,0.4683480559906456,False,8,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (NumHess init),True,5,6,0,0,0,0,0,0,0,0.1788164130121003,False,8,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (learned init),True,4,4,1,0,0,0,0,0,1,0.1652877360174898,False,8,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (autograd init),True,20,21,0,0,0,0,0,0,0,0.6929703050118405,False,8,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (learned),True,3,3,4,0,0,0,0,0,4,0.260215830989182,False,8,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (autograd),False,149,150,150,0,0,0,0,0,150,44.76340927899582,False,8,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (NumHess),True,6,6,7,0,0,0,0,0,7,7.542695172014646,False,8,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+NaiveSteepestDescent,False,149,151,0,0,0,0,0,0,0,4.087384543992812,False,9,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+FIRE,True,43,44,0,0,0,0,0,0,0,1.1594605810241774,False,9,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (unit init),True,12,13,0,0,0,0,0,0,0,0.3587686220125761,False,9,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (NumHess init),True,6,7,0,0,0,0,0,0,0,0.1955012750113383,False,9,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (learned init),True,3,3,1,0,0,0,0,0,1,0.1259624370140954,False,9,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (autograd init),True,12,13,0,0,0,0,0,0,0,0.4018906170094851,False,9,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (learned),True,3,3,4,0,0,0,0,0,4,0.2620996629993897,False,9,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (autograd),False,149,150,150,0,0,0,0,0,149,44.86753127200063,False,9,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (NumHess),True,5,5,6,0,0,0,0,0,6,6.513705518009374,False,9,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+NaiveSteepestDescent,False,149,151,0,0,0,0,0,0,0,4.024822064995533,False,10,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+FIRE,True,47,48,0,0,0,0,0,0,0,1.312145703996066,False,10,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (unit init),True,12,13,0,0,0,0,0,0,0,0.3838149000075646,False,10,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (NumHess init),True,4,5,0,0,0,0,0,0,0,0.1450288820196874,False,10,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (learned init),True,3,3,1,0,0,0,0,0,1,0.1327857479918748,False,10,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (autograd init),True,16,17,0,0,0,0,0,0,0,0.5577166209986899,False,10,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (learned),True,4,4,5,0,0,0,0,0,5,0.3199881319887936,False,10,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (autograd),False,149,150,150,0,0,0,0,0,147,44.713118532003136,False,10,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (NumHess),True,4,4,5,0,0,0,0,0,5,5.417981812992366,False,10,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+NaiveSteepestDescent,False,149,151,0,0,0,0,0,0,0,4.072389029985061,False,11,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+FIRE,True,68,69,0,0,0,0,0,0,0,1.8170195210259408,False,11,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (unit init),True,15,16,0,0,0,0,0,0,0,0.4426012290059589,False,11,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (NumHess init),True,8,9,0,0,0,0,0,0,0,0.2520325299992692,False,11,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (learned init),True,3,3,1,0,0,0,0,0,1,0.1278343570011202,False,11,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (autograd init),True,18,19,0,0,0,0,0,0,0,0.6297616740048397,False,11,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (learned),True,3,3,4,0,0,0,0,0,4,0.2655761080095544,False,11,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (autograd),False,149,150,150,0,0,0,0,0,148,44.86725367998588,False,11,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (NumHess),True,7,7,8,0,0,0,0,0,8,8.664169340016088,False,11,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+NaiveSteepestDescent,False,149,151,0,0,0,0,0,0,0,4.079563462000806,False,12,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+FIRE,True,42,43,0,0,0,0,0,0,0,1.169068866991438,False,12,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (unit init),True,10,11,0,0,0,0,0,0,0,0.3099939630192239,False,12,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (NumHess init),True,7,8,0,0,0,0,0,0,0,0.2233077179989777,False,12,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (learned init),True,3,3,1,0,0,0,0,0,1,0.1269221210095565,False,12,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (autograd init),True,14,15,0,0,0,0,0,0,0,0.4475106789905112,False,12,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (learned),True,2,2,3,0,0,0,0,0,3,0.1807049729977734,False,12,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (autograd),False,149,150,150,0,0,0,0,0,148,44.82562252500793,False,12,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (NumHess),True,23,23,24,0,0,0,0,0,24,26.36151939898264,False,12,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+NaiveSteepestDescent,False,149,151,0,0,0,0,0,0,0,4.001783379993867,False,13,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+FIRE,True,66,67,0,0,0,0,0,0,0,1.7736265409912448,False,13,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (unit init),True,13,14,0,0,0,0,0,0,0,0.4006696889991872,False,13,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (NumHess init),True,5,6,0,0,0,0,0,0,0,0.1812863389786798,False,13,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (learned init),True,3,3,1,0,0,0,0,0,1,0.1321059619949665,False,13,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (autograd init),True,14,15,0,0,0,0,0,0,0,0.4701562449918128,False,13,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (learned),True,5,5,6,0,0,0,0,0,6,0.3959907829994336,False,13,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (autograd),False,149,150,150,0,0,0,0,0,150,44.78846860898193,False,13,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (NumHess),True,100,100,101,0,0,0,0,0,101,110.3710715950001,False,13,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+NaiveSteepestDescent,False,149,151,0,0,0,0,0,0,0,4.393359289999353,False,14,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+FIRE,True,67,68,0,0,0,0,0,0,0,1.952454394981032,False,14,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (unit init),True,20,21,0,0,0,0,0,0,0,0.6310756920138374,False,14,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (NumHess init),True,15,16,0,0,0,0,0,0,0,0.5042951089853887,False,14,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (learned init),True,8,8,1,0,0,0,0,0,1,0.299444426986156,False,14,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (autograd init),True,11,12,0,0,0,0,0,0,0,0.4170271400071215,False,14,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (learned),True,4,4,5,0,0,0,0,0,5,0.3551884829939808,False,14,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (autograd),False,149,150,150,0,0,0,0,0,148,65.16637501199148,False,14,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (NumHess),False,149,150,150,0,0,0,0,0,150,264.13104349101195,False,14,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+NaiveSteepestDescent,False,149,151,0,0,0,0,0,0,0,4.261757456988562,False,15,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+FIRE,True,69,70,0,0,0,0,0,0,0,2.0473221730208024,False,15,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (unit init),True,20,21,0,0,0,0,0,0,0,0.652028265001718,False,15,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (NumHess init),True,10,11,0,0,0,0,0,0,0,0.3458705410012044,False,15,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (learned init),True,7,7,1,0,0,0,0,0,1,0.2585386270075105,False,15,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (autograd init),True,42,43,0,0,0,0,0,0,0,1.5225138319947291,False,15,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (learned),True,4,4,5,0,0,0,0,0,5,0.3427293759887106,False,15,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (autograd),False,149,150,150,0,0,0,0,0,150,65.1614876940148,False,15,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (NumHess),False,149,150,150,0,0,0,0,0,150,263.5559150550107,False,15,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+NaiveSteepestDescent,False,149,151,0,0,0,0,0,0,0,4.397005992999766,False,16,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+FIRE,True,49,50,0,0,0,0,0,0,0,1.4464607429981695,False,16,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (unit init),True,10,11,0,0,0,0,0,0,0,0.3368127310241107,False,16,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (NumHess init),True,11,12,0,0,0,0,0,0,0,0.3991752510191872,False,16,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (learned init),True,11,11,1,0,0,0,0,0,1,0.3878861749835778,False,16,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (autograd init),True,14,15,0,0,0,0,0,0,0,0.66074841999216,False,16,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (learned),True,5,5,6,0,0,0,0,0,6,0.431010187981883,False,16,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (autograd),False,149,150,150,0,0,0,0,0,150,71.24832733601215,False,16,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (NumHess),False,149,150,150,0,0,0,0,0,150,292.1593447579944,False,16,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+NaiveSteepestDescent,False,149,151,0,0,0,0,0,0,0,4.384948366991011,False,17,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+FIRE,True,73,74,0,0,0,0,0,0,0,2.2007696430082437,False,17,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (unit init),True,20,21,0,0,0,0,0,0,0,0.6883136140240822,False,17,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (NumHess init),True,13,14,0,0,0,0,0,0,0,0.4651023460028227,False,17,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (learned init),True,6,6,1,0,0,0,0,0,1,0.2342010660213418,False,17,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (autograd init),True,32,33,0,0,0,0,0,0,0,1.1889187030028552,False,17,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (learned),True,12,12,13,0,0,0,0,0,13,0.9497159220045432,False,17,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (autograd),False,149,150,150,0,0,0,0,0,148,71.37073779699858,False,17,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (NumHess),False,149,150,150,0,0,0,0,0,150,291.2871730719926,False,17,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+NaiveSteepestDescent,False,149,151,0,0,0,0,0,0,0,4.4383312390127685,False,18,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+FIRE,True,61,62,0,0,0,0,0,0,0,1.799908243003301,False,18,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (unit init),True,26,27,0,0,0,0,0,0,0,0.8277650859963614,False,18,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (NumHess init),True,10,11,0,0,0,0,0,0,0,0.3651740170025732,False,18,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (learned init),True,3,3,1,0,0,0,0,0,1,0.1421207410166971,False,18,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (autograd init),True,14,15,0,0,0,0,0,0,0,0.5143696669838391,False,18,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (learned),True,6,6,7,0,0,0,0,0,7,0.513204588991357,False,18,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (autograd),False,149,150,150,0,0,0,0,0,150,71.24745719900238,False,18,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (NumHess),False,149,150,150,0,0,0,0,0,150,292.3182551439968,False,18,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+NaiveSteepestDescent,False,149,151,0,0,0,0,0,0,0,4.384379548981087,False,19,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+FIRE,True,65,66,0,0,0,0,0,0,0,1.8978869510174263,False,19,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (unit init),True,24,25,0,0,0,0,0,0,0,0.7933361199975479,False,19,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (NumHess init),True,10,11,0,0,0,0,0,0,0,0.3862620209984015,False,19,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (learned init),True,3,3,1,0,0,0,0,0,1,0.1472079579834826,False,19,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (autograd init),True,12,13,0,0,0,0,0,0,0,0.4738975510117598,False,19,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (learned),True,16,16,17,0,0,0,0,0,17,1.2977965099853463,False,19,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (autograd),False,149,150,150,0,0,0,0,0,149,71.45191163400887,False,19,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (NumHess),False,149,150,150,0,0,0,0,0,150,292.57322792499326,False,19,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+NaiveSteepestDescent,False,149,151,0,0,0,0,0,0,0,4.309632963006152,False,20,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+FIRE,True,53,54,0,0,0,0,0,0,0,1.5568527269933838,False,20,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (unit init),True,12,13,0,0,0,0,0,0,0,0.42059298499953,False,20,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (NumHess init),True,12,13,0,0,0,0,0,0,0,0.4359551849775016,False,20,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (learned init),True,4,4,1,0,0,0,0,0,1,0.1843258840090129,False,20,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (autograd init),True,12,13,0,0,0,0,0,0,0,0.4712059230078012,False,20,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (learned),True,9,9,10,0,0,0,0,0,10,0.7515016790130176,False,20,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (autograd),False,149,150,150,0,0,0,0,0,147,71.15616161600337,False,20,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (NumHess),False,149,150,150,0,0,0,0,0,150,291.9051018790051,False,20,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+NaiveSteepestDescent,False,149,151,0,0,0,0,0,0,0,4.476382069988176,False,21,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+FIRE,True,49,50,0,0,0,0,0,0,0,1.454654226981802,False,21,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (unit init),True,10,11,0,0,0,0,0,0,0,0.3402117440127767,False,21,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (NumHess init),True,13,14,0,0,0,0,0,0,0,0.4771314859972335,False,21,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (learned init),True,4,4,1,0,0,0,0,0,1,0.1723951499734539,False,21,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (autograd init),True,37,38,0,0,0,0,0,0,0,1.481583104992751,False,21,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (learned),True,3,3,4,0,0,0,0,0,4,0.282415015011793,False,21,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (autograd),False,149,150,150,0,0,0,0,0,150,71.28313336099382,False,21,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (NumHess),False,149,150,150,0,0,0,0,0,150,293.0328021280002,False,21,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+NaiveSteepestDescent,False,149,151,0,0,0,0,0,0,0,4.380486690992257,False,22,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+FIRE,True,58,59,0,0,0,0,0,0,0,1.753172831988195,False,22,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (unit init),True,25,26,0,0,0,0,0,0,0,0.8166125419957098,False,22,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (NumHess init),True,11,12,0,0,0,0,0,0,0,0.3896654300042428,False,22,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (learned init),True,4,4,1,0,0,0,0,0,1,0.1753690690093208,False,22,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (autograd init),True,41,42,0,0,0,0,0,0,0,1.5683413170045242,False,22,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (learned),True,10,10,11,0,0,0,0,0,11,0.8007935989880934,False,22,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (autograd),False,149,150,150,0,0,0,0,0,150,71.27848287200322,False,22,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (NumHess),False,149,150,150,0,0,0,0,0,150,293.14083657000447,False,22,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+NaiveSteepestDescent,False,149,151,0,0,0,0,0,0,0,4.371809823001968,False,23,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+FIRE,True,47,48,0,0,0,0,0,0,0,1.374781393999001,False,23,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (unit init),True,11,12,0,0,0,0,0,0,0,0.3647604610014241,False,23,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (NumHess init),True,12,13,0,0,0,0,0,0,0,0.4645575889735482,False,23,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (learned init),True,8,8,1,0,0,0,0,0,1,0.3146254949970171,False,23,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (autograd init),True,12,13,0,0,0,0,0,0,0,0.462906294997083,False,23,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (learned),True,5,5,6,0,0,0,0,0,6,0.4383674830023665,False,23,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (autograd),False,149,150,150,0,0,0,0,0,149,71.42089366100845,False,23,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (NumHess),False,149,150,150,0,0,0,0,0,150,292.8878928550112,False,23,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+NaiveSteepestDescent,False,149,151,0,0,0,0,0,0,0,4.294605181989027,False,24,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+FIRE,True,49,50,0,0,0,0,0,0,0,1.4979510370176286,False,24,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (unit init),True,13,14,0,0,0,0,0,0,0,0.4432198389840778,False,24,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (NumHess init),True,17,18,0,0,0,0,0,0,0,0.600877342018066,False,24,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (learned init),True,4,4,1,0,0,0,0,0,1,0.1783970929973293,False,24,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (autograd init),True,52,53,0,0,0,0,0,0,0,2.2190672449942213,False,24,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (learned),True,4,4,5,0,0,0,0,0,5,0.3471870259963907,False,24,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (autograd),False,149,150,150,0,0,0,0,0,148,71.23567863498465,False,24,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (NumHess),False,149,150,150,0,0,0,0,0,150,292.41721118200803,False,24,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+NaiveSteepestDescent,False,149,151,0,0,0,0,0,0,0,4.332894524006406,False,25,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+FIRE,True,81,82,0,0,0,0,0,0,0,2.4101692819967866,False,25,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (unit init),True,16,17,0,0,0,0,0,0,0,0.5597938419959974,False,25,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (NumHess init),True,38,39,0,0,0,0,0,0,0,1.348362396995071,False,25,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (learned init),True,10,10,1,0,0,0,0,0,1,0.3798696769808884,False,25,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (autograd init),True,47,48,0,0,0,0,0,0,0,1.740934664994711,False,25,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (learned),True,4,4,5,0,0,0,0,0,121,0.36553198100591544,False,25,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (autograd),False,149,150,150,0,0,0,0,0,150,71.44894478502101,False,25,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (NumHess),False,149,150,150,0,0,0,0,0,150,291.8122311019979,False,25,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+NaiveSteepestDescent,False,149,151,0,0,0,0,0,0,0,4.466077290999237,False,26,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+FIRE,True,73,74,0,0,0,0,0,0,0,2.2060660260031,False,26,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (unit init),True,17,18,0,0,0,0,0,0,0,0.556988204974914,False,26,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (NumHess init),True,14,15,0,0,0,0,0,0,0,0.5076950769871473,False,26,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (learned init),True,26,26,1,0,0,0,0,0,1,0.8810994279920124,False,26,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (autograd init),True,39,40,0,0,0,0,0,0,0,1.4511694099928718,False,26,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (learned),True,10,10,11,0,0,0,0,0,11,0.8406119470018893,False,26,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (autograd),False,149,150,150,0,0,0,0,0,150,71.29376419700566,False,26,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (NumHess),False,149,150,150,0,0,0,0,0,150,292.69812452001497,False,26,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+NaiveSteepestDescent,False,149,151,0,0,0,0,0,0,0,4.360020009014988,False,27,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+FIRE,True,47,48,0,0,0,0,0,0,0,1.4197289590083528,False,27,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (unit init),True,12,13,0,0,0,0,0,0,0,0.423715565004386,False,27,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (NumHess init),True,23,24,0,0,0,0,0,0,0,0.8477785839932039,False,27,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (learned init),True,52,52,1,0,0,0,0,0,1,1.8544304370007008,False,27,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (autograd init),True,41,42,0,0,0,0,0,0,0,1.5594253379967995,False,27,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (learned),True,5,5,6,0,0,0,0,0,6,0.4307089110079687,False,27,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (autograd),False,149,150,150,0,0,0,0,0,148,71.52039973402862,False,27,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (NumHess),False,149,150,150,0,0,0,0,0,150,292.57903281701147,False,27,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+NaiveSteepestDescent,False,149,151,0,0,0,0,0,0,0,4.429724020010326,False,28,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+FIRE,True,80,81,0,0,0,0,0,0,0,2.4804812649963424,False,28,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (unit init),True,22,23,0,0,0,0,0,0,0,0.7180129750049673,False,28,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (NumHess init),True,22,23,0,0,0,0,0,0,0,0.7930919770151377,False,28,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (learned init),True,11,11,1,0,0,0,0,0,1,0.4072578560153488,False,28,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (autograd init),True,60,61,0,0,0,0,0,0,0,2.121739255002467,False,28,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (learned),True,4,4,5,0,0,0,0,0,43,0.36553198100591544,False,28,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (autograd),False,149,150,150,0,0,0,0,0,149,71.0782059210178,False,28,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (NumHess),False,149,150,150,0,0,0,0,0,150,292.97770597200724,False,28,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+NaiveSteepestDescent,False,149,151,0,0,0,0,0,0,0,4.527567655983148,False,29,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+FIRE,True,71,72,0,0,0,0,0,0,0,2.378712728008395,False,29,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (unit init),True,19,20,0,0,0,0,0,0,0,0.6887623539951164,False,29,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (NumHess init),True,6,7,0,0,0,0,0,0,0,0.2504837620072067,False,29,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (learned init),True,4,4,1,0,0,0,0,0,1,0.1941281860054005,False,29,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (autograd init),True,8,9,0,0,0,0,0,0,0,0.3582109499839134,False,29,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (learned),True,3,3,4,0,0,0,0,0,4,0.2983966549800243,False,29,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (autograd),True,5,5,6,0,0,0,0,0,6,2.795879009005148,False,29,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (NumHess),True,4,4,5,0,0,0,0,0,5,9.718235962995095,False,29,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+NaiveSteepestDescent,False,149,151,0,0,0,0,0,0,0,4.573508578992914,False,30,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+FIRE,True,65,66,0,0,0,0,0,0,0,2.058970305020921,False,30,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (unit init),True,16,17,0,0,0,0,0,0,0,0.5765194119885564,False,30,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (NumHess init),True,4,5,0,0,0,0,0,0,0,0.1699900889943819,False,30,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (learned init),True,3,3,1,0,0,0,0,0,1,0.1503557969990652,False,30,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (autograd init),True,3,4,0,0,0,0,0,0,0,0.1346905350219458,False,30,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (learned),True,3,3,4,0,0,0,0,0,4,0.2925210669927764,False,30,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (autograd),True,4,4,5,0,0,0,0,0,4,2.307734361005714,False,30,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (NumHess),True,4,4,5,0,0,0,0,0,5,9.84474256899557,False,30,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+NaiveSteepestDescent,False,149,151,0,0,0,0,0,0,0,4.59339366297354,False,31,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+FIRE,True,89,90,0,0,0,0,0,0,0,2.805521361005958,False,31,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (unit init),True,23,24,0,0,0,0,0,0,0,0.8064546470122878,False,31,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (NumHess init),True,3,4,0,0,0,0,0,0,0,0.1354526100039947,False,31,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (learned init),True,3,3,1,0,0,0,0,0,1,0.1520572830049786,False,31,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (autograd init),True,6,7,0,0,0,0,0,0,0,0.2371927170024719,False,31,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (learned),True,4,4,5,0,0,0,0,0,5,0.3714381239842623,False,31,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (autograd),True,4,4,5,0,0,0,0,0,5,2.3443852860073093,False,31,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (NumHess),True,5,5,6,0,0,0,0,0,6,11.615860649006208,False,31,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+NaiveSteepestDescent,False,149,151,0,0,0,0,0,0,0,4.669192297995323,False,32,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+FIRE,True,96,97,0,0,0,0,0,0,0,2.9171367160161026,False,32,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (unit init),True,18,19,0,0,0,0,0,0,0,0.6242938879877329,False,32,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (NumHess init),True,3,4,0,0,0,0,0,0,0,0.14404447900597,False,32,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (learned init),True,3,3,1,0,0,0,0,0,1,0.1598879139928612,False,32,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (autograd init),True,6,7,0,0,0,0,0,0,0,0.2731642410217318,False,32,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (learned),True,4,4,5,0,0,0,0,0,5,0.3815524769888725,False,32,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (autograd),True,4,4,5,0,0,0,0,0,5,2.3620892349863425,False,32,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (NumHess),True,4,4,5,0,0,0,0,0,5,9.705208995001158,False,32,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+NaiveSteepestDescent,False,149,151,0,0,0,0,0,0,0,4.740469701006077,False,33,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+FIRE,True,65,66,0,0,0,0,0,0,0,1.9923131529940288,False,33,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (unit init),True,15,16,0,0,0,0,0,0,0,0.5483145170146599,False,33,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (NumHess init),True,4,5,0,0,0,0,0,0,0,0.1742723770148586,False,33,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (learned init),True,3,3,1,0,0,0,0,0,1,0.1564256599813234,False,33,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (autograd init),True,9,10,0,0,0,0,0,0,0,0.3994071010092739,False,33,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (learned),True,3,3,4,0,0,0,0,0,4,0.3010890440200455,False,33,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (autograd),True,4,4,5,0,0,0,0,0,5,2.355765258020256,False,33,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (NumHess),True,4,4,5,0,0,0,0,0,5,9.722521685995162,False,33,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+NaiveSteepestDescent,False,149,151,0,0,0,0,0,0,0,4.531540870986646,False,34,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+FIRE,True,81,82,0,0,0,0,0,0,0,2.540437102987198,False,34,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (unit init),True,17,18,0,0,0,0,0,0,0,0.6152028490032535,False,34,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (NumHess init),True,4,5,0,0,0,0,0,0,0,0.1745453970215749,False,34,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (learned init),True,3,3,1,0,0,0,0,0,1,0.155776653002249,False,34,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (autograd init),True,4,5,0,0,0,0,0,0,0,0.1762556559988297,False,34,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (learned),True,3,3,4,0,0,0,0,0,4,0.3024357509857509,False,34,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (autograd),True,3,3,4,0,0,0,0,0,4,1.857207078981446,False,34,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (NumHess),True,4,4,5,0,0,0,0,0,5,9.841851528006371,False,34,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+NaiveSteepestDescent,False,149,151,0,0,0,0,0,0,0,4.521054350974737,False,35,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+FIRE,True,89,90,0,0,0,0,0,0,0,2.803863212000578,False,35,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (unit init),True,17,18,0,0,0,0,0,0,0,0.6114711510017514,False,35,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (NumHess init),True,5,6,0,0,0,0,0,0,0,0.2077704390103463,False,35,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (learned init),True,3,3,1,0,0,0,0,0,1,0.150321132998215,False,35,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (autograd init),True,10,11,0,0,0,0,0,0,0,0.4254866779956501,False,35,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (learned),True,2,2,3,0,0,0,0,0,3,0.2101279319904279,False,35,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (autograd),True,3,3,4,0,0,0,0,0,4,1.83627831999911,False,35,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (NumHess),True,3,3,4,0,0,0,0,0,4,7.810892495006556,False,35,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+NaiveSteepestDescent,False,149,151,0,0,0,0,0,0,0,4.521925538982032,False,36,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+FIRE,True,74,75,0,0,0,0,0,0,0,2.347770619002404,False,36,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (unit init),True,16,17,0,0,0,0,0,0,0,0.5859418240142986,False,36,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (NumHess init),True,4,5,0,0,0,0,0,0,0,0.1748547930037602,False,36,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (learned init),True,4,4,1,0,0,0,0,0,1,0.3409098309930414,False,36,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (autograd init),True,8,9,0,0,0,0,0,0,0,0.3287685700051952,False,36,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (learned),True,3,3,4,0,0,0,0,0,4,0.2889711740135681,False,36,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (autograd),True,3,3,4,0,0,0,0,0,4,1.846628541010432,False,36,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (NumHess),True,4,4,5,0,0,0,0,0,5,9.63502037798753,False,36,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+NaiveSteepestDescent,False,149,151,0,0,0,0,0,0,0,4.514812269975664,False,37,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+FIRE,True,96,97,0,0,0,0,0,0,0,3.016324958007317,False,37,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (unit init),True,18,19,0,0,0,0,0,0,0,0.6432959499943536,False,37,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (NumHess init),True,6,7,0,0,0,0,0,0,0,0.2419544050062541,False,37,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (learned init),True,5,5,1,0,0,0,0,0,1,0.2311770269880071,False,37,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (autograd init),True,6,7,0,0,0,0,0,0,0,0.2414201509964186,False,37,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (learned),True,4,4,5,0,0,0,0,0,5,0.377025767986197,False,37,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (autograd),True,4,4,5,0,0,0,0,0,5,2.310351696010912,False,37,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (NumHess),True,5,5,6,0,0,0,0,0,6,11.643983318004755,False,37,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+NaiveSteepestDescent,False,149,151,0,0,0,0,0,0,0,4.648451707995264,False,38,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+FIRE,True,91,92,0,0,0,0,0,0,0,2.8133192810055334,False,38,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (unit init),True,23,24,0,0,0,0,0,0,0,0.785973065008875,False,38,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (NumHess init),True,7,8,0,0,0,0,0,0,0,0.2837187210097909,False,38,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (learned init),True,5,5,1,0,0,0,0,0,1,0.2250358009769115,False,38,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (autograd init),True,6,7,0,0,0,0,0,0,0,0.2498630429909099,False,38,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (learned),True,3,3,4,0,0,0,0,0,4,0.303572393982904,False,38,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (autograd),True,4,4,5,0,0,0,0,0,5,2.375128383981064,False,38,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (NumHess),True,4,4,5,0,0,0,0,0,5,9.811644667992368,False,38,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+NaiveSteepestDescent,False,149,151,0,0,0,0,0,0,0,4.6115879760182,False,39,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+FIRE,True,53,54,0,0,0,0,0,0,0,1.6161244740069378,False,39,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (unit init),True,23,24,0,0,0,0,0,0,0,0.7832282150047831,False,39,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (NumHess init),True,5,6,0,0,0,0,0,0,0,0.2117260959930718,False,39,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (learned init),True,4,4,1,0,0,0,0,0,1,0.191402967000613,False,39,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (autograd init),True,9,10,0,0,0,0,0,0,0,0.3904880390036851,False,39,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (learned),True,4,4,5,0,0,0,0,0,5,0.3855898329929914,False,39,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (autograd),True,8,8,9,0,0,0,0,0,9,4.280318809003802,False,39,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (NumHess),True,42,42,43,0,0,0,0,0,43,84.1329942800221,False,39,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+NaiveSteepestDescent,False,149,151,0,0,0,0,0,0,0,4.505335711000953,False,40,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+FIRE,True,70,71,0,0,0,0,0,0,0,2.350694022985408,False,40,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (unit init),True,21,22,0,0,0,0,0,0,0,0.7544448730186559,False,40,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (NumHess init),True,7,8,0,0,0,0,0,0,0,0.3052583649987355,False,40,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (learned init),True,4,4,1,0,0,0,0,0,1,0.1928345730120781,False,40,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (autograd init),True,7,8,0,0,0,0,0,0,0,0.3092228930036071,False,40,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (learned),True,4,4,5,0,0,0,0,0,5,0.3747323119896464,False,40,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (autograd),True,30,30,31,0,0,0,0,0,30,14.658609067002544,False,40,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (NumHess),False,149,150,150,0,0,0,0,0,150,293.6458764889976,False,40,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+NaiveSteepestDescent,False,149,151,0,0,0,0,0,0,0,4.587775979016442,False,41,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+FIRE,True,62,63,0,0,0,0,0,0,0,1.974968939990504,False,41,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (unit init),True,16,17,0,0,0,0,0,0,0,0.5814388720027637,False,41,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (NumHess init),True,6,7,0,0,0,0,0,0,0,0.2485969169938471,False,41,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (learned init),True,6,6,1,0,0,0,0,0,1,0.2506949400121812,False,41,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (autograd init),True,6,7,0,0,0,0,0,0,0,0.2378295419912319,False,41,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (learned),True,5,5,6,0,0,0,0,0,6,0.4507925760117359,False,41,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (autograd),True,7,7,8,0,0,0,0,0,7,3.73832423298154,False,41,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (NumHess),True,46,46,47,0,0,0,0,0,47,92.07569967000744,False,41,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+NaiveSteepestDescent,False,149,151,0,0,0,0,0,0,0,4.724333393998677,False,42,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+FIRE,True,58,59,0,0,0,0,0,0,0,1.8275245440017895,False,42,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (unit init),True,12,13,0,0,0,0,0,0,0,0.4336134029726963,False,42,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (NumHess init),True,7,8,0,0,0,0,0,0,0,0.2822398510179482,False,42,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (learned init),True,4,4,1,0,0,0,0,0,1,0.1859826510190032,False,42,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (autograd init),True,8,9,0,0,0,0,0,0,0,0.3529975419805851,False,42,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (learned),True,4,4,5,0,0,0,0,0,5,0.3700087559991516,False,42,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (autograd),True,24,24,25,0,0,0,0,0,25,11.848464456008514,False,42,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (NumHess),True,67,67,68,0,0,0,0,0,68,133.2967395170126,False,42,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+NaiveSteepestDescent,False,149,151,0,0,0,0,0,0,0,4.553980361000868,False,43,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+FIRE,True,85,86,0,0,0,0,0,0,0,2.6243123119929805,False,43,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (unit init),True,31,32,0,0,0,0,0,0,0,1.102337604999775,False,43,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (NumHess init),True,5,6,0,0,0,0,0,0,0,0.2120092220138758,False,43,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (learned init),True,4,4,1,0,0,0,0,0,1,0.1914403419941663,False,43,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (autograd init),True,9,10,0,0,0,0,0,0,0,0.3466296709957532,False,43,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (learned),True,4,4,5,0,0,0,0,0,5,0.3864969419955741,False,43,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (autograd),True,51,51,52,0,0,0,0,0,51,24.62188540698844,False,43,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (NumHess),True,13,13,14,0,0,0,0,0,14,27.384309771994594,False,43,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+NaiveSteepestDescent,False,149,151,0,0,0,0,0,0,0,4.66099696099991,False,44,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+FIRE,True,74,75,0,0,0,0,0,0,0,2.283351557998685,False,44,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (unit init),True,17,18,0,0,0,0,0,0,0,0.6199417369789444,False,44,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (NumHess init),True,5,6,0,0,0,0,0,0,0,0.2470274349907413,False,44,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (learned init),True,2,2,1,0,0,0,0,0,1,0.1220184870180673,False,44,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (autograd init),True,4,5,0,0,0,0,0,0,0,0.178629036003258,False,44,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (learned),True,3,3,4,0,0,0,0,0,4,0.2998990789928939,False,44,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (autograd),True,21,21,22,0,0,0,0,0,22,10.445638019999024,False,44,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (NumHess),True,57,57,58,0,0,0,0,0,58,113.32332624599805,False,44,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+NaiveSteepestDescent,False,149,151,0,0,0,0,0,0,0,4.674087610997958,False,45,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+FIRE,True,52,53,0,0,0,0,0,0,0,1.603410112002166,False,45,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (unit init),True,19,20,0,0,0,0,0,0,0,0.652539317990886,False,45,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (NumHess init),True,4,5,0,0,0,0,0,0,0,0.1739797879999969,False,45,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (learned init),True,3,3,1,0,0,0,0,0,1,0.159554156998638,False,45,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (autograd init),True,10,11,0,0,0,0,0,0,0,0.4326733459893148,False,45,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (learned),True,3,3,4,0,0,0,0,0,4,0.3011935800022911,False,45,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (autograd),True,5,5,6,0,0,0,0,0,6,2.8448941169772297,False,45,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (NumHess),True,45,45,46,0,0,0,0,0,46,90.1210139740142,False,45,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+NaiveSteepestDescent,False,149,151,0,0,0,0,0,0,0,4.653933016001247,False,46,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+FIRE,True,60,61,0,0,0,0,0,0,0,1.9129552969825452,False,46,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (unit init),True,12,13,0,0,0,0,0,0,0,0.5897115069965366,False,46,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (NumHess init),True,9,10,0,0,0,0,0,0,0,0.3688933509984053,False,46,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (learned init),True,4,4,1,0,0,0,0,0,1,0.1847491649969015,False,46,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (autograd init),True,10,11,0,0,0,0,0,0,0,0.4526094069879036,False,46,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (learned),True,4,4,5,0,0,0,0,0,5,0.3710163899813778,False,46,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (autograd),True,9,9,10,0,0,0,0,0,10,4.736041613999987,False,46,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (NumHess),True,8,8,9,0,0,0,0,0,9,17.57302843799698,False,46,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+NaiveSteepestDescent,False,149,151,0,0,0,0,0,0,0,4.707493237016024,False,47,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+FIRE,True,80,81,0,0,0,0,0,0,0,2.626652794977417,False,47,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (unit init),True,29,30,0,0,0,0,0,0,0,0.9692199760174844,False,47,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (NumHess init),True,4,5,0,0,0,0,0,0,0,0.1744065659877378,False,47,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (learned init),True,3,3,1,0,0,0,0,0,1,0.1564348110114224,False,47,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (autograd init),True,5,6,0,0,0,0,0,0,0,0.2117397009860724,False,47,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (learned),True,3,3,4,0,0,0,0,0,4,0.2966262870177161,False,47,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (autograd),True,4,4,5,0,0,0,0,0,5,2.3374670219782274,False,47,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (NumHess),True,3,3,4,0,0,0,0,0,4,7.683616875001462,False,47,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+NaiveSteepestDescent,False,149,151,0,0,0,0,0,0,0,4.654719372018008,False,48,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+FIRE,True,73,74,0,0,0,0,0,0,0,2.2469404510047752,False,48,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (unit init),True,16,17,0,0,0,0,0,0,0,0.5559991729969624,False,48,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (NumHess init),True,5,6,0,0,0,0,0,0,0,0.2104859419923741,False,48,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (learned init),True,4,4,1,0,0,0,0,0,1,0.1905130889790598,False,48,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (autograd init),True,7,8,0,0,0,0,0,0,0,0.2932163650111761,False,48,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (learned),True,2,2,3,0,0,0,0,0,3,0.220012413978111,False,48,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (autograd),True,3,3,4,0,0,0,0,0,4,1.9037394449987917,False,48,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (NumHess),True,4,4,5,0,0,0,0,0,5,9.736604361009086,False,48,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+NaiveSteepestDescent,False,149,151,0,0,0,0,0,0,0,4.689614954026183,False,49,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+FIRE,True,72,73,0,0,0,0,0,0,0,2.336631526995916,False,49,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (unit init),True,14,15,0,0,0,0,0,0,0,0.4853326180018484,False,49,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (NumHess init),True,4,5,0,0,0,0,0,0,0,0.1757619449927006,False,49,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (learned init),True,3,3,1,0,0,0,0,0,1,0.1565972099779173,False,49,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (autograd init),True,32,33,0,0,0,0,0,0,0,1.5653102560027037,False,49,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (learned),True,3,3,4,0,0,0,0,0,4,0.2990982650080696,False,49,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (autograd),True,4,4,5,0,0,0,0,0,4,2.341748181002913,False,49,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (NumHess),True,4,4,5,0,0,0,0,0,5,9.74245001701638,False,49,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+NaiveSteepestDescent,False,149,151,0,0,0,0,0,0,0,4.573960358975455,False,50,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+FIRE,True,60,61,0,0,0,0,0,0,0,1.8523979889869224,False,50,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (unit init),True,11,12,0,0,0,0,0,0,0,0.4117829260067083,False,50,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (NumHess init),True,4,5,0,0,0,0,0,0,0,0.1722588840057142,False,50,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (learned init),True,3,3,1,0,0,0,0,0,1,0.1546397800266277,False,50,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (autograd init),True,4,5,0,0,0,0,0,0,0,0.1749583710043225,False,50,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (learned),True,2,2,3,0,0,0,0,0,3,0.2153594370174687,False,50,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (autograd),True,2,2,3,0,0,0,0,0,3,1.386977451009443,False,50,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (NumHess),True,3,3,4,0,0,0,0,0,4,7.773875011014752,False,50,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+NaiveSteepestDescent,False,149,151,0,0,0,0,0,0,0,4.8033036880078726,False,51,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+FIRE,True,67,68,0,0,0,0,0,0,0,2.0466081670019776,False,51,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (unit init),True,28,29,0,0,0,0,0,0,0,0.9458678609807976,False,51,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (NumHess init),True,5,6,0,0,0,0,0,0,0,0.2096912540146149,False,51,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (learned init),True,3,3,1,0,0,0,0,0,1,0.1578291390032973,False,51,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (autograd init),True,5,6,0,0,0,0,0,0,0,0.2106238180131185,False,51,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (learned),True,3,3,4,0,0,0,0,0,4,0.3031608989986125,False,51,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (autograd),True,3,3,4,0,0,0,0,0,4,1.888905576983234,False,51,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (NumHess),True,5,5,6,0,0,0,0,0,6,11.660385538998526,False,51,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+NaiveSteepestDescent,False,149,151,0,0,0,0,0,0,0,4.538501367002027,False,52,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+FIRE,True,91,92,0,0,0,0,0,0,0,2.8694600430026185,False,52,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (unit init),True,29,30,0,0,0,0,0,0,0,1.0252029440016486,False,52,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (NumHess init),True,5,6,0,0,0,0,0,0,0,0.2019882219901774,False,52,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (learned init),True,5,5,1,0,0,0,0,0,1,0.2173995960038155,False,52,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (autograd init),True,7,8,0,0,0,0,0,0,0,0.2715434409910813,False,52,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (learned),True,4,4,5,0,0,0,0,0,5,0.3725966610072646,False,52,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (autograd),True,4,4,5,0,0,0,0,0,5,2.310838647012133,False,52,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (NumHess),True,9,9,10,0,0,0,0,0,10,19.6487780129828,False,52,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+NaiveSteepestDescent,False,149,151,0,0,0,0,0,0,0,4.663601337000728,False,53,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+FIRE,True,81,82,0,0,0,0,0,0,0,2.5599311490077525,False,53,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (unit init),True,16,17,0,0,0,0,0,0,0,0.558027963998029,False,53,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (NumHess init),True,3,4,0,0,0,0,0,0,0,0.1361079550115391,False,53,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (learned init),True,3,3,1,0,0,0,0,0,1,0.1522921819996554,False,53,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (autograd init),True,4,5,0,0,0,0,0,0,0,0.17075418800232,False,53,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (learned),True,3,3,4,0,0,0,0,0,4,0.2946416200138628,False,53,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (autograd),True,4,4,5,0,0,0,0,0,5,2.33398521100753,False,53,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (NumHess),True,4,4,5,0,0,0,0,0,5,9.804842340992764,False,53,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+NaiveSteepestDescent,False,149,151,0,0,0,0,0,0,0,4.682381043996429,False,54,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+FIRE,True,59,60,0,0,0,0,0,0,0,1.8149302270030605,False,54,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (unit init),True,14,15,0,0,0,0,0,0,0,0.490058127004886,False,54,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (NumHess init),True,4,5,0,0,0,0,0,0,0,0.1740030900109559,False,54,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (learned init),True,3,3,1,0,0,0,0,0,1,0.1551893009745981,False,54,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (autograd init),True,6,7,0,0,0,0,0,0,0,0.2427684860012959,False,54,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (learned),True,2,2,3,0,0,0,0,0,3,0.2174445620039478,False,54,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (autograd),True,4,4,5,0,0,0,0,0,4,2.3621510739903897,False,54,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (NumHess),True,4,4,5,0,0,0,0,0,5,9.742739625973629,False,54,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+NaiveSteepestDescent,False,149,151,0,0,0,0,0,0,0,4.736565886007156,False,55,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+FIRE,True,84,85,0,0,0,0,0,0,0,2.568114310997771,False,55,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (unit init),True,17,18,0,0,0,0,0,0,0,0.6142444150173105,False,55,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (NumHess init),True,4,5,0,0,0,0,0,0,0,0.1766106169961858,False,55,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (learned init),True,3,3,1,0,0,0,0,0,1,0.1563393310061656,False,55,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (autograd init),True,4,5,0,0,0,0,0,0,0,0.1771652399911545,False,55,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (learned),True,4,4,5,0,0,0,0,0,5,0.3815549690043553,False,55,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (autograd),True,4,4,5,0,0,0,0,0,5,2.354301454004599,False,55,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (NumHess),True,4,4,5,0,0,0,0,0,5,9.75601371700759,False,55,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+NaiveSteepestDescent,False,149,151,0,0,0,0,0,0,0,4.518686326016905,False,56,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+FIRE,True,87,88,0,0,0,0,0,0,0,2.75094519398408,False,56,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (unit init),True,27,28,0,0,0,0,0,0,0,1.1013118679984473,False,56,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (NumHess init),True,7,8,0,0,0,0,0,0,0,0.2727733619976789,False,56,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (learned init),True,5,5,1,0,0,0,0,0,1,0.2253566540020983,False,56,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (autograd init),True,4,5,0,0,0,0,0,0,0,0.1691434600215871,False,56,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (learned),True,3,3,4,0,0,0,0,0,4,0.2925757970078848,False,56,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (autograd),True,4,4,5,0,0,0,0,0,5,2.3046492310240865,False,56,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (NumHess),True,4,4,5,0,0,0,0,0,5,9.645939044014083,False,56,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+NaiveSteepestDescent,False,149,151,0,0,0,0,0,0,0,4.409350291010924,False,57,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+FIRE,True,60,61,0,0,0,0,0,0,0,1.8191242769826204,False,57,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (unit init),True,21,22,0,0,0,0,0,0,0,0.6980310539947823,False,57,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (NumHess init),True,15,16,0,0,0,0,0,0,0,0.5155117200047243,False,57,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (learned init),True,10,10,1,0,0,0,0,0,1,0.3578032439982053,False,57,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (autograd init),True,17,18,0,0,0,0,0,0,0,0.5911839019972831,False,57,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (learned),True,5,5,6,0,0,0,0,0,6,0.4285719959880225,False,57,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (autograd),False,149,150,150,0,0,0,0,0,149,70.85542911797529,False,57,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (NumHess),False,149,150,150,0,0,0,0,0,150,292.99431331199594,False,57,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+NaiveSteepestDescent,False,149,151,0,0,0,0,0,0,0,4.354697471979307,False,58,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+FIRE,True,54,55,0,0,0,0,0,0,0,1.643041584989987,False,58,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (unit init),True,15,16,0,0,0,0,0,0,0,0.5057278810127173,False,58,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (NumHess init),True,15,16,0,0,0,0,0,0,0,0.5303630389971659,False,58,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (learned init),True,8,8,1,0,0,0,0,0,1,0.3010693929973058,False,58,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (autograd init),True,8,9,0,0,0,0,0,0,0,0.310661651979899,False,58,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (learned),True,3,3,4,0,0,0,0,0,4,0.2773915549914818,False,58,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (autograd),False,149,150,150,0,0,0,0,0,149,70.5469412439852,False,58,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (NumHess),False,149,150,150,0,0,0,0,0,150,292.77838133700425,False,58,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+NaiveSteepestDescent,False,149,151,0,0,0,0,0,0,0,4.433221029001288,False,59,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+FIRE,True,64,65,0,0,0,0,0,0,0,1.8651819920050912,False,59,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (unit init),True,22,23,0,0,0,0,0,0,0,0.6968706650077365,False,59,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (NumHess init),True,12,13,0,0,0,0,0,0,0,0.4348392289830372,False,59,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (learned init),True,4,4,1,0,0,0,0,0,1,0.176592817006167,False,59,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (autograd init),True,8,9,0,0,0,0,0,0,0,0.2885802589880768,False,59,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (learned),True,10,10,11,0,0,0,0,0,11,0.8237691649992485,False,59,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (autograd),False,149,150,150,0,0,0,0,0,149,71.06417729199165,False,59,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (NumHess),False,149,150,150,0,0,0,0,0,150,293.85472555298475,False,59,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+NaiveSteepestDescent,False,149,151,0,0,0,0,0,0,0,4.378095177002251,False,60,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+FIRE,True,109,110,0,0,0,0,0,0,0,3.1742497610102878,False,60,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (unit init),True,25,26,0,0,0,0,0,0,0,0.818402476987103,False,60,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (NumHess init),True,21,22,0,0,0,0,0,0,0,0.7235109039756935,False,60,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (learned init),True,8,8,1,0,0,0,0,0,1,0.3061381849984173,False,60,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (autograd init),True,15,16,0,0,0,0,0,0,0,0.5736093219893519,False,60,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (learned),True,4,4,5,0,0,0,0,0,5,0.3607094080070965,False,60,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (autograd),False,149,150,150,0,0,0,0,0,149,71.13987714899122,False,60,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (NumHess),False,149,150,150,0,0,0,0,0,150,293.6547054559924,False,60,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+NaiveSteepestDescent,False,149,151,0,0,0,0,0,0,0,4.307694590010215,False,61,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+FIRE,True,54,55,0,0,0,0,0,0,0,1.5786604229942895,False,61,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (unit init),True,16,17,0,0,0,0,0,0,0,0.5294584039947949,False,61,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (NumHess init),True,15,16,0,0,0,0,0,0,0,0.5290697169839405,False,61,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (learned init),True,9,9,1,0,0,0,0,0,1,0.3333956869901158,False,61,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (autograd init),True,11,12,0,0,0,0,0,0,0,0.3995916709827725,False,61,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (learned),True,12,12,13,0,0,0,0,0,13,0.9686925389978568,False,61,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (autograd),False,149,150,150,0,0,0,0,0,147,70.98205232300097,False,61,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (NumHess),False,149,150,150,0,0,0,0,0,150,293.13267042898224,False,61,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+NaiveSteepestDescent,False,149,151,0,0,0,0,0,0,0,4.383840016002068,False,62,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+FIRE,True,69,70,0,0,0,0,0,0,0,2.0036052329814997,False,62,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (unit init),True,16,17,0,0,0,0,0,0,0,0.514459132013144,False,62,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (NumHess init),True,17,18,0,0,0,0,0,0,0,0.5992222030181438,False,62,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (learned init),True,19,19,1,0,0,0,0,0,1,0.6680663140141405,False,62,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (autograd init),True,23,24,0,0,0,0,0,0,0,0.8718984320003074,False,62,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (learned),True,12,12,13,0,0,0,0,0,13,0.976156210002955,False,62,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (autograd),False,149,150,150,0,0,0,0,0,148,70.96863488800591,False,62,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (NumHess),False,149,150,150,0,0,0,0,0,150,293.480124691996,False,62,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+NaiveSteepestDescent,False,149,151,0,0,0,0,0,0,0,4.321804528008215,False,63,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+FIRE,True,75,76,0,0,0,0,0,0,0,2.258291183010442,False,63,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (unit init),True,18,19,0,0,0,0,0,0,0,0.5979390270076692,False,63,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (NumHess init),True,14,15,0,0,0,0,0,0,0,0.5088661560148466,False,63,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (learned init),True,5,5,1,0,0,0,0,0,1,0.2078716590185649,False,63,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (autograd init),True,11,12,0,0,0,0,0,0,0,0.4146877620078157,False,63,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (learned),True,4,4,5,0,0,0,0,0,19,0.36553198100591544,False,63,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (autograd),False,149,150,150,0,0,0,0,0,150,71.02476693398785,False,63,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (NumHess),False,149,150,150,0,0,0,0,0,150,293.86124965400086,False,63,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+NaiveSteepestDescent,False,149,151,0,0,0,0,0,0,0,4.395009078027215,False,64,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+FIRE,True,51,52,0,0,0,0,0,0,0,1.4995755859999915,False,64,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (unit init),True,11,12,0,0,0,0,0,0,0,0.3645653950225096,False,64,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (NumHess init),True,11,12,0,0,0,0,0,0,0,0.4102432540094014,False,64,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (learned init),True,10,10,1,0,0,0,0,0,1,0.3723551479924936,False,64,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (autograd init),True,20,21,0,0,0,0,0,0,0,0.7445164870005101,False,64,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (learned),True,4,4,5,0,0,0,0,0,5,0.3610552060126792,False,64,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (autograd),False,149,150,150,0,0,0,0,0,147,71.20301351000671,False,64,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (NumHess),False,149,150,150,0,0,0,0,0,150,293.6431339400005,False,64,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+NaiveSteepestDescent,False,149,151,0,0,0,0,0,0,0,4.572369150002487,False,65,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+FIRE,True,96,97,0,0,0,0,0,0,0,2.9979187790013384,False,65,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (unit init),True,41,42,0,0,0,0,0,0,0,1.367520151019562,False,65,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (NumHess init),True,6,7,0,0,0,0,0,0,0,0.2338991019933018,False,65,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (learned init),True,5,5,1,0,0,0,0,0,1,0.2167175460199359,False,65,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (autograd init),True,12,13,0,0,0,0,0,0,0,0.4528883130114991,False,65,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (learned),True,5,5,6,0,0,0,0,0,6,0.4607698410109151,False,65,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (autograd),True,4,4,5,0,0,0,0,0,5,2.3751585349964444,False,65,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (NumHess),True,9,9,10,0,0,0,0,0,10,19.591576442006044,False,65,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+NaiveSteepestDescent,False,149,151,0,0,0,0,0,0,0,4.617718197987415,False,66,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+FIRE,True,103,104,0,0,0,0,0,0,0,3.1038556410057936,False,66,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (unit init),True,36,37,0,0,0,0,0,0,0,1.1947683239995968,False,66,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (NumHess init),True,5,6,0,0,0,0,0,0,0,0.2110215639986563,False,66,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (learned init),True,7,7,1,0,0,0,0,0,1,0.2922888549801428,False,66,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (autograd init),True,6,7,0,0,0,0,0,0,0,0.26983060099883,False,66,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (learned),True,6,6,7,0,0,0,0,0,7,0.545439208013704,False,66,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (autograd),True,5,5,6,0,0,0,0,0,6,2.842008871986764,False,66,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (NumHess),True,20,20,21,0,0,0,0,0,21,41.01150369600509,False,66,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+NaiveSteepestDescent,False,149,151,0,0,0,0,0,0,0,4.548585241020192,False,67,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+FIRE,True,76,77,0,0,0,0,0,0,0,2.493150357011473,False,67,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (unit init),True,36,37,0,0,0,0,0,0,0,1.2335125399986282,False,67,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (NumHess init),True,6,7,0,0,0,0,0,0,0,0.2481467369943857,False,67,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (learned init),True,5,5,1,0,0,0,0,0,1,0.2251328069833107,False,67,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (autograd init),True,8,9,0,0,0,0,0,0,0,0.3122384629969019,False,67,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (learned),True,7,7,8,0,0,0,0,0,8,0.6149362240103073,False,67,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (autograd),True,4,4,5,0,0,0,0,0,5,2.3092608689912595,False,67,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (NumHess),True,38,38,39,0,0,0,0,0,39,76.35176158399554,False,67,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+NaiveSteepestDescent,False,149,151,0,0,0,0,0,0,0,4.619993734988384,False,68,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+FIRE,True,88,89,0,0,0,0,0,0,0,2.666997335996712,False,68,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (unit init),True,35,36,0,0,0,0,0,0,0,1.1826875109982211,False,68,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (NumHess init),True,9,10,0,0,0,0,0,0,0,0.3439278120058588,False,68,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (learned init),True,6,6,1,0,0,0,0,0,1,0.2589580960047897,False,68,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (autograd init),True,9,10,0,0,0,0,0,0,0,0.3638887199922465,False,68,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (learned),True,6,6,7,0,0,0,0,0,7,0.5430836360028479,False,68,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (autograd),True,6,6,7,0,0,0,0,0,6,3.2944122240005527,False,68,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (NumHess),True,22,22,23,0,0,0,0,0,23,44.82489512601751,False,68,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+NaiveSteepestDescent,False,149,151,0,0,0,0,0,0,0,4.744101900985697,False,69,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+FIRE,True,99,100,0,0,0,0,0,0,0,2.975299684010679,False,69,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (unit init),True,42,43,0,0,0,0,0,0,0,1.382795523997629,False,69,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (NumHess init),True,8,9,0,0,0,0,0,0,0,0.3078429460001644,False,69,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (learned init),True,5,5,1,0,0,0,0,0,1,0.2233531739911995,False,69,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (autograd init),True,8,9,0,0,0,0,0,0,0,0.328304217022378,False,69,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (learned),True,6,6,7,0,0,0,0,0,7,0.5386118830065243,False,69,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (autograd),True,6,6,7,0,0,0,0,0,7,3.275965059990994,False,69,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (NumHess),True,4,4,5,0,0,0,0,0,5,9.731702476012288,False,69,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+NaiveSteepestDescent,False,149,151,0,0,0,0,0,0,0,4.484393514983822,False,70,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+FIRE,True,75,76,0,0,0,0,0,0,0,2.3576064629887696,False,70,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (unit init),True,15,16,0,0,0,0,0,0,0,0.5385601799935102,False,70,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (NumHess init),True,7,8,0,0,0,0,0,0,0,0.2760631870187353,False,70,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (learned init),True,3,3,1,0,0,0,0,0,1,0.1563906329974997,False,70,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (autograd init),True,7,8,0,0,0,0,0,0,0,0.2669960139901377,False,70,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (learned),True,2,2,3,0,0,0,0,0,3,0.2111061580071691,False,70,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (autograd),True,3,3,4,0,0,0,0,0,4,1.8384135640226305,False,70,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (NumHess),True,5,5,6,0,0,0,0,0,6,11.858196409011724,False,70,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+NaiveSteepestDescent,False,149,151,0,0,0,0,0,0,0,4.628916720015695,False,71,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+FIRE,True,66,67,0,0,0,0,0,0,0,2.0687591210007668,False,71,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (unit init),True,16,17,0,0,0,0,0,0,0,0.5550408199778758,False,71,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (NumHess init),True,4,5,0,0,0,0,0,0,0,0.1714969339955132,False,71,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (learned init),True,7,7,1,0,0,0,0,0,1,0.2818029619811568,False,71,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (autograd init),True,7,8,0,0,0,0,0,0,0,0.3046122360101435,False,71,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (learned),True,3,3,4,0,0,0,0,0,4,0.2986873609770555,False,71,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (autograd),True,5,5,6,0,0,0,0,0,6,2.830242845986504,False,71,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (NumHess),True,7,7,8,0,0,0,0,0,8,15.572398731019348,False,71,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+NaiveSteepestDescent,False,149,151,0,0,0,0,0,0,0,4.569828225008678,False,72,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+FIRE,True,93,94,0,0,0,0,0,0,0,2.902566866017878,False,72,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (unit init),True,24,25,0,0,0,0,0,0,0,0.8256534139800351,False,72,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (NumHess init),True,9,10,0,0,0,0,0,0,0,0.4886379410163499,False,72,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (learned init),True,3,3,1,0,0,0,0,0,1,0.1482272389985155,False,72,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (autograd init),True,8,9,0,0,0,0,0,0,0,0.29717003100086,False,72,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (learned),True,3,3,4,0,0,0,0,0,4,0.2869195719831623,False,72,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (autograd),True,4,4,5,0,0,0,0,0,5,2.3416171229910105,False,72,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (NumHess),True,5,5,6,0,0,0,0,0,6,11.65336625801865,False,72,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+NaiveSteepestDescent,False,149,151,0,0,0,0,0,0,0,4.557594437006628,False,73,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+FIRE,True,73,74,0,0,0,0,0,0,0,2.216169944003923,False,73,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (unit init),True,13,14,0,0,0,0,0,0,0,0.4679950680001639,False,73,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (NumHess init),True,5,6,0,0,0,0,0,0,0,0.206382948992541,False,73,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (learned init),True,3,3,1,0,0,0,0,0,1,0.1538805929885711,False,73,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (autograd init),True,7,8,0,0,0,0,0,0,0,0.2923072759876959,False,73,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (learned),True,3,3,4,0,0,0,0,0,4,0.2993927090137731,False,73,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (autograd),True,4,4,5,0,0,0,0,0,5,2.365928570972756,False,73,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (NumHess),True,9,9,10,0,0,0,0,0,10,19.54575289599597,False,73,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+NaiveSteepestDescent,False,149,151,0,0,0,0,0,0,0,4.5150917200080585,False,74,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+FIRE,True,59,60,0,0,0,0,0,0,0,1.833681639021961,False,74,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (unit init),True,25,26,0,0,0,0,0,0,0,0.8754421469930094,False,74,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (NumHess init),True,9,10,0,0,0,0,0,0,0,0.3429608129954431,False,74,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (learned init),True,4,4,1,0,0,0,0,0,1,0.1883116800163407,False,74,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (autograd init),True,5,6,0,0,0,0,0,0,0,0.2088595080131199,False,74,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (learned),True,3,3,4,0,0,0,0,0,4,0.2984446999907959,False,74,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (autograd),True,3,3,4,0,0,0,0,0,4,1.841353516996605,False,74,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (NumHess),True,12,12,13,0,0,0,0,0,13,25.42254210100509,False,74,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+NaiveSteepestDescent,False,149,151,0,0,0,0,0,0,0,4.643940360023407,False,75,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+FIRE,True,72,73,0,0,0,0,0,0,0,2.201835121988552,False,75,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (unit init),True,16,17,0,0,0,0,0,0,0,0.5504511100007221,False,75,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (NumHess init),True,4,5,0,0,0,0,0,0,0,0.1759489240066614,False,75,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (learned init),True,3,3,1,0,0,0,0,0,1,0.1571900470007676,False,75,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (autograd init),True,9,10,0,0,0,0,0,0,0,0.3861997989879455,False,75,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (learned),True,3,3,4,0,0,0,0,0,4,0.3012023929913994,False,75,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (autograd),True,3,3,4,0,0,0,0,0,4,1.886997311987216,False,75,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (NumHess),True,11,11,12,0,0,0,0,0,12,23.571180887025548,False,75,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+NaiveSteepestDescent,False,149,151,0,0,0,0,0,0,0,4.554115871986141,False,76,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+FIRE,True,75,76,0,0,0,0,0,0,0,2.3593111489899457,False,76,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (unit init),True,16,17,0,0,0,0,0,0,0,0.5721014940063469,False,76,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (NumHess init),True,6,7,0,0,0,0,0,0,0,0.2368335259961895,False,76,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (learned init),True,4,4,1,0,0,0,0,0,1,0.1861483579850755,False,76,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (autograd init),True,23,24,0,0,0,0,0,0,0,0.9876354240113868,False,76,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (learned),True,3,3,4,0,0,0,0,0,4,0.2900454339978751,False,76,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (autograd),True,4,4,5,0,0,0,0,0,5,2.3343168120190967,False,76,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (NumHess),True,5,5,6,0,0,0,0,0,6,11.814939670002786,False,76,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+NaiveSteepestDescent,False,149,151,0,0,0,0,0,0,0,4.597268254001392,False,77,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+FIRE,True,76,77,0,0,0,0,0,0,0,2.310405174997868,False,77,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (unit init),True,17,18,0,0,0,0,0,0,0,0.5821751829935238,False,77,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (NumHess init),True,5,6,0,0,0,0,0,0,0,0.2099747780011966,False,77,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (learned init),True,3,3,1,0,0,0,0,0,1,0.1556357799854595,False,77,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (autograd init),True,4,5,0,0,0,0,0,0,0,0.1765588349953759,False,77,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (learned),True,3,3,4,0,0,0,0,0,4,0.2972281030088197,False,77,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (autograd),True,4,4,5,0,0,0,0,0,5,2.3512561160023324,False,77,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (NumHess),True,12,12,13,0,0,0,0,0,13,25.56885793400579,False,77,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+NaiveSteepestDescent,False,149,151,0,0,0,0,0,0,0,4.453588976990432,False,78,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+FIRE,True,61,62,0,0,0,0,0,0,0,1.8487036919977984,False,78,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (unit init),True,14,15,0,0,0,0,0,0,0,0.4619305560190696,False,78,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (NumHess init),True,28,29,0,0,0,0,0,0,0,0.9640749350073748,False,78,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (learned init),True,43,43,1,0,0,0,0,0,1,1.439587899018079,False,78,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (autograd init),True,23,24,0,0,0,0,0,0,0,0.8414586419821717,False,78,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (learned),True,4,4,5,0,0,0,0,0,91,0.36553198100591544,False,78,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (autograd),False,149,150,150,0,0,0,0,0,150,71.55047015397577,False,78,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (NumHess),False,149,150,150,0,0,0,0,0,150,294.737809578015,False,78,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+NaiveSteepestDescent,False,149,151,0,0,0,0,0,0,0,4.490903330995934,False,79,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+FIRE,True,47,48,0,0,0,0,0,0,0,1.450214323005639,False,79,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (unit init),True,14,15,0,0,0,0,0,0,0,0.465004797995789,False,79,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (NumHess init),True,20,21,0,0,0,0,0,0,0,0.7080010920180939,False,79,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (learned init),True,22,22,1,0,0,0,0,0,1,0.7499059069959912,False,79,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO-BFGS (autograd init),True,49,50,0,0,0,0,0,0,0,1.7793264189967886,False,79,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (learned),False,4,4,5,0,0,0,0,0,150,0.36553198100591544,False,79,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (autograd),False,149,150,150,0,0,0,0,0,149,71.51123380599893,False,79,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
+RFO (NumHess),False,149,150,150,0,0,0,0,0,150,293.70492558399565,False,79,redund,t1x_val_reactant_hessian_100_tight2_noiserms0
