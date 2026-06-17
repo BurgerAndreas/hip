@@ -36,6 +36,10 @@ def tagged_name(stem: str, suffix: str) -> str:
     return f"{stem}{suffix}.png"
 
 
+def variant_uses_raw_scale(output_suffix: str) -> bool:
+    return output_suffix in {"_mean_removed", "_no_detrend"}
+
+
 def plot_with_iqr(
     ax,
     freqs: np.ndarray,
@@ -136,7 +140,7 @@ def main() -> None:
     )
     ax.axvline(args.cutoff, color=GUIDE_COLOR, linestyle="--", linewidth=1.2, label=f"{args.cutoff:g} cyc/Å")
     ax.set_yscale("log")
-    ax.set_ylim(1e-5, 1e0)
+    ax.set_ylim(1e-4 if variant_uses_raw_scale(args.output_suffix) else 1e-5, 1e2 if variant_uses_raw_scale(args.output_suffix) else 1e0)
     ax.set_xlim(0, 100)
     ax.set_xlabel(r"spatial frequency [cycles/$\AA$]")
     ax.set_ylabel(r"$|\mathrm{FFT}(d \cdot F)|$")
@@ -179,7 +183,7 @@ def main() -> None:
     )
     ax.axvline(args.cutoff, color=GUIDE_COLOR, linestyle="--", linewidth=1.2, label=f"{args.cutoff:g} cyc/Å")
     ax.set_yscale("log")
-    ax.set_ylim(1e-6, 1e0)
+    ax.set_ylim(1e-4 if variant_uses_raw_scale(args.output_suffix) else 1e-6, 1e1 if variant_uses_raw_scale(args.output_suffix) else 1e0)
     ax.set_xlim(0, 100)
     ax.set_xlabel(r"spatial frequency [cycles/$\AA$]")
     ax.set_ylabel(r"$||\mathrm{FFT}(d \cdot F)|_\mathrm{model} - |\mathrm{FFT}(d \cdot F)|_\mathrm{DFT}|$")

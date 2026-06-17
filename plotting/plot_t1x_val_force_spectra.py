@@ -149,15 +149,17 @@ def save_median_spectra(
     model_label: str,
 ) -> Path:
     fig, ax = plt.subplots(figsize=(8, 5))
+    ymax = 1e0
     for mags, color, label in [(dft_mags, DFT_COLOR, "DFT"), (eqv2_mags, model_color(model_label), model_label)]:
         median = np.median(mags, axis=0)
         q25 = np.quantile(mags, 0.25, axis=0)
         q75 = np.quantile(mags, 0.75, axis=0)
+        ymax = max(ymax, float(np.nanmax(q75 + 1e-30)))
         ax.plot(freqs, median + 1e-30, color=color, label=label)
         ax.fill_between(freqs, q25 + 1e-30, q75 + 1e-30, color=color, alpha=0.18)
     ax.axvline(cutoff, color=GUIDE_COLOR, linestyle="--", linewidth=1.2)
     ax.set_yscale("log")
-    ax.set_ylim(1e-5, 1e0)
+    ax.set_ylim(1e-5, 10 ** np.ceil(np.log10(ymax)))
     ax.set_xlabel(r"spatial frequency [cycles/$\AA$]")
     ax.set_ylabel(r"$|\mathrm{FFT}(d \cdot F)|$")
     # ax.set_title("Median force spectrum across 200 lines")
@@ -283,10 +285,10 @@ def save_hf_excess_hist(summary: pd.DataFrame, out_dir: Path, model_label: str) 
     return path
 
 
-def maybe_join_hessian_metrics(summary: pd.DataFrame, metrics_csv: Path | None, out_dir: Path) -> tuple[pd.DataFrame, Path | None]:
-    if metrics_csv is None or not metrics_csv.exists():
+def maybe_join_hessian_metrics(summary: pd.DataFrame, metrics_path: Path | None, out_dir: Path) -> tuple[pd.DataFrame, Path | None]:
+    if metrics_path is None or not metrics_path.exists():
         return summary, None
-    metrics = pd.read_csv(metrics_csv)
+    metrics = pd.read_parquet(metrics_path)
     if "dataset_idx" not in metrics:
         return summary, None
     keep = ["dataset_idx"] + [
@@ -309,8 +311,8 @@ def maybe_join_hessian_metrics(summary: pd.DataFrame, metrics_csv: Path | None, 
                 "spearman_hf_dft": float(valid["hf_fraction_dft"].corr(valid[target], method="spearman")),
             }
         )
-    corr_path = out_dir / "hf_vs_hessian_metric_correlations.csv"
-    pd.DataFrame(corr_rows).to_csv(corr_path, index=False)
+    corr_path = out_dir / "hf_vs_hessian_metric_correlations.parquet"
+    pd.DataFrame(corr_rows).to_parquet(corr_path, index=False, compression="zstd")
     return merged, corr_path
 
 
@@ -376,9 +378,15 @@ def main() -> None:
         help="Polynomial detrend degree. Use -1 for mean removal only and -2 for no detrending.",
     )
     parser.add_argument(
-        "--hessian-metrics-csv",
+        "--hessian-metrics-parquet",
         type=Path,
-        default=project_root() / "results_evalhorm" / "eqv2_ts1x-val_autograd_metrics.csv",
+        default=project_root() / "results_evalhorm" / "eqv2_ts1x-val_autograd_metrics.parquet",
+        help="Optional Hessian metrics Parquet to join by dataset_idx.",
+    )
+    parser.add_argument(
+        "--no-hessian-metrics",
+        action="store_true",
+        help="Skip joining Hessian metrics and omit HF-vs-Hessian correlation output.",
     )
     args = parser.parse_args()
 
@@ -386,7 +394,7 @@ def main() -> None:
     out_dir = args.out_dir or project_root() / "plots" / scan_dir.name / "force_spectra_analysis"
     out_dir.mkdir(parents=True, exist_ok=True)
 
-    manifest = pd.read_csv(scan_dir / "scan_manifest.csv")
+    manifest = pd.read_parquet(scan_dir / "scan_manifest.parquet")
     line_meta = (
         manifest.groupby(["geom_rank", "dataset_idx", "direction_id"], as_index=False)
         .agg(
@@ -468,10 +476,10 @@ def main() -> None:
             sanity_payload = (pd.Series(rows[-1]), lam, g_dft, g_eqv2, freqs, mag_dft, mag_eqv2)
 
     summary = pd.DataFrame(rows)
-    summary, corr_path = maybe_join_hessian_metrics(summary, args.hessian_metrics_csv, out_dir)
-    summary_path = out_dir / "force_spectra_summary.csv"
-    summary.to_csv(summary_path, index=False)
-    summary.to_parquet(out_dir / "force_spectra_summary.parquet", index=False)
+    hessian_metrics_path = None if args.no_hessian_metrics else args.hessian_metrics_parquet
+    summary, corr_path = maybe_join_hessian_metrics(summary, hessian_metrics_path, out_dir)
+    summary_path = out_dir / "force_spectra_summary.parquet"
+    summary.to_parquet(summary_path, index=False, compression="zstd")
 
     freq_arr = np.asarray(freq_ref, dtype=np.float64)
     dft_mag_arr = np.stack(dft_mags)
