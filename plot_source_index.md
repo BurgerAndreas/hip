@@ -132,12 +132,12 @@ Related older/non-final data on `origin/datascaling`:
 Important caveat:
 - The script titles panel c as `Hessian`; the shared image title is `HIP Hessian`. The plotted data/legend/axes otherwise match the figure.
 - The exact script and CSV inputs were split across branches: the final three-panel assembly script was on `fd`/`origin/results`, while the CSV inputs were on `origin/datascaling`.
-- `uv run python plotting/plot_datascaling.py` needs `plotly` and image export support. On this cluster, the transient command below worked with `kaleido<1`; newer Kaleido failed because Chrome is not installed.
+- `plotting/plot_datascaling.py` now renders with Matplotlib/Seaborn, using the same visual style as `plotting/plot_speedmemory_lambda.py`.
 
 Useful commands:
 
 ```bash
-uv run --with plotly --with 'kaleido<1' python plotting/plot_datascaling.py
+uv run python plotting/plot_datascaling.py
 ```
 
 ```bash

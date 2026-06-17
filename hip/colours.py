@@ -3,9 +3,23 @@ import seaborn as sns
 SNSPALETTE = sns.color_palette("pastel", 10).as_hex()
 # ['#a1c9f4', '#ffb482', '#8de5a1', '#ff9f9b', '#d0bbff', '#debb9b', '#fab0e4', '#cfcfcf', '#fffea3', '#b9f2f0']
 
-import plotly.colors
+try:
+    import plotly.colors
 
-PLOTLY_DEFAULT_COLOURS = plotly.colors.qualitative.Plotly
+    PLOTLY_DEFAULT_COLOURS = plotly.colors.qualitative.Plotly
+except ModuleNotFoundError:
+    PLOTLY_DEFAULT_COLOURS = [
+        "#636EFA",
+        "#EF553B",
+        "#00CC96",
+        "#AB63FA",
+        "#FFA15A",
+        "#19D3F3",
+        "#FF6692",
+        "#B6E880",
+        "#FF97FF",
+        "#FECB52",
+    ]
 # ['#636EFA', '#EF553B', '#00CC96', '#AB63FA', '#FFA15A', '#19D3F3', '#FF6692', '#B6E880', '#FF97FF', '#FECB52']
 
 
@@ -74,15 +88,19 @@ METHOD_TO_COLOUR = {
 #     "predict": "#ae5a41",
 #     "autograd": "#295c7e",
 # }
-HESSIAN_METHOD_TO_COLOUR = {
-    "predict": "#ffb482",
-    "prediction_fc": "#68c4af",
-    "autograd": "#295c7e",
-    "ef": "#5a5255",  # #636EFA
-}
 
-HESSIAN_METHOD_TO_COLOUR["prediction"] = HESSIAN_METHOD_TO_COLOUR["predict"]
-HESSIAN_METHOD_TO_COLOUR["learned"] = HESSIAN_METHOD_TO_COLOUR["predict"]
+HESSIAN_METHOD_TO_COLOUR = {
+    "autograd": "#5e859e",
+    "autograd_conservative": "#b482c8",
+    "forward_pass": "#8ed3c3",
+    "finite_difference_bz1": "#837d80",
+    "finite_difference_bz32": "#ffa8af",
+    "prediction": "#d96001", # "#ffb482"
+    "ef": "#837d80", # "#5a5255",  
+}
+HESSIAN_METHOD_TO_COLOUR["predict"] = HESSIAN_METHOD_TO_COLOUR["prediction"]
+HESSIAN_METHOD_TO_COLOUR["learned"] = HESSIAN_METHOD_TO_COLOUR["prediction"]
+HESSIAN_METHOD_TO_COLOUR["hip"] = HESSIAN_METHOD_TO_COLOUR["prediction"]
 
 # Relaxations
 OPTIM_TO_COLOUR = {
@@ -100,9 +118,16 @@ OPTIM_TO_COLOUR["Quasi-Hessian"] = OPTIM_TO_COLOUR["bfgs"]
 OPTIM_TO_COLOUR["Hessian"] = OPTIM_TO_COLOUR["secondorder"]
 
 
-ANNOTATION_FONT_SIZE = 16
+# ANNOTATION_FONT_SIZE = 16
+# ANNOTATION_BOLD_FONT_SIZE = 18
+# AXES_FONT_SIZE = 14
+# AXES_TITLE_FONT_SIZE = 16
+# LEGEND_FONT_SIZE = 16
+# TITLE_FONT_SIZE = 20
+
 ANNOTATION_BOLD_FONT_SIZE = 18
-AXES_FONT_SIZE = 14
-AXES_TITLE_FONT_SIZE = 16
-LEGEND_FONT_SIZE = 16
-TITLE_FONT_SIZE = 20
+ANNOTATION_FONT_SIZE = 14
+AXES_FONT_SIZE = 12
+AXES_TITLE_FONT_SIZE = 13
+LEGEND_FONT_SIZE = 12
+TITLE_FONT_SIZE = 16

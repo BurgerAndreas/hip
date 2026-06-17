@@ -3,30 +3,19 @@ from pathlib import Path
 
 import pandas as pd
 
-try:
-    from hip.colours import (
-        ANNOTATION_BOLD_FONT_SIZE,
-        ANNOTATION_FONT_SIZE,
-        AXES_FONT_SIZE,
-        AXES_TITLE_FONT_SIZE,
-        LEGEND_FONT_SIZE,
-        TITLE_FONT_SIZE,
-        HESSIAN_METHOD_TO_COLOUR,
-    )
-except ModuleNotFoundError:
-    ANNOTATION_BOLD_FONT_SIZE = 18
-    ANNOTATION_FONT_SIZE = 14
-    AXES_FONT_SIZE = 12
-    AXES_TITLE_FONT_SIZE = 13
-    LEGEND_FONT_SIZE = 12
-    TITLE_FONT_SIZE = 16
-    HESSIAN_METHOD_TO_COLOUR = {
-        "autograd": "#295c7e",
-        "prediction": "#d96001",
-    }
+from plot_style import PLOT_FONT_COLOR, PLOT_FONT_FAMILY
 
-PLOT_FONT_COLOR = "#2a3f5f"
-PLOT_FONT_FAMILY = ("Open Sans", "Arial", "Helvetica", "DejaVu Sans", "sans-serif")
+from hip.colours import (
+    HESSIAN_METHOD_TO_COLOUR,
+)
+ANNOTATION_BOLD_FONT_SIZE = 18
+ANNOTATION_FONT_SIZE = 14
+AXES_FONT_SIZE = 12
+AXES_TITLE_FONT_SIZE = 13
+LEGEND_FONT_SIZE = 12
+TITLE_FONT_SIZE = 16
+
+
 EIGVAL_MAE_COLUMNS = (
     "eckart_eigval_mae_ev_a2",
     "eigval_mae_eckart",
@@ -34,22 +23,17 @@ EIGVAL_MAE_COLUMNS = (
 OUTLIER_METRIC_COLUMNS = ("hessian_mae_ev_a2", "hessian_mae")
 OUTLIER_MODIFIED_Z_THRESHOLD = 10.0
 STD_BAND_ALPHA = 0.24
+SPEED_STD_BAND_ALPHA = 0.16
 
 
 def _color_for_method(method):
     method_lower = str(method).lower()
-    if method_lower == "prediction":
-        return HESSIAN_METHOD_TO_COLOUR.get("prediction", "#d96001")
-    if method_lower == "autograd":
-        return HESSIAN_METHOD_TO_COLOUR.get("autograd", "#295c7e")
-    if method_lower == "autograd_conservative":
-        return "#9b59b6"
-    if method_lower == "forward_pass":
-        return "#68c4af"
+    if method_lower in HESSIAN_METHOD_TO_COLOUR:
+        return HESSIAN_METHOD_TO_COLOUR[method_lower]
     if "finite_difference_bz1" in method_lower:
-        return "#5a5255"
+        return HESSIAN_METHOD_TO_COLOUR["finite_difference_bz1"]
     if "finite_difference_bz32" in method_lower:
-        return "#ff8b94"
+        return HESSIAN_METHOD_TO_COLOUR["finite_difference_bz32"]
     return HESSIAN_METHOD_TO_COLOUR.get(method_lower, "#cfcfcf")
 
 
@@ -240,7 +224,9 @@ def _load_speed_tables(speed_csv):
     print(f"Loading {speed_csv}")
     speed_df = pd.read_csv(speed_csv)
     avg_times = speed_df.groupby(["n_atoms", "method"])["time"].mean().unstack()
+    std_times = speed_df.groupby(["n_atoms", "method"])["time"].std().fillna(0.0).unstack()
     avg_memory = speed_df.groupby(["n_atoms", "method"])["memory"].mean().unstack()
+    std_memory = speed_df.groupby(["n_atoms", "method"])["memory"].std().fillna(0.0).unstack()
 
     methods = [
         "autograd",
@@ -250,7 +236,7 @@ def _load_speed_tables(speed_csv):
         "prediction",
     ]
     methods = [m for m in methods if m in avg_times.columns]
-    return avg_times[methods], avg_memory[methods]
+    return avg_times[methods], std_times[methods], avg_memory[methods], std_memory[methods]
 
 
 def make_plot_seaborn(
@@ -304,7 +290,7 @@ def make_plot_seaborn(
             }
         )
 
-    avg_times, avg_memory = _load_speed_tables(speed_csv)
+    avg_times, std_times, avg_memory, std_memory = _load_speed_tables(speed_csv)
     rgd1_lambda_curves = _load_curves_with_outlier_filter(
         rgd1_lambda_results,
         outliers_output_path=_rgd1_outliers_output_path(output_path),
@@ -321,6 +307,15 @@ def make_plot_seaborn(
 
     for method in avg_times.columns:
         color = _color_for_method(method)
+        ax_time.fill_between(
+            avg_times.index,
+            avg_times[method] - std_times[method],
+            avg_times[method] + std_times[method],
+            color=color,
+            alpha=SPEED_STD_BAND_ALPHA,
+            linewidth=0,
+            zorder=2,
+        )
         ax_time.plot(
             avg_times.index,
             avg_times[method],
@@ -336,6 +331,15 @@ def make_plot_seaborn(
     for method in avg_memory.columns:
         color = _color_for_method(method)
         linestyle = ":" if _dash_for_memory(method) == "dot" else "-"
+        ax_memory.fill_between(
+            avg_memory.index,
+            avg_memory[method] - std_memory[method],
+            avg_memory[method] + std_memory[method],
+            color=color,
+            alpha=SPEED_STD_BAND_ALPHA,
+            linewidth=0,
+            zorder=2,
+        )
         if method == "prediction":
             ax_memory.plot(
                 avg_memory.index,
@@ -430,7 +434,7 @@ def make_plot_seaborn(
             "mutation_scale": 12,
         },
         color="gray",
-        fontsize=AXES_FONT_SIZE * 1.3,
+        fontsize=AXES_FONT_SIZE * 1.1,
         va="center",
         ha="left",
         bbox={"facecolor": "white", "edgecolor": "none", "pad": 0.2},
@@ -577,7 +581,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--output",
         type=str,
-        default="results_speed2/speed_memory_lambda_scaling.png",
+        default="results_speed2/speed_memory_lambda_scaling_eval_horm_colours.png",
     )
     parser.add_argument("--ymin_time", type=float, default=0.0)
     parser.add_argument("--ymax_time", type=float, default=3700.0)

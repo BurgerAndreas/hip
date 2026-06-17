@@ -1,730 +1,253 @@
-import pandas as pd
-import matplotlib.pyplot as plt
-import seaborn as sns
-import os
+from __future__ import annotations
+
+import argparse
 import re
 from pathlib import Path
-import plotly.graph_objects as go
-from plotly.subplots import make_subplots
+
+import matplotlib.pyplot as plt
+import pandas as pd
+import seaborn as sns
+from matplotlib import font_manager
+from matplotlib.ticker import LogFormatterMathtext, LogLocator, NullFormatter
+from matplotlib.transforms import offset_copy
+
 from hip.colours import (
-    ANNOTATION_FONT_SIZE,
     ANNOTATION_BOLD_FONT_SIZE,
     AXES_FONT_SIZE,
     AXES_TITLE_FONT_SIZE,
+    HESSIAN_METHOD_TO_COLOUR,
     LEGEND_FONT_SIZE,
     TITLE_FONT_SIZE,
-    HESSIAN_METHOD_TO_COLOUR,
 )
 
-PLOTLY_TEMPLATE = "plotly_white"
+PLOT_FONT_COLOR = "#2a3f5f"
+PLOT_FONT_FAMILY = ("Open Sans", "Arial", "Helvetica", "DejaVu Sans", "sans-serif")
+TICK_LABEL_FONT_SIZE = AXES_FONT_SIZE - 2
+EXCLUDED_TRAINING_SIZES = {20000.0, 200000.0}
+LOSS_CONFIGS = (
+    ("Energy", "Loss E", "wandb_datascaling_loss_energy2.csv"),
+    ("Force", "Loss F", "wandb_datascaling_loss_force2.csv"),
+    ("Hessian", "MAE Hessian", "wandb_datascaling_loss_hessian2.csv"),
+)
+METRIC_TITLES = {
+    "Energy": r"Energy MAE [$\mathrm{eV}$]",
+    "Force": r"Force MAE [$\mathrm{eV}\,\mathrm{\AA}^{-1}$]",
+    "Hessian": r"Hessian MAE [$\mathrm{eV}\,\mathrm{\AA}^{-2}$]",
+}
+TRAINING_TYPE_LABELS = {
+    True: "Energy-Force",
+    False: "HIP",
+}
+TRAINING_TYPE_ORDER = ["Energy-Force", "HIP"]
+TRAINING_TYPE_PALETTE = {
+    "Energy-Force": HESSIAN_METHOD_TO_COLOUR["ef"],
+    "HIP": HESSIAN_METHOD_TO_COLOUR.get(
+        "prediction",
+        HESSIAN_METHOD_TO_COLOUR["prediction"],
+    ),
+}
+TRAINING_TYPE_MARKERS = {
+    "Energy-Force": "o",
+    "HIP": "D",
+}
 
-# Set seaborn style for poster
-sns.set_style("whitegrid")
-# sns.set_palette("husl")
-sns.set_context("poster")
 
-base_dir = "plots/datascaling"
-os.makedirs(base_dir, exist_ok=True)
+def _set_plot_style() -> None:
+    available_fonts = {font.name for font in font_manager.fontManager.ttflist}
+    font_family = next(
+        (
+            family
+            for family in PLOT_FONT_FAMILY
+            if family == "sans-serif" or family in available_fonts
+        ),
+        "sans-serif",
+    )
+    sns.set_theme(
+        style="whitegrid",
+        context="paper",
+        rc={
+            "font.family": font_family,
+            "text.color": PLOT_FONT_COLOR,
+            "axes.labelcolor": PLOT_FONT_COLOR,
+            "axes.titlecolor": PLOT_FONT_COLOR,
+            "xtick.color": PLOT_FONT_COLOR,
+            "ytick.color": PLOT_FONT_COLOR,
+            "legend.labelcolor": PLOT_FONT_COLOR,
+            "grid.color": "#e6e6e6",
+        },
+    )
 
-# https://wandb.ai/andreas-burger/hip/workspace?nw=fdkkquw19gl
 
-# Store dataframes for combined plot
-df_energy = None
-df_force = None
-df_hessian = None
+def _dataset_size_from_method(method_name: str) -> float | None:
+    match = re.match(r"^([0-9.]+(?:e[+-]?[0-9]+)?)", method_name)
+    return float(match.group(1)) if match else None
 
-for losstype in ["Loss E", "Loss F", "MAE Hessian"]:
-    human_name = {"Loss E": "Energy", "Loss F": "Force", "MAE Hessian": "Hessian"}[
-        losstype
-    ]
 
-    # Load the CSV file
-    df = pd.read_csv(f"scaling/wandb_datascaling_loss_{human_name.lower()}2.csv")
+def _load_loss_stats(data_dir: Path, output_dir: Path) -> dict[str, pd.DataFrame]:
+    stats_by_metric = {}
+    output_dir.mkdir(parents=True, exist_ok=True)
 
-    # Print basic info about the dataset
-    print("Original dataset shape:", df.shape)
-    # print("Column names:")
-    # print(df.columns.tolist())
+    for human_name, losstype, filename in LOSS_CONFIGS:
+        csv_path = data_dir / filename
+        df = pd.read_csv(csv_path)
+        print(f"Loaded {csv_path} with shape {df.shape}")
 
-    # Filter columns to keep only those ending with "val-Loss E"
-    val_loss_columns = [col for col in df.columns if col.endswith(f"val-{losstype}")]
+        rows = []
+        for col in [col for col in df.columns if col.endswith(f"val-{losstype}")]:
+            clean_data = df[col].dropna()
+            if clean_data.empty:
+                continue
 
-    # Create a new dataframe with only the filtered columns
-    df_filtered = df[val_loss_columns].copy()
-
-    # Extract statistics for each method
-    stats_data = []
-    for col in val_loss_columns:
-        # Remove NaN values for calculation
-        clean_data = df_filtered[col].dropna()
-        if len(clean_data) > 0:
-            last_val = clean_data.iloc[-1]
-            min_val = clean_data.min()
-            max_val = clean_data.max()
-
-            # Remove "val-Loss E" from the method name
             method_name = col.replace(f" - val-{losstype}", "")
-
-            # Check if method ends with "EF"
             is_ef = method_name.endswith("EF")
-
-            # Extract dataset size from the beginning of the method name
-            # Find the numeric part at the beginning (including scientific notation)
-            match = re.match(r"^([0-9.]+(?:e[+-]?[0-9]+)?)", method_name)
-            if match:
-                dataset_size = float(match.group(1))
-            else:
-                dataset_size = None
-
-            stats_data.append(
+            rows.append(
                 {
                     "Method": method_name,
-                    "Last_Value": last_val,
-                    "Min_Value": min_val,
-                    "Max_Value": max_val,
+                    "Last_Value": clean_data.iloc[-1],
+                    "Min_Value": clean_data.min(),
+                    "Max_Value": clean_data.max(),
                     "ef": is_ef,
-                    "Dataset size": dataset_size,
+                    "Training Type": TRAINING_TYPE_LABELS[is_ef],
+                    "Dataset size": _dataset_size_from_method(method_name),
                 }
             )
 
-    # Create new dataframe with methods as rows and statistics as columns
-    df_stats = pd.DataFrame(stats_data)
-    df_stats = df_stats.set_index("Method")
+        stats = pd.DataFrame(rows).set_index("Method")
+        stats.to_csv(output_dir / f"loss_{human_name.lower()}.csv", index=False)
+        stats_by_metric[human_name] = stats
+        print(f"Saved filtered {human_name.lower()} data to {output_dir}")
+        print(stats)
 
-    # Store for combined plot
-    if human_name == "Energy":
-        df_energy = df_stats.copy()
-    elif human_name == "Force":
-        df_force = df_stats.copy()
-    elif human_name == "Hessian":
-        df_hessian = df_stats.copy()
+    return stats_by_metric
 
-    # Save the filtered data
-    csvfname = os.path.join(base_dir, f"loss_{human_name.lower()}.csv")
-    df_stats.to_csv(csvfname, index=False)
-    print(f"Filtered data saved to '{csvfname}'")
 
-    print("\nStatistics for each method:")
-    print(df_stats)
+def _plot_metric(
+    ax,
+    data: pd.DataFrame,
+    title: str,
+    *,
+    legend: bool = False,
+    xlabel: bool = True,
+) -> None:
+    plot_data = data.dropna(subset=["Dataset size"])
+    plot_data = plot_data[~plot_data["Dataset size"].isin(EXCLUDED_TRAINING_SIZES)]
+    plot_data = plot_data.sort_values(["Training Type", "Dataset size"])
 
-    # Create log-log plot of min_value vs dataset size
-    plt.figure(figsize=(10, 8))
-
-    # Filter out rows where dataset size is not None
-    plot_data = df_stats.dropna(subset=["Dataset size"])
-    # Filter out datapoints at 2e4 and 2e5 training samples
-    plot_data = plot_data[~plot_data["Dataset size"].isin([20000.0, 200000.0])]
-
-    # Create scatter plot with different colors for EF vs non-EF methods
-    ef_data = plot_data[plot_data["ef"]]
-    efh_data = plot_data[~plot_data["ef"]]
-
-    plt.scatter(
-        ef_data["Dataset size"],
-        ef_data["Min_Value"],
-        label="Energy-Force",
-        marker="o",
-        s=100,
-        alpha=0.7,
-    )
-    plt.scatter(
-        efh_data["Dataset size"],
-        efh_data["Min_Value"],
-        label="Energy-Force-Hessian (HIP)",
-        marker="s",
-        s=100,
-        alpha=0.7,
+    sns.lineplot(
+        data=plot_data,
+        x="Dataset size",
+        y="Min_Value",
+        hue="Training Type",
+        hue_order=TRAINING_TYPE_ORDER,
+        style="Training Type",
+        style_order=TRAINING_TYPE_ORDER,
+        palette=TRAINING_TYPE_PALETTE,
+        markers=TRAINING_TYPE_MARKERS,
+        dashes=False,
+        linewidth=2,
+        markersize=4,
+        ax=ax,
+        legend=legend,
+        zorder=3,
     )
 
-    # # Add horizontal line at 5% above the lowest loss
-    # min_loss = plot_data["Min_Value"].min()
-    # max_loss = plot_data["Max_Value"].max()
-    # threshold = min_loss * 1.05
-    # plt.axhline(
-    #     y=threshold,
-    #     color="darkgray",
-    #     linestyle="--",
-    #     alpha=0.7,
-    #     label=r"5% MAE$_{\text{min}}$",
-    # )
-    # threshold = (max_loss - min_loss) * 0.01 + min_loss
-    # plt.axhline(
-    #     y=threshold,
-    #     color="lightgray",
-    #     linestyle="--",
-    #     alpha=0.7,
-    #     label=r"1% MAE$_{\text{min-max}}$",
-    # )
-
-    plt.xscale("log")
-    plt.yscale("log")
-    plt.xlabel("Number of Training Samples")
-    plt.ylabel(f"{human_name} MAE")
-    plt.title(f"{human_name} Error vs Dataset Size")
-    plt.legend(
-        # title='Training Loss',
-        frameon=True,
-        edgecolor="none",
-        fontsize=12,
+    ax.set_xscale("log")
+    ax.set_yscale("log")
+    ax.set_title(METRIC_TITLES[title], fontsize=TITLE_FONT_SIZE - 2)
+    ax.set_xlabel(
+        "Number of Training Samples" if xlabel else "",
+        fontsize=AXES_TITLE_FONT_SIZE,
     )
-    plt.grid(True, alpha=0.3, which="major")
-    plt.grid(True, alpha=0.1, which="minor")
-    plt.tight_layout()
-    fname = os.path.join(base_dir, f"log_log_{human_name.lower()}_mae.png")
-    plt.savefig(fname, dpi=300, bbox_inches="tight")
-    # plt.show()
+    ax.set_ylabel("")
+    ax.set_axisbelow(True)
+    ax.xaxis.set_minor_locator(LogLocator(base=10, subs=range(2, 10)))
+    ax.yaxis.set_major_locator(LogLocator(base=10))
+    ax.yaxis.set_major_formatter(LogFormatterMathtext(base=10, labelOnlyBase=True))
+    ax.yaxis.set_minor_locator(LogLocator(base=10, subs=range(2, 10)))
+    ax.yaxis.set_minor_formatter(NullFormatter())
+    ax.grid(True, zorder=0)
+    ax.grid(True, which="minor", axis="x", color="#f1f1f1", linewidth=0.7, alpha=0.85)
+    ax.grid(True, which="minor", axis="y", color="#f1f1f1", linewidth=0.7, alpha=0.85)
+    ax.tick_params(axis="both", which="both", length=0, labelsize=TICK_LABEL_FONT_SIZE)
+    for spine in ax.spines.values():
+        spine.set_visible(False)
 
-    print(f"\nLog-log plot saved as '{fname}'")
+    legend_obj = ax.get_legend()
+    if legend_obj is not None:
+        legend_obj.set_title(None)
+        legend_obj.set_zorder(1)
+        legend_obj.get_frame().set_alpha(0.6)
+        legend_obj.get_frame().set_linewidth(0)
+        legend_obj.get_frame().set_edgecolor("none")
+        for text in legend_obj.get_texts():
+            text.set_fontsize(LEGEND_FONT_SIZE - 2)
 
-# colour_ef = "#1b85b8"
-# colour_efh = "#d96009"
-colour_ef = HESSIAN_METHOD_TO_COLOUR["ef"]
-colour_efh = HESSIAN_METHOD_TO_COLOUR["prediction"]
 
-# Create combined plotly plot with Energy on left and Force on right
-if df_energy is not None and df_force is not None:
-    height = 400
-    width = height * 2
+def _add_panel_labels(fig, axes) -> None:
+    for panel_label, ax in zip("abc", axes):
+        panel_label_transform = offset_copy(
+            ax.transAxes,
+            fig=fig,
+            x=44,
+            y=-26,
+            units="dots",
+        )
+        ax.text(
+            -0.08,
+            1.06,
+            panel_label,
+            transform=panel_label_transform,
+            fontsize=ANNOTATION_BOLD_FONT_SIZE - 2,
+            fontfamily="DejaVu Sans",
+            fontweight="bold",
+            color=PLOT_FONT_COLOR,
+            va="bottom",
+            ha="right",
+        )
 
-    # Filter out rows where dataset size is not None
-    plot_data_energy = df_energy.dropna(subset=["Dataset size"])
-    plot_data_force = df_force.dropna(subset=["Dataset size"])
-    # Filter out datapoints at 2e4 and 2e5 training samples
-    plot_data_energy = plot_data_energy[
-        ~plot_data_energy["Dataset size"].isin([20000.0, 200000.0])
-    ]
-    plot_data_force = plot_data_force[
-        ~plot_data_force["Dataset size"].isin([20000.0, 200000.0])
-    ]
 
-    # Split by EF vs EFH and sort by Dataset size
-    ef_energy = plot_data_energy[plot_data_energy["ef"]].sort_values("Dataset size")
-    efh_energy = plot_data_energy[~plot_data_energy["ef"]].sort_values("Dataset size")
-    ef_force = plot_data_force[plot_data_force["ef"]].sort_values("Dataset size")
-    efh_force = plot_data_force[~plot_data_force["ef"]].sort_values("Dataset size")
+def make_plot(
+    data_dir: str | Path = "scaling",
+    output_dir: str | Path = "plots/datascaling",
+) -> None:
+    _set_plot_style()
 
-    fig = make_subplots(
-        rows=1,
-        cols=2,
-        subplot_titles=("Energy", "Force"),
-        horizontal_spacing=0.05,
-        vertical_spacing=0.0,
-    )
+    data_dir = Path(data_dir)
+    output_dir = Path(output_dir)
+    stats_by_metric = _load_loss_stats(data_dir, output_dir)
 
-    # Energy plot (left)
-    fig.add_trace(
-        go.Scatter(
-            x=ef_energy["Dataset size"],
-            y=ef_energy["Min_Value"],
-            mode="markers+lines",
-            name="Energy-Force",
-            legend="legend",
-            showlegend=True,
-            marker=dict(color=colour_ef, symbol="circle", size=10),
-        ),
-        row=1,
-        col=1,
-    )
-    fig.add_trace(
-        go.Scatter(
-            x=efh_energy["Dataset size"],
-            y=efh_energy["Min_Value"],
-            mode="markers+lines",
-            name="Energy-Force-Hessian (HIP)",
-            legend="legend",
-            showlegend=True,
-            marker=dict(color=colour_efh, symbol="square", size=10),
-        ),
-        row=1,
-        col=1,
-    )
+    for human_name, stats in stats_by_metric.items():
+        fig, ax = plt.subplots(figsize=(3.2, 2.8))
+        _plot_metric(ax, stats, human_name, legend=True)
+        fig.tight_layout(pad=0.01)
+        output_path = output_dir / f"log_log_{human_name.lower()}_mae.png"
+        fig.savefig(output_path, dpi=300, bbox_inches="tight", pad_inches=0.01)
+        plt.close(fig)
+        print(f"Saved {output_path}")
 
-    # Force plot (right)
-    fig.add_trace(
-        go.Scatter(
-            x=ef_force["Dataset size"],
-            y=ef_force["Min_Value"],
-            mode="markers+lines",
-            name="Energy-Force",
-            showlegend=False,
-            marker=dict(color=colour_ef, symbol="circle", size=10),
-        ),
-        row=1,
-        col=2,
-    )
-    fig.add_trace(
-        go.Scatter(
-            x=efh_force["Dataset size"],
-            y=efh_force["Min_Value"],
-            mode="markers+lines",
-            name="Energy-Force-Hessian (HIP)",
-            showlegend=False,
-            marker=dict(color=colour_efh, symbol="square", size=10),
-        ),
-        row=1,
-        col=2,
-    )
+    fig, axes = plt.subplots(1, 3, figsize=(8, 2.7))
+    for ax, title in zip(axes, ("Energy", "Force", "Hessian")):
+        _plot_metric(
+            ax,
+            stats_by_metric[title],
+            title,
+            legend=title == "Energy",
+            xlabel=title == "Force",
+        )
 
-    # Get subplot domains for legend placement
-    dom1 = fig.layout.xaxis.domain if hasattr(fig.layout, "xaxis") else [0.0, 0.45]
-    dom2 = fig.layout.xaxis2.domain if hasattr(fig.layout, "xaxis2") else [0.55, 1.0]
+    _add_panel_labels(fig, axes)
+    fig.tight_layout(pad=0.01)
+    fig.subplots_adjust(wspace=0.24)
 
-    # Add axis titles
-    fig.update_xaxes(
-        title_text="Number of Training Samples",
-        title_standoff=5,
-        row=1,
-        col=1,
-        type="log",
-    )
-    fig.update_yaxes(title_text="", title_standoff=0, row=1, col=1, type="log")
-    fig.update_xaxes(
-        title_text="Number of Training Samples",
-        title_standoff=5,
-        row=1,
-        col=2,
-        type="log",
-    )
-    fig.update_yaxes(title_text="", title_standoff=0, row=1, col=2, type="log")
+    output_path = output_dir / "datascaling_energy_force_hessian.png"
+    fig.savefig(output_path, dpi=300, bbox_inches="tight", pad_inches=0.01)
+    plt.close(fig)
+    print(f"Saved {output_path}")
 
-    # Configure x-axis for log scale
-    xaxis_config = {
-        "type": "log",
-        "showgrid": True,
-        "dtick": 1,
-        "exponentformat": "power",
-        "showexponent": "all",
-        "minor": dict(showgrid=True, gridcolor="#eee"),
-    }
-    xaxis2_config = {
-        "type": "log",
-        "showgrid": True,
-        "dtick": 1,
-        "exponentformat": "power",
-        "showexponent": "all",
-        "minor": dict(showgrid=True, gridcolor="#eee"),
-    }
-    # Configure y-axis for log scale
-    yaxis_config = {
-        "type": "log",
-        "showgrid": True,
-        "dtick": 1,
-        "exponentformat": "power",
-        "showexponent": "all",
-        "minor": dict(showgrid=True, gridcolor="#eee"),
-    }
-    yaxis2_config = {
-        "type": "log",
-        "showgrid": True,
-        "dtick": 1,
-        "exponentformat": "power",
-        "showexponent": "all",
-        "minor": dict(showgrid=True, gridcolor="#eee"),
-    }
 
-    fig.update_layout(
-        template=PLOTLY_TEMPLATE,
-        margin=dict(l=10, r=0, b=0, t=20),
-        width=width,
-        height=height,
-        xaxis=xaxis_config,
-        xaxis2=xaxis2_config,
-        yaxis=yaxis_config,
-        yaxis2=yaxis2_config,
-        legend=dict(
-            x=dom1[1] - 0.02,
-            y=0.999,
-            xanchor="right",
-            yanchor="top",
-            orientation="v",
-            bgcolor="rgba(255,255,255,0.6)",
-            font=dict(size=LEGEND_FONT_SIZE),
-        ),
-    )
-
-    # Increase line width for markers
-    fig.update_traces(marker=dict(line=dict(width=1, color="white")))
-
-    # Increase global font sizes
-    fig.update_xaxes(
-        tickfont=dict(size=AXES_FONT_SIZE), title_font=dict(size=AXES_TITLE_FONT_SIZE)
-    )
-    fig.update_yaxes(
-        tickfont=dict(size=AXES_FONT_SIZE), title_font=dict(size=AXES_TITLE_FONT_SIZE)
-    )
-    fig.update_annotations(font=dict(size=ANNOTATION_FONT_SIZE))
-
-    # Set subplot title fonts
-    for ann in fig.layout.annotations:
-        if ann.text in ("Energy", "Force"):
-            ann.update(font=dict(size=TITLE_FONT_SIZE))
-
-    # Add subplot panel labels (a, b)
-    fig.add_annotation(
-        x=dom1[0],
-        y=0.999,
-        xref="paper",
-        yref="paper",
-        text="<b>a</b>",
-        showarrow=False,
-        xanchor="right",
-        yanchor="bottom",
-        font=dict(size=ANNOTATION_BOLD_FONT_SIZE),
-    )
-    fig.add_annotation(
-        x=dom2[0],
-        y=0.999,
-        xref="paper",
-        yref="paper",
-        text="<b>b</b>",
-        showarrow=False,
-        xanchor="right",
-        yanchor="bottom",
-        font=dict(size=ANNOTATION_BOLD_FONT_SIZE),
-    )
-
-    # Add y-axis titles as annotations
-    fig.add_annotation(
-        x=dom1[0] - 0.025,
-        y=0.6,
-        xref="paper",
-        yref="paper",
-        text="Energy MAE",
-        textangle=-90,
-        showarrow=False,
-        xanchor="center",
-        yanchor="middle",
-        font=dict(size=AXES_TITLE_FONT_SIZE),
-    )
-    fig.add_annotation(
-        x=max(dom2[0] - 0.019, 0.0),
-        y=0.5,
-        xref="paper",
-        yref="paper",
-        text="Force MAE",
-        textangle=-90,
-        showarrow=False,
-        xanchor="center",
-        yanchor="middle",
-        font=dict(size=AXES_TITLE_FONT_SIZE),
-    )
-
-    output_path = Path(base_dir) / "datascaling_energy_force.png"
-    fig.write_image(output_path, width=width, height=height, scale=2)
-    print(f"\nCombined plot saved to \n {output_path}")
-
-# Create combined plotly plot with Energy, Force, and Hessian side by side
-if df_energy is not None and df_force is not None and df_hessian is not None:
-    height = 400
-    width = height * 3
-
-    # Filter out rows where dataset size is not None
-    plot_data_energy = df_energy.dropna(subset=["Dataset size"])
-    plot_data_force = df_force.dropna(subset=["Dataset size"])
-    plot_data_hessian = df_hessian.dropna(subset=["Dataset size"])
-    # Filter out datapoints at 2e4 and 2e5 training samples
-    plot_data_energy = plot_data_energy[
-        ~plot_data_energy["Dataset size"].isin([20000.0, 200000.0])
-    ]
-    plot_data_force = plot_data_force[
-        ~plot_data_force["Dataset size"].isin([20000.0, 200000.0])
-    ]
-    plot_data_hessian = plot_data_hessian[
-        ~plot_data_hessian["Dataset size"].isin([20000.0, 200000.0])
-    ]
-
-    # Split by EF vs EFH and sort by Dataset size
-    ef_energy = plot_data_energy[plot_data_energy["ef"]].sort_values("Dataset size")
-    efh_energy = plot_data_energy[~plot_data_energy["ef"]].sort_values("Dataset size")
-    ef_force = plot_data_force[plot_data_force["ef"]].sort_values("Dataset size")
-    efh_force = plot_data_force[~plot_data_force["ef"]].sort_values("Dataset size")
-    ef_hessian = plot_data_hessian[plot_data_hessian["ef"]].sort_values("Dataset size")
-    efh_hessian = plot_data_hessian[~plot_data_hessian["ef"]].sort_values(
-        "Dataset size"
-    )
-
-    fig = make_subplots(
-        rows=1,
-        cols=3,
-        subplot_titles=("Energy", "Force", "Hessian"),
-        horizontal_spacing=0.05,
-        vertical_spacing=0.0,
-    )
-
-    # Energy plot (left)
-    fig.add_trace(
-        go.Scatter(
-            x=ef_energy["Dataset size"],
-            y=ef_energy["Min_Value"],
-            mode="markers+lines",
-            name="Energy-Force",
-            legend="legend",
-            showlegend=True,
-            marker=dict(color=colour_ef, symbol="circle", size=10),
-        ),
-        row=1,
-        col=1,
-    )
-    fig.add_trace(
-        go.Scatter(
-            x=efh_energy["Dataset size"],
-            y=efh_energy["Min_Value"],
-            mode="markers+lines",
-            name="Energy-Force-Hessian (HIP)",
-            legend="legend",
-            showlegend=True,
-            marker=dict(color=colour_efh, symbol="square", size=10),
-        ),
-        row=1,
-        col=1,
-    )
-
-    # Force plot (middle)
-    fig.add_trace(
-        go.Scatter(
-            x=ef_force["Dataset size"],
-            y=ef_force["Min_Value"],
-            mode="markers+lines",
-            name="Energy-Force",
-            showlegend=False,
-            marker=dict(color=colour_ef, symbol="circle", size=10),
-        ),
-        row=1,
-        col=2,
-    )
-    fig.add_trace(
-        go.Scatter(
-            x=efh_force["Dataset size"],
-            y=efh_force["Min_Value"],
-            mode="markers+lines",
-            name="Energy-Force-Hessian (HIP)",
-            showlegend=False,
-            marker=dict(color=colour_efh, symbol="square", size=10),
-        ),
-        row=1,
-        col=2,
-    )
-
-    # Hessian plot (right)
-    fig.add_trace(
-        go.Scatter(
-            x=ef_hessian["Dataset size"],
-            y=ef_hessian["Min_Value"],
-            mode="markers+lines",
-            name="Energy-Force",
-            showlegend=False,
-            marker=dict(color=colour_ef, symbol="circle", size=10),
-        ),
-        row=1,
-        col=3,
-    )
-    fig.add_trace(
-        go.Scatter(
-            x=efh_hessian["Dataset size"],
-            y=efh_hessian["Min_Value"],
-            mode="markers+lines",
-            name="Energy-Force-Hessian (HIP)",
-            showlegend=False,
-            marker=dict(color=colour_efh, symbol="square", size=10),
-        ),
-        row=1,
-        col=3,
-    )
-
-    # Get subplot domains for legend placement
-    dom1 = fig.layout.xaxis.domain if hasattr(fig.layout, "xaxis") else [0.0, 0.30]
-    dom2 = fig.layout.xaxis2.domain if hasattr(fig.layout, "xaxis2") else [0.35, 0.65]
-    dom3 = fig.layout.xaxis3.domain if hasattr(fig.layout, "xaxis3") else [0.70, 1.0]
-
-    # Add axis titles
-    fig.update_xaxes(
-        title_text="Number of Training Samples",
-        title_standoff=5,
-        row=1,
-        col=1,
-        type="log",
-    )
-    fig.update_yaxes(title_text="", title_standoff=0, row=1, col=1, type="log")
-    fig.update_xaxes(
-        title_text="Number of Training Samples",
-        title_standoff=5,
-        row=1,
-        col=2,
-        type="log",
-    )
-    fig.update_yaxes(title_text="", title_standoff=0, row=1, col=2, type="log")
-    fig.update_xaxes(
-        title_text="Number of Training Samples",
-        title_standoff=5,
-        row=1,
-        col=3,
-        type="log",
-    )
-    fig.update_yaxes(title_text="", title_standoff=0, row=1, col=3, type="log")
-
-    # Configure x-axis for log scale
-    xaxis_config = {
-        "type": "log",
-        "showgrid": True,
-        "dtick": 1,
-        "exponentformat": "power",
-        "showexponent": "all",
-        "minor": dict(showgrid=True, gridcolor="#eee"),
-    }
-    xaxis2_config = {
-        "type": "log",
-        "showgrid": True,
-        "dtick": 1,
-        "exponentformat": "power",
-        "showexponent": "all",
-        "minor": dict(showgrid=True, gridcolor="#eee"),
-    }
-    xaxis3_config = {
-        "type": "log",
-        "showgrid": True,
-        "dtick": 1,
-        "exponentformat": "power",
-        "showexponent": "all",
-        "minor": dict(showgrid=True, gridcolor="#eee"),
-    }
-    # Configure y-axis for log scale
-    yaxis_config = {
-        "type": "log",
-        "showgrid": True,
-        "dtick": 1,
-        "exponentformat": "power",
-        "showexponent": "all",
-        "minor": dict(showgrid=True, gridcolor="#eee"),
-    }
-    yaxis2_config = {
-        "type": "log",
-        "showgrid": True,
-        "dtick": 1,
-        "exponentformat": "power",
-        "showexponent": "all",
-        "minor": dict(showgrid=True, gridcolor="#eee"),
-    }
-    yaxis3_config = {
-        "type": "log",
-        "showgrid": True,
-        "dtick": 1,
-        "exponentformat": "power",
-        "showexponent": "all",
-        "minor": dict(showgrid=True, gridcolor="#eee"),
-    }
-
-    fig.update_layout(
-        template=PLOTLY_TEMPLATE,
-        margin=dict(l=10, r=0, b=0, t=20),
-        width=width,
-        height=height,
-        xaxis=xaxis_config,
-        xaxis2=xaxis2_config,
-        xaxis3=xaxis3_config,
-        yaxis=yaxis_config,
-        yaxis2=yaxis2_config,
-        yaxis3=yaxis3_config,
-        legend=dict(
-            x=dom1[1] - 0.02,
-            y=0.999,
-            xanchor="right",
-            yanchor="top",
-            orientation="v",
-            bgcolor="rgba(255,255,255,0.6)",
-            font=dict(size=LEGEND_FONT_SIZE),
-        ),
-    )
-
-    # Increase line width for markers
-    fig.update_traces(marker=dict(line=dict(width=1, color="white")))
-
-    # Increase global font sizes
-    fig.update_xaxes(
-        tickfont=dict(size=AXES_FONT_SIZE), title_font=dict(size=AXES_TITLE_FONT_SIZE)
-    )
-    fig.update_yaxes(
-        tickfont=dict(size=AXES_FONT_SIZE), title_font=dict(size=AXES_TITLE_FONT_SIZE)
-    )
-    fig.update_annotations(font=dict(size=ANNOTATION_FONT_SIZE))
-
-    # Set subplot title fonts
-    for ann in fig.layout.annotations:
-        if ann.text in ("Energy", "Force", "Hessian"):
-            ann.update(font=dict(size=TITLE_FONT_SIZE))
-
-    # Add subplot panel labels (a, b, c)
-    fig.add_annotation(
-        x=dom1[0],
-        y=0.999,
-        xref="paper",
-        yref="paper",
-        text="<b>a</b>",
-        showarrow=False,
-        xanchor="right",
-        yanchor="bottom",
-        font=dict(size=ANNOTATION_BOLD_FONT_SIZE),
-    )
-    fig.add_annotation(
-        x=dom2[0],
-        y=0.999,
-        xref="paper",
-        yref="paper",
-        text="<b>b</b>",
-        showarrow=False,
-        xanchor="right",
-        yanchor="bottom",
-        font=dict(size=ANNOTATION_BOLD_FONT_SIZE),
-    )
-    fig.add_annotation(
-        x=dom3[0],
-        y=0.999,
-        xref="paper",
-        yref="paper",
-        text="<b>c</b>",
-        showarrow=False,
-        xanchor="right",
-        yanchor="bottom",
-        font=dict(size=ANNOTATION_BOLD_FONT_SIZE),
-    )
-
-    # Add y-axis titles as annotations
-    fig.add_annotation(
-        x=dom1[0] - 0.017,
-        y=0.6,
-        xref="paper",
-        yref="paper",
-        text="Energy MAE",
-        textangle=-90,
-        showarrow=False,
-        xanchor="center",
-        yanchor="middle",
-        font=dict(size=AXES_TITLE_FONT_SIZE),
-    )
-    fig.add_annotation(
-        x=max(dom2[0] - 0.019, 0.0),
-        y=0.5,
-        xref="paper",
-        yref="paper",
-        text="Force MAE",
-        textangle=-90,
-        showarrow=False,
-        xanchor="center",
-        yanchor="middle",
-        font=dict(size=AXES_TITLE_FONT_SIZE),
-    )
-    fig.add_annotation(
-        x=max(dom3[0] - 0.019, 0.0),
-        y=0.5,
-        xref="paper",
-        yref="paper",
-        text="Hessian MAE",
-        textangle=-90,
-        showarrow=False,
-        xanchor="center",
-        yanchor="middle",
-        font=dict(size=AXES_TITLE_FONT_SIZE),
-    )
-
-    output_path = Path(base_dir) / "datascaling_energy_force_hessian.png"
-    fig.write_image(output_path, width=width, height=height, scale=2)
-    print(f"\nCombined plot saved to \n {output_path}")
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Plot data-scaling loss curves.")
+    parser.add_argument("--data-dir", default="scaling")
+    parser.add_argument("--output-dir", default="plots/datascaling")
+    args = parser.parse_args()
+    make_plot(data_dir=args.data_dir, output_dir=args.output_dir)
