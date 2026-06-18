@@ -16,6 +16,18 @@ from plot_style import finish_axis
 from scripts.cache_glycine_pt_orca_vibrations import mode_alignment, normalized_curvature, vibrational_eigh
 
 
+def axes_label_size() -> float:
+    return float(matplotlib.rcParams["axes.labelsize"])
+
+
+def tick_label_size() -> float:
+    return float(matplotlib.rcParams["xtick.labelsize"])
+
+
+def title_size() -> float:
+    return float(matplotlib.rcParams["axes.titlesize"])
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--scan-dir", type=Path, default=Path("runs/glycine_pt_scan_n36"))
@@ -130,7 +142,8 @@ def plot_force_field(df: pd.DataFrame, output_path: Path, dpi: int) -> None:
     ax.set_aspect("equal", adjustable="box")
     finish_axis(ax)
     cbar = fig.colorbar(mesh, ax=ax)
-    cbar.set_label(r"DFT relative energy [kcal mol$^{-1}$]")
+    cbar.set_label(r"DFT relative energy [kcal mol$^{-1}$]", fontsize=axes_label_size())
+    cbar.ax.tick_params(labelsize=tick_label_size())
     cbar.outline.set_visible(False)
     fig.tight_layout(pad=0.01)
     fig.savefig(output_path, dpi=dpi)
@@ -252,8 +265,11 @@ def plot_method_alignment(df: pd.DataFrame, output_path: Path, dpi: int, zero_th
     )
     cbar.ax.yaxis.set_major_formatter(matplotlib.ticker.FormatStrFormatter("%.1f"))
     cbar.ax.minorticks_off()
-    cbar.ax.tick_params(which="both", axis="both", length=1.5, width=0.8)
-    cbar.set_label(rf"$|\cos\theta(v_1, q_\mathrm{{NH}} - q_\mathrm{{OH}})|$")
+    cbar.ax.tick_params(which="both", axis="both", length=1.5, width=0.8, labelsize=tick_label_size())
+    cbar.set_label(
+        rf"$|\cos\theta(v_1, q_\mathrm{{NH}} - q_\mathrm{{OH}})|$",
+        fontsize=axes_label_size(),
+    )
     cbar.outline.set_visible(False)
     fig.savefig(output_path, dpi=dpi, bbox_inches="tight")
     plt.close(fig)
@@ -274,6 +290,8 @@ def plot_method_heatmaps(
     extend: str = "neither",
     mask_top_n: int = 0,
     mask_corner_diagonals: int = 0,
+    title_fontsize: float | None = None,
+    hide_nonfirst_y_ticks: bool = False,
 ) -> None:
     specs = [(col, label) for col, label in specs if col in df.columns]
     if len(specs) < 2:
@@ -333,7 +351,7 @@ def plot_method_heatmaps(
         else:
             mesh = ax.pcolormesh(x, y, z, shading="nearest", cmap=plot_cmap, vmin=vmin, vmax=vmax)
         add_energy_contours(ax, df)
-        ax.set_title(label)
+        ax.set_title(label, fontsize=title_fontsize)
         ax.set_xlabel(r"$q_\mathrm{NH}$ [$\AA$]")
         ax.set_ylabel(r"$q_\mathrm{OH}$ [$\AA$]" if idx == 0 else "")
         if ylim_top is not None:
@@ -347,15 +365,17 @@ def plot_method_heatmaps(
             which="major",
             length=3.0,
             width=0.8,
-            labelsize=11,
+            labelsize=tick_label_size(),
             bottom=True,
             left=True,
             color="#2F4565",
         )
+        if hide_nonfirst_y_ticks and idx > 0:
+            ax.tick_params(axis="y", left=False, labelleft=False)
 
     assert mesh is not None
     if title:
-        fig.suptitle(title)
+        fig.suptitle(title, fontsize=title_size())
     # Anchor the colorbar to the last panel's drawn box so it matches the
     # (aspect="equal") subplot height exactly, regardless of the y-range crop.
     fig.draw_without_rendering()
@@ -369,9 +389,9 @@ def plot_method_heatmaps(
         )
     else:
         cbar = fig.colorbar(mesh, cax=cax, extend=extend)
-    cbar.set_label(cbar_label, fontsize=12)
+    cbar.set_label(cbar_label, fontsize=axes_label_size())
     cbar.ax.minorticks_off()
-    cbar.ax.tick_params(which="both", axis="both", length=0, labelsize=9)
+    cbar.ax.tick_params(which="both", axis="both", length=0, labelsize=tick_label_size())
     cbar.outline.set_visible(False)
     fig.savefig(output_path, dpi=dpi, bbox_inches="tight")
     plt.close(fig)
@@ -465,13 +485,15 @@ def main() -> None:
         ],
         output_dir / "glycine_pt_lowest_hessian_eigenvalue_methods.png",
         None,
-        r"$\lambda_\mathrm{min}$ [eV $\AA^{-2}$ amu$^{-1}$]",
+        r"$\lambda_\mathrm{min}$ [eV $\AA^{-2}$]",
         args.dpi,
         cmap=lam_min_cmap,
         ylim_top=2.3,
         vlim=(-22.0, 0.0),
         extend="both",
         mask_corner_diagonals=2,
+        title_fontsize=title_size() * 0.85,
+        hide_nonfirst_y_ticks=True,
     )
     # Reversed scale (green at 0 -> dark purple at 45) with the bright-yellow
     # viridis tone reserved (set_under) for the negative-product pixels, which
@@ -522,6 +544,8 @@ def main() -> None:
         cmap="viridis",
         discrete=True,
         ylim_top=2.3,
+        title_fontsize=title_size() * 0.85,
+        hide_nonfirst_y_ticks=True,
     )
     plot_method_alignment(df, output_dir / "glycine_pt_unstable_mode_alignment_methods.png", args.dpi)
     plot_method_heatmaps(
