@@ -272,6 +272,7 @@ def make_plot_seaborn(
     )
 
     fig, axes = plt.subplots(2, 2, figsize=(10.0, 7.2), layout="constrained")
+    fig.set_constrained_layout_pads(hspace=0.06)
     ax_time, ax_memory, ax_rgd1, ax_pubchem = axes.ravel()
 
     for method in avg_times.columns:
@@ -423,8 +424,9 @@ def make_plot_seaborn(
         r"Eigenvalue $\lambda$ MAE [$\mathrm{eV}\,\AA^{-2}$]",
     )
     for panel_label, ax, title, ylabel in zip("abcd", axes.ravel(), titles, ylabels):
-        ax.set_title(title)
-        ax.set_xlabel("Number of Atoms")
+        if panel_label not in "ab":
+            ax.set_title(title)
+            ax.set_xlabel("Number of Atoms")
         ax.set_ylabel(ylabel)
         ax.set_axisbelow(True)
         ax.tick_params(axis="both", which="both", length=0)

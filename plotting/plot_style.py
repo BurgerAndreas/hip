@@ -22,8 +22,8 @@ FORWARD_PASS_COLOR = "#8ed3c3" # #68c4af
 # Annotation/train line uses named gray (#808080)
 EQV2_NO_H_FORCE_COLOR = AD_NO_H_COLOR
 HIP_FORCE_COLOR = HIP_COLOR
-LEFTNET_CF_FORCE_COLOR = "#4a8a72"
-LEFTNET_DF_FORCE_COLOR = "#8A3F3F" # #8A3F3F #743737
+LEFTNET_CF_FORCE_COLOR = "#659C87" # "#4a8a72"
+LEFTNET_DF_FORCE_COLOR = "#9C5C5C" # #B98C8C #A76F6F "#8A3F3F" # #8A3F3F #743737
 PLOTLY_FONT_COLOR = "#2F4565" # #2a3f5f
 LINE_WIDTH = 2.2
 THIN_LINE_WIDTH = 1.6
@@ -49,8 +49,8 @@ HESSIAN_METHOD_TO_COLOUR = {
     "prediction": HIP_COLOR,
     "ef": AD_NO_H_COLOR,
     "hessian_approx": "#4a8a72",
-    "leftnet_df": "#4a8a72",
-    "leftnet_cf": "#8A3F3F",
+    "leftnet_df": LEFTNET_CF_FORCE_COLOR,
+    "leftnet_cf": LEFTNET_DF_FORCE_COLOR,
 }
 HESSIAN_METHOD_TO_COLOUR["predict"] = HESSIAN_METHOD_TO_COLOUR["prediction"]
 HESSIAN_METHOD_TO_COLOUR["learned"] = HESSIAN_METHOD_TO_COLOUR["prediction"]

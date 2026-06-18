@@ -39,9 +39,12 @@ ZPE_MODEL_ORDER = [
     "LeftNet-CF",
     "LeftNet-DF",
     "EquiformerV2",
-    "HIP-EquiformerV2",
+    "HIP",
 ]
-ZPE_BOLD_MODELS = {"HIP-EquiformerV2"}
+ZPE_BOLD_MODELS = {"HIP"}
+ZPE_DISPLAY_NAMES = {
+    "EquiformerV2": "EqV2",
+}
 
 AD_COLOR = "#5e859e"
 HIP_COLOR = "#d96001"
@@ -54,6 +57,7 @@ SUBPLOT_TITLE_SIZE = 15
 BAR_LABEL_SIZE = 8
 XTICK_LABEL_SIZE = 12
 PLOT_LEGEND_SIZE = 11
+PANEL_AC_LEGEND_SIZE = PLOT_LEGEND_SIZE + 1
 
 LEGEND_CATEGORY_LABELS = {
     "AD Hessians": "AD",
@@ -196,7 +200,11 @@ def apply_plot_style() -> None:
 
 
 def finish_axis(ax: matplotlib.axes.Axes, *, legend: bool = False) -> None:
-    ax.grid(True, color="#E9E9E9", linewidth=1.0)
+    ax.xaxis.grid(False)
+    ax.yaxis.grid(True, color="#E9E9E9", linewidth=1.0)
+    if ax.get_yscale() == "log":
+        ax.minorticks_on()
+        ax.yaxis.grid(True, which="minor", color="#F1F1F1", linewidth=0.7, alpha=0.85)
     sns.despine(ax=ax, trim=False)
     if legend:
         ax.legend(frameon=True, edgecolor="none")
@@ -245,7 +253,7 @@ def _display_name(method: str) -> str:
     if method == "RFO (learned)":
         return "RFO HIP"
     if method == "FIRE":
-        return "Fire"
+        return "FIRE"
     if method == "RFO-BFGS (learned init)":
         return "RFO-BFGS (HIP init)"
     if method == "RFO-BFGS (autograd init)":
@@ -512,8 +520,8 @@ def _add_wall_time_annotations(
     df_wall: pd.DataFrame,
     display_order: list[str],
 ) -> None:
-    annotation_y = 4.62
-    arrow_y = 4.24
+    annotation_y = 4.38
+    arrow_y = 4.0
     for method in WALL_TIME_ANNOTATION_ONLY:
         series = _series_for_method(df_wall, method, "wall_time_s")
         if series.empty:
@@ -531,13 +539,14 @@ def _add_wall_time_annotations(
             textcoords="data",
             ha="center",
             va="bottom",
-            fontsize=15,
+            fontsize=12,
             fontweight="bold",
             color=color,
             arrowprops={
                 "arrowstyle": "-|>",
                 "color": color,
-                "linewidth": 2.5,
+                "linewidth": 2.0,
+                "mutation_scale": 10,
                 "shrinkA": 0,
                 "shrinkB": 0,
             },
@@ -571,6 +580,7 @@ def _plot_reactbench_panel(ax: plt.Axes, df_rb: pd.DataFrame) -> None:
         order=rb_allowed_metrics,
         hue_order=rb_hue_order,
         palette=palette,
+        saturation=1.0,
         ax=ax,
     )
     for container in ax.containers:
@@ -590,11 +600,13 @@ def _plot_reactbench_panel(ax: plt.Axes, df_rb: pd.DataFrame) -> None:
     ax.set_ylim(498.5, 920)
     _format_categorical_xaxis(ax)
     for label in ax.get_xticklabels():
-        label.set_fontsize(XTICK_LABEL_SIZE - 2)
+        label.set_fontsize(XTICK_LABEL_SIZE - 2.5)
     finish_axis(ax)
     legend_obj = ax.get_legend()
     if legend_obj is not None:
         legend_obj.set_title(None)
+        for text in legend_obj.get_texts():
+            text.set_fontsize(PANEL_AC_LEGEND_SIZE)
         legend_obj.get_frame().set_alpha(0.75)
         legend_obj.get_frame().set_linewidth(0)
 
@@ -613,6 +625,7 @@ def _load_zpe_metrics(zpe_csv: Path) -> pd.DataFrame:
     if missing:
         raise ValueError(f"ZPE CSV is missing required columns: {sorted(missing)}")
     df = df.copy()
+    df["model"] = df["model"].replace({"HIP-EquiformerV2": "HIP"})
     df["model"] = pd.Categorical(
         df["model"],
         categories=ZPE_MODEL_ORDER,
@@ -625,12 +638,19 @@ def _zpe_model_palette(models: list[str]) -> dict[str, str]:
     return {model: model_color(model, HESSIAN_METHOD_TO_COLOUR["autograd"]) for model in models}
 
 
+def _zpe_display_name(model: str) -> str:
+    return ZPE_DISPLAY_NAMES.get(model, model)
+
+
+def _format_zpe_bar_value(value: float) -> str:
+    return f"{value:.4f}"
+
+
 def _plot_zpe_metric_panel(
     ax: plt.Axes,
     df_zpe: pd.DataFrame,
     *,
     metric: str,
-    std_col: str,
     title: str,
     ylabel: str,
     log_y: bool,
@@ -640,22 +660,24 @@ def _plot_zpe_metric_panel(
     palette = _zpe_model_palette(models)
     x = list(range(len(models)))
     values = plot_df.set_index("model").loc[models, metric].astype(float).to_numpy()
-    errors = plot_df.set_index("model").loc[models, std_col].astype(float).to_numpy()
     colors = [palette[model] for model in models]
-    ax.bar(x, values, color=colors, width=0.72, edgecolor="none", zorder=2)
-    ax.errorbar(
-        x,
-        values,
-        yerr=errors,
-        fmt="none",
-        ecolor=PLOT_FONT_COLOR,
-        elinewidth=1.2,
-        capsize=3,
-        capthick=1.2,
-        zorder=3,
-    )
+    bars = ax.bar(x, values, color=colors, width=0.72, edgecolor="none", zorder=2)
+    for bar, model, value in zip(bars, models, values, strict=True):
+        if value <= 0:
+            continue
+        label_y = value * 1.18 if log_y else value * 1.04
+        ax.text(
+            bar.get_x() + bar.get_width() / 2,
+            label_y,
+            _format_zpe_bar_value(float(value)),
+            ha="center",
+            va="bottom",
+            fontsize=BAR_LABEL_SIZE,
+            color=PLOT_FONT_COLOR,
+            fontweight="bold" if model in ZPE_BOLD_MODELS else "normal",
+        )
     ax.set_xticks(x)
-    ax.set_xticklabels(models)
+    ax.set_xticklabels([_zpe_display_name(model) for model in models])
     ax.set_title(title)
     ax.set_xlabel("")
     ax.set_ylabel(ylabel)
@@ -664,7 +686,7 @@ def _plot_zpe_metric_panel(
         positive = values[values > 0]
         if len(positive) > 0:
             ymin = max(positive.min() * 0.35, 1e-4)
-            ymax = max(values + errors) * 2.5
+            ymax = max(values) * 3.2
             ax.set_ylim(ymin, ymax)
     _format_categorical_xaxis(ax, bold_targets=ZPE_BOLD_MODELS)
     finish_axis(ax)
@@ -695,11 +717,11 @@ def _plot_classification_panel(ax: plt.Axes, df_zpe: pd.DataFrame) -> None:
             fontweight="bold" if model in ZPE_BOLD_MODELS else "normal",
         )
     ax.set_xticks(x)
-    ax.set_xticklabels(models)
-    ax.set_title("Classification")
+    ax.set_xticklabels([_zpe_display_name(model) for model in models])
+    ax.set_title("Stationary Point Class")
     ax.set_xlabel("")
     ax.set_ylabel("Accuracy [%]")
-    ax.set_ylim(0, 102)
+    ax.set_ylim(50, 102)
     _format_categorical_xaxis(ax, bold_targets=ZPE_BOLD_MODELS)
     finish_axis(ax)
 
@@ -740,7 +762,7 @@ def plot_relaxation_reactbench_zpe(
         df_steps,
         "steps",
         order_steps,
-        title="Steps",
+        title="Relaxation",
         max_cycles=max_cycles,
     ):
         category = METHOD_TO_CATEGORY.get(method)
@@ -752,7 +774,7 @@ def plot_relaxation_reactbench_zpe(
         df_wall_comp,
         "wall_time_s",
         PANEL_METHOD_ORDER,
-        title="Wall Time",
+        title="Relaxation",
         max_cycles=max_cycles,
         display_order=wall_display_order,
     ):
@@ -785,6 +807,7 @@ def plot_relaxation_reactbench_zpe(
             frameon=True,
             edgecolor="none",
             loc="upper right",
+            fontsize=PANEL_AC_LEGEND_SIZE,
         )
         legend.get_frame().set_alpha(0.75)
         legend.get_frame().set_linewidth(0)
@@ -794,8 +817,7 @@ def plot_relaxation_reactbench_zpe(
         axes[3],
         df_zpe,
         metric="zpe_mae",
-        std_col="zpe_mae_std",
-        title="ZPE MAE",
+        title="Zero-Point Energy",
         ylabel=r"ZPE MAE [eV]",
         log_y=True,
     )
@@ -803,8 +825,7 @@ def plot_relaxation_reactbench_zpe(
         axes[4],
         df_zpe,
         metric="delta_zpe_mae",
-        std_col="delta_zpe_mae_std",
-        title=r"$\Delta$ZPE MAE",
+        title="Zero-Point Energy",
         ylabel=r"$\Delta$ZPE MAE [eV]",
         log_y=True,
     )
@@ -812,7 +833,7 @@ def plot_relaxation_reactbench_zpe(
     axes[0].set_ylim(0, 155)
     axes[1].set_ylim(0, 4.9)
     add_panel_labels(fig, axes)
-    fig.subplots_adjust(left=0.10, right=0.995, bottom=0.16, top=0.92, wspace=0.24, hspace=0.34)
+    fig.subplots_adjust(left=0.10, right=0.995, bottom=0.16, top=0.92, wspace=0.24, hspace=0.46)
 
     output_path.parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(output_path, dpi=300, bbox_inches="tight", pad_inches=0.035)

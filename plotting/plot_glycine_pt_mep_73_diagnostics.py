@@ -198,6 +198,14 @@ def normalized_projection(vectors: np.ndarray, directions: np.ndarray) -> np.nda
     return np.einsum("ij,ij->i", flat_vectors, flat_dirs) / np.maximum(norms, 1e-12)
 
 
+def force_direction_cosine(vectors: np.ndarray, directions: np.ndarray) -> np.ndarray:
+    flat_vectors = np.asarray(vectors, dtype=float).reshape(vectors.shape[0], -1)
+    flat_dirs = np.asarray(directions, dtype=float).reshape(directions.shape[0], -1)
+    numer = np.einsum("ij,ij->i", flat_vectors, flat_dirs)
+    denom = np.linalg.norm(flat_vectors, axis=1) * np.linalg.norm(flat_dirs, axis=1)
+    return numer / np.maximum(denom, 1e-12)
+
+
 def symmetrize(hessians: np.ndarray) -> np.ndarray:
     return 0.5 * (hessians + np.swapaxes(hessians, -1, -2))
 
@@ -207,6 +215,18 @@ def frobenius_relative_error(model_h: np.ndarray, ref_h: np.ndarray) -> np.ndarr
     numer = np.linalg.norm(diff.reshape(diff.shape[0], -1), axis=1)
     denom = np.linalg.norm(symmetrize(ref_h).reshape(ref_h.shape[0], -1), axis=1)
     return numer / np.maximum(denom, 1e-12)
+
+
+def force_frobenius_relative_error(model_f: np.ndarray, ref_f: np.ndarray) -> np.ndarray:
+    diff = np.asarray(model_f, dtype=float) - np.asarray(ref_f, dtype=float)
+    numer = np.linalg.norm(diff.reshape(diff.shape[0], -1), axis=1)
+    denom = np.linalg.norm(np.asarray(ref_f, dtype=float).reshape(ref_f.shape[0], -1), axis=1)
+    return numer / np.maximum(denom, 1e-12)
+
+
+def force_norm_ev_ang(forces_ev_ang: np.ndarray) -> np.ndarray:
+    flat = np.asarray(forces_ev_ang, dtype=float).reshape(forces_ev_ang.shape[0], -1)
+    return np.linalg.norm(flat, axis=1)
 
 
 def frobenius_absolute_error(model_h: np.ndarray, ref_h: np.ndarray) -> np.ndarray:
@@ -493,28 +513,193 @@ def save_negative_mode_plot(
     plt.close(fig)
 
 
+def save_relative_error_plot(
+    x: np.ndarray,
+    x_label: str,
+    errors: dict[str, np.ndarray],
+    output_dir: Path,
+    dpi: int,
+    *,
+    title: str,
+    ylabel: str,
+    filename: str,
+) -> None:
+    fig, ax = plt.subplots(figsize=(7.2, 4.4))
+    for label, values in errors.items():
+        sns.lineplot(
+            x=x,
+            y=values,
+            ax=ax,
+            marker="o",
+            markersize=MARKER_SIZE,
+            lw=LINE_WIDTH,
+            label=label,
+            color=METHOD_COLORS.get(label),
+        )
+    ax.set_title(title)
+    ax.set_ylabel(ylabel)
+    ax.set_yscale("log")
+    setup_axis(ax, x_label)
+    ax.legend(frameon=True, edgecolor="none")
+    fig.tight_layout(pad=0.01)
+    save_png(fig, output_dir / filename, dpi)
+    plt.close(fig)
+
+
 def save_hessian_error_plot(
     x: np.ndarray,
     x_label: str,
-    errors: dict[str, dict[str, np.ndarray]],
+    errors: dict[str, np.ndarray],
     output_dir: Path,
     dpi: int,
 ) -> None:
+    save_relative_error_plot(
+        x,
+        x_label,
+        errors,
+        output_dir,
+        dpi,
+        title="Full Hessian Error vs DFT",
+        ylabel=r"$||H-H_\mathrm{DFT}||_F \ / \ ||H_\mathrm{DFT}||_F$",
+        filename="mep_hessian_error_vs_dft.png",
+    )
+
+
+def save_force_error_plot(
+    x: np.ndarray,
+    x_label: str,
+    errors: dict[str, np.ndarray],
+    output_dir: Path,
+    dpi: int,
+) -> None:
+    save_relative_error_plot(
+        x,
+        x_label,
+        errors,
+        output_dir,
+        dpi,
+        title="Full Force Error vs DFT",
+        ylabel=r"$||F-F_\mathrm{DFT}||_F \ / \ ||F_\mathrm{DFT}||_F$",
+        filename="mep_force_error_vs_dft.png",
+    )
+
+
+def save_force_norm_plot(
+    x: np.ndarray,
+    x_label: str,
+    force_norms: dict[str, np.ndarray],
+    output_dir: Path,
+    dpi: int,
+) -> None:
+    fig, ax = plt.subplots(figsize=(7.2, 4.4))
+    for label, values in force_norms.items():
+        sns.lineplot(
+            x=x,
+            y=values,
+            ax=ax,
+            marker=METHOD_MARKERS.get(label, "o"),
+            markersize=MARKER_SIZE,
+            lw=LINE_WIDTH,
+            label=label,
+            color=METHOD_COLORS.get(label),
+        )
+    ax.set_title("Force Norm")
+    ax.set_ylabel(r"$||F||_F$ [eV $\AA^{-1}$]")
+    ax.set_yscale("log")
+    setup_axis(ax, x_label)
+    ax.legend(frameon=True, edgecolor="none")
+    fig.tight_layout(pad=0.01)
+    save_png(fig, output_dir / "mep_force_norm.png", dpi)
+    plt.close(fig)
+
+
+def save_force_tangent_xi_plot(
+    x: np.ndarray,
+    x_label: str,
+    values: dict[str, dict[str, np.ndarray]],
+    output_dir: Path,
+    dpi: int,
+    *,
+    filename: str,
+    ylabel: str,
+    titles: dict[str, str],
+    ylim: tuple[float, float] | None = None,
+    log_y: bool = False,
+) -> None:
     fig, axes = plt.subplots(1, 2, figsize=(12.2, 4.4), sharex=True)
-    for ax, key, title in (
-        (axes[0], "full", "Full Hessian Error vs DFT"),
-        (axes[1], "reaction_center", "O-N-H Block Error vs DFT"),
-    ):
-        for label, values in errors.items():
-            sns.lineplot(x=x, y=values[key], ax=ax, marker="o", markersize=MARKER_SIZE, lw=LINE_WIDTH, label=label, color=METHOD_COLORS.get(label))
-        ax.set_title(title)
-        ax.set_ylabel(r"$||H-H_\mathrm{DFT}||_F \ / \ ||H_\mathrm{DFT}||_F$")
-        ax.set_yscale("log")
+    for ax, key in zip(axes, ("tangent", "xi"), strict=True):
+        for label, method_values in values.items():
+            sns.lineplot(
+                x=x,
+                y=method_values[key],
+                ax=ax,
+                marker=METHOD_MARKERS.get(label, "o"),
+                markersize=MARKER_SIZE,
+                lw=LINE_WIDTH,
+                label=label,
+                color=METHOD_COLORS.get(label),
+            )
+        ax.axhline(0.0, color="grey", lw=THIN_LINE_WIDTH)
+        ax.set_title(titles[key])
+        ax.set_ylabel(ylabel)
+        if ylim is not None:
+            ax.set_ylim(*ylim)
+        if log_y:
+            ax.set_yscale("log")
         setup_axis(ax, x_label)
     axes[0].legend(frameon=True, edgecolor="none")
     fig.tight_layout(pad=0.01)
-    save_png(fig, output_dir / "mep_hessian_error_vs_dft.png", dpi)
+    save_png(fig, output_dir / filename, dpi)
     plt.close(fig)
+
+
+def save_force_direction_cosine_plot(
+    x: np.ndarray,
+    x_label: str,
+    force_cosines: dict[str, dict[str, np.ndarray]],
+    output_dir: Path,
+    dpi: int,
+) -> None:
+    save_force_tangent_xi_plot(
+        x,
+        x_label,
+        force_cosines,
+        output_dir,
+        dpi,
+        filename="mep_force_tangent_xi_cosine.png",
+        ylabel=r"$\cos\theta$",
+        titles={
+            "tangent": r"$\cos(F, \hat t)$",
+            "xi": r"$\cos(F, \widehat{q_\mathrm{NH}-q_\mathrm{OH}})$",
+        },
+        ylim=(-1.05, 1.05),
+    )
+
+
+def save_force_direction_projection_plot(
+    x: np.ndarray,
+    x_label: str,
+    force_projections: dict[str, dict[str, np.ndarray]],
+    output_dir: Path,
+    dpi: int,
+) -> None:
+    projections = {
+        label: {key: values[key] for key in ("tangent", "xi")}
+        for label, values in force_projections.items()
+    }
+    save_force_tangent_xi_plot(
+        x,
+        x_label,
+        projections,
+        output_dir,
+        dpi,
+        filename="mep_force_tangent_xi_projection.png",
+        ylabel=r"projected force [eV $\AA^{-1}$]",
+        titles={
+            "tangent": r"$F\cdot\hat t$",
+            "xi": r"$F\cdot\widehat{q_\mathrm{NH}-q_\mathrm{OH}}$",
+        },
+    )
 
 
 def save_hessian_absolute_error_plot(
@@ -595,7 +780,10 @@ def build_metrics_frame(
     methods: list[MethodData],
     vib: dict[str, VibDiagnostics],
     force_projections: dict[str, dict[str, np.ndarray]],
+    force_cosines: dict[str, dict[str, np.ndarray]],
     hessian_errors: dict[str, dict[str, np.ndarray]],
+    force_errors: dict[str, np.ndarray],
+    force_norms: dict[str, np.ndarray],
     hessian_absolute_errors: dict[str, dict[str, np.ndarray]],
     hessian_element_maes: dict[str, dict[str, np.ndarray]],
     alignments: dict[str, dict[str, np.ndarray]],
@@ -617,6 +805,8 @@ def build_metrics_frame(
         ) * EV_TO_KCALMOL
         for key, values in force_projections[method.label].items():
             frame[f"{prefix}_force_{key}_ev_ang"] = values
+        for key, values in force_cosines[method.label].items():
+            frame[f"{prefix}_force_{key}_cosine"] = values
         diag = vib[method.label]
         frame[f"{prefix}_n_negative"] = diag.n_negative
         for idx in range(min(n_eigs, diag.evals.shape[1])):
@@ -627,6 +817,10 @@ def build_metrics_frame(
         prefix = safe_label(label)
         frame[f"{prefix}_hessian_relative_error"] = values["full"]
         frame[f"{prefix}_reaction_center_relative_error"] = values["reaction_center"]
+    for label, values in force_errors.items():
+        frame[f"{safe_label(label)}_force_relative_error"] = values
+    for label, values in force_norms.items():
+        frame[f"{safe_label(label)}_force_norm_ev_ang"] = values
     for label, values in hessian_absolute_errors.items():
         prefix = safe_label(label)
         frame[f"{prefix}_hessian_absolute_error_ev_ang2"] = values["full"]
@@ -674,6 +868,13 @@ def main() -> None:
         }
         for method in methods
     }
+    force_cosines = {
+        method.label: {
+            key: force_direction_cosine(method.forces_ev_ang, direction)
+            for key, direction in projection_dirs.items()
+        }
+        for method in methods
+    }
 
     print("Computing vibrational diagnostics for MLIP Hessians...", flush=True)
     vib = {
@@ -696,6 +897,14 @@ def main() -> None:
                 eqv2.hessians_ev_ang2, dft.hessians_ev_ang2, reaction_center_atoms
             ),
         },
+    }
+    force_errors = {
+        HIP_LABEL: force_frobenius_relative_error(hip.forces_ev_ang, dft.forces_ev_ang),
+        EQV2_LABEL: force_frobenius_relative_error(eqv2.forces_ev_ang, dft.forces_ev_ang),
+    }
+    force_norms = {
+        method.label: force_norm_ev_ang(method.forces_ev_ang)
+        for method in methods
     }
     hessian_absolute_errors = {
         HIP_LABEL: {
@@ -742,7 +951,17 @@ def main() -> None:
     save_force_projection_plot(x, x_label, force_projections, output_dir, args.dpi)
     save_lowest_eigenvalue_plot(x, x_label, vib, args.n_eigs, output_dir, args.dpi)
     save_negative_mode_plot(x, x_label, vib, output_dir, args.dpi)
-    save_hessian_error_plot(x, x_label, hessian_errors, output_dir, args.dpi)
+    save_hessian_error_plot(
+        x,
+        x_label,
+        {label: values["full"] for label, values in hessian_errors.items()},
+        output_dir,
+        args.dpi,
+    )
+    save_force_error_plot(x, x_label, force_errors, output_dir, args.dpi)
+    save_force_norm_plot(x, x_label, force_norms, output_dir, args.dpi)
+    save_force_direction_cosine_plot(x, x_label, force_cosines, output_dir, args.dpi)
+    save_force_direction_projection_plot(x, x_label, force_projections, output_dir, args.dpi)
     save_hessian_absolute_error_plot(x, x_label, hessian_absolute_errors, output_dir, args.dpi)
     save_hessian_element_mae_plot(x, x_label, hessian_element_maes, output_dir, args.dpi)
     save_mode_alignment_plot(x, x_label, alignments, output_dir, args.dpi)
@@ -753,7 +972,10 @@ def main() -> None:
         methods=methods,
         vib=vib,
         force_projections=force_projections,
+        force_cosines=force_cosines,
         hessian_errors=hessian_errors,
+        force_errors=force_errors,
+        force_norms=force_norms,
         hessian_absolute_errors=hessian_absolute_errors,
         hessian_element_maes=hessian_element_maes,
         alignments=alignments,
