@@ -17,6 +17,8 @@ from plot_style import (  # noqa: E402
     finish_axis,
 )
 PANEL_LABEL_SIZE = 18
+AXIS_LABEL_SIZE = 15.5
+LEGEND_FONT_SIZE = 11.5
 
 
 EIGVAL_MAE_COLUMNS = (
@@ -52,7 +54,7 @@ def _dash_for_memory(method):
 def _display_name(method):
     method_lower = str(method).lower()
     if method_lower == "prediction":
-        return "HIP Hessians (ours)"
+        return "HIP Hessians"
     if method_lower == "autograd":
         return "AD Hessians (direct force)"
     if method_lower == "autograd_conservative":
@@ -271,7 +273,7 @@ def make_plot_seaborn(
         dataset_name="PubChem",
     )
 
-    fig, axes = plt.subplots(2, 2, figsize=(10.0, 7.2), layout="constrained")
+    fig, axes = plt.subplots(2, 2, figsize=(10.0, 6.2), layout="constrained")
     fig.set_constrained_layout_pads(hspace=0.06)
     ax_time, ax_memory, ax_rgd1, ax_pubchem = axes.ravel()
 
@@ -426,15 +428,15 @@ def make_plot_seaborn(
     for panel_label, ax, title, ylabel in zip("abcd", axes.ravel(), titles, ylabels):
         if panel_label not in "ab":
             ax.set_title(title)
-            ax.set_xlabel("Number of Atoms")
-        ax.set_ylabel(ylabel)
+            ax.set_xlabel("Number of Atoms", fontsize=AXIS_LABEL_SIZE)
+        ax.set_ylabel(ylabel, fontsize=AXIS_LABEL_SIZE)
         ax.set_axisbelow(True)
         ax.tick_params(axis="both", which="both", length=0)
         finish_axis(ax)
         panel_label_transform = offset_copy(
             ax.transAxes,
             fig=fig,
-            x=-28,
+            x=-1,
             y=2,
             units="dots",
         )
@@ -453,8 +455,14 @@ def make_plot_seaborn(
 
     ax_time.set_ylim(ymin_time, ymax_time)
     ax_memory.set_ylim(ymin_memory, ymax_memory)
+    ax_memory.set_yticks([0, 1, 2])
+    ax_memory.set_yticks([0.5, 1.5], minor=True)
+    ax_memory.yaxis.set_major_formatter(matplotlib.ticker.FormatStrFormatter("%d"))
+    ax_memory.grid(True, which="minor", axis="y", color="#E9E9E9", linewidth=1.0)
     # ax_rgd1.set_ylim(bottom=0.0)
     ax_rgd1.set_ylim(bottom=0.0, top=0.345)
+    ax_rgd1.set_yticks([0.0, 0.1, 0.2, 0.3])
+    ax_rgd1.yaxis.set_major_formatter(matplotlib.ticker.FormatStrFormatter("%.1f"))
     ax_pubchem.set_ylim(bottom=0.0, top=9.8)
     ax_time.set_xlim(4.5, 21.5)
     ax_memory.set_xlim(4.5, 21.5)
@@ -467,7 +475,6 @@ def make_plot_seaborn(
     if pubchem_lambda_curves:
         ns = [n for stats in pubchem_lambda_curves.values() for n in stats.index]
         ax_pubchem.set_xlim(min(ns) - 0.5, max(ns) + 0.5)
-    ax_pubchem.yaxis.set_label_coords(-0.11, 0.5)
 
     handles, labels = ax_time.get_legend_handles_labels()
     legend = ax_memory.legend(
@@ -478,7 +485,7 @@ def make_plot_seaborn(
         bbox_transform=offset_copy(ax_memory.transAxes, fig=fig, x=-1, y=2, units="dots"),
         frameon=True,
         edgecolor="none",
-        fontsize=12.5,
+        fontsize=LEGEND_FONT_SIZE,
         labelcolor=PLOT_FONT_COLOR,
     )
     legend.set_zorder(1)
@@ -486,6 +493,9 @@ def make_plot_seaborn(
     legend.get_frame().set_zorder(1)
     for artist in (*legend.legend_handles, *legend.get_texts()):
         artist.set_zorder(4)
+    for text in legend.get_texts():
+        if text.get_text() == "HIP Hessians":
+            text.set_fontweight("bold")
 
     output_path = Path(output_path)
     output_path.parent.mkdir(parents=True, exist_ok=True)
@@ -564,7 +574,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--output",
         type=str,
-        default="results_speed2/speed_memory_lambda_scaling_eval_horm_colours.png",
+        default="results_speed2/speed_memory_lambda.png",
     )
     parser.add_argument("--ymin_time", type=float, default=0.0)
     parser.add_argument("--ymax_time", type=float, default=3.7)

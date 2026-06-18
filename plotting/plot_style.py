@@ -5,6 +5,7 @@ from collections.abc import Mapping
 
 import matplotlib
 import seaborn as sns
+from matplotlib.ticker import LogFormatterMathtext, LogLocator, NullFormatter
 # import plotly.colors
 
 AD_COLOR = "#5e859e" # "#295c7e" # Plotly: "#2F6B8F"
@@ -22,8 +23,8 @@ FORWARD_PASS_COLOR = "#8ed3c3" # #68c4af
 # Annotation/train line uses named gray (#808080)
 EQV2_NO_H_FORCE_COLOR = AD_NO_H_COLOR
 HIP_FORCE_COLOR = HIP_COLOR
-LEFTNET_CF_FORCE_COLOR = "#659C87" # "#4a8a72"
-LEFTNET_DF_FORCE_COLOR = "#9C5C5C" # #B98C8C #A76F6F "#8A3F3F" # #8A3F3F #743737
+LEFTNET_CF_FORCE_COLOR = "#8cb5a5" ##8cb5a5 #7cab99 #9bbfb1 #659C87 "#4a8a72"
+LEFTNET_DF_FORCE_COLOR = "#B98C8C" # #9C5C5C #B98C8C #A76F6F "#8A3F3F" # #8A3F3F #743737
 PLOTLY_FONT_COLOR = "#2F4565" # #2a3f5f
 LINE_WIDTH = 2.2
 THIN_LINE_WIDTH = 1.6
@@ -42,7 +43,7 @@ PLOT_FONT_FAMILY = ("Open Sans", "Arial", "Helvetica", "DejaVu Sans", "sans-seri
 
 HESSIAN_METHOD_TO_COLOUR = {
     "autograd": AD_COLOR,  # Alternate: "#a1c9f4"
-    "autograd_conservative": "#b482c8",
+    "autograd_conservative": "#cfcfcf", # "#b482c8",
     "forward_pass": FORWARD_PASS_COLOR,
     "finite_difference_bz1": AD_NO_H_COLOR,
     "finite_difference_bz32": "#ffa8af",
@@ -51,6 +52,7 @@ HESSIAN_METHOD_TO_COLOUR = {
     "hessian_approx": "#4a8a72",
     "leftnet_df": LEFTNET_CF_FORCE_COLOR,
     "leftnet_cf": LEFTNET_DF_FORCE_COLOR,
+    "alphanet": "#cfcfcf",
 }
 HESSIAN_METHOD_TO_COLOUR["predict"] = HESSIAN_METHOD_TO_COLOUR["prediction"]
 HESSIAN_METHOD_TO_COLOUR["learned"] = HESSIAN_METHOD_TO_COLOUR["prediction"]
@@ -140,7 +142,30 @@ def model_palette(labels: list[str] | tuple[str, ...] | Mapping[str, object]) ->
     return {label: model_color(label, fallback[idx]) for idx, label in enumerate(keys)}
 
 
+def configure_log_axes(ax: matplotlib.axes.Axes) -> None:
+    for axis_name in ("x", "y"):
+        scale = ax.get_xscale() if axis_name == "x" else ax.get_yscale()
+        if scale != "log":
+            continue
+        axis = getattr(ax, f"{axis_name}axis")
+        axis.set_major_locator(LogLocator(base=10))
+        axis.set_major_formatter(LogFormatterMathtext(base=10, labelOnlyBase=True))
+        axis.set_minor_locator(LogLocator(base=10, subs=range(2, 10)))
+        axis.set_minor_formatter(NullFormatter())
+
+
+def apply_invisible_ticks(ax: matplotlib.axes.Axes) -> None:
+    ax.tick_params(
+        axis="both",
+        which="both",
+        length=0,
+        width=0.5,
+        labelsize=matplotlib.rcParams["xtick.labelsize"],
+    )
+
+
 def finish_axis(ax: matplotlib.axes.Axes, *, legend: bool = False) -> None:
+    configure_log_axes(ax)
     ax.grid(True, color="#E9E9E9", linewidth=1.0)
     if ax.get_xscale() == "log":
         ax.minorticks_on()

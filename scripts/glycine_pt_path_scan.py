@@ -231,7 +231,10 @@ def run_dense_path(
     )}
     eqv2_evals_rows: list[np.ndarray] = []
     hip_evals_rows: list[np.ndarray] = []
+    eqv2_force_rows: list[np.ndarray] = []
+    hip_force_rows: list[np.ndarray] = []
     eqv2_hess_rows: list[np.ndarray] = []
+    hip_hess_rows: list[np.ndarray] = []
     coords_rows: list[np.ndarray] = []
     for i, x in enumerate(x_values):
         coords = place_proton(ts_coords, float(x), frame)
@@ -239,7 +242,10 @@ def run_dense_path(
         e_eqv2, f_eqv2, h_eqv2_raw = eqv2.evaluate(coords, atomic_nums)
         e_hip, f_hip, h_hip_raw = hip.evaluate(coords, atomic_nums)
         h_eqv2, h_hip = symmetrize(h_eqv2_raw), symmetrize(h_hip_raw)
+        eqv2_force_rows.append(f_eqv2)
+        hip_force_rows.append(f_hip)
         eqv2_hess_rows.append(h_eqv2_raw)
+        hip_hess_rows.append(h_hip_raw)
         coords_rows.append(coords)
 
         eqv2_evals, eqv2_neg = vibrational_spectrum(h_eqv2, coords, atomic_nums)
@@ -272,7 +278,10 @@ def run_dense_path(
     arrays["tangent"] = tangent
     arrays["eqv2_evals"] = np.stack(eqv2_evals_rows)
     arrays["hip_evals"] = np.stack(hip_evals_rows)
+    arrays["eqv2_forces"] = np.stack(eqv2_force_rows)
+    arrays["hip_forces"] = np.stack(hip_force_rows)
     arrays["eqv2_hessian_cartesian"] = np.stack(eqv2_hess_rows)  # RAW (unsymmetrized)
+    arrays["hip_hessian_cartesian"] = np.stack(hip_hess_rows)  # RAW (unsymmetrized)
     arrays["coords_angstrom"] = np.stack(coords_rows)
     return arrays
 

@@ -344,6 +344,7 @@ def plot_method_heatmaps(
     symmetric: bool = False,
     discrete: bool = False,
     ylim_top: float | None = None,
+    xlim_right: float | None = None,
     vlim: tuple[float, float] | None = None,
     extend: str = "neither",
     mask_top_n: int = 0,
@@ -415,9 +416,15 @@ def plot_method_heatmaps(
         ax.set_ylabel(r"$q_\mathrm{OH}$ [$\AA$]" if idx == 0 else "")
         if ylim_top is not None:
             ax.set_ylim(top=ylim_top)
+        if xlim_right is not None:
+            ax.set_xlim(right=xlim_right)
         ax.set_aspect("equal", adjustable="box")
-        ax.set_xticks([1.0, 1.4, 1.8, 2.2])
-        ax.set_yticks([1.0, 1.4, 1.8, 2.2])
+        axis_max = min(
+            value for value in (ylim_top, xlim_right) if value is not None
+        ) if (ylim_top is not None or xlim_right is not None) else None
+        ticks = [1.0, 1.5, 2.0] if axis_max is not None and axis_max <= 2.0 else [1.0, 1.4, 1.8, 2.2]
+        ax.set_xticks(ticks)
+        ax.set_yticks(ticks)
         finish_axis(ax)
         ax.tick_params(
             axis="both",
@@ -612,6 +619,20 @@ def main() -> None:
         cmap="viridis",
         discrete=True,
         ylim_top=2.3,
+        title_fontsize=title_size() * 0.85,
+        hide_nonfirst_y_ticks=True,
+    )
+    plot_method_heatmaps(
+        df,
+        n_negative_specs,
+        output_dir / "glycine_pt_n_negative_modes_methods_crop2p0.png",
+        None,
+        "negative mode count",
+        args.dpi,
+        cmap="viridis",
+        discrete=True,
+        ylim_top=2.0,
+        xlim_right=2.0,
         title_fontsize=title_size() * 0.85,
         hide_nonfirst_y_ticks=True,
     )

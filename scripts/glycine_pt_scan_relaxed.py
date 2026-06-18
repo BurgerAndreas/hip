@@ -105,10 +105,11 @@ def write_orca_input(
     route: str,
     charge: int,
     multiplicity: int,
+    nprocs: int = 16,
 ) -> None:
     with path.open("w") as handle:
         handle.write(f"{route}\n\n")
-        handle.write("%pal nprocs 16 end\n")
+        handle.write(f"%pal nprocs {nprocs} end\n")
         handle.write("%maxcore 4000\n\n")
         handle.write(f"* xyz {charge} {multiplicity}\n")
         for symbol, xyz in zip(symbols, coords, strict=False):
@@ -178,12 +179,16 @@ def main() -> None:
     parser.add_argument("--product-xyz", type=Path, default=_default_reference("reference_product.xyz"))
     parser.add_argument("--output-dir", type=Path, default=Path("runs/glycine_pt_scan_relaxed"))
     parser.add_argument("--xtb-method", default="GFN2-xTB")
-    parser.add_argument("--s-min", type=float, default=-1.8)
+    # Asymmetric box: extended toward the reactant well (more negative s, higher
+    # sigma), whose basin floor was being clipped by the original symmetric box.
+    # The product side (s_max) is left unchanged since it was already covered.
+    # s spacing ~0.12 A with s=0 on the grid; sigma spacing ~0.071 A.
+    parser.add_argument("--s-min", type=float, default=-2.16)
     parser.add_argument("--s-max", type=float, default=1.8)
-    parser.add_argument("--n-s", type=int, default=31)
+    parser.add_argument("--n-s", type=int, default=34)
     parser.add_argument("--sigma-min", type=float, default=2.4)
-    parser.add_argument("--sigma-max", type=float, default=3.8)
-    parser.add_argument("--n-sigma", type=int, default=21)
+    parser.add_argument("--sigma-max", type=float, default=4.1)
+    parser.add_argument("--n-sigma", type=int, default=25)
     parser.add_argument("--q-min", type=float, default=0.85)
     parser.add_argument("--q-max", type=float, default=2.75)
     parser.add_argument("--energy-ceiling-kcal", type=float, default=None)
@@ -191,17 +196,31 @@ def main() -> None:
     parser.add_argument("--max-steps", type=int, default=300)
     parser.add_argument("--charge", type=int, default=0)
     parser.add_argument("--multiplicity", type=int, default=1)
+    # ORCA 6.1.1 rejects `EnGrad Freq` together, so we emit two passes (matching
+    # the rigid n36 pipeline): a Freq pass that yields the Hessian (.hess) and a
+    # separate EnGrad pass that yields the gradient/forces (.engrad).
+    # NOTE: ORCA 6.1.1 rejects the ORCA-4-era `Grid5 FinalGrid6` keywords; use the
+    # default integration grid (matching the EnGrad pass) so the two passes are
+    # consistent.
     parser.add_argument(
-        "--orca-route",
-        default="! wB97X-D3 6-31G(d) TightSCF Grid5 FinalGrid6 EnGrad Freq",
+        "--orca-freq-route",
+        default="! wB97X-D3 6-31G(d) TightSCF Freq",
     )
+    parser.add_argument(
+        "--orca-engrad-route",
+        default="! wB97X-D3 6-31G(d) TightSCF EnGrad",
+    )
+    parser.add_argument("--orca-freq-nprocs", type=int, default=4)
+    parser.add_argument("--orca-engrad-nprocs", type=int, default=4)
     args = parser.parse_args()
 
     out_dir = args.output_dir
     xyz_dir = out_dir / "xyz"
     orca_dir = out_dir / "orca_inputs"
+    orca_engrad_dir = out_dir / "orca_engrad_inputs"
     xyz_dir.mkdir(parents=True, exist_ok=True)
     orca_dir.mkdir(parents=True, exist_ok=True)
+    orca_engrad_dir.mkdir(parents=True, exist_ok=True)
 
     ts_atoms = read(str(args.ts_xyz))
     symbols = ts_atoms.get_chemical_symbols()
@@ -229,6 +248,7 @@ def main() -> None:
 
     manifest_path = out_dir / "scan_manifest.csv"
     orca_list_path = out_dir / "orca_input_list.txt"
+    orca_engrad_list_path = out_dir / "orca_engrad_input_list.txt"
     fieldnames = [
         "grid_id",
         "i_s",
@@ -243,6 +263,7 @@ def main() -> None:
         "converged",
         "xyz_path",
         "orca_input_path",
+        "orca_engrad_input_path",
     ]
 
     rows: list[dict[str, object]] = []
@@ -280,12 +301,30 @@ def main() -> None:
             name = f"grid_{grid_id:04d}_s_{s:+.3f}_sig_{sigma:.3f}"
             xyz_path = xyz_dir / f"{name}.xyz"
             inp_path = orca_dir / f"{name}.inp"
+            engrad_inp_path = orca_engrad_dir / f"{name}.inp"
             comment = (
                 f"glycine_pt relaxed xtb={args.xtb_method} "
                 f"s={s:.6f} sigma={sigma:.6f} q_nh={q_nh_rel:.6f} q_oh={q_oh_rel:.6f}"
             )
             write_xyz(xyz_path, symbols, coords, comment)
-            write_orca_input(inp_path, symbols, coords, args.orca_route, args.charge, args.multiplicity)
+            write_orca_input(
+                inp_path,
+                symbols,
+                coords,
+                args.orca_freq_route,
+                args.charge,
+                args.multiplicity,
+                nprocs=args.orca_freq_nprocs,
+            )
+            write_orca_input(
+                engrad_inp_path,
+                symbols,
+                coords,
+                args.orca_engrad_route,
+                args.charge,
+                args.multiplicity,
+                nprocs=args.orca_engrad_nprocs,
+            )
 
             rows.append(
                 {
@@ -302,6 +341,7 @@ def main() -> None:
                     "converged": converged,
                     "xyz_path": str(xyz_path.resolve()),
                     "orca_input_path": str(inp_path.resolve()),
+                    "orca_engrad_input_path": str(engrad_inp_path.resolve()),
                 }
             )
             coords_all.append(coords)
@@ -326,12 +366,17 @@ def main() -> None:
         print(f"[ceiling] dropped {n_dropped} nodes above {args.energy_ceiling_kcal} kcal/mol", flush=True)
 
     fieldnames_out = fieldnames + ["xtb_energy_relative_kcalmol"]
-    with manifest_path.open("w", newline="") as mh, orca_list_path.open("w") as lh:
+    with (
+        manifest_path.open("w", newline="") as mh,
+        orca_list_path.open("w") as lh,
+        orca_engrad_list_path.open("w") as eh,
+    ):
         writer = csv.DictWriter(mh, fieldnames=fieldnames_out)
         writer.writeheader()
         for row in rows:
             writer.writerow({key: row[key] for key in fieldnames_out})
             lh.write(f"{row['orca_input_path']}\n")
+            eh.write(f"{row['orca_engrad_input_path']}\n")
 
     np.savez_compressed(
         out_dir / "xtb_relaxed_arrays.npz",
@@ -355,7 +400,8 @@ def main() -> None:
         "h_atom": H_ATOM,
         "charge": args.charge,
         "multiplicity": args.multiplicity,
-        "orca_route": args.orca_route,
+        "orca_freq_route": args.orca_freq_route,
+        "orca_engrad_route": args.orca_engrad_route,
         "fmax": args.fmax,
         "max_steps": args.max_steps,
         "s_range": [args.s_min, args.s_max],
@@ -379,7 +425,8 @@ def main() -> None:
     print(f"Skipped (q bounds): {n_skipped_bounds}, skipped (placement): {n_skipped_place}", flush=True)
     print(f"Manifest: {manifest_path}", flush=True)
     print(f"Relaxed XYZ: {xyz_dir}", flush=True)
-    print(f"ORCA inputs: {orca_dir}", flush=True)
+    print(f"ORCA Freq inputs: {orca_dir}", flush=True)
+    print(f"ORCA EnGrad inputs: {orca_engrad_dir}", flush=True)
     print(f"Arrays: {out_dir / 'xtb_relaxed_arrays.npz'}", flush=True)
 
 

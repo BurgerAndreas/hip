@@ -210,13 +210,38 @@ def finish_axis(ax: matplotlib.axes.Axes, *, legend: bool = False) -> None:
         ax.legend(frameon=True, edgecolor="none")
 
 
+def add_group_title(
+    fig: plt.Figure,
+    axes: list[plt.Axes],
+    title: str,
+    *,
+    pad: float = 0.012,
+) -> None:
+    positions = [ax.get_position() for ax in axes]
+    left = min(position.x0 for position in positions)
+    right = max(position.x1 for position in positions)
+    top = max(position.y1 for position in positions)
+    fig.text(
+        0.5 * (left + right),
+        top + pad,
+        title,
+        ha="center",
+        va="bottom",
+        fontsize=SUBPLOT_TITLE_SIZE,
+        color=PLOT_FONT_COLOR,
+    )
+
+
 def add_panel_labels(
     fig: plt.Figure,
     axes: list[plt.Axes],
     *,
-    labels: str = "abcdef",
+    labels: str | tuple[str, ...] = "abcdef",
 ) -> None:
-    for panel_label, ax in zip(labels, axes, strict=True):
+    label_list = list(labels) if not isinstance(labels, str) else list(labels)
+    for panel_label, ax in zip(label_list, axes, strict=True):
+        if not panel_label:
+            continue
         panel_label_transform = offset_copy(
             ax.transAxes,
             fig=fig,
@@ -435,9 +460,11 @@ def _plot_distribution_panel(
     metric: str,
     order: list[str],
     *,
-    title: str,
+    title: str | None,
     max_cycles: int,
     display_order: list[str] | None = None,
+    show_stripplot: bool = True,
+    show_nonconverged_markers: bool = True,
 ) -> list[str]:
     plot_df, palette, methods_plotted = _distribution_plot_data(df, metric, order)
     display_order = (
@@ -469,45 +496,48 @@ def _plot_distribution_panel(
         )
         for collection in ax.collections:
             collection.set_alpha(0.14)
-        sns.stripplot(
-            data=plot_df,
-            x="Method",
-            y="Value",
-            hue="Method",
-            order=display_order,
-            hue_order=display_order,
-            palette=palette,
-            jitter=0.28,
-            size=4,
-            alpha=0.3,
-            linewidth=0,
-            dodge=False,
-            legend=False,
-            ax=ax,
-        )
-    for method in methods_plotted:
-        method_rows = df[df["name"] == method]
-        hit_max_mask = method_rows["steps"].isin([max_cycles, max_cycles - 1])
-        series_noconv = method_rows.loc[hit_max_mask, metric].dropna()
-        if series_noconv.empty:
-            continue
-        x_pos = display_order.index(_display_name(method))
-        ax.scatter(
-            [x_pos] * len(series_noconv),
-            series_noconv.astype(float),
-            marker="x",
-            s=85,
-            linewidths=2.0,
-            color=METHOD_TO_COLOUR[method],
-            zorder=5,
-        )
+        if show_stripplot:
+            sns.stripplot(
+                data=plot_df,
+                x="Method",
+                y="Value",
+                hue="Method",
+                order=display_order,
+                hue_order=display_order,
+                palette=palette,
+                jitter=0.28,
+                size=4,
+                alpha=0.3,
+                linewidth=0,
+                dodge=False,
+                legend=False,
+                ax=ax,
+            )
+    if show_nonconverged_markers:
+        for method in methods_plotted:
+            method_rows = df[df["name"] == method]
+            hit_max_mask = method_rows["steps"].isin([max_cycles, max_cycles - 1])
+            series_noconv = method_rows.loc[hit_max_mask, metric].dropna()
+            if series_noconv.empty:
+                continue
+            x_pos = display_order.index(_display_name(method))
+            ax.scatter(
+                [x_pos] * len(series_noconv),
+                series_noconv.astype(float),
+                marker="x",
+                s=85,
+                linewidths=2.0,
+                color=METHOD_TO_COLOUR[method],
+                zorder=5,
+            )
 
     bold_targets = {
         _display_name(method)
         for method in ("RFO (learned)", "RFO-BFGS (learned init)")
         if method in methods_plotted
     }
-    ax.set_title(title)
+    if title:
+        ax.set_title(title)
     ax.set_xlabel("")
     ax.set_ylabel(METRIC_TO_LABEL[metric])
     _format_categorical_xaxis(ax, bold_targets=bold_targets)
@@ -635,7 +665,14 @@ def _load_zpe_metrics(zpe_csv: Path) -> pd.DataFrame:
 
 
 def _zpe_model_palette(models: list[str]) -> dict[str, str]:
-    return {model: model_color(model, HESSIAN_METHOD_TO_COLOUR["autograd"]) for model in models}
+    return {
+        model: (
+            HESSIAN_METHOD_TO_COLOUR["alphanet"]
+            if model == "AlphaNet"
+            else model_color(model, HESSIAN_METHOD_TO_COLOUR["autograd"])
+        )
+        for model in models
+    }
 
 
 def _zpe_display_name(model: str) -> str:
@@ -651,9 +688,10 @@ def _plot_zpe_metric_panel(
     df_zpe: pd.DataFrame,
     *,
     metric: str,
-    title: str,
+    title: str | None,
     ylabel: str,
     log_y: bool,
+    show_bar_labels: bool = True,
 ) -> None:
     models = [model for model in ZPE_MODEL_ORDER if model in set(df_zpe["model"])]
     plot_df = df_zpe[df_zpe["model"].isin(models)].copy()
@@ -662,23 +700,25 @@ def _plot_zpe_metric_panel(
     values = plot_df.set_index("model").loc[models, metric].astype(float).to_numpy()
     colors = [palette[model] for model in models]
     bars = ax.bar(x, values, color=colors, width=0.72, edgecolor="none", zorder=2)
-    for bar, model, value in zip(bars, models, values, strict=True):
-        if value <= 0:
-            continue
-        label_y = value * 1.18 if log_y else value * 1.04
-        ax.text(
-            bar.get_x() + bar.get_width() / 2,
-            label_y,
-            _format_zpe_bar_value(float(value)),
-            ha="center",
-            va="bottom",
-            fontsize=BAR_LABEL_SIZE,
-            color=PLOT_FONT_COLOR,
-            fontweight="bold" if model in ZPE_BOLD_MODELS else "normal",
-        )
+    if show_bar_labels:
+        for bar, model, value in zip(bars, models, values, strict=True):
+            if value <= 0:
+                continue
+            label_y = value * 1.18 if log_y else value * 1.04
+            ax.text(
+                bar.get_x() + bar.get_width() / 2,
+                label_y,
+                _format_zpe_bar_value(float(value)),
+                ha="center",
+                va="bottom",
+                fontsize=BAR_LABEL_SIZE,
+                color=PLOT_FONT_COLOR,
+                fontweight="bold" if model in ZPE_BOLD_MODELS else "normal",
+            )
     ax.set_xticks(x)
     ax.set_xticklabels([_zpe_display_name(model) for model in models])
-    ax.set_title(title)
+    if title:
+        ax.set_title(title)
     ax.set_xlabel("")
     ax.set_ylabel(ylabel)
     if log_y:
@@ -762,7 +802,7 @@ def plot_relaxation_reactbench_zpe(
         df_steps,
         "steps",
         order_steps,
-        title="Relaxation",
+        title=None,
         max_cycles=max_cycles,
     ):
         category = METHOD_TO_CATEGORY.get(method)
@@ -774,9 +814,10 @@ def plot_relaxation_reactbench_zpe(
         df_wall_comp,
         "wall_time_s",
         PANEL_METHOD_ORDER,
-        title="Relaxation",
+        title=None,
         max_cycles=max_cycles,
         display_order=wall_display_order,
+        show_nonconverged_markers=False,
     ):
         category = METHOD_TO_CATEGORY.get(method)
         if category is not None and category not in categories_all:
@@ -817,7 +858,7 @@ def plot_relaxation_reactbench_zpe(
         axes[3],
         df_zpe,
         metric="zpe_mae",
-        title="Zero-Point Energy",
+        title=None,
         ylabel=r"ZPE MAE [eV]",
         log_y=True,
     )
@@ -825,15 +866,17 @@ def plot_relaxation_reactbench_zpe(
         axes[4],
         df_zpe,
         metric="delta_zpe_mae",
-        title="Zero-Point Energy",
+        title=None,
         ylabel=r"$\Delta$ZPE MAE [eV]",
         log_y=True,
     )
     _plot_classification_panel(axes[5], df_zpe)
     axes[0].set_ylim(0, 155)
     axes[1].set_ylim(0, 4.9)
-    add_panel_labels(fig, axes)
+    add_panel_labels(fig, axes, labels=("a", "", "b", "c", "", "d"))
     fig.subplots_adjust(left=0.10, right=0.995, bottom=0.16, top=0.92, wspace=0.24, hspace=0.46)
+    add_group_title(fig, [axes[0], axes[1]], "Geometry Optimization")
+    add_group_title(fig, [axes[3], axes[4]], "Zero-Point Energy")
 
     output_path.parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(output_path, dpi=300, bbox_inches="tight", pad_inches=0.035)
