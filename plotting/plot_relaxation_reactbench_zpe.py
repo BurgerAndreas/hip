@@ -16,6 +16,7 @@ import seaborn as sns  # noqa: E402
 from plot_style import (
     ANNOTATION_BOLD_FONT_SIZE,
     HESSIAN_METHOD_TO_COLOUR,
+    model_color,
 )
 
 
@@ -25,12 +26,22 @@ DEFAULT_RELAXATION_CSV = (
     DEFAULT_DATA_DIR / "relaxation_results_noiserms0.035.csv"
 )
 DEFAULT_REACTBENCH_CSV = DEFAULT_DATA_DIR / "reactbench.csv"
+DEFAULT_ZPE_CSV = DEFAULT_DATA_DIR / "zpe_classification.csv"
 DEFAULT_OUTPUT = (
     ROOT_DIR
     / "plots"
     / "reactbench_relaxation"
-    / "steps_walltime_reactbench.png"
+    / "relaxation_reactbench_zpe.png"
 )
+
+ZPE_MODEL_ORDER = [
+    "AlphaNet",
+    "LeftNet-CF",
+    "LeftNet-DF",
+    "EquiformerV2",
+    "HIP-EquiformerV2",
+]
+ZPE_BOLD_MODELS = {"HIP-EquiformerV2"}
 
 AD_COLOR = "#5e859e"
 HIP_COLOR = "#d96001"
@@ -191,8 +202,13 @@ def finish_axis(ax: matplotlib.axes.Axes, *, legend: bool = False) -> None:
         ax.legend(frameon=True, edgecolor="none")
 
 
-def add_panel_labels(fig: plt.Figure, axes: list[plt.Axes]) -> None:
-    for panel_label, ax in zip("abc", axes, strict=True):
+def add_panel_labels(
+    fig: plt.Figure,
+    axes: list[plt.Axes],
+    *,
+    labels: str = "abcdef",
+) -> None:
+    for panel_label, ax in zip(labels, axes, strict=True):
         panel_label_transform = offset_copy(
             ax.transAxes,
             fig=fig,
@@ -583,9 +599,115 @@ def _plot_reactbench_panel(ax: plt.Axes, df_rb: pd.DataFrame) -> None:
         legend_obj.get_frame().set_linewidth(0)
 
 
-def plot_steps_walltime_reactbench(
+def _load_zpe_metrics(zpe_csv: Path) -> pd.DataFrame:
+    df = pd.read_csv(zpe_csv)
+    required = {
+        "model",
+        "zpe_mae",
+        "zpe_mae_std",
+        "delta_zpe_mae",
+        "delta_zpe_mae_std",
+        "classification",
+    }
+    missing = required - set(df.columns)
+    if missing:
+        raise ValueError(f"ZPE CSV is missing required columns: {sorted(missing)}")
+    df = df.copy()
+    df["model"] = pd.Categorical(
+        df["model"],
+        categories=ZPE_MODEL_ORDER,
+        ordered=True,
+    )
+    return df.sort_values("model").reset_index(drop=True)
+
+
+def _zpe_model_palette(models: list[str]) -> dict[str, str]:
+    return {model: model_color(model, HESSIAN_METHOD_TO_COLOUR["autograd"]) for model in models}
+
+
+def _plot_zpe_metric_panel(
+    ax: plt.Axes,
+    df_zpe: pd.DataFrame,
+    *,
+    metric: str,
+    std_col: str,
+    title: str,
+    ylabel: str,
+    log_y: bool,
+) -> None:
+    models = [model for model in ZPE_MODEL_ORDER if model in set(df_zpe["model"])]
+    plot_df = df_zpe[df_zpe["model"].isin(models)].copy()
+    palette = _zpe_model_palette(models)
+    x = list(range(len(models)))
+    values = plot_df.set_index("model").loc[models, metric].astype(float).to_numpy()
+    errors = plot_df.set_index("model").loc[models, std_col].astype(float).to_numpy()
+    colors = [palette[model] for model in models]
+    ax.bar(x, values, color=colors, width=0.72, edgecolor="none", zorder=2)
+    ax.errorbar(
+        x,
+        values,
+        yerr=errors,
+        fmt="none",
+        ecolor=PLOT_FONT_COLOR,
+        elinewidth=1.2,
+        capsize=3,
+        capthick=1.2,
+        zorder=3,
+    )
+    ax.set_xticks(x)
+    ax.set_xticklabels(models)
+    ax.set_title(title)
+    ax.set_xlabel("")
+    ax.set_ylabel(ylabel)
+    if log_y:
+        ax.set_yscale("log")
+        positive = values[values > 0]
+        if len(positive) > 0:
+            ymin = max(positive.min() * 0.35, 1e-4)
+            ymax = max(values + errors) * 2.5
+            ax.set_ylim(ymin, ymax)
+    _format_categorical_xaxis(ax, bold_targets=ZPE_BOLD_MODELS)
+    finish_axis(ax)
+
+
+def _plot_classification_panel(ax: plt.Axes, df_zpe: pd.DataFrame) -> None:
+    models = [model for model in ZPE_MODEL_ORDER if model in set(df_zpe["model"])]
+    plot_df = df_zpe[df_zpe["model"].isin(models)].copy()
+    palette = _zpe_model_palette(models)
+    x = list(range(len(models)))
+    values = (
+        100.0
+        * plot_df.set_index("model").loc[models, "classification"].astype(float).to_numpy()
+    )
+    colors = [palette[model] for model in models]
+    bars = ax.bar(x, values, color=colors, width=0.72, edgecolor="none", zorder=2)
+    for bar, model, value in zip(bars, models, values, strict=True):
+        if value <= 0:
+            continue
+        ax.text(
+            bar.get_x() + bar.get_width() / 2,
+            value + 1.0,
+            f"{value:.0f}%",
+            ha="center",
+            va="bottom",
+            fontsize=BAR_LABEL_SIZE,
+            color=PLOT_FONT_COLOR,
+            fontweight="bold" if model in ZPE_BOLD_MODELS else "normal",
+        )
+    ax.set_xticks(x)
+    ax.set_xticklabels(models)
+    ax.set_title("Classification")
+    ax.set_xlabel("")
+    ax.set_ylabel("Accuracy [%]")
+    ax.set_ylim(0, 102)
+    _format_categorical_xaxis(ax, bold_targets=ZPE_BOLD_MODELS)
+    finish_axis(ax)
+
+
+def plot_relaxation_reactbench_zpe(
     relaxation_csv: Path,
     reactbench_csv: Path,
+    zpe_csv: Path,
     output_path: Path,
     max_cycles: int,
 ) -> None:
@@ -608,8 +730,10 @@ def plot_steps_walltime_reactbench(
         include_annotation_methods=True,
     )
     df_rb = _load_reactbench(reactbench_csv)
+    df_zpe = _load_zpe_metrics(zpe_csv)
 
-    fig, axes = plt.subplots(1, 3, figsize=(12, 3.65))
+    fig, axes_grid = plt.subplots(2, 3, figsize=(12, 7.2))
+    axes = list(axes_grid.ravel())
     categories_all: list[str] = []
     for method in _plot_distribution_panel(
         axes[0],
@@ -666,10 +790,29 @@ def plot_steps_walltime_reactbench(
         legend.get_frame().set_linewidth(0)
 
     _plot_reactbench_panel(axes[2], df_rb)
+    _plot_zpe_metric_panel(
+        axes[3],
+        df_zpe,
+        metric="zpe_mae",
+        std_col="zpe_mae_std",
+        title="ZPE MAE",
+        ylabel=r"ZPE MAE [eV]",
+        log_y=True,
+    )
+    _plot_zpe_metric_panel(
+        axes[4],
+        df_zpe,
+        metric="delta_zpe_mae",
+        std_col="delta_zpe_mae_std",
+        title=r"$\Delta$ZPE MAE",
+        ylabel=r"$\Delta$ZPE MAE [eV]",
+        log_y=True,
+    )
+    _plot_classification_panel(axes[5], df_zpe)
     axes[0].set_ylim(0, 155)
     axes[1].set_ylim(0, 4.9)
-    add_panel_labels(fig, list(axes))
-    fig.subplots_adjust(left=0.10, right=0.995, bottom=0.23, top=0.90, wspace=0.24)
+    add_panel_labels(fig, axes)
+    fig.subplots_adjust(left=0.10, right=0.995, bottom=0.16, top=0.92, wspace=0.24, hspace=0.34)
 
     output_path.parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(output_path, dpi=300, bbox_inches="tight", pad_inches=0.035)
@@ -692,6 +835,12 @@ def parse_args() -> argparse.Namespace:
         help="CSV with ReactBench run summaries for the TS-search panel.",
     )
     parser.add_argument(
+        "--zpe-csv",
+        type=Path,
+        default=DEFAULT_ZPE_CSV,
+        help="CSV with ZPE MAE, delta ZPE MAE, and classification metrics.",
+    )
+    parser.add_argument(
         "--output",
         type=Path,
         default=DEFAULT_OUTPUT,
@@ -708,9 +857,10 @@ def parse_args() -> argparse.Namespace:
 
 def main() -> None:
     args = parse_args()
-    plot_steps_walltime_reactbench(
+    plot_relaxation_reactbench_zpe(
         relaxation_csv=args.relaxation_csv,
         reactbench_csv=args.reactbench_csv,
+        zpe_csv=args.zpe_csv,
         output_path=args.output,
         max_cycles=args.max_cycles,
     )

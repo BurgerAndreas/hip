@@ -16,6 +16,9 @@ from plot_style import finish_axis
 from scripts.cache_glycine_pt_orca_vibrations import mode_alignment, normalized_curvature, vibrational_eigh
 
 
+TS_GRID_ID = 320
+
+
 def axes_label_size() -> float:
     return float(matplotlib.rcParams["axes.labelsize"])
 
@@ -63,6 +66,26 @@ def add_energy_contours(ax: plt.Axes, df: pd.DataFrame) -> None:
     x, y, z = as_grid(df, "orca_relative_kcalmol")
     levels = contour_levels(z.compressed(), step=10.0)
     ax.contour(x, y, z, levels=levels, colors="k", linewidths=0.5, alpha=0.55)
+
+
+def add_ts_marker(ax: plt.Axes, df: pd.DataFrame, grid_id: int = TS_GRID_ID) -> None:
+    rows = df.loc[df["grid_id"] == grid_id]
+    if rows.empty:
+        return
+
+    row = rows.iloc[0]
+    q_nh = float(row["q_nh"])
+    q_oh = float(row["q_oh"])
+    ax.scatter(
+        [q_nh],
+        [q_oh],
+        marker="*",
+        s=85,
+        facecolor="white",
+        edgecolor="black",
+        linewidth=0.7,
+        zorder=10,
+    )
 
 
 def finite_difference_force(df: pd.DataFrame) -> pd.DataFrame:
@@ -121,6 +144,7 @@ def plot_force_field(df: pd.DataFrame, output_path: Path, dpi: int) -> None:
     levels = contour_levels(z.compressed(), step=10.0)
     mesh = ax.contourf(x, y, z, levels=levels, cmap="turbo", extend="max")
     ax.contour(x, y, z, levels=levels, colors="k", linewidths=0.45, alpha=0.55)
+    add_ts_marker(ax, df)
 
     # Subsample for legibility on the 36x36 grid and omit the steep lower-left outliers.
     arrows = force_df.iloc[::2].dropna(subset=["force_q_nh", "force_q_oh"]).copy()
@@ -139,6 +163,7 @@ def plot_force_field(df: pd.DataFrame, output_path: Path, dpi: int) -> None:
     )
     ax.set_xlabel(r"$q_\mathrm{NH}=d(\mathrm{N4,H9})$ [$\AA$]")
     ax.set_ylabel(r"$q_\mathrm{OH}=d(\mathrm{O3,H9})$ [$\AA$]")
+    ax.set_ylim(top=2.3)
     ax.set_aspect("equal", adjustable="box")
     finish_axis(ax)
     cbar = fig.colorbar(mesh, ax=ax)
@@ -147,6 +172,7 @@ def plot_force_field(df: pd.DataFrame, output_path: Path, dpi: int) -> None:
     cbar.outline.set_visible(False)
     fig.tight_layout(pad=0.01)
     fig.savefig(output_path, dpi=dpi)
+    print(f"Saved {output_path}", flush=True)
     plt.close(fig)
 
 
@@ -157,11 +183,30 @@ def reaction_center_hessian_norm(hessians_ev_ang2: np.ndarray, atoms: tuple[int,
     return np.linalg.norm(blocks.reshape(blocks.shape[0], -1), axis=1)
 
 
+def hessian_element_mae(model_hessians_ev_ang2: np.ndarray, ref_hessians_ev_ang2: np.ndarray) -> np.ndarray:
+    model = 0.5 * (model_hessians_ev_ang2 + np.swapaxes(model_hessians_ev_ang2, -1, -2))
+    ref = 0.5 * (ref_hessians_ev_ang2 + np.swapaxes(ref_hessians_ev_ang2, -1, -2))
+    diff = model - ref
+    return np.mean(np.abs(diff.reshape(diff.shape[0], -1)), axis=1)
+
+
+def force_element_mae(model_forces_ev_ang: np.ndarray, ref_forces_ev_ang: np.ndarray) -> np.ndarray:
+    diff = model_forces_ev_ang - ref_forces_ev_ang
+    return np.mean(np.abs(diff), axis=(1, 2))
+
+
+def force_norm_ev_ang(forces_ev_ang: np.ndarray) -> np.ndarray:
+    flat = np.asarray(forces_ev_ang, dtype=float).reshape(forces_ev_ang.shape[0], -1)
+    return np.linalg.norm(flat, axis=1)
+
+
 def add_model_alignment(
     df: pd.DataFrame,
     arrays_path: Path,
     label: str,
     column: str,
+    ref_hessians_ev_ang2: np.ndarray,
+    ref_forces_ev_ang: np.ndarray | None,
     coords_angstrom: np.ndarray,
     masses_amu: np.ndarray,
     q_nh_direction: np.ndarray,
@@ -178,6 +223,8 @@ def add_model_alignment(
     hessians = arrays["hessians_cartesian"]
     if hessians.shape[0] != len(df):
         raise ValueError(f"{label} has {hessians.shape[0]} Hessians, expected {len(df)}")
+    if hessians.shape != ref_hessians_ev_ang2.shape:
+        raise ValueError(f"{label} Hessians have shape {hessians.shape}, expected {ref_hessians_ev_ang2.shape}")
 
     eval0 = []
     eval1 = []
@@ -198,6 +245,15 @@ def add_model_alignment(
     df[f"{prefix}_n_negative"] = np.asarray(n_negative, dtype=int)
     df[column] = np.asarray(alignments, dtype=float)
     df[f"{prefix}_reaction_center_hessian_frobenius_ev_ang2"] = reaction_center_hessian_norm(hessians)
+    df[f"{prefix}_hessian_mae_ev_ang2"] = hessian_element_mae(hessians, ref_hessians_ev_ang2)
+    if ref_forces_ev_ang is not None:
+        if "forces" not in arrays:
+            print(f"Skipping {label} force MAE; forces missing from {arrays_path}", flush=True)
+        elif arrays["forces"].shape != ref_forces_ev_ang.shape:
+            raise ValueError(f"{label} forces have shape {arrays['forces'].shape}, expected {ref_forces_ev_ang.shape}")
+        else:
+            df[f"{prefix}_force_mae_ev_ang"] = force_element_mae(arrays["forces"], ref_forces_ev_ang)
+            df[f"{prefix}_force_norm_ev_ang"] = force_norm_ev_ang(arrays["forces"])
     df[f"{prefix}_curvature_q_nh_ev_ang2"] = np.asarray(
         [normalized_curvature(hessian, direction) for hessian, direction in zip(hessians, q_nh_direction, strict=True)],
         dtype=float,
@@ -233,6 +289,7 @@ def plot_method_alignment(df: pd.DataFrame, output_path: Path, dpi: int, zero_th
         x, y, z = as_grid(df, col)
         mesh = ax.pcolormesh(x, y, z, shading="nearest", cmap=cmap, vmin=zero_threshold, vmax=1.0)
         add_energy_contours(ax, df)
+        add_ts_marker(ax, df)
         ax.set_title(label)
         ax.set_xlabel(r"$q_\mathrm{NH}$ [$\AA$]")
         ax.set_ylabel(r"$q_\mathrm{OH}$ [$\AA$]" if idx == 0 else "")
@@ -271,7 +328,8 @@ def plot_method_alignment(df: pd.DataFrame, output_path: Path, dpi: int, zero_th
         fontsize=axes_label_size(),
     )
     cbar.outline.set_visible(False)
-    fig.savefig(output_path, dpi=dpi, bbox_inches="tight")
+    fig.savefig(output_path, dpi=dpi, bbox_inches="tight", pad_inches=0.01)
+    print(f"Saved {output_path}", flush=True)
     plt.close(fig)
 
 
@@ -351,6 +409,7 @@ def plot_method_heatmaps(
         else:
             mesh = ax.pcolormesh(x, y, z, shading="nearest", cmap=plot_cmap, vmin=vmin, vmax=vmax)
         add_energy_contours(ax, df)
+        add_ts_marker(ax, df)
         ax.set_title(label, fontsize=title_fontsize)
         ax.set_xlabel(r"$q_\mathrm{NH}$ [$\AA$]")
         ax.set_ylabel(r"$q_\mathrm{OH}$ [$\AA$]" if idx == 0 else "")
@@ -393,7 +452,8 @@ def plot_method_heatmaps(
     cbar.ax.minorticks_off()
     cbar.ax.tick_params(which="both", axis="both", length=0, labelsize=tick_label_size())
     cbar.outline.set_visible(False)
-    fig.savefig(output_path, dpi=dpi, bbox_inches="tight")
+    fig.savefig(output_path, dpi=dpi, bbox_inches="tight", pad_inches=0.01)
+    print(f"Saved {output_path}", flush=True)
     plt.close(fig)
 
 
@@ -416,6 +476,8 @@ def main() -> None:
 
     with np.load(vib_cache) as cache:
         coords_angstrom = cache["coords_angstrom"]
+        hessians_ev_ang2 = cache["hessian_ev_ang2"]
+        forces_ev_ang = np.asarray(cache["forces_ev_ang"], dtype=float) if "forces_ev_ang" in cache.files else None
         masses_amu = cache["masses_amu"]
         q_nh_direction = cache["q_nh_direction"]
         q_oh_direction = cache["q_oh_direction"]
@@ -440,6 +502,8 @@ def main() -> None:
             }
         )
     df = energy_df.merge(vib_df, on="grid_id", validate="one_to_one").sort_values("grid_id")
+    if forces_ev_ang is not None:
+        df["force_norm_ev_ang"] = force_norm_ev_ang(forces_ev_ang)
     suffix = scan_dir.name.removeprefix("glycine_pt_scan") if scan_dir.name.startswith("glycine_pt_scan") else ""
     hip_arrays = args.hip_arrays or scan_dir / "hip_v2_arrays.npz"
     eqv2_arrays = args.eqv2_arrays or scan_dir.parent / f"glycine_pt_eqv2_autograd{suffix}" / "eqv2_autograd_arrays.npz"
@@ -448,6 +512,8 @@ def main() -> None:
         hip_arrays,
         "HIP",
         "hip_unstable_mode_pt_abs_alignment",
+        hessians_ev_ang2,
+        forces_ev_ang,
         coords_angstrom,
         masses_amu,
         q_nh_direction,
@@ -459,6 +525,8 @@ def main() -> None:
         eqv2_arrays,
         "AD",
         "ad_unstable_mode_pt_abs_alignment",
+        hessians_ev_ang2,
+        forces_ev_ang,
         coords_angstrom,
         masses_amu,
         q_nh_direction,
@@ -547,6 +615,61 @@ def main() -> None:
         title_fontsize=title_size() * 0.85,
         hide_nonfirst_y_ticks=True,
     )
+    plot_method_heatmaps(
+        df,
+        [
+            ("force_norm_ev_ang", "DFT"),
+            ("hip_force_norm_ev_ang", "HIP"),
+            ("ad_force_norm_ev_ang", "AD"),
+        ],
+        output_dir / "glycine_pt_force_norm_methods_qoh_crop2p3.png",
+        None,
+        r"Force norm [eV $\AA^{-1}$]",
+        args.dpi,
+        cmap="viridis",
+        ylim_top=2.3,
+        vlim=(0.0, 20.0),
+        extend="max",
+        mask_corner_diagonals=2,
+        title_fontsize=title_size() * 0.85,
+        hide_nonfirst_y_ticks=True,
+    )
+    plot_method_heatmaps(
+        df,
+        [
+            ("hip_hessian_mae_ev_ang2", "HIP"),
+            ("ad_hessian_mae_ev_ang2", "AD"),
+        ],
+        output_dir / "glycine_pt_hessian_mae_methods_qoh_crop2p3.png",
+        None,
+        r"Hessian MAE [eV $\AA^{-2}$]",
+        args.dpi,
+        cmap="viridis",
+        ylim_top=2.3,
+        vlim=(0.0, 0.6),
+        extend="max",
+        mask_corner_diagonals=2,
+        title_fontsize=title_size() * 0.85,
+        hide_nonfirst_y_ticks=True,
+    )
+    plot_method_heatmaps(
+        df,
+        [
+            ("hip_force_mae_ev_ang", "HIP"),
+            ("ad_force_mae_ev_ang", "AD"),
+        ],
+        output_dir / "glycine_pt_force_mae_methods_qoh_crop2p3.png",
+        None,
+        r"Force MAE [eV $\AA^{-1}$]",
+        args.dpi,
+        cmap="viridis",
+        ylim_top=2.3,
+        vlim=(0.0, 0.3),
+        extend="max",
+        mask_corner_diagonals=2,
+        title_fontsize=title_size() * 0.85,
+        hide_nonfirst_y_ticks=True,
+    )
     plot_method_alignment(df, output_dir / "glycine_pt_unstable_mode_alignment_methods.png", args.dpi)
     plot_method_heatmaps(
         df,
@@ -556,10 +679,10 @@ def main() -> None:
             ("ad_reaction_center_hessian_frobenius_ev_ang2", "AD"),
         ],
         output_dir / "glycine_pt_reaction_center_hessian_norm_methods.png",
-        "O-N-H Hessian block norm",
+        None, # "O-N-H Hessian block norm",
         r"Frobenius norm [eV $\AA^{-2}$]",
         args.dpi,
-        cmap="magma",
+        cmap="viridis",
         ylim_top=2.3,
         mask_corner_diagonals=2,
     )
@@ -578,7 +701,7 @@ def main() -> None:
             "",
             r"projected curvature [eV $\AA^{-2}$]",
             args.dpi,
-            cmap="coolwarm",
+            cmap="viridis",
             symmetric=True,
             ylim_top=2.3,
             mask_corner_diagonals=2,

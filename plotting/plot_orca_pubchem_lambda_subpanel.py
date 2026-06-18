@@ -11,23 +11,13 @@ from pathlib import Path
 import pandas as pd
 import plotly.graph_objects as go
 
-# try:
-#     from hip.colours import (
-#         ANNOTATION_BOLD_FONT_SIZE,
-#         AXES_FONT_SIZE,
-#         AXES_TITLE_FONT_SIZE,
-#         HESSIAN_METHOD_TO_COLOUR,
-#         TITLE_FONT_SIZE,
-#     )
-# except ModuleNotFoundError:
-ANNOTATION_BOLD_FONT_SIZE = 18
-AXES_FONT_SIZE = 12
-AXES_TITLE_FONT_SIZE = 13
-HESSIAN_METHOD_TO_COLOUR = {
-    "autograd": "#1f77b4",
-    "prediction": "#d96001",
-}
-TITLE_FONT_SIZE = 16
+from plot_style import (
+    ANNOTATION_BOLD_FONT_SIZE,
+    AXES_FONT_SIZE,
+    AXES_TITLE_FONT_SIZE,
+    HESSIAN_METHOD_TO_COLOUR,
+    TITLE_FONT_SIZE,
+)
 
 
 RESULTS = {

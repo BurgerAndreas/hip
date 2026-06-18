@@ -11,7 +11,7 @@ from matplotlib import font_manager
 from matplotlib.ticker import LogFormatterMathtext, LogLocator, NullFormatter
 from matplotlib.transforms import offset_copy
 
-from hip.colours import (
+from plot_style import (
     ANNOTATION_BOLD_FONT_SIZE,
     AXES_FONT_SIZE,
     AXES_TITLE_FONT_SIZE,

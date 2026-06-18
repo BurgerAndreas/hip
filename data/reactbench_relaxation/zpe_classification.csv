@@ -1,0 +1,6 @@
+hessian,model,zpe_mae,zpe_mae_std,delta_zpe_mae,delta_zpe_mae_std,classification
+AD,AlphaNet,0.0565,0.0283,0.0625,0.0770,0.71
+AD,LeftNet-CF,1.2957,0.3331,0.1996,0.2552,0.82
+AD,LeftNet-DF,0.0094,0.0039,0.0269,0.0264,0.78
+AD,EquiformerV2,0.0600,0.0719,0.0539,0.0706,0.75
+Predicted,HIP-EquiformerV2,0.0004,0.0003,0.0016,0.0018,0.92

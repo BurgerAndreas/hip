@@ -73,6 +73,14 @@ MODEL_PALETTE = {
     "AD (no H)": AD_NO_H_COLOR,
 }
 EXCLUDED_TRAINING_SIZES = {20000.0, 200000.0}
+TS_STAR_KWARGS = {
+    "marker": "*",
+    "s": 35,
+    "facecolors": "white",
+    "edgecolors": "black",
+    "linewidths": 0.7,
+    "zorder": 10,
+}
 
 
 @dataclass
@@ -241,6 +249,26 @@ def finite_values(df: pd.DataFrame, metric: str) -> np.ndarray:
     return values[np.isfinite(values)]
 
 
+def ts_metric_values(df: pd.DataFrame, metric: str, *, use_log: bool) -> np.ndarray:
+    if "true_is_ts" not in df.columns:
+        return np.array([])
+    ts = df.loc[df["true_is_ts"].astype(bool)]
+    values = pd.to_numeric(ts[metric], errors="coerce").to_numpy(dtype=float)
+    values = values[np.isfinite(values)]
+    if use_log:
+        values = values[values > 0]
+        values = np.log10(values)
+    return values
+
+
+def add_ts_star_rug(ax: plt.Axes, values: np.ndarray) -> None:
+    if len(values) == 0:
+        return
+    ymin, ymax = ax.get_ylim()
+    y = ymin + 0.03 * (ymax - ymin)
+    ax.scatter(values, np.full(values.shape, y), **TS_STAR_KWARGS)
+
+
 def format_log10_hist_axis(ax: plt.Axes) -> None:
     xmin, xmax = ax.get_xlim()
     major_exponents = np.arange(np.floor(xmin), np.ceil(xmax) + 1, dtype=int)
@@ -286,6 +314,7 @@ def plot_histogram_row(
                 color=model_color(result.label),
                 label=result.label,
             )
+            add_ts_star_rug(ax, ts_metric_values(result.df, metric, use_log=plot_log_error))
 
         ax.set_xlabel(metric_label)
         ax.set_ylabel("Density")

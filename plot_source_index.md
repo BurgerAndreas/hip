@@ -119,7 +119,7 @@ Where to find it:
 - Local plotting script:
   - `plotting/plot_datascaling.py`
 - Local plotting support:
-  - `hip/colours.py`
+  - `plotting/plot_style.py`
 - Source plot script refs in this repo:
   - `fd:plotting/plot_datascaling.py`
   - `origin/fd:plotting/plot_datascaling.py`

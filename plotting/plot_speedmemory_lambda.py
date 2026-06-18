@@ -9,15 +9,12 @@ import matplotlib.pyplot as plt  # noqa: E402
 from matplotlib.transforms import offset_copy  # noqa: E402
 
 from plot_style import (  # noqa: E402
+    HESSIAN_METHOD_TO_COLOUR,
     LINE_WIDTH,
     MARKER_SIZE,
     PLOTLY_FONT_COLOR as PLOT_FONT_COLOR,
     apply_plot_style,
     finish_axis,
-)
-
-from hip.colours import (
-    HESSIAN_METHOD_TO_COLOUR,
 )
 PANEL_LABEL_SIZE = 18
 
@@ -414,8 +411,8 @@ def make_plot_seaborn(
     )
 
     titles = (
-        "Time per Sample",
-        "Peak Memory",
+        "Time",
+        "Memory",
         "RGD1",
         "PubChem",
     )
@@ -468,7 +465,7 @@ def make_plot_seaborn(
     if pubchem_lambda_curves:
         ns = [n for stats in pubchem_lambda_curves.values() for n in stats.index]
         ax_pubchem.set_xlim(min(ns) - 0.5, max(ns) + 0.5)
-    ax_pubchem.yaxis.set_label_coords(-0.13, 0.5)
+    ax_pubchem.yaxis.set_label_coords(-0.11, 0.5)
 
     handles, labels = ax_time.get_legend_handles_labels()
     legend = ax_memory.legend(
@@ -482,7 +479,11 @@ def make_plot_seaborn(
         fontsize=12.5,
         labelcolor=PLOT_FONT_COLOR,
     )
+    legend.set_zorder(1)
     legend.get_frame().set_alpha(0.75)
+    legend.get_frame().set_zorder(1)
+    for artist in (*legend.legend_handles, *legend.get_texts()):
+        artist.set_zorder(4)
 
     output_path = Path(output_path)
     output_path.parent.mkdir(parents=True, exist_ok=True)

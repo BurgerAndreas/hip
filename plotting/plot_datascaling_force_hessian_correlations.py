@@ -64,6 +64,14 @@ SCATTER_KWARGS = {
     "linewidths": 0,
     "rasterized": True,
 }
+TS_STAR_KWARGS = {
+    "marker": "*",
+    "s": 85,
+    "facecolors": "white",
+    "edgecolors": "black",
+    "linewidths": 0.7,
+    "zorder": 10,
+}
 
 
 @dataclass
@@ -232,6 +240,30 @@ def result_color_values(result: ResultTable, column: str | None) -> np.ndarray |
     return pd.to_numeric(result.df[column], errors="coerce").to_numpy(dtype=float)
 
 
+def ts_marker_coords(
+    df: pd.DataFrame,
+    *,
+    x_col: str = "forces_error",
+    y_col: str = "hessian_error",
+    use_log: bool,
+) -> tuple[np.ndarray, np.ndarray]:
+    if "true_is_ts" not in df.columns:
+        return np.array([]), np.array([])
+    ts = df.loc[df["true_is_ts"].astype(bool)]
+    x = pd.to_numeric(ts[x_col], errors="coerce").to_numpy(dtype=float)
+    y = pd.to_numeric(ts[y_col], errors="coerce").to_numpy(dtype=float)
+    keep = np.isfinite(x) & np.isfinite(y)
+    if use_log:
+        keep &= (x > 0) & (y > 0)
+    return x[keep], y[keep]
+
+
+def add_ts_star_markers(ax: plt.Axes, x: np.ndarray, y: np.ndarray) -> None:
+    if len(x) == 0:
+        return
+    ax.scatter(x, y, **TS_STAR_KWARGS)
+
+
 def collect_force_hessian_values(
     results: list[ResultTable],
     *,
@@ -298,6 +330,8 @@ def plot_force_hessian_scatter_row(
                 linewidths=SCATTER_KWARGS["linewidths"],
                 rasterized=SCATTER_KWARGS["rasterized"],
             )
+        ts_x, ts_y = ts_marker_coords(result.df, use_log=use_log)
+        add_ts_star_markers(ax, ts_x, ts_y)
         corr_x = np.log10(x) if use_log else x
         corr_y = np.log10(y) if use_log else y
         corr = np.corrcoef(corr_x, corr_y)[0, 1]
