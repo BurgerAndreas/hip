@@ -8,7 +8,7 @@ import seaborn as sns
 from matplotlib.ticker import LogFormatterMathtext, LogLocator, NullFormatter
 # import plotly.colors
 
-AD_COLOR = "#5e859e" # "#295c7e" # Plotly: "#2F6B8F"
+AD_COLOR = "#96b0c0" # #96b0c0 #8a9da8 "#5e859e" "#295c7e" # Plotly: "#2F6B8F"
 HIP_COLOR = "#d96001" # Plotly: "#E76F00" Old: "#ffb482"
 AD_NO_H_COLOR = "#837d80" # "#5a5255" 
 DFT_COLOR = "#2B2B2B"
@@ -23,9 +23,34 @@ FORWARD_PASS_COLOR = "#8ed3c3" # #68c4af
 # Annotation/train line uses named gray (#808080)
 EQV2_NO_H_FORCE_COLOR = AD_NO_H_COLOR
 HIP_FORCE_COLOR = HIP_COLOR
-LEFTNET_CF_FORCE_COLOR = "#8cb5a5" ##8cb5a5 #7cab99 #9bbfb1 #659C87 "#4a8a72"
+LEFTNET_CF_FORCE_COLOR = "#8b9f98" # #89a198 #8b9f98 #8cb5a5 #7cab99 #9bbfb1 #659C87 "#4a8a72"
 LEFTNET_DF_FORCE_COLOR = "#B98C8C" # #9C5C5C #B98C8C #A76F6F "#8A3F3F" # #8A3F3F #743737
 PLOTLY_FONT_COLOR = "#2F4565" # #2a3f5f
+
+#0A0A0A`
+#26302E
+#2C3A37
+#374945
+#3E4B48
+#445754
+#4C5754
+#5E6864
+#68716E
+#6C6E6F
+#7D8682
+#8C8B86
+#A6ADA9
+#B9C0BC
+#C3C7C2
+#CDD2CD
+#CFD3CE
+#D6D6D6
+#E2DFD9
+#E9E9E9
+#F5F5F5
+#FCFCFB
+
+
 LINE_WIDTH = 2.2
 THIN_LINE_WIDTH = 1.6
 GUIDE_LINE_WIDTH = 1.4
@@ -45,7 +70,7 @@ HESSIAN_METHOD_TO_COLOUR = {
     "autograd": AD_COLOR,  # Alternate: "#a1c9f4"
     "autograd_conservative": "#cfcfcf", # "#b482c8",
     "forward_pass": FORWARD_PASS_COLOR,
-    "finite_difference_bz1": AD_NO_H_COLOR,
+    "finite_difference_bz1": "#aea9ab",
     "finite_difference_bz32": "#ffa8af",
     "prediction": HIP_COLOR,
     "ef": AD_NO_H_COLOR,

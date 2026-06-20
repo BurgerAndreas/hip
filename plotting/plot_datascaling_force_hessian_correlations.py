@@ -23,8 +23,8 @@ HIP_COLOR = "#d96001"
 AD_NO_H_COLOR = "#837d80"
 PLOT_FONT_COLOR = "#2F4565"
 EF_COLOR = "#837d80"
-LINE_WIDTH = 2.2
-MARKER_SIZE = 5.5
+LINE_WIDTH = 4.4
+MARKER_SIZE = 11.0
 PANEL_LABEL_SIZE = 18
 
 DEFAULT_DATA_DIR = Path("scaling")
@@ -63,14 +63,6 @@ SCATTER_KWARGS = {
     "alpha": 0.18,
     "linewidths": 0,
     "rasterized": True,
-}
-TS_STAR_KWARGS = {
-    "marker": "*",
-    "s": 85,
-    "facecolors": "white",
-    "edgecolors": "black",
-    "linewidths": 0.7,
-    "zorder": 10,
 }
 
 
@@ -240,30 +232,6 @@ def result_color_values(result: ResultTable, column: str | None) -> np.ndarray |
     return pd.to_numeric(result.df[column], errors="coerce").to_numpy(dtype=float)
 
 
-def ts_marker_coords(
-    df: pd.DataFrame,
-    *,
-    x_col: str = "forces_error",
-    y_col: str = "hessian_error",
-    use_log: bool,
-) -> tuple[np.ndarray, np.ndarray]:
-    if "true_is_ts" not in df.columns:
-        return np.array([]), np.array([])
-    ts = df.loc[df["true_is_ts"].astype(bool)]
-    x = pd.to_numeric(ts[x_col], errors="coerce").to_numpy(dtype=float)
-    y = pd.to_numeric(ts[y_col], errors="coerce").to_numpy(dtype=float)
-    keep = np.isfinite(x) & np.isfinite(y)
-    if use_log:
-        keep &= (x > 0) & (y > 0)
-    return x[keep], y[keep]
-
-
-def add_ts_star_markers(ax: plt.Axes, x: np.ndarray, y: np.ndarray) -> None:
-    if len(x) == 0:
-        return
-    ax.scatter(x, y, **TS_STAR_KWARGS)
-
-
 def collect_force_hessian_values(
     results: list[ResultTable],
     *,
@@ -330,8 +298,6 @@ def plot_force_hessian_scatter_row(
                 linewidths=SCATTER_KWARGS["linewidths"],
                 rasterized=SCATTER_KWARGS["rasterized"],
             )
-        ts_x, ts_y = ts_marker_coords(result.df, use_log=use_log)
-        add_ts_star_markers(ax, ts_x, ts_y)
         corr_x = np.log10(x) if use_log else x
         corr_y = np.log10(y) if use_log else y
         corr = np.corrcoef(corr_x, corr_y)[0, 1]
@@ -403,6 +369,7 @@ def make_plot(
     results = load_results(result_specs)
 
     fig = plt.figure(figsize=(15, 8.6), layout="constrained")
+    fig.set_constrained_layout_pads(w_pad=0.01, h_pad=0.01, wspace=0.06, hspace=0.05)
     spec = fig.add_gridspec(
         2,
         4,
@@ -430,9 +397,15 @@ def make_plot(
         use_log=use_log,
     )
     add_panel_labels(fig, [*top_axes, *bottom_axes])
+    for idx, ax in enumerate(top_axes):
+        if idx != 1:
+            ax.set_xlabel("")
+    for idx, ax in enumerate(bottom_axes):
+        if idx != 1:
+            ax.set_xlabel("")
 
     output_path.parent.mkdir(parents=True, exist_ok=True)
-    fig.savefig(output_path, dpi=dpi, bbox_inches="tight")
+    fig.savefig(output_path, dpi=dpi, bbox_inches="tight", pad_inches=0.01)
     plt.close(fig)
     print(f"Saved {output_path}")
 

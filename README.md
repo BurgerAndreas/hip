@@ -140,6 +140,40 @@ uv run python plotting/plot_eval_horm_error_distributions.py
 uv run python plotting/visualize_glycine_pt_xyzrender.py
 ```
 
+Regenerate the 150-point glycine proton-slide DFT/AD/HIP mechanism figures. The ORCA cache is reused from `runs/glycine_pt_path_n150/orca_vib_cache.npz`; rerun the MLIP path only when `path_arrays.npz` needs the full Cartesian AD/HIP forces and Hessians:
+
+```bash
+sbatch -p polar --export=ALL,OUTPUT_DIR=runs/glycine_pt_path_n150,N_DENSE=150,N_DFT=150,WRITE_DFT=0,OVERWRITE_MLIP=1 scripts/run_glycine_pt_path.sbatch
+```
+
+```bash
+uv run python scripts/adapt_glycine_pt_path_arrays.py --path-dir runs/glycine_pt_path_n150
+```
+
+```bash
+uv run python plotting/plot_glycine_pt_mep_mechanism.py && uv run python plotting/plot_glycine_pt_mep_73_diagnostics.py
+```
+
+### Glycine MEP Hessian eigenvalues (73- vs 150-point)
+
+The `mep_lowest_hessian_eigenvalues.png` figure (six lowest mass-weighted Hessian eigenvalues along the proton-transfer path, DFT vs HIP vs AD) used in the paper is produced by `plot_glycine_pt_mep_73_diagnostics.py`. We keep two versions so they can be compared: the 73-point geodesic-interpolated NEB path and the 150-point dense scan. Each run reads `runs/<mep-dir>/{orca_vib_cache.npz,hip_v2_arrays.npz,eqv2_autograd_arrays.npz}` and writes to `plots/<mep-dir>/mep_diagnostics/`.
+
+73-point path (geodesic-interpolated NEB):
+
+```bash
+uv run python plotting/plot_glycine_pt_mep_73_diagnostics.py --mep-dir runs/glycine_pt_mep_73 --output-dir plots/glycine_pt_mep_73/mep_diagnostics
+cp plots/glycine_pt_mep_73/mep_diagnostics/mep_lowest_hessian_eigenvalues.png plots/mep_lowest_hessian_eigenvalues_v2.png
+```
+
+150-point path (dense proton slide):
+
+```bash
+uv run python plotting/plot_glycine_pt_mep_73_diagnostics.py --mep-dir runs/glycine_pt_path_n150 --output-dir plots/glycine_pt_path_n150/mep_diagnostics
+cp plots/glycine_pt_path_n150/mep_diagnostics/mep_lowest_hessian_eigenvalues.png plots/mep_lowest_hessian_eigenvalues_n150.png
+```
+
+The paper figure (`hip.tex`) currently references `plots/mep_lowest_hessian_eigenvalues_v2.png` (the 73-point version); swap in `plots/mep_lowest_hessian_eigenvalues_n150.png` to use the 150-point version.
+
 Regenerate the individual force median spectra summaries used by the joint spectra plots:
 
 ```bash

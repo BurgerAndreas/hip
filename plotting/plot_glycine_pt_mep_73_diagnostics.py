@@ -64,7 +64,23 @@ METHOD_ZORDER = {
     EQV2_LABEL: 3,
     HIP_LABEL: 4,
 }
+PLOT_METHOD_ORDER = (DFT_LABEL, EQV2_LABEL, HIP_LABEL)
 DFT_EIGENVALUE_COLOR = "#5A5A5A"
+
+
+def ordered_method_labels(labels) -> list[str]:
+    label_set = set(labels)
+    return [label for label in PLOT_METHOD_ORDER if label in label_set]
+
+
+def method_plot_marker(label: str, *, both_mlip_markered: bool) -> str:
+    if both_mlip_markered and label == HIP_LABEL:
+        return "D"
+    return METHOD_MARKERS.get(label, "o")
+
+
+def method_zorder(label: str) -> int:
+    return METHOD_ZORDER.get(label, 3)
 
 
 @dataclass
@@ -237,6 +253,15 @@ def force_frobenius_absolute_error(model_f: np.ndarray, ref_f: np.ndarray) -> np
     return np.linalg.norm(diff.reshape(diff.shape[0], -1), axis=1)
 
 
+def force_signed_xi_deviation(
+    model_f: np.ndarray,
+    ref_f: np.ndarray,
+    xi_dirs: np.ndarray,
+) -> np.ndarray:
+    diff = np.asarray(model_f, dtype=float) - np.asarray(ref_f, dtype=float)
+    return normalized_projection(diff, xi_dirs)
+
+
 def force_norm_ev_ang(forces_ev_ang: np.ndarray) -> np.ndarray:
     flat = np.asarray(forces_ev_ang, dtype=float).reshape(forces_ev_ang.shape[0], -1)
     return np.linalg.norm(flat, axis=1)
@@ -398,9 +423,21 @@ def save_png(fig: plt.Figure, path: Path, dpi: int) -> None:
 
 def save_energy_plot(x: np.ndarray, x_label: str, methods: list[MethodData], output_dir: Path, dpi: int) -> None:
     fig, ax = plt.subplots(figsize=(7.2, 4.4))
-    for method in methods:
+    method_by_label = {method.label: method for method in methods}
+    for label in ordered_method_labels(method_by_label):
+        method = method_by_label[label]
         rel_kcal = (method.energies_ev - np.nanmin(method.energies_ev)) * EV_TO_KCALMOL
-        sns.lineplot(x=x, y=rel_kcal, ax=ax, marker="o", markersize=MARKER_SIZE, lw=LINE_WIDTH, label=method.label, color=METHOD_COLORS.get(method.label))
+        sns.lineplot(
+            x=x,
+            y=rel_kcal,
+            ax=ax,
+            marker=method_plot_marker(label, both_mlip_markered=True),
+            markersize=MARKER_SIZE,
+            lw=LINE_WIDTH,
+            label=label,
+            color=METHOD_COLORS.get(label),
+            zorder=method_zorder(label),
+        )
     ax.set_ylabel(r"relative energy [kcal mol$^{-1}$]")
     setup_axis(ax, x_label)
     ax.legend(frameon=True, edgecolor="none")
@@ -416,27 +453,23 @@ def save_force_projection_plot(
     output_dir: Path,
     dpi: int,
 ) -> None:
-    specs = [
-        ("tangent", r"MEP tangent, $F\cdot\hat t$"),
-        ("xi", r"$q_\mathrm{NH}-q_\mathrm{OH}$"),
-        ("q_nh", r"$q_\mathrm{NH}$"),
-        ("q_oh", r"$q_\mathrm{OH}$"),
-    ]
+    specs = ("tangent", "xi", "q_nh", "q_oh")
     fig, axes = plt.subplots(2, 2, figsize=(12.8, 8.3), sharex=True)
-    for ax, (key, title) in zip(axes.ravel(), specs, strict=True):
-        for label, projections in force_projections.items():
+    for ax, key in zip(axes.ravel(), specs, strict=True):
+        for label in ordered_method_labels(force_projections):
+            projections = force_projections[label]
             sns.lineplot(
                 x=x,
                 y=projections[key],
                 ax=ax,
-                marker=METHOD_MARKERS.get(label, "o"),
+                marker=method_plot_marker(label, both_mlip_markered=True),
                 markersize=SMALL_MARKER_SIZE,
                 lw=THIN_LINE_WIDTH,
                 label=label,
                 color=METHOD_COLORS.get(label),
+                zorder=method_zorder(label),
             )
         ax.axhline(0.0, color="grey", lw=THIN_LINE_WIDTH)
-        ax.set_title(title)
         ax.set_ylabel(r"projected force [eV $\AA^{-1}$]")
         setup_axis(ax, x_label)
     axes[0, 0].legend(fontsize=8, frameon=True, edgecolor="none")
@@ -457,7 +490,7 @@ def save_lowest_eigenvalue_plot(
     ncols = min(3, n_eigs)
     nrows = int(np.ceil(n_eigs / ncols))
     fig, axes = plt.subplots(nrows, ncols, figsize=(4.7 * ncols, 3.4 * nrows), sharex=True, squeeze=False)
-    plot_labels = [DFT_LABEL] + [label for label in vib if label != DFT_LABEL]
+    plot_labels = ordered_method_labels(vib)
     x_span = float(np.max(x) - np.min(x))
     shared_xlim = (float(np.min(x) - 0.015 * x_span), float(np.max(x) + 0.015 * x_span))
     for idx, ax in enumerate(axes.ravel()):
@@ -481,15 +514,18 @@ def save_lowest_eigenvalue_plot(
                 linestyle="none" if is_dft else METHOD_LINESTYLES.get(label, "-"),
                 label=label,
                 color=plot_color,
-                zorder=METHOD_ZORDER.get(label, 3),
+                zorder=method_zorder(label),
             )
-        ax.set_title(f"Mode {idx + 1}")
         if idx % ncols == 0:
             ax.set_ylabel(r"$\lambda$ [eV $\AA^{-2}$ amu$^{-1}$]")
         y_values = np.concatenate([vib[label].evals[:, idx] for label in plot_labels])
         y_span = float(np.max(y_values) - np.min(y_values))
         y_pad = max(0.02 * y_span, 0.01)
         ax.set_ylim(float(np.min(y_values) - y_pad), float(np.max(y_values) + y_pad))
+        if idx == 0:
+            ax.set_ylim(-17, 1)
+            ax.set_yticks([0, -5, -10, -15])
+            ax.yaxis.set_major_formatter(matplotlib.ticker.FormatStrFormatter("%d"))
         ax.set_xlim(*shared_xlim)
         setup_axis(ax, x_label)
     for idx, ax in enumerate(axes.ravel()):
@@ -511,7 +547,8 @@ def save_negative_mode_plot(
     dpi: int,
 ) -> None:
     fig, ax = plt.subplots(figsize=(7.2, 4.2))
-    for label, diag in vib.items():
+    for label in ordered_method_labels(vib):
+        diag = vib[label]
         y_values = diag.n_negative + NEGATIVE_MODE_DODGE.get(label, 0.0)
         ax.step(
             x,
@@ -520,15 +557,17 @@ def save_negative_mode_plot(
             lw=LINE_WIDTH,
             label=label,
             color=METHOD_COLORS.get(label),
+            zorder=method_zorder(label),
         )
         sns.scatterplot(
             x=x,
             y=y_values,
             ax=ax,
             s=36,
-            marker=METHOD_MARKERS.get(label, "o"),
+            marker=method_plot_marker(label, both_mlip_markered=True),
             color=METHOD_COLORS.get(label),
             legend=False,
+            zorder=method_zorder(label),
         )
     ax.set_ylabel("negative mode count")
     ax.yaxis.get_major_locator().set_params(integer=True)
@@ -546,23 +585,26 @@ def save_relative_error_plot(
     output_dir: Path,
     dpi: int,
     *,
-    title: str,
     ylabel: str,
     filename: str,
+    use_markers: bool = True,
 ) -> None:
     fig, ax = plt.subplots(figsize=(7.2, 4.4))
-    for label, values in errors.items():
-        sns.lineplot(
-            x=x,
-            y=values,
-            ax=ax,
-            marker="o",
-            markersize=MARKER_SIZE,
-            lw=LINE_WIDTH,
-            label=label,
-            color=METHOD_COLORS.get(label),
-        )
-    ax.set_title(title)
+    for label in ordered_method_labels(errors):
+        values = errors[label]
+        lineplot_kwargs = {
+            "x": x,
+            "y": values,
+            "ax": ax,
+            "lw": LINE_WIDTH,
+            "label": label,
+            "color": METHOD_COLORS.get(label),
+            "zorder": method_zorder(label),
+        }
+        if use_markers:
+            lineplot_kwargs["marker"] = method_plot_marker(label, both_mlip_markered=True)
+            lineplot_kwargs["markersize"] = MARKER_SIZE
+        sns.lineplot(**lineplot_kwargs)
     ax.set_ylabel(ylabel)
     ax.set_yscale("log")
     setup_axis(ax, x_label)
@@ -579,23 +621,26 @@ def save_absolute_error_plot(
     output_dir: Path,
     dpi: int,
     *,
-    title: str,
     ylabel: str,
     filename: str,
+    use_markers: bool = True,
 ) -> None:
     fig, ax = plt.subplots(figsize=(7.2, 4.4))
-    for label, values in errors.items():
-        sns.lineplot(
-            x=x,
-            y=values,
-            ax=ax,
-            marker="o",
-            markersize=MARKER_SIZE,
-            lw=LINE_WIDTH,
-            label=label,
-            color=METHOD_COLORS.get(label),
-        )
-    ax.set_title(title)
+    for label in ordered_method_labels(errors):
+        values = errors[label]
+        lineplot_kwargs = {
+            "x": x,
+            "y": values,
+            "ax": ax,
+            "lw": LINE_WIDTH,
+            "label": label,
+            "color": METHOD_COLORS.get(label),
+            "zorder": method_zorder(label),
+        }
+        if use_markers:
+            lineplot_kwargs["marker"] = method_plot_marker(label, both_mlip_markered=True)
+            lineplot_kwargs["markersize"] = MARKER_SIZE
+        sns.lineplot(**lineplot_kwargs)
     ax.set_ylabel(ylabel)
     ax.set_yscale("log")
     setup_axis(ax, x_label)
@@ -618,7 +663,6 @@ def save_hessian_error_plot(
         errors,
         output_dir,
         dpi,
-        title="Full Hessian Error vs DFT",
         ylabel=r"$||H-H_\mathrm{DFT}||_F \ / \ ||H_\mathrm{DFT}||_F$",
         filename="mep_hessian_error_vs_dft.png",
     )
@@ -637,29 +681,62 @@ def save_force_error_plot(
         errors,
         output_dir,
         dpi,
-        title="Full Force Error vs DFT",
         ylabel=r"$||F-F_\mathrm{DFT}||_F \ / \ ||F_\mathrm{DFT}||_F$",
         filename="mep_force_error_vs_dft.png",
+        use_markers=False,
     )
 
 
 def save_force_absolute_error_plot(
     x: np.ndarray,
     x_label: str,
-    errors: dict[str, np.ndarray],
+    absolute_errors: dict[str, np.ndarray],
+    signed_xi_deviations: dict[str, np.ndarray],
     output_dir: Path,
     dpi: int,
+    *,
+    labels: tuple[str, ...] | None = None,
+    filename: str = "mep_force_absolute_error_vs_dft.png",
 ) -> None:
-    save_absolute_error_plot(
-        x,
-        x_label,
-        errors,
-        output_dir,
-        dpi,
-        title="Full Force Absolute Error vs DFT",
-        ylabel=r"$||F-F_\mathrm{DFT}||_F$ [eV $\AA^{-1}$]",
-        filename="mep_force_absolute_error_vs_dft.png",
-    )
+    plot_labels = ordered_method_labels(labels or absolute_errors)
+    fig, axes = plt.subplots(1, 2, figsize=(12.2, 4.4), sharex=True)
+    for ax, values, ylabel, log_y, show_zero_line in (
+        (
+            axes[0],
+            absolute_errors,
+            r"$||F-F_\mathrm{DFT}||_F$ [eV $\AA^{-1}$]",
+            True,
+            False,
+        ),
+        (
+            axes[1],
+            signed_xi_deviations,
+            r"$(F-F_\mathrm{DFT})\cdot\widehat{\xi}$ [eV $\AA^{-1}$]",
+            False,
+            True,
+        ),
+    ):
+        for label in plot_labels:
+            sns.lineplot(
+                x=x,
+                y=values[label],
+                ax=ax,
+                lw=LINE_WIDTH,
+                label=label,
+                color=METHOD_COLORS.get(label),
+                zorder=method_zorder(label),
+            )
+        if show_zero_line:
+            ax.axhline(0.0, color="grey", lw=THIN_LINE_WIDTH)
+        ax.set_ylabel(ylabel)
+        if log_y:
+            ax.set_yscale("log")
+        setup_axis(ax, x_label)
+    if len(plot_labels) > 1:
+        axes[0].legend(frameon=True, edgecolor="none")
+    fig.tight_layout(pad=0.01)
+    save_png(fig, output_dir / filename, dpi)
+    plt.close(fig)
 
 
 def save_force_norm_plot(
@@ -670,18 +747,19 @@ def save_force_norm_plot(
     dpi: int,
 ) -> None:
     fig, ax = plt.subplots(figsize=(7.2, 4.4))
-    for label, values in force_norms.items():
+    for label in ordered_method_labels(force_norms):
+        values = force_norms[label]
         sns.lineplot(
             x=x,
             y=values,
             ax=ax,
-            marker=METHOD_MARKERS.get(label, "o"),
+            marker=method_plot_marker(label, both_mlip_markered=True),
             markersize=MARKER_SIZE,
             lw=LINE_WIDTH,
             label=label,
             color=METHOD_COLORS.get(label),
+            zorder=method_zorder(label),
         )
-    ax.set_title("Force Norm")
     ax.set_ylabel(r"$||F||_F$ [eV $\AA^{-1}$]")
     ax.set_yscale("log")
     setup_axis(ax, x_label)
@@ -699,27 +777,28 @@ def save_force_tangent_xi_plot(
     dpi: int,
     *,
     filename: str,
-    ylabel: str,
-    titles: dict[str, str],
+    ylabels: dict[str, str],
     ylim: tuple[float, float] | None = None,
     log_y: bool = False,
 ) -> None:
     fig, axes = plt.subplots(1, 2, figsize=(12.2, 4.4), sharex=True)
     for ax, key in zip(axes, ("tangent", "xi"), strict=True):
-        for label, method_values in values.items():
+        for label in ordered_method_labels(values):
+            method_values = values[label]
+            use_marker = label == DFT_LABEL
             sns.lineplot(
                 x=x,
                 y=method_values[key],
                 ax=ax,
-                marker=METHOD_MARKERS.get(label, "o"),
-                markersize=MARKER_SIZE,
+                marker=METHOD_MARKERS.get(label, "o") if use_marker else None,
+                markersize=MARKER_SIZE if use_marker else 0,
                 lw=LINE_WIDTH,
                 label=label,
                 color=METHOD_COLORS.get(label),
+                zorder=method_zorder(label),
             )
         ax.axhline(0.0, color="grey", lw=THIN_LINE_WIDTH)
-        ax.set_title(titles[key])
-        ax.set_ylabel(ylabel)
+        ax.set_ylabel(ylabels[key])
         if ylim is not None:
             ax.set_ylim(*ylim)
         if log_y:
@@ -745,10 +824,9 @@ def save_force_direction_cosine_plot(
         output_dir,
         dpi,
         filename="mep_force_tangent_xi_cosine.png",
-        ylabel=r"$\cos\theta$",
-        titles={
-            "tangent": r"$\cos(F, \hat t)$",
-            "xi": r"$\cos(F, \widehat{q_\mathrm{NH}-q_\mathrm{OH}})$",
+        ylabels={
+            "tangent": r"$\cos(F,\hat{t})$",
+            "xi": r"$\cos(F,\widehat{\xi})$",
         },
         ylim=(-1.05, 1.05),
     )
@@ -772,12 +850,47 @@ def save_force_direction_projection_plot(
         output_dir,
         dpi,
         filename="mep_force_tangent_xi_projection.png",
-        ylabel=r"projected force [eV $\AA^{-1}$]",
-        titles={
-            "tangent": r"$F\cdot\hat t$",
-            "xi": r"$F\cdot\widehat{q_\mathrm{NH}-q_\mathrm{OH}}$",
+        ylabels={
+            "tangent": r"$F\cdot\hat{t}$ [eV $\AA^{-1}$]",
+            "xi": r"$F\cdot\widehat{\xi}$ [eV $\AA^{-1}$]",
         },
     )
+
+
+def save_force_direction_projection_detrended_plot(
+    x: np.ndarray,
+    x_label: str,
+    force_projections: dict[str, dict[str, np.ndarray]],
+    output_dir: Path,
+    dpi: int,
+    *,
+    degree: int = 6,
+) -> None:
+    xi_projections = {label: values["xi"] for label, values in force_projections.items()}
+    trend = np.polyval(np.polyfit(x, xi_projections[DFT_LABEL], degree), x)
+    detrended = {label: values - trend for label, values in xi_projections.items()}
+
+    fig, ax = plt.subplots(figsize=(7.2, 4.4))
+    for label in ordered_method_labels(detrended):
+        use_marker = label == DFT_LABEL
+        sns.lineplot(
+            x=x,
+            y=detrended[label],
+            ax=ax,
+            marker=METHOD_MARKERS.get(label, "o") if use_marker else None,
+            markersize=MARKER_SIZE if use_marker else 0,
+            lw=LINE_WIDTH,
+            label=label,
+            color=METHOD_COLORS.get(label),
+            zorder=method_zorder(label),
+        )
+    ax.axhline(0.0, color="grey", lw=THIN_LINE_WIDTH)
+    ax.set_ylabel(rf"$(F\cdot\widehat{{\xi}}) - p_{{{degree}}}(\xi)$ [eV $\AA^{{-1}}$]")
+    setup_axis(ax, x_label)
+    ax.legend(frameon=True, edgecolor="none")
+    fig.tight_layout(pad=0.01)
+    save_png(fig, output_dir / "mep_force_xi_projection_detrended.png", dpi)
+    plt.close(fig)
 
 
 def save_hessian_absolute_error_plot(
@@ -788,13 +901,23 @@ def save_hessian_absolute_error_plot(
     dpi: int,
 ) -> None:
     fig, axes = plt.subplots(1, 2, figsize=(12.2, 4.4), sharex=True)
-    for ax, key, title in (
-        (axes[0], "full", "Full Hessian Absolute Error vs DFT"),
-        (axes[1], "reaction_center", "O-N-H Block Absolute Error vs DFT"),
+    for ax, key in (
+        (axes[0], "full"),
+        (axes[1], "reaction_center"),
     ):
-        for label, values in errors.items():
-            sns.lineplot(x=x, y=values[key], ax=ax, marker="o", markersize=MARKER_SIZE, lw=LINE_WIDTH, label=label, color=METHOD_COLORS.get(label))
-        ax.set_title(title)
+        for label in ordered_method_labels(errors):
+            values = errors[label]
+            sns.lineplot(
+                x=x,
+                y=values[key],
+                ax=ax,
+                marker=method_plot_marker(label, both_mlip_markered=True),
+                markersize=MARKER_SIZE,
+                lw=LINE_WIDTH,
+                label=label,
+                color=METHOD_COLORS.get(label),
+                zorder=method_zorder(label),
+            )
         ax.set_ylabel(r"$||H-H_\mathrm{DFT}||_F$ [eV $\AA^{-2}$]")
         ax.set_yscale("log")
         setup_axis(ax, x_label)
@@ -812,13 +935,23 @@ def save_hessian_element_mae_plot(
     dpi: int,
 ) -> None:
     fig, axes = plt.subplots(1, 2, figsize=(12.2, 4.4), sharex=True)
-    for ax, key, title in (
-        (axes[0], "full", "Full Hessian Element MAE vs DFT"),
-        (axes[1], "reaction_center", "O-N-H Block Element MAE vs DFT"),
+    for ax, key in (
+        (axes[0], "full"),
+        (axes[1], "reaction_center"),
     ):
-        for label, values in errors.items():
-            sns.lineplot(x=x, y=values[key], ax=ax, marker="o", markersize=MARKER_SIZE, lw=LINE_WIDTH, label=label, color=METHOD_COLORS.get(label))
-        ax.set_title(title)
+        for label in ordered_method_labels(errors):
+            values = errors[label]
+            sns.lineplot(
+                x=x,
+                y=values[key],
+                ax=ax,
+                marker=method_plot_marker(label, both_mlip_markered=True),
+                markersize=MARKER_SIZE,
+                lw=LINE_WIDTH,
+                label=label,
+                color=METHOD_COLORS.get(label),
+                zorder=method_zorder(label),
+            )
         ax.set_ylabel(r"mean $|H-H_\mathrm{DFT}|$ [eV $\AA^{-2}$]")
         ax.set_yscale("log")
         setup_axis(ax, x_label)
@@ -836,13 +969,23 @@ def save_mode_alignment_plot(
     dpi: int,
 ) -> None:
     fig, axes = plt.subplots(1, 2, figsize=(12.2, 4.4), sharex=True, sharey=True)
-    for ax, key, title in (
-        (axes[0], "tangent", "Lowest Mode Alignment With MEP Tangent"),
-        (axes[1], "xi", r"Lowest Mode Alignment With $q_\mathrm{NH}-q_\mathrm{OH}$"),
+    for ax, key in (
+        (axes[0], "tangent"),
+        (axes[1], "xi"),
     ):
-        for label, values in alignments.items():
-            sns.lineplot(x=x, y=values[key], ax=ax, marker="o", markersize=MARKER_SIZE, lw=LINE_WIDTH, label=label, color=METHOD_COLORS.get(label))
-        ax.set_title(title)
+        for label in ordered_method_labels(alignments):
+            values = alignments[label]
+            sns.lineplot(
+                x=x,
+                y=values[key],
+                ax=ax,
+                marker=method_plot_marker(label, both_mlip_markered=True),
+                markersize=MARKER_SIZE,
+                lw=LINE_WIDTH,
+                label=label,
+                color=METHOD_COLORS.get(label),
+                zorder=method_zorder(label),
+            )
         ax.set_ylabel(r"$|\cos\theta|$")
         ax.set_ylim(-0.02, 1.02)
         setup_axis(ax, x_label)
@@ -862,6 +1005,7 @@ def build_metrics_frame(
     hessian_errors: dict[str, dict[str, np.ndarray]],
     force_errors: dict[str, np.ndarray],
     force_absolute_errors: dict[str, np.ndarray],
+    force_signed_xi_deviations: dict[str, np.ndarray],
     force_norms: dict[str, np.ndarray],
     hessian_absolute_errors: dict[str, dict[str, np.ndarray]],
     hessian_element_maes: dict[str, dict[str, np.ndarray]],
@@ -900,6 +1044,8 @@ def build_metrics_frame(
         frame[f"{safe_label(label)}_force_relative_error"] = values
     for label, values in force_absolute_errors.items():
         frame[f"{safe_label(label)}_force_absolute_error_ev_ang"] = values
+    for label, values in force_signed_xi_deviations.items():
+        frame[f"{safe_label(label)}_force_signed_xi_deviation_ev_ang"] = values
     for label, values in force_norms.items():
         frame[f"{safe_label(label)}_force_norm_ev_ang"] = values
     for label, values in hessian_absolute_errors.items():
@@ -987,6 +1133,10 @@ def main() -> None:
         HIP_LABEL: force_frobenius_absolute_error(hip.forces_ev_ang, dft.forces_ev_ang),
         EQV2_LABEL: force_frobenius_absolute_error(eqv2.forces_ev_ang, dft.forces_ev_ang),
     }
+    force_signed_xi_deviations = {
+        HIP_LABEL: force_signed_xi_deviation(hip.forces_ev_ang, dft.forces_ev_ang, dirs["xi"]),
+        EQV2_LABEL: force_signed_xi_deviation(eqv2.forces_ev_ang, dft.forces_ev_ang, dirs["xi"]),
+    }
     force_norms = {
         method.label: force_norm_ev_ang(method.forces_ev_ang)
         for method in methods
@@ -1044,10 +1194,23 @@ def main() -> None:
         args.dpi,
     )
     save_force_error_plot(x, x_label, force_errors, output_dir, args.dpi)
-    save_force_absolute_error_plot(x, x_label, force_absolute_errors, output_dir, args.dpi)
+    save_force_absolute_error_plot(
+        x, x_label, force_absolute_errors, force_signed_xi_deviations, output_dir, args.dpi
+    )
+    save_force_absolute_error_plot(
+        x,
+        x_label,
+        force_absolute_errors,
+        force_signed_xi_deviations,
+        output_dir,
+        args.dpi,
+        labels=(EQV2_LABEL,),
+        filename="mep_force_absolute_error_vs_dft_ad_only.png",
+    )
     save_force_norm_plot(x, x_label, force_norms, output_dir, args.dpi)
     save_force_direction_cosine_plot(x, x_label, force_cosines, output_dir, args.dpi)
     save_force_direction_projection_plot(x, x_label, force_projections, output_dir, args.dpi)
+    save_force_direction_projection_detrended_plot(x, x_label, force_projections, output_dir, args.dpi)
     save_hessian_absolute_error_plot(x, x_label, hessian_absolute_errors, output_dir, args.dpi)
     save_hessian_element_mae_plot(x, x_label, hessian_element_maes, output_dir, args.dpi)
     save_mode_alignment_plot(x, x_label, alignments, output_dir, args.dpi)
@@ -1062,6 +1225,7 @@ def main() -> None:
         hessian_errors=hessian_errors,
         force_errors=force_errors,
         force_absolute_errors=force_absolute_errors,
+        force_signed_xi_deviations=force_signed_xi_deviations,
         force_norms=force_norms,
         hessian_absolute_errors=hessian_absolute_errors,
         hessian_element_maes=hessian_element_maes,

@@ -17,6 +17,11 @@ runs/
 baseline_outputs/
 orca_*/
 
+paper/
+latex/
+.overleaf-output/
+.latex-template/
+
 orca_hessians/
 hf_hip/
 slurm_logs/

@@ -54,15 +54,52 @@ def make_batch(symbols: list[str], coords: np.ndarray, device: torch.device) -> 
 
 def load_model(horm_dir: Path, checkpoint: Path, device: torch.device) -> tuple[torch.nn.Module, str]:
     sys.path.insert(0, str(horm_dir.resolve()))
-    from training_module import PotentialModule  # noqa: PLC0415
+    from leftnet.model import LEFTNet  # noqa: PLC0415
+    from leftnet.potential import Potential  # noqa: PLC0415
 
-    module = PotentialModule.load_from_checkpoint(str(checkpoint), strict=False, map_location=device)
-    model = module.potential.to(device)
-    model.eval()
     ckpt = torch.load(checkpoint, map_location="cpu")
     model_name = ckpt["hyper_parameters"]["model_config"]["name"]
     if model_name != "LEFTNet":
         raise ValueError(f"Expected a LeftNet-CF checkpoint with model name LEFTNet, got {model_name}")
+    leftnet_config = dict(
+        pos_require_grad=True,
+        cutoff=10.0,
+        num_layers=6,
+        hidden_channels=196,
+        num_radial=96,
+        in_hidden_channels=8,
+        reflect_equiv=True,
+        legacy=True,
+        update=True,
+        pos_grad=False,
+        single_layer_output=True,
+    )
+    model = Potential(
+        model_config=leftnet_config,
+        node_nfs=[9],
+        edge_nf=0,
+        condition_nf=1,
+        fragment_names=["structure"],
+        pos_dim=3,
+        edge_cutoff=None,
+        model=LEFTNet,
+        enforce_same_encoding=None,
+        source=None,
+        timesteps=5000,
+        condition_time=False,
+    )
+    state = {
+        key.removeprefix("potential."): value
+        for key, value in ckpt["state_dict"].items()
+        if key.startswith("potential.")
+    }
+    missing, unexpected = model.load_state_dict(state, strict=False)
+    if unexpected:
+        raise RuntimeError(f"Unexpected LeftNet checkpoint keys: {unexpected[:5]}")
+    if missing:
+        print(f"Warning: missing {len(missing)} LeftNet keys while loading checkpoint", flush=True)
+    model = model.to(device)
+    model.eval()
     return model, model_name
 
 

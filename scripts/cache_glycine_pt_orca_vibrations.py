@@ -233,6 +233,8 @@ def main() -> None:
     output = args.output or scan_dir / "orca_vib_cache.npz"
     summary_csv = args.summary_csv or scan_dir / "orca_vib_summary.csv"
     manifest = pd.read_csv(scan_dir / "scan_manifest.csv").sort_values("grid_id").reset_index(drop=True)
+    q_nh_col = "q_nh" if "q_nh" in manifest.columns else "q_nh_relaxed"
+    q_oh_col = "q_oh" if "q_oh" in manifest.columns else "q_oh_relaxed"
 
     hessians_hartree = []
     hessians_ev = []
@@ -312,8 +314,8 @@ def main() -> None:
     output.parent.mkdir(parents=True, exist_ok=True)
     payload = {
         "grid_id": manifest["grid_id"].to_numpy(dtype=int),
-        "q_nh": manifest["q_nh"].to_numpy(dtype=float),
-        "q_oh": manifest["q_oh"].to_numpy(dtype=float),
+        "q_nh": manifest[q_nh_col].to_numpy(dtype=float),
+        "q_oh": manifest[q_oh_col].to_numpy(dtype=float),
         "atomic_numbers": np.asarray(atomic_numbers, dtype=int),
         "masses_amu": np.asarray(masses_amu, dtype=float),
         "symbols": np.asarray(symbols),
@@ -337,6 +339,9 @@ def main() -> None:
         "unstable_mode_pt_abs_alignment": np.abs(np.asarray(unstable_pt_alignment, dtype=float)),
         "reaction_center_hessian_frobenius_ev_ang2": np.asarray(rc_block_frob, dtype=float),
     }
+    for col in ("s", "sigma"):
+        if col in manifest.columns:
+            payload[col] = manifest[col].to_numpy(dtype=float)
     if len(forces_ev_ang) == len(manifest):
         payload.update(
             {
@@ -351,7 +356,9 @@ def main() -> None:
         print(f"Warning: {missing} .engrad files missing; ORCA forces will not be cached.", flush=True)
     np.savez_compressed(output, **payload)
 
-    summary = manifest[["grid_id", "q_nh", "q_oh"]].copy()
+    summary = manifest[["grid_id", q_nh_col, q_oh_col]].rename(
+        columns={q_nh_col: "q_nh", q_oh_col: "q_oh"}
+    ).copy()
     summary["lowest_frequency_cm1"] = np.stack(frequencies)[:, 6:].min(axis=1)
     summary["lowest_vib_eval_ev_ang2_amu"] = evals_arr[:, 0]
     summary["n_negative"] = np.asarray(n_negative, dtype=int)

@@ -57,7 +57,7 @@ DEFAULT_MEP_DIR = Path("runs/glycine_pt_path_n150")
 
 DFT_LABEL = "DFT"
 HIP_LABEL = "HIP"
-AD_LABEL = "AD"
+AD_LABEL = "EqV2"
 LEFTNET_CF_LABEL = "LeftNet-CF"
 
 METHOD_COLORS = {DFT_LABEL: DFT_COLOR, HIP_LABEL: HIP_COLOR, AD_LABEL: AD_COLOR, LEFTNET_CF_LABEL: LEFTNET_CF_FORCE_COLOR}
@@ -390,6 +390,15 @@ def plot_force_residual_no_hip(
         lw=AD_EMPHASIS_LINE_WIDTH,
         label=AD_LABEL,
     )
+    if LEFTNET_CF_LABEL in g:
+        sns.lineplot(
+            x=xi,
+            y=g[LEFTNET_CF_LABEL],
+            ax=axes[0],
+            color=METHOD_COLORS[LEFTNET_CF_LABEL],
+            lw=LINE_WIDTH,
+            label=LEFTNET_CF_LABEL,
+        )
     axes[0].axhline(0.0, color="grey", lw=THIN_LINE_WIDTH)
     axes[0].set_ylabel(rf"${FORCE_PROJ}$ [eV/$\AA$]")
     axes[0].set_xlabel(XLABEL)
@@ -404,6 +413,16 @@ def plot_force_residual_no_hip(
         lw=AD_EMPHASIS_LINE_WIDTH,
         label=f"{AD_LABEL} $-$ DFT",
     )
+    if LEFTNET_CF_LABEL in g:
+        leftnet_residual = g[LEFTNET_CF_LABEL] - g[DFT_LABEL]
+        sns.lineplot(
+            x=xi,
+            y=leftnet_residual,
+            ax=axes[1],
+            color=METHOD_COLORS[LEFTNET_CF_LABEL],
+            lw=LINE_WIDTH,
+            label=f"{LEFTNET_CF_LABEL} $-$ DFT",
+        )
     axes[1].axhline(0.0, color="grey", lw=THIN_LINE_WIDTH)
     axes[1].set_ylabel(rf"$g_\mathrm{{model}} - g_\mathrm{{DFT}}$ [eV/$\AA$]")
     axes[1].set_xlabel(XLABEL)
@@ -427,7 +446,7 @@ def plot_curvature(
     fig, axes = plt.subplots(1, 2, figsize=(11.5, 4.0))
 
     sns.lineplot(x=xi, y=kappa_dft, ax=axes[0], color=DFT_COLOR, lw=LINE_WIDTH, marker="o", markersize=MARKER_SIZE, label=r"DFT $\hat t^\top H\hat t$")
-    sns.lineplot(x=xi, y=kappa_ad_auto, ax=axes[0], color=AD_COLOR, lw=LINE_WIDTH, marker="o", markersize=MARKER_SIZE, label=r"AD $\hat t^\top H\hat t$")
+    sns.lineplot(x=xi, y=kappa_ad_auto, ax=axes[0], color=AD_COLOR, lw=LINE_WIDTH, marker="o", markersize=MARKER_SIZE, label=r"EqV2 $\hat t^\top H\hat t$")
     sns.lineplot(x=xi, y=kappa_hip_auto, ax=axes[0], color=HIP_COLOR, lw=LINE_WIDTH, marker="o", markersize=MARKER_SIZE, label=r"HIP $\hat t^\top H\hat t$")
     if kappa_leftnet_cf is not None:
         sns.lineplot(
@@ -440,13 +459,13 @@ def plot_curvature(
             markersize=MARKER_SIZE,
             label=r"LeftNet-CF $\hat t^\top H\hat t$",
         )
-    sns.lineplot(x=xi, y=kappa_ad_fd, ax=axes[0], color=ACCENT_COLOR, lw=THIN_LINE_WIDTH, marker="o", markersize=MARKER_SIZE, alpha=0.8, label=r"AD force FD $-dg/ds$")
+    sns.lineplot(x=xi, y=kappa_ad_fd, ax=axes[0], color=ACCENT_COLOR, lw=THIN_LINE_WIDTH, marker="o", markersize=MARKER_SIZE, alpha=0.8, label=r"EqV2 force FD $-dg/ds$")
     axes[0].axhline(0.0, color="grey", lw=THIN_LINE_WIDTH)
     axes[0].set_ylabel(r"$\kappa$ [eV/$\AA^2$]")
     axes[0].set_xlabel(XLABEL)
     axes[0].legend(fontsize=9, frameon=True, edgecolor="none")
 
-    sns.lineplot(x=xi, y=kappa_ad_auto - kappa_dft, ax=axes[1], color=AD_COLOR, lw=THIN_LINE_WIDTH, marker="o", markersize=MARKER_SIZE, label=r"AD autograd $-$ DFT")
+    sns.lineplot(x=xi, y=kappa_ad_auto - kappa_dft, ax=axes[1], color=AD_COLOR, lw=THIN_LINE_WIDTH, marker="o", markersize=MARKER_SIZE, label=r"EqV2 autograd $-$ DFT")
     sns.lineplot(x=xi, y=kappa_hip_auto - kappa_dft, ax=axes[1], color=HIP_COLOR, lw=THIN_LINE_WIDTH, marker="o", markersize=MARKER_SIZE, label=r"HIP $-$ DFT")
     if kappa_leftnet_cf is not None:
         sns.lineplot(
@@ -459,7 +478,7 @@ def plot_curvature(
             markersize=MARKER_SIZE,
             label=r"LeftNet-CF $-$ DFT",
         )
-    sns.lineplot(x=xi, y=kappa_ad_auto - kappa_ad_fd, ax=axes[1], color=ACCENT_COLOR, lw=THIN_LINE_WIDTH, marker="o", markersize=MARKER_SIZE, label=r"AD autograd $-$ AD FD")
+    sns.lineplot(x=xi, y=kappa_ad_auto - kappa_ad_fd, ax=axes[1], color=ACCENT_COLOR, lw=THIN_LINE_WIDTH, marker="o", markersize=MARKER_SIZE, label=r"EqV2 autograd $-$ EqV2 FD")
     axes[1].axhline(0.0, color="grey", lw=THIN_LINE_WIDTH)
     axes[1].set_ylabel(r"$\Delta\kappa$ [eV/$\AA^2$]")
     axes[1].set_xlabel(XLABEL)
@@ -470,7 +489,7 @@ def plot_curvature(
     fig.text(
         0.5,
         0.005,
-        r"FD curvature uses arc length $s$; the AD$-$AD FD gap also includes path curvature $d\hat t/ds$",
+        r"FD curvature uses arc length $s$; the EqV2$-$EqV2 FD gap also includes path curvature $d\hat t/ds$",
         fontsize=7.5,
         va="bottom",
         ha="center",
@@ -518,6 +537,7 @@ def main() -> None:
         directional_curvature(methods[LEFTNET_CF_LABEL].hessians, tangent) if LEFTNET_CF_LABEL in methods else None
     )
     kappa_ad_fd = -np.gradient(g[AD_LABEL], s)
+    kappa_leftnet_cf_fd = -np.gradient(g[LEFTNET_CF_LABEL], s) if LEFTNET_CF_LABEL in g else None
 
     plot_energy_force(output_dir, args.dpi, xi, methods, g)
     plot_force_residual(output_dir, args.dpi, xi, g)
@@ -546,13 +566,16 @@ def main() -> None:
         metrics["leftnet_cf_minus_dft_g_ev_ang"] = g[LEFTNET_CF_LABEL] - g[DFT_LABEL]
         metrics["leftnet_cf_kappa_auto_ev_ang2"] = kappa_leftnet_cf
         metrics["leftnet_cf_kappa_auto_minus_dft"] = kappa_leftnet_cf - kappa_dft
+        if kappa_leftnet_cf_fd is not None:
+            metrics["leftnet_cf_kappa_fd_ev_ang2"] = kappa_leftnet_cf_fd
+            metrics["leftnet_cf_kappa_auto_minus_fd"] = kappa_leftnet_cf - kappa_leftnet_cf_fd
     metrics_path = output_dir / "mep_mechanism_metrics.csv"
     metrics.to_csv(metrics_path, index=False)
 
     ad_resid = g[AD_LABEL] - g[DFT_LABEL]
     hip_resid = g[HIP_LABEL] - g[DFT_LABEL]
     print(
-        f"AD-DFT force residual: std={ad_resid.std():.4e}  max|.|={np.abs(ad_resid).max():.4e} eV/A",
+        f"EqV2-DFT force residual: std={ad_resid.std():.4e}  max|.|={np.abs(ad_resid).max():.4e} eV/A",
         flush=True,
     )
     print(
@@ -567,7 +590,7 @@ def main() -> None:
             flush=True,
         )
     print(
-        f"AD curvature gap: median|autograd-DFT|={np.median(np.abs(kappa_ad_auto - kappa_dft)):.4f}  "
+        f"EqV2 curvature gap: median|autograd-DFT|={np.median(np.abs(kappa_ad_auto - kappa_dft)):.4f}  "
         f"median|autograd-FD|={np.median(np.abs(kappa_ad_auto - kappa_ad_fd)):.4f} eV/A^2",
         flush=True,
     )

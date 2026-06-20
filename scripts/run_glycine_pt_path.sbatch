@@ -17,12 +17,14 @@ N_DFT=${N_DFT:-1000}
 WRITE_DFT=${WRITE_DFT:-0}   # 1 = also emit ORCA inputs for the DFT subset
 HIP_CKPT=${HIP_CKPT:-ckpt/hip_v2.ckpt}
 EQV2_CKPT=${EQV2_CKPT:-ckpt/eqv2.ckpt}
+OVERWRITE_MLIP=${OVERWRITE_MLIP:-0}  # 1 = allow replacing OUTPUT_DIR/path_arrays.npz
 
 cd "$REPO"
 
 # Never overwrite existing MLIP results.
-if [[ -e "$OUTPUT_DIR/path_arrays.npz" ]]; then
+if [[ -e "$OUTPUT_DIR/path_arrays.npz" && "$OVERWRITE_MLIP" != "1" ]]; then
   echo "Refusing to overwrite existing results: $OUTPUT_DIR/path_arrays.npz" >&2
+  echo "Set OVERWRITE_MLIP=1 to regenerate the MLIP arrays in place." >&2
   exit 1
 fi
 
