@@ -170,20 +170,23 @@ def main() -> None:
     # === Figure 1: relaxed DFT energy surface ===
     xs, ys, z = grids(e_rel)
     fig, ax = plt.subplots(figsize=(5.2, 4.2))
-    mesh = draw_panel(ax, xs, ys, z, cmap="viridis", title="Relaxed DFT energy surface")
+    mesh = draw_panel(ax, xs, ys, z, cmap="viridis")
     levels = np.arange(0, np.nanmax(z.filled(np.nan)) + 10, 10.0)
     ax.contour(xs, ys, z, levels=levels, colors="k", linewidths=0.4, alpha=0.5)
     overlay_stationary(ax, stationary)
-    ax.legend(loc="upper center", ncol=3, fontsize=8, framealpha=0.85)
-    fig.colorbar(mesh, ax=ax, label=r"$E - E_{\min}$  (kcal/mol)")
-    fig.tight_layout()
+    ax.legend(loc="upper center", ncol=3, fontsize=8, framealpha=0.85,
+              frameon=True, edgecolor="none")
+    fig.draw_without_rendering()
+    cax = ax.inset_axes([1.05, 0.0, 0.05, 1.0])
+    fig.colorbar(mesh, cax=cax, label=r"$E - E_{\min}$  (kcal/mol)")
+    fig.tight_layout(pad=0.01)
     fname = out_dir / "relaxed_energy_surface.png"
-    fig.savefig(fname, dpi=args.dpi)
+    fig.savefig(fname, dpi=args.dpi, bbox_inches="tight", pad_inches=0.01)
     print(f"Wrote {fname}")
     plt.close(fig)
 
     def panel_row(metric_by_method, labels, fname, *, cbar_label, cmap, diverging=False,
-                  discrete=False, vmin=None, vmax=None, suptitle=None, clip_pct=None,
+                  discrete=False, vmin=None, vmax=None, clip_pct=None,
                   mark_stationary=False):
         gridded = [grids(m) for m in metric_by_method]
         finite = np.concatenate([g[2].compressed() for g in gridded])
@@ -218,15 +221,17 @@ def main() -> None:
             if mark_stationary:
                 overlay_stationary(ax, stationary)
         if mark_stationary:
-            axes[0].legend(loc="upper center", ncol=3, fontsize=7, framealpha=0.85)
-        cbar = fig.colorbar(mesh, ax=axes, fraction=0.046, pad=0.02, label=cbar_label)
+            axes[0].legend(loc="upper center", ncol=3, fontsize=7, framealpha=0.85,
+                           frameon=True, edgecolor="none")
+        fig.draw_without_rendering()
+        cax = axes[-1].inset_axes([1.05, 0.0, 0.05, 1.0])
+        cbar = fig.colorbar(mesh, cax=cax, label=cbar_label)
         if discrete:
             cbar.set_ticks(np.arange(0, int(np.ceil(vmax if vmax else 0)) + 1)) if False else None
-        if suptitle:
-            fig.suptitle(suptitle)
+        fig.tight_layout(pad=0.01)
         fname = out_dir / fname
         print(f"Wrote {fname}")
-        fig.savefig(fname, dpi=args.dpi, bbox_inches="tight")
+        fig.savefig(fname, dpi=args.dpi, bbox_inches="tight", pad_inches=0.01)
         plt.close(fig)
 
     # === Figure 2: lambda_min (3 panels), full diverging scale ===
@@ -235,7 +240,6 @@ def main() -> None:
         "relaxed_lambda_min.png",
         cbar_label=r"$\lambda_{\min}$ (eV Å$^{-2}$ amu$^{-1}$)",
         cmap="RdBu_r", diverging=True, mark_stationary=True,
-        suptitle="Lowest projected Hessian eigenvalue",
     )
 
     # === Figure 2b: lambda_min, percentile-clipped to reveal DFT/HIP structure ===
@@ -245,7 +249,6 @@ def main() -> None:
         cbar_label=r"$\lambda_{\min}$ (eV Å$^{-2}$ amu$^{-1}$, clipped)",
         cmap="RdBu_r", diverging=True, clip_pct=args.lambda_clip_pct,
         mark_stationary=True,
-        suptitle=f"Lowest projected Hessian eigenvalue ({args.lambda_clip_pct:g}-98 pct clip)",
     )
 
     # === Figure 3: number of negative eigenvalues (3 panels) ===
@@ -256,7 +259,6 @@ def main() -> None:
         cbar_label="# negative eigenvalues",
         cmap="magma_r", discrete=True, vmin=0, vmax=max(1, nmax),
         mark_stationary=True,
-        suptitle="Negative Hessian eigenvalue count",
     )
 
     # === Figure 4: softest-mode / PT-direction alignment (3 panels) ===
@@ -265,7 +267,6 @@ def main() -> None:
         "relaxed_mode_alignment.png",
         cbar_label=r"$|\langle$ softest mode $|\, q_{NH}-q_{OH}\rangle|$",
         cmap="viridis", vmin=0.0, vmax=1.0,
-        suptitle="Alignment of softest mode with proton-transfer direction",
     )
 
     # === Figure 5: Hessian MAE vs DFT (2 panels) ===
@@ -274,7 +275,6 @@ def main() -> None:
         "relaxed_hessian_mae.png",
         cbar_label=rf"Hessian MAE vs DFT ({EV_ANG2})",
         cmap="inferno", mark_stationary=True,
-        suptitle="Cartesian Hessian error vs DFT",
     )
 
     # === Figure 6: force MAE vs DFT (2 panels) ===
@@ -282,8 +282,7 @@ def main() -> None:
         [fmae_hip, fmae_eqv2], ["HIP (predicted)", "eqv2 (autograd)"],
         "relaxed_force_mae.png",
         cbar_label=r"Force MAE vs DFT (eV Å$^{-1}$)",
-        cmap="inferno",
-        suptitle="Force error vs DFT",
+        cmap="inferno", vmin=0.0, vmax=0.10,
     )
 
     # --- console summary (median over the surface) ---

@@ -27,7 +27,7 @@ METRICS = [
     ("hessian_rel_mae", "Hessian relative MAE"),
     ("eckart_eigval_mae_ev_a2", r"Eckart $\lambda$ MAE [eV/$\AA^2$]"),
     ("eckart_lowest_eigval_mae_ev_a2", r"Eckart $\lambda_1$ MAE [eV/$\AA^2$]"),
-    # ("freq_mae_400_4000", r"Freq MAE 400–4000 [cm$^{-1}$]"),
+    # ("freq_mae_400_4000", r"Freq MAE 400-4000 [cm$^{-1}$]"),
     # ("asymmetry_mae", "Asymmetry MAE"),
     ("time_ms", "Time [ms]"),
     ("memory_mb", "Memory [MB]"),

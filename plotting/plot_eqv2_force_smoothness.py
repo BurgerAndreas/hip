@@ -368,7 +368,7 @@ def fig_autograd_fidelity(data: dict, out: Path) -> tuple[Path, list]:
     ax.set_xticks(x); ax.set_xticklabels(labels, fontsize=9)
     ax.set_ylabel("directional curvature [eV/$\\AA^2$]")
     ax.set_title("autograd curvature vs smooth-scan curvature "
-                 "(stiff/random dirs agree to ~1–2%; soft modes are ill-conditioned in the relative metric)",
+                 "(stiff/random dirs agree to ~1-2%; soft modes are ill-conditioned in the relative metric)",
                  fontsize=10)
     ax.legend(fontsize=9)
     ax.grid(alpha=0.3, axis="y")
