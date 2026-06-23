@@ -528,6 +528,7 @@ def save_lowest_eigenvalue_plot(
             ax.yaxis.set_major_formatter(matplotlib.ticker.FormatStrFormatter("%d"))
         ax.set_xlim(*shared_xlim)
         setup_axis(ax, x_label)
+        ax.set_title(f"Mode {idx + 1}", fontsize=matplotlib.rcParams["axes.labelsize"])
     for idx, ax in enumerate(axes.ravel()):
         legend = ax.get_legend()
         if idx == 0:

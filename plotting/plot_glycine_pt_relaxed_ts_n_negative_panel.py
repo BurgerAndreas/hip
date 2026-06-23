@@ -18,6 +18,15 @@ from matplotlib.colors import BoundaryNorm  # noqa: E402
 from matplotlib.transforms import blended_transform_factory  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[1]
+
+
+def rel_to_repo(path: Path) -> str:
+    try:
+        return str(path.resolve().relative_to(ROOT.resolve()))
+    except ValueError:
+        return str(path)
+
+
 for extra in (str(ROOT), str(ROOT / "plotting")):
     if extra not in sys.path:
         sys.path.insert(0, extra)
@@ -65,6 +74,15 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--output", type=Path, default=None)
     parser.add_argument("--dpi", type=int, default=300)
     return parser.parse_args()
+
+
+def resolve_stationary_json(args: argparse.Namespace, scan: Path) -> Path:
+    if args.stationary_json is not None:
+        return args.stationary_json
+    local = scan / "stationary_points.json"
+    if local.exists():
+        return local
+    return ROOT / "runs" / "glycine_pt_scan_relaxed" / "stationary_points.json"
 
 
 def contour_levels(values: np.ndarray, step: float = 10.0) -> np.ndarray:
@@ -191,15 +209,17 @@ def finish_surface_axis(ax: plt.Axes, *, idx: int) -> None:
         ax.tick_params(axis="y", left=False, labelleft=False)
 
 
-def plot_panel(args: argparse.Namespace) -> Path:
+def build_ts_negative_panel_image(
+    *,
+    vib_path: Path,
+    hip_path: Path,
+    eqv2_path: Path,
+    stat_path: Path,
+    ts_image: Path,
+    dpi: int,
+) -> Image.Image:
+    """Render TS render plus DFT/HIP/AD negative-mode surfaces as one RGB image."""
     apply_plot_style()
-
-    scan = args.scan_dir
-    vib_path = args.vib_cache or scan / "orca_vib_cache.npz"
-    hip_path = args.hip_arrays or scan / "hip_v2_arrays.npz"
-    eqv2_path = args.eqv2_arrays or scan / "eqv2_autograd_arrays.npz"
-    stat_path = args.stationary_json or scan / "stationary_points.json"
-    output = args.output or scan / "plots_relaxed_c" / "relaxed_transition_state_n_negative_modes.png"
 
     stationary = json.loads(stat_path.read_text()) if stat_path.exists() else {}
     dft = np.load(vib_path)
@@ -255,14 +275,13 @@ def plot_panel(args: argparse.Namespace) -> Path:
     cbar.ax.tick_params(which="both", axis="both", length=0, labelsize=tick_label_size())
     cbar.outline.set_visible(False)
 
-    output.parent.mkdir(parents=True, exist_ok=True)
     heatmap_buf = io.BytesIO()
-    fig.savefig(heatmap_buf, format="png", dpi=args.dpi, bbox_inches="tight", pad_inches=0.01)
+    fig.savefig(heatmap_buf, format="png", dpi=dpi, bbox_inches="tight", pad_inches=0.01)
     plt.close(fig)
     heatmap_buf.seek(0)
 
     right = Image.open(heatmap_buf).convert("RGB")
-    ts_img = trim_white(Image.open(args.ts_image), padding=4).convert("RGB")
+    ts_img = trim_white(Image.open(ts_image), padding=4).convert("RGB")
     target_height = round(right.height * 0.88)
     scale = target_height / ts_img.height
     left = ts_img.resize((round(ts_img.width * scale), target_height), Image.Resampling.LANCZOS)
@@ -271,13 +290,33 @@ def plot_panel(args: argparse.Namespace) -> Path:
     panel = Image.new("RGB", (left.width + gap_px + right.width, right.height), "white")
     panel.paste(left, (0, round((right.height - left.height) / 2)))
     panel.paste(right, (left.width + gap_px, 0))
+    return panel
+
+
+def plot_panel(args: argparse.Namespace) -> Path:
+    scan = args.scan_dir
+    vib_path = args.vib_cache or scan / "orca_vib_cache.npz"
+    hip_path = args.hip_arrays or scan / "hip_v2_arrays.npz"
+    eqv2_path = args.eqv2_arrays or scan / "eqv2_autograd_arrays.npz"
+    stat_path = resolve_stationary_json(args, scan)
+    output = args.output or scan / "plots_relaxed_c" / "relaxed_transition_state_n_negative_modes.png"
+
+    panel = build_ts_negative_panel_image(
+        vib_path=vib_path,
+        hip_path=hip_path,
+        eqv2_path=eqv2_path,
+        stat_path=stat_path,
+        ts_image=args.ts_image,
+        dpi=args.dpi,
+    )
+    output.parent.mkdir(parents=True, exist_ok=True)
     panel.save(output)
     return output
 
 
 def main() -> None:
     out = plot_panel(parse_args())
-    print(f"Wrote {out}")
+    print(f"Wrote {rel_to_repo(out)}")
 
 
 if __name__ == "__main__":

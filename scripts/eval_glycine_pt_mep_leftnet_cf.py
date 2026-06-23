@@ -163,6 +163,10 @@ def main() -> None:
         if atomic_numbers is None:
             atomic_numbers = np.asarray([SYMBOL_TO_Z[symbol] for symbol in symbols], dtype=int)
         energy_ev, forces, hessian = predict(model, symbols, coords, device)
+        q_nh = float(row["q_nh"])
+        q_oh = float(row["q_oh"])
+        xi = float(row["xi"]) if "xi" in row else q_nh - q_oh
+        frame_id = int(row["frame_id"]) if "frame_id" in row else int(row["grid_id"])
         energies.append(energy_ev)
         forces_rows.append(forces)
         hessian_rows.append(hessian)
@@ -170,10 +174,10 @@ def main() -> None:
         rows.append(
             {
                 "grid_id": int(row["grid_id"]),
-                "frame_id": int(row["frame_id"]),
-                "xi": float(row["xi"]),
-                "q_nh": float(row["q_nh"]),
-                "q_oh": float(row["q_oh"]),
+                "frame_id": frame_id,
+                "xi": xi,
+                "q_nh": q_nh,
+                "q_oh": q_oh,
                 "energy_ev": energy_ev,
                 "force_norm_ev_ang": float(np.linalg.norm(forces.reshape(-1))),
                 "fmax_ev_ang": float(np.max(np.abs(forces))),
@@ -188,10 +192,18 @@ def main() -> None:
     np.savez_compressed(
         output,
         atomic_numbers=np.asarray(atomic_numbers, dtype=int),
-        frame_id=manifest["frame_id"].to_numpy(dtype=int),
+        frame_id=(
+            manifest["frame_id"].to_numpy(dtype=int)
+            if "frame_id" in manifest.columns
+            else manifest["grid_id"].to_numpy(dtype=int)
+        ),
         q_nh=manifest["q_nh"].to_numpy(dtype=float),
         q_oh=manifest["q_oh"].to_numpy(dtype=float),
-        xi=manifest["xi"].to_numpy(dtype=float),
+        xi=(
+            manifest["xi"].to_numpy(dtype=float)
+            if "xi" in manifest.columns
+            else (manifest["q_nh"] - manifest["q_oh"]).to_numpy(dtype=float)
+        ),
         coords_angstrom=np.stack(coords_rows),
         energies=np.asarray(energies, dtype=np.float64),
         forces=np.stack(forces_rows),
