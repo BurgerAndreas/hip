@@ -215,6 +215,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--mep-eqv2-arrays", type=Path, default=None)
     parser.add_argument("--leftnet-cf-arrays", type=Path, default=None)
     parser.add_argument("--output", type=Path, default=None)
+    parser.add_argument("--show-panel-labels", action="store_true", default=False)
     parser.add_argument("--x-axis", choices=["xi", "frame"], default="xi")
     parser.add_argument("--n-eigs", type=int, default=6)
     parser.add_argument("--negative-threshold", type=float, default=-1e-6)
@@ -636,7 +637,7 @@ def draw_lowest_eigenvalues(
     n_eigs = min(n_eigs, min(diag["evals"].shape[1] for diag in vib.values()))
     ncols = min(3, n_eigs)
     nrows = int(np.ceil(n_eigs / ncols))
-    sub = gs_row.subgridspec(nrows, ncols, hspace=0.12, wspace=0.34)
+    sub = gs_row.subgridspec(nrows, ncols, hspace=0.06, wspace=0.34)
     axes = [fig.add_subplot(sub[i // ncols, i % ncols]) for i in range(nrows * ncols)]
 
     plot_labels = ordered_method_labels(vib)
@@ -669,7 +670,7 @@ def draw_lowest_eigenvalues(
                 **line_kwargs,
             )
         overlay_stationary_on_curve(ax, x, vib[DFT_LABEL]["evals"][:, idx], stationary_frames)
-        y_label = rf"$\lambda_{{{idx + 1}}}$ [eV $\AA^{{-2}}$ amu$^{{-1}}$]"
+        y_label = rf"$\lambda_{{{idx + 1}}}$ [eV $\AA^{{-2}}$]"
         y_values = np.concatenate([vib[label]["evals"][:, idx] for label in plot_labels])
         y_span = float(np.max(y_values) - np.min(y_values))
         y_pad = max(0.02 * y_span, 0.01)
@@ -686,6 +687,8 @@ def draw_lowest_eigenvalues(
             "",
             y_label=y_label,
         )
+        if idx // ncols < nrows - 1:
+            ax.tick_params(axis="x", labelbottom=False)
         legend = ax.get_legend()
         if idx == 0:
             new_legend = ax.legend(
@@ -950,7 +953,8 @@ def plot_combined(args: argparse.Namespace) -> Path:
     )
     top_ax = place_top_panel(fig, gs[0], panel, lower_axes)
     add_stationary_legend(fig, gs[0])
-    add_row_labels(fig, [top_ax, row2_axes[0], row3_axes[0]])
+    if args.show_panel_labels:
+        add_row_labels(fig, [top_ax, row2_axes[0], row3_axes[0]])
 
     fig.savefig(output, dpi=args.dpi, bbox_inches="tight", pad_inches=0.02)
     plt.close(fig)

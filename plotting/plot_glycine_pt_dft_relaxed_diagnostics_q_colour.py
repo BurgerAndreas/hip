@@ -43,7 +43,7 @@ from plot_glycine_pt_dft_relaxed_diagnostics_colour import (  # noqa: E402
 )
 from plot_style import finish_axis  # noqa: E402
 
-Q_LIM = (0.75, 2.85)
+Q_LIM = (0.85, 2.78)
 
 
 def parse_args() -> argparse.Namespace:
@@ -254,7 +254,7 @@ def main() -> None:
     cbar = fig.colorbar(mesh, cax=cax, extend="max")
     style_colorbar(
         cbar,
-        r"DFT relative energy [kcal mol$^{-1}$]",
+        r"DFT rel. energy [kcal mol$^{-1}$]",
         tick_fontsize=tick_label_size() * 0.85,
         extend="max",
     )
