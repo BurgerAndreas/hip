@@ -16,7 +16,8 @@ from PIL import Image
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt  # noqa: E402
 from matplotlib.colors import BoundaryNorm  # noqa: E402
-from matplotlib.transforms import blended_transform_factory  # noqa: E402
+from matplotlib.lines import Line2D  # noqa: E402
+from matplotlib.transforms import blended_transform_factory, offset_copy  # noqa: E402
 import seaborn as sns  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -31,7 +32,6 @@ from plot_style import (  # noqa: E402
     LINE_WIDTH,
     MARKER_SIZE,
     PLOTLY_FONT_COLOR,
-    THIN_LINE_WIDTH,
     apply_invisible_ticks,
     apply_plot_style,
     finish_axis,
@@ -54,16 +54,24 @@ DEFAULT_TS_IMAGE = (
 
 DFT_LABEL = "DFT"
 HIP_LABEL = "HIP"
-EQV2_LABEL = "EqV2-AD"
-EQV2_MECH_LABEL = "EqV2"
-LEFTNET_CF_LABEL = "LeftNet-CF"
+EQV2_LABEL = "EqV2 AD"
+EQV2_MECH_LABEL = "EqV2 AD"
+LEFTNET_CF_LABEL = "LeftNet-CF AD"
 
 SIGMA_YTICKS = (2.5, 3.0, 3.5, 4.0)
+XI_XTICKS = (-1.0, 0.0, 1.0)
 STATIONARY_STYLE = {
     "reactant": dict(marker="o", label="Reactant", facecolor="white", edgecolor="black"),
     "product": dict(marker="^", label="Product", facecolor="white", edgecolor="black"),
     "ts": dict(marker="*", label="TS", facecolor="white", edgecolor="black"),
 }
+STATIONARY_LEGEND_ORDER = ("reactant", "ts", "product")
+STATIONARY_LEGEND_FONTSIZE_SCALE = 1.18
+PANEL_LABEL_SIZE = 18
+PANEL_LABEL_COLOR = "#2F4565"
+ROW_LABEL_Y_DOTS = 28
+ROW_LABEL_Y_DOTS_BC_EXTRA = 48
+ROW_LABEL_X_DOTS = -72
 
 METHOD_COLORS = {
     DFT_LABEL: DFT_COLOR,
@@ -80,6 +88,7 @@ NEGATIVE_MODE_DODGE = {DFT_LABEL: -0.06, HIP_LABEL: 0.0, EQV2_LABEL: 0.06}
 METHOD_ZORDER = {DFT_LABEL: 2, EQV2_LABEL: 3, HIP_LABEL: 4}
 
 XLABEL = r"$\xi = q_\mathrm{NH} - q_\mathrm{OH}$ [$\AA$]"
+X_LABEL_PAD = 1.5
 FORCE_PROJ_XI = r"F\cdot\widehat{\xi}"
 AD_EMPHASIS_LINE_WIDTH = LINE_WIDTH + 0.4
 
@@ -94,6 +103,11 @@ def rel_to_repo(path: Path) -> str:
         return str(path.resolve().relative_to(ROOT.resolve()))
     except ValueError:
         return str(path)
+
+
+def apply_xi_xticks(ax: plt.Axes) -> None:
+    ax.set_xticks(XI_XTICKS)
+    ax.xaxis.set_major_formatter(matplotlib.ticker.FormatStrFormatter("%.1f"))
 
 
 def axes_label_size() -> float:
@@ -118,7 +132,7 @@ def apply_axis_typography(
 ) -> None:
     """Apply uniform tick, label, and title sizes across all plot rows."""
     if x_label is not None:
-        ax.set_xlabel(x_label, fontsize=axes_label_size())
+        ax.set_xlabel(x_label, fontsize=axes_label_size(), labelpad=X_LABEL_PAD)
     if y_label is not None:
         ax.set_ylabel(y_label, fontsize=axes_label_size())
     if title is not None:
@@ -180,12 +194,6 @@ def style_axis(ax: plt.Axes, *, x_label: str | None = None, y_label: str | None 
     finish_axis(ax)
     apply_invisible_ticks(ax)
     ax.tick_params(axis="both", which="major", labelsize=tick_label_size())
-
-
-def tight_xlim(x: np.ndarray, pad_fraction: float = 0.015) -> tuple[float, float]:
-    x_span = float(np.max(x) - np.min(x))
-    pad = max(pad_fraction * x_span, 0.01)
-    return float(np.min(x) - pad), float(np.max(x) + pad)
 
 
 def parse_args() -> argparse.Namespace:
@@ -297,27 +305,123 @@ def overlay_stationary(ax: plt.Axes, stationary: dict) -> None:
         )
 
 
-def add_stationary_legend(fig: plt.Figure, axes: list[plt.Axes]) -> None:
-    handles, labels = axes[0].get_legend_handles_labels()
-    if not handles:
-        return
+def overlay_stationary_on_curve(
+    ax: plt.Axes,
+    x: np.ndarray,
+    y: np.ndarray,
+    frames: dict[str, int],
+    *,
+    base_size: float = 55.0,
+    star_size: float = 130.0,
+) -> None:
+    """Mark reactant/product/TS frames on a line plot with the top-row glyphs."""
+    for key, style in STATIONARY_STYLE.items():
+        frame = frames[key]
+        ax.scatter(
+            [x[frame]],
+            [y[frame]],
+            marker=style["marker"],
+            s=star_size if style["marker"] == "*" else base_size,
+            facecolors=style["facecolor"],
+            edgecolors=style["edgecolor"],
+            linewidths=1.0,
+            zorder=12,
+            clip_on=False,
+        )
+
+
+def align_row_left(fig: plt.Figure, axes: list[plt.Axes], target_left: float) -> None:
+    """Shift/stretch a row of axes so its leftmost content reaches ``target_left``
+    while keeping the right edge fixed."""
     fig.draw_without_rendering()
-    pos_anchor = axes[1].get_position()
-    trans = blended_transform_factory(fig.transFigure, axes[0].transAxes)
+    renderer = fig.canvas.get_renderer()
+    inv = fig.transFigure.inverted()
+    cur_left = min(ax.get_tightbbox(renderer).transformed(inv).x0 for ax in axes)
+    shift = cur_left - target_left
+    if shift <= 1e-4:
+        return
+    positions = [ax.get_position() for ax in axes]
+    x0 = min(p.x0 for p in positions)
+    x1 = max(p.x1 for p in positions)
+    new_x0 = x0 - shift
+    scale = (x1 - new_x0) / (x1 - x0)
+    for ax, p in zip(axes, positions, strict=True):
+        ax.set_position([new_x0 + (p.x0 - x0) * scale, p.y0, p.width * scale, p.height])
+
+
+def stationary_legend_handles() -> list[Line2D]:
+    handles = []
+    for key in STATIONARY_LEGEND_ORDER:
+        style = STATIONARY_STYLE[key]
+        handles.append(
+            Line2D(
+                [0],
+                [0],
+                marker=style["marker"],
+                linestyle="none",
+                markersize=9.5,
+                markerfacecolor=style["facecolor"],
+                markeredgecolor=style["edgecolor"],
+                markeredgewidth=1.1,
+                label=style["label"],
+            )
+        )
+    return handles
+
+
+def row_label_x_figure(fig: plt.Figure, ref_ax: plt.Axes) -> float:
+    """Shared in-axes x for row labels, measured from the reference row's top-left."""
+    transform = offset_copy(
+        ref_ax.transAxes,
+        fig=fig,
+        x=ROW_LABEL_X_DOTS,
+        y=ROW_LABEL_Y_DOTS,
+        units="dots",
+    )
+    return float(fig.transFigure.inverted().transform(transform.transform((0, 1)))[0])
+
+
+def add_row_labels(fig: plt.Figure, anchor_axes: list[plt.Axes]) -> None:
+    """Add bold a/b/c row labels aligned on one vertical line inside the figure."""
+    fig.draw_without_rendering()
+    x_label = row_label_x_figure(fig, anchor_axes[1])
+    for panel_label, ax in zip("abc", anchor_axes, strict=True):
+        y_dots = ROW_LABEL_Y_DOTS + (ROW_LABEL_Y_DOTS_BC_EXTRA if panel_label in "bc" else 0)
+        base = blended_transform_factory(fig.transFigure, ax.transAxes)
+        transform = offset_copy(base, fig=fig, x=0, y=y_dots, units="dots")
+        ax.text(
+            x_label,
+            1.0,
+            panel_label,
+            transform=transform,
+            fontsize=PANEL_LABEL_SIZE,
+            fontfamily="DejaVu Sans",
+            fontweight="bold",
+            color=PANEL_LABEL_COLOR,
+            va="top",
+            ha="left",
+            clip_on=False,
+            zorder=20,
+        )
+
+
+def add_stationary_legend(fig: plt.Figure, gs_row) -> None:
+    """Place Reactant / TS / Product legend centered above the top row."""
+    fig.draw_without_rendering()
+    y_top = gs_row.get_position(fig).y1
     legend = fig.legend(
-        handles,
-        labels,
+        handles=stationary_legend_handles(),
         loc="lower center",
-        bbox_to_anchor=(pos_anchor.x0 - 0.03, 1.01),
-        bbox_transform=trans,
+        bbox_to_anchor=(0.5, y_top + 0.008),
+        bbox_transform=fig.transFigure,
         ncol=3,
-        fontsize=tick_label_size() * 0.72,
+        fontsize=tick_label_size() * STATIONARY_LEGEND_FONTSIZE_SCALE,
         frameon=True,
         edgecolor="none",
-        markerscale=0.95,
+        markerscale=1.05,
         borderaxespad=0,
-        handletextpad=0.35,
-        columnspacing=0.9,
+        handletextpad=0.4,
+        columnspacing=1.1,
     )
     for text in legend.get_texts():
         text.set_color(PLOTLY_FONT_COLOR)
@@ -325,6 +429,7 @@ def add_stationary_legend(fig: plt.Figure, axes: list[plt.Axes]) -> None:
 
 def finish_surface_axis(ax: plt.Axes, *, idx: int) -> None:
     finish_axis(ax)
+    apply_xi_xticks(ax)
     ax.set_yticks(SIGMA_YTICKS)
     ax.yaxis.set_major_formatter(matplotlib.ticker.FormatStrFormatter("%.1f"))
     ax.tick_params(
@@ -472,8 +577,8 @@ def draw_ts_negative_panel(
     stat_path: Path,
     ts_image: Path,
     dpi: int,
-) -> None:
-    """Top row: TS render plus DFT/HIP/AD negative-mode count surfaces."""
+) -> Image.Image:
+    """Build the top-row composite: TS render plus DFT/HIP/AD negative-mode surfaces."""
     stationary = json.loads(stat_path.read_text()) if stat_path.exists() else {}
     dft = np.load(vib_path)
     hip = np.load(hip_path)
@@ -513,13 +618,15 @@ def draw_ts_negative_panel(
         ax.contour(energy_xs, energy_ys, energy_grid, levels=levels, colors="k", linewidths=0.5, alpha=0.55)
         overlay_stationary(ax, stationary)
         ax.set_title(label, fontsize=title_size() * 0.85)
-        ax.set_xlabel(r"$s = q_\mathrm{NH} - q_\mathrm{OH}$ [$\AA$]")
+        ax.set_xlabel(
+            XLABEL if idx == 1 else "",
+            labelpad=X_LABEL_PAD,
+        )
         ax.set_ylabel(r"$\sigma = q_\mathrm{NH} + q_\mathrm{OH}$ [$\AA$]" if idx == 0 else "")
         ax.axvline(0.0, color="0.35", lw=0.6, ls="--", alpha=0.7)
         finish_surface_axis(ax, idx=idx)
 
     assert mesh is not None
-    add_stationary_legend(heatmap_fig, axes)
     heatmap_fig.draw_without_rendering()
     cax = axes[-1].inset_axes([1.05, 0.0, 0.05, 1.0])
     cbar = heatmap_fig.colorbar(mesh, cax=cax, ticks=np.arange(vmin, vmax + 1), spacing="proportional")
@@ -543,10 +650,34 @@ def draw_ts_negative_panel(
     panel = Image.new("RGB", (left.width + gap_px + right.width, right.height), "white")
     panel.paste(left, (0, round((right.height - left.height) / 2)))
     panel.paste(right, (left.width + gap_px, 0))
+    return panel
 
-    ax = fig.add_subplot(gs_row)
-    ax.imshow(panel)
+
+def place_top_panel(fig: plt.Figure, gs_row, panel: Image.Image, lower_axes: list[plt.Axes]) -> plt.Axes:
+    """Place the composite top-row image so it spans the full content width of the
+    rows below (removing the left-label inset) and sits flush at the top."""
+    aspect = panel.width / panel.height
+    fig.draw_without_rendering()
+    renderer = fig.canvas.get_renderer()
+    inv = fig.transFigure.inverted()
+    x0s, x1s = [], []
+    for ax in lower_axes:
+        bbox = ax.get_tightbbox(renderer)
+        if bbox is None:
+            continue
+        bbox_fig = bbox.transformed(inv)
+        x0s.append(bbox_fig.x0)
+        x1s.append(bbox_fig.x1)
+    left = min(x0s)
+    right = max(x1s)
+    width_frac = right - left
+    fig_w, fig_h = fig.get_size_inches()
+    height_frac = width_frac * fig_w / (aspect * fig_h)
+    y_top = gs_row.get_position(fig).y1
+    ax = fig.add_axes([left, y_top - height_frac, width_frac, height_frac])
+    ax.imshow(panel, aspect="auto")
     ax.axis("off")
+    return ax
 
 
 def draw_lowest_eigenvalues(
@@ -556,11 +687,14 @@ def draw_lowest_eigenvalues(
     x_label: str,
     vib: dict[str, dict],
     n_eigs: int,
+    stationary_frames: dict[str, int],
+    *,
+    use_xi_xticks: bool = True,
 ) -> None:
     n_eigs = min(n_eigs, min(diag["evals"].shape[1] for diag in vib.values()))
     ncols = min(3, n_eigs)
     nrows = int(np.ceil(n_eigs / ncols))
-    sub = gs_row.subgridspec(nrows, ncols, hspace=0.35, wspace=0.14)
+    sub = gs_row.subgridspec(nrows, ncols, hspace=0.12, wspace=0.34)
     axes = [fig.add_subplot(sub[i // ncols, i % ncols]) for i in range(nrows * ncols)]
 
     plot_labels = ordered_method_labels(vib)
@@ -571,7 +705,6 @@ def draw_lowest_eigenvalues(
         if idx >= n_eigs:
             ax.axis("off")
             continue
-        ax.axhline(0.0, color="grey", lw=THIN_LINE_WIDTH)
         for label in plot_labels:
             diag = vib[label]
             is_dft = label == DFT_LABEL
@@ -593,10 +726,8 @@ def draw_lowest_eigenvalues(
                 label=label,
                 **line_kwargs,
             )
-        if idx % ncols == 0:
-            y_label = r"$\lambda$ [eV $\AA^{-2}$ amu$^{-1}$]"
-        else:
-            y_label = None
+        overlay_stationary_on_curve(ax, x, vib[DFT_LABEL]["evals"][:, idx], stationary_frames)
+        y_label = rf"$\lambda_{{{idx + 1}}}$ [eV $\AA^{{-2}}$ amu$^{{-1}}$]"
         y_values = np.concatenate([vib[label]["evals"][:, idx] for label in plot_labels])
         y_span = float(np.max(y_values) - np.min(y_values))
         y_pad = max(0.02 * y_span, 0.01)
@@ -606,16 +737,25 @@ def draw_lowest_eigenvalues(
             ax.set_yticks([0, -5, -10, -15])
             ax.yaxis.set_major_formatter(matplotlib.ticker.FormatStrFormatter("%d"))
         ax.set_xlim(*shared_xlim)
+        if use_xi_xticks:
+            apply_xi_xticks(ax)
         setup_axis(
             ax,
-            x_label,
+            "",
             y_label=y_label,
-            title=f"Mode {idx + 1}",
-            title_fontsize=axes_label_size(),
         )
         legend = ax.get_legend()
         if idx == 0:
-            ax.legend(fontsize=tick_label_size(), markerscale=1.4, frameon=True, edgecolor="none")
+            new_legend = ax.legend(
+                fontsize=tick_label_size(),
+                markerscale=1.4,
+                frameon=True,
+                edgecolor="none",
+                loc="center left",
+                bbox_to_anchor=(-0.02, 0.20),
+            )
+            for text in new_legend.get_texts():
+                text.set_color(PLOTLY_FONT_COLOR)
         elif legend is not None:
             legend.remove()
 
@@ -627,6 +767,7 @@ def draw_force_xi_residual(
     g_xi: dict[str, np.ndarray],
     hessian_mae: dict[str, np.ndarray],
     compare_labels: tuple[str, ...],
+    stationary_frames: dict[str, int],
 ) -> None:
     sub = gs_row.subgridspec(1, 3, wspace=0.28)
     axes = [fig.add_subplot(sub[0, i]) for i in range(3)]
@@ -650,7 +791,7 @@ def draw_force_xi_residual(
             lw=lw,
             label=label,
         )
-    axes[0].axhline(0.0, color="grey", lw=THIN_LINE_WIDTH)
+    overlay_stationary_on_curve(axes[0], xi, g_xi[DFT_LABEL], stationary_frames)
 
     for label in compare_labels:
         if label not in g_xi:
@@ -664,7 +805,7 @@ def draw_force_xi_residual(
             lw=lw,
             label="_nolegend_",
         )
-    axes[1].axhline(0.0, color="grey", lw=THIN_LINE_WIDTH)
+    overlay_stationary_on_curve(axes[1], xi, np.zeros_like(xi), stationary_frames)
 
     for label in compare_labels:
         if label not in hessian_mae:
@@ -679,10 +820,11 @@ def draw_force_xi_residual(
             label="_nolegend_",
         )
 
-    shared_xlim = tight_xlim(xi)
+    x_span = float(np.max(xi) - np.min(xi))
+    shared_xlim = (float(np.min(xi) - 0.015 * x_span), float(np.max(xi) + 0.015 * x_span))
     style_axis(
         axes[0],
-        x_label=XLABEL,
+        x_label="",
         y_label=rf"${FORCE_PROJ_XI}$ [eV/$\AA$]",
     )
     style_axis(
@@ -692,13 +834,27 @@ def draw_force_xi_residual(
     )
     style_axis(
         axes[2],
-        x_label=XLABEL,
+        x_label="",
         y_label=r"mean $|H-H_\mathrm{DFT}|$ [eV $\AA^{-2}$]",
     )
-    axes[0].legend(fontsize=tick_label_size(), frameon=True, edgecolor="none")
+    force_legend = axes[0].legend(
+        fontsize=tick_label_size(),
+        frameon=True,
+        edgecolor="none",
+        loc="upper left",
+        bbox_to_anchor=(-0.02, 1.05),
+    )
+    for text in force_legend.get_texts():
+        text.set_color(PLOTLY_FONT_COLOR)
     axes[2].set_yscale("log")
     for ax in axes:
         ax.set_xlim(*shared_xlim)
+        apply_xi_xticks(ax)
+    y_bottom, y_top = axes[2].get_ylim()
+    pad_frac = 0.03
+    y_marker = 10 ** (np.log10(y_bottom) + pad_frac * (np.log10(y_top) - np.log10(y_bottom)))
+    overlay_stationary_on_curve(axes[2], xi, np.full(xi.shape, y_marker), stationary_frames)
+    axes[2].set_ylim(y_bottom, y_top)
 
 
 def load_mep_data(args: argparse.Namespace):
@@ -717,6 +873,7 @@ def load_mep_data(args: argparse.Namespace):
         q_oh = np.asarray(data["q_oh"], dtype=float)
         dft_forces = np.asarray(data["forces_ev_ang"], dtype=float)
         dft_hessians = np.asarray(data["hessian_ev_ang2"], dtype=float)
+        dft_energy = np.asarray(data["energy_hartree_engrad"], dtype=float)
 
     with np.load(hip_path) as data:
         hip_forces = np.asarray(data["forces"], dtype=float)
@@ -739,6 +896,7 @@ def load_mep_data(args: argparse.Namespace):
     coords = coords[order]
     dft_forces = dft_forces[order]
     dft_hessians = dft_hessians[order]
+    dft_energy = dft_energy[order]
     hip_forces = hip_forces[order]
     hip_hessians = hip_hessians[order]
     eqv2_forces = eqv2_forces[order]
@@ -759,6 +917,7 @@ def load_mep_data(args: argparse.Namespace):
         "hip_forces": hip_forces,
         "eqv2_forces": eqv2_forces,
         "leftnet_cf_forces": leftnet_cf_forces,
+        "dft_energy": dft_energy,
         "orca_path": orca_path,
     }
 
@@ -822,10 +981,31 @@ def plot_combined(args: argparse.Namespace) -> Path:
             mep["leftnet_cf_hessians"], mep["dft_hessians"]
         )
 
-    fig = plt.figure(figsize=(16.5, 15.5))
-    gs = fig.add_gridspec(3, 1, height_ratios=[1.05, 1.55, 0.95], hspace=0.22)
+    stationary_frames = {
+        "reactant": 0,
+        "product": int(xi.size - 1),
+        "ts": int(np.argmax(mep["dft_energy"])),
+    }
 
-    draw_ts_negative_panel(
+    fig = plt.figure(figsize=(16.5, 15.9))
+    gs = fig.add_gridspec(3, 1, height_ratios=[1.092, 1.55, 0.95], hspace=0.22)
+
+    draw_lowest_eigenvalues(
+        fig, gs[1], x, x_label, vib, args.n_eigs, stationary_frames, use_xi_xticks=args.x_axis == "xi"
+    )
+    row2_axes = list(fig.axes)
+    draw_force_xi_residual(fig, gs[2], xi, g_xi, hessian_mae, compare_labels, stationary_frames)
+    row3_axes = [ax for ax in fig.axes if ax not in row2_axes]
+
+    fig.draw_without_rendering()
+    renderer = fig.canvas.get_renderer()
+    inv = fig.transFigure.inverted()
+    target_left = min(ax.get_tightbbox(renderer).transformed(inv).x0 for ax in row2_axes)
+    align_row_left(fig, row3_axes, target_left)
+
+    lower_axes = list(fig.axes)
+
+    panel = draw_ts_negative_panel(
         fig,
         gs[0],
         vib_path=vib_path,
@@ -835,8 +1015,9 @@ def plot_combined(args: argparse.Namespace) -> Path:
         ts_image=args.ts_image,
         dpi=args.dpi,
     )
-    draw_lowest_eigenvalues(fig, gs[1], x, x_label, vib, args.n_eigs)
-    draw_force_xi_residual(fig, gs[2], xi, g_xi, hessian_mae, compare_labels)
+    top_ax = place_top_panel(fig, gs[0], panel, lower_axes)
+    add_stationary_legend(fig, gs[0])
+    add_row_labels(fig, [top_ax, row2_axes[0], row3_axes[0]])
 
     fig.savefig(output, dpi=args.dpi, bbox_inches="tight", pad_inches=0.02)
     plt.close(fig)
