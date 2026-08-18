@@ -1,0 +1,549 @@
+\documentclass[pdflatex,sn-mathphys-num]{sn-jnl}% Math and Physical Sciences Numbered Reference Style
+
+\usepackage{graphicx}%
+\usepackage{multirow}%
+\usepackage{amsmath,amssymb,amsfonts}%
+\usepackage{amsthm}%
+\usepackage{mathrsfs}%
+\usepackage{xcolor}%
+\usepackage{textcomp}%
+\usepackage{manyfoot}%
+\usepackage{booktabs}%
+\usepackage{algorithm}%
+\usepackage{algorithmicx}%
+\usepackage{algpseudocode}%
+\usepackage{listings}%
+\usepackage{bm}
+\usepackage{placeins}
+\usepackage{xr}
+\externaldocument{si}
+
+% \usepackage{bbding}     % \FiveStarOpen, \FiveStar (filled)
+% \usepackage{wasysym}    % \ocircle, \Square, etc.
+
+% \usepackage{tikz}
+% \usetikzlibrary{shapes.geometric}
+% \newcommand{\mReactant}{\tikz\draw[fill=white] (0,0) circle (1.1pt);}
+% \newcommand{\mTS}{\tikz\node[star, star points=5, draw, fill=white, inner sep=0.8pt]{};}
+% \newcommand{\mProduct}{\tikz\node[regular polygon, regular polygon sides=3, draw, fill=white, inner sep=0.6pt]{};}
+
+% \theoremstyle{thmstyleone}%
+% \newtheorem{theorem}{Theorem}%  meant for continuous numbers
+% \newtheorem{proposition}[theorem]{Proposition}% 
+% \theoremstyle{thmstyletwo}%
+% \newtheorem{example}{Example}%
+% \newtheorem{remark}{Remark}%
+% \theoremstyle{thmstylethree}%
+% \newtheorem{definition}{Definition}%
+
+\raggedbottom
+
+\usepackage{lineno}
+\linenumbers
+
+\begin{document}
+
+\title[HIP: Hessian Interatomic Potentials]{HIP: Hessian Interatomic Potentials without derivatives}
+
+%%=============================================================%%
+%% Authors
+%%=============================================================%%
+
+\author[1,2,7,]{\fnm{Andreas} \sur{Burger}}
+% \equalcont{These authors contributed equally to this work.}
+% c@andreas-burger.com
+
+\author[1,2,7,]{\fnm{Luca} \sur{Thiede}}
+% \equalcont{These authors contributed equally to this work.}
+
+\author[3,6]{\fnm{Nikolaj} \sur{Rønne}}
+
+\author[1,2]{\fnm{Nandita} \sur{Vijaykumar}}
+
+\author[1,4]{\fnm{Varinia} \sur{Bernales}}
+
+\author[3,6]{\fnm{Tejs} \sur{Vegge}}
+
+\author[3,6]{\fnm{Arghya} \sur{Bhowmik}}
+
+\author*[1,2,4,5,7]{\fnm{Alán} \sur{Aspuru-Guzik}}\email{alan@aspuru.com}
+
+%%=============================================================%%
+%% Affiliations
+%%=============================================================%%
+
+% Address CS Dept
+\affil[1]{\orgdiv{Department of Computer Science}, \orgname{University of Toronto}, \orgaddress{\street{40 St. George St.}, \city{Toronto}, \state{ON}, \postcode{M5S 2E4}, \country{Canada}}}
+
+% Vector
+\affil[2]{\orgname{Vector Institute for Artificial Intelligence}, \orgaddress{\street{W1140-108 College St., Schwartz Reisman Innovation Campus}, \city{Toronto}, \state{ON}, \postcode{M5G 0C6}, \country{Canada}}}
+
+% DTU Address
+\affil[3]{\orgdiv{Department of Energy Conversion and Storage}, \orgname{Danmarks Tekniske Universitet}, \orgaddress{\street{Anker Engelunds Vej 101}, \postcode{2800}, \city{Kongens Lyngby}, \country{Denmark}}}
+
+% Address Acceleration Consortium
+\affil[4]{\orgname{Acceleration Consortium}, \orgaddress{\street{700 University Ave.}, \city{Toronto}, \state{ON}, \postcode{M7A 2S4}, \country{Canada}}}
+
+% Address Chemistry
+\affil[5]{\orgdiv{Department of Chemistry}, \orgname{University of Toronto}, \orgaddress{\street{80 St. George St.}, \city{Toronto}, \state{ON}, \postcode{M5S 3H6}, \country{Canada}}}
+
+% Address Capex
+\affil[6]{\orgname{CAPeX Pioneer Center for Accelerating P2X Materials Discovery}, \orgaddress{\street{Anker Engelunds Vej 1, Bygning 101A}, \postcode{2800}, \city{Kgs. Lyngby}, \country{Denmark}}}
+
+% Address NVIDIA
+\affil[7]{\orgname{NVIDIA}, \orgaddress{\street{431 King St. W \#6th}, \city{Toronto}, \state{ON}, \postcode{M5V 1K4}, \country{Canada}}}
+
+%%==================================%%
+%% Abstract %%
+%%==================================%%
+
+\abstract{
+Molecular Hessians, the second derivatives of the potential energy, are fundamental to many workflows in computational chemistry. Usually, accurate Hessians are computationally expensive to calculate and scale poorly with system size, whether computed using quantum chemistry methods or machine-learning interatomic potentials (MLIPs). In this work, we introduce Hessian interatomic potentials (HIPs), a deep learning model that directly predicts Hessians without relying on automatic differentiation or finite differences. To do so, we construct SE(3)-equivariant, symmetric Hessians from irreducible representation (irrep) features up to degree $l$=2, computed by a graph neural network. HIP Hessians are one to two orders of magnitude faster, more accurate, more memory efficient, easier to train, and exhibit favourable scaling with system size. We validate our predictions across a wide range of downstream tasks, demonstrating consistently superior performance in transition state search, geometry optimization, zero-point energy corrections, and vibrational analysis. We open-source the HIP code and model weights.
+}
+
+% \keywords{Hessian, Machine Learning Interatomic Potentials, Equivariance, Transition States}
+
+\maketitle
+
+\section{Introduction}\label{sec1}
+
+Molecular simulation is a cornerstone of material discovery and molecular design. While the prediction of energy and forces is often sufficient for structural dynamics, advanced computational chemistry workflows often depend on the molecular Hessian\citep{qu2016,huang2018}. By describing the local curvature of the potential energy surface (PES), the Hessian is foundational to many computational workflows. Second-order geometry optimization rely on the curvature information to rapidly and reliably converge to equilibrium structures\cite{schlegel2011}. Transition state (TS) searches and extrema classification depend on the Hessian to correctly identify saddle points and reaction barriers, which are essential for parameterizing reaction rates and microkinetic models for longer time and length scale simulations\cite{andersen2019}. Furthermore, mode-following transition state search methods directly leverage the curvature information to locate the transition states\cite{henkelman1999}. Finally, vibrational analysis use Hessian eigenvalues to compute zero-point energy (ZPE) corrections and thermodynamic free energies bridging the gap from static molecules to non-zero temperature observables\cite{grimme2012}. 
+%Beyond energy and forces, workflows such as second-order geometry optimization, transition-state search, and vibrational analysis rely on Hessians \citep{qu2016,huang2018}. 
+
+
+For a molecule with $N$ atoms, the Hessian is a $3N \times 3N$ matrix, where each entry requires a mixed second-order derivative of the electronic energy with respect to two nuclear coordinates. Despite their broad utility, Hessian calculations represent a significant computational bottleneck.
+%\begin{equation}
+%\mathbf{H}_{IJ}^{\alpha,\beta}\;=\;\frac{\partial^2 E}{\partial %\mathbf{R}_I^{\alpha}\,\partial \mathbf{R}_J^{\beta}}
+%\end{equation}
+%ewith $I,J=1,\dots,N$ indexing atoms, and $\alpha,\beta\in\{x,y,z\}$ indexing the cartesian $x,y$ and $z$ components of the atom positions $\mathbf{R}$. \\
+Traditional approaches to obtain the Hessian rely either on analytic second derivatives or on numerical differentiation of gradients, both of which are very expensive, and analytical Hessians in particular are often so complicated to implement that they are not widely supported for all methods \citep{jorgensen1983,handy1984,komornicki1993}.
+
+Most computational chemistry calculations are carried out with Kohn-Sham density functional theory \citep{kohn1965} (DFT), due to its balance of computational cost and accuracy \citep{bursch2022}.
+However, the $O(N^4)$ scaling of hybrid DFT with system size remains expensive, which has spurred the development of machine-learning interatomic potentials (MLIPs). MLIPs promise to deliver near-DFT accuracy at a fraction of the cost while incorporating symmetries, thereby drastically reducing the need for extensive training data \citep{schutt2018,thomas2018,gasteiger2021,schutt2021,batatia2022,batzner2022}.
+While recent work demonstrates that automatic differentiation (AD) can successfully recover the Hessian \citep{yang2024, yuan2024, gonnheimer2025, rodriguez2025, williams2025, cui2025horm}, this approach faces two significant limitations. First, high accuracy of the energy and forces does not guarantee comparably accurate second derivatives; much like training on force labels is needed to achieve accurate force predictions \cite{christensen2020forces}, explicit Hessian training labels are required for reliable AD Hessians \citep{zhao2025, cui2025horm}. 
+Second, these AD Hessians introduce high computational costs, with an extra factor of $\sim{}3N$ during training and inference \citep{yuan2024,gonnheimer2025,rodriguez2025,williams2025,cui2025horm}. 
+Rodriguez et al. ~\cite{rodriguez2025} in particular showed that including the Hessian in the loss improves data efficiency and extrapolation of energy and force predictions but is limited by approximately 25 times longer training times, which make AD Hessians prohibitive to train. The same principle extends to learned exchange-correlation functionals, where supervising energy derivatives substantially improves accuracy \citep{eberhard2026derivative}.
+MLIPs can also be used to obtain Hessians with finite differences \citep{gonnheimer2025, fu2025}, an approach which requires less memory but $6N$ forward passes and also requires specialized data collection schemes to be accurate \cite{wander2025accessing}.\\
+
+In this work, we introduce \textbf{HIP}: \textbf{H}essian \textbf{I}nteratomic \textbf{P}otentials. HIPs predict the Hessian directly, to eliminate the need for finite differences, coupled-perturbed equation solvers, or automatic differentiation. By building on SE(3)-equivariant neural networks, HIP construct the full $3N \times 3N$ matrix Hessian at a fraction of the cost of traditional methods. We demonstrate that HIP accelerates predictions 10-70$\times$ and reduces peak memory by a factor of 2-3 compared to AD, while maintaining a highly favourable $O(N)$ scaling with the number of atoms. Furthermore, HIP achieves superior predictive accuracy, halving the mean absolute error compared to AD. We validate the practical utility of HIP across several critical downstream applications, demonstrating consistently superior performance in second-order geometry optimization, ZPE corrections, TS searches and frequency analysis for extrema classification.
+
+%, we demonstrate how HIP can predict Hessians at a fraction of the computational cost of traditional methods. 
+
+%A key observation is that one can construct the Hessian from spherical-harmonic features of the atom nodes and the messages between atoms, satisfying equivariance and symmetry constraints by design. 
+%In practice, HIP is not only faster but also more accurate than AD, enabling a variety of critical tasks in molecular simulations.\\
+
+%We show that, compared to AD, the HIP predicted Hessians are at least 10-70$\times$ faster and consume 2-3$\times$ less peak memory on small molecules with 5-30 atoms, while scaling better by an order of $O(N)$ in the number of compute passes through the neural network.
+%The predicted Hessians are furthermore accurate on the Hessian dataset for Optimizing Reactive MLIP (HORM) \cite{cui2025horm}, with 2$\times$ lower Hessian mean absolute error (MAE), 3.5$\times$ lower eigenvalue MAE, and 1.5$\times$ higher eigenvector cosine similarity. 
+%Finally, we validate the practical utility of HIP predicted Hessians in several downstream applications, such as (i) zero-point energy (ZPE) corrections, (ii) second-order geometry optimization, (iii) transition state search, and (iv) frequency analysis for extrema classification. 
+
+
+\section{Results}
+%We present the HIP framework by first introducing the HIP methodology that enables direct, symmetry-preserving Hessian prediction. We benchmark the trained models against DFT assesing the predictive accuracy, computational scaling and compare to AD approaces. Following this, we assess HIP on downstream molecular tasks. 
+
+
+%Our goal is to obtain the molecular Hessian directly from the atomic structure, retaining both the speed and data efficiency of equivariant MLIPs. To this end, we utilize existing MLIPs built on graph neural networks (GNN) that employ SE(3)-equivariant message passing. 
+%HIP amends popular MLIP architectures with a Hessian readout that effectively parallelizes the prediction of the $(3N)^2$-sized Hessian and can be trained efficiently on ground-truth Hessians obtained, e.g., from density functional theory (DFT).
+
+
+\subsection{HIP framework for Hessian prediction}
+
+Equivariant graph neural networks (GNNs) efficiently predict scalar energies and forces either by direct equivariant prediction or conservatively through AD of the energy.\cite{schutt2018,duvalHitchhikerGuideGeometric2024a,duvenaud2015convolutional,bigiDarkSideForces2025}. To compute the Hessian via AD incurs a prohibitive $3N$-fold computational cost of a regular forward pass. To overcome this, we introduce a Hessian readout head that constructs the Hessian matrix directly in parallel (Fig.~\ref{fig:visual_abstract}). 
+
+Our approach decomposes the Hessian into  $3 \times 3$ equivariant sub-blocks $\mathbf{H}_{IJ}$. Instead of standard message aggregation, we use node features to compute self-interactions ($\mathbf{H}_{II}$) and treat message-passing features between atoms $I$ and $J$ as direct predictions of pair interactions ($\mathbf{H}_{IJ}$). Using Clebsch-Gordan tensor products, we map these irreducible representations (requiring features of at least $l=2$) into Cartesian $3 \times 3$ matrices. This basis change strictly guarantees SE(3) equivariance and structural symmetry by design. 
+
+This readout head can be appended any equivariant backbone, such as EquiformerV2\cite{liao2023equiformerv2} in this work, retaining the base models $O(N)$ global scaling. Furthermore, the Hessian interaction cutoff can be set independently of the backbone radius to optimally capture the locality of quantum mechanical interactions. 
+
+%Equivariant graph neural networks represent molecules as graphs in three-dimensional space, where atoms are nodes with features of irreducible representations (irreps) of the SE(3) group (rotations and translations) \cite{schutt2018, duvalHitchhikerGuideGeometric2024a}. 
+%Multiple layers update these node features via message passing. After this backbone, task-specific readout heads predict properties of interest, like the scalar energy \cite{duvenaud2015convolutional}.
+%The $3N$ force vector can be read out directly via another readout head, or be obtained conservatively by automatic differentiation of the energy prediction $\mathbf{F}=-dE/d\mathbf{R}$ \cite{bigiDarkSideForces2025}.
+%While conservative forces only double the cost of the energy prediction, Hessians via automatic differentiation require $3N$-times the cost of a regular forward pass.\\
+%For a molecule comprising $N$ atoms, the nuclear Hessian is a real-valued, symmetric $3N \times 3N$ matrix.
+%It is helpful to conceptualize the Hessian as being composed of per-atom-pair equivariant sub-matrices.
+%Each sub-block $\mathbf{H}_{IJ}$ is of size $3 \times 3$ and captures the interaction along Cartesian $x,y,z$ components between two atoms $I,J=1,\dots,N$.\\
+%The key insight enabling HIP is that Hessian $3 \times 3$ sub-blocks can be constructed directly in parallel.
+%Importantly, we can do so while preserving SE(3)-equivariant symmetry constraint, by using the fact that each Hessian sub-block transforms like a separate matrix under rotation.
+%In practice, we can construct these sub-blocks in one (partial) round of message passing and one fast tensor contraction using Clebsch-Gordan coefficients. 
+%While the node features are used for the self-interaction $H_{I,I}$ along the diagonal of the Hessian, the message passing is used to learn atom-pair interactions $H_{I,J}$.
+%Instead of aggregating messages to update node features, we treat messages between atom pairs $I$ and $J$ as direct predictions of Hessian sub-blocks $\mathbf{H}_{I,J}$. 
+%These message features contain irreducible representations, which we project and expand to form $3\times3$ Hessian sub-blocks using Clebsch-Gordan tensor products. 
+%This construction ensures that Hessians transform correctly under rotations and are symmetric by design, satisfying all physical requirements.
+%Physically, this Clebsch-Gordan operation represents a change of basis from the coupled to the uncoupled angular-momentum basis, effectively assembling the Cartesian spherical tensor from its irreducible components.
+%This Hessian readout head is added after the backbone network's final layer features Fig.~\ref{fig:visual_abstract}. 
+%Any equivariant neural network with irrep features of at least $l=2$ can be converted to HIP by adding this readout head. 
+%In our experiments, we use EquiformerV2 \cite{liao2023equiformerv2} as the backbone architecture.\\
+%By reusing the message-passing machinery, HIP Hessian prediction retains the same $O(N^2)$ scaling as the base MLIP within a cutoff radius and reduces to $O(N)$ for larger systems. 
+%By setting a range cutoff for the Hessian readout, we can use the locality of electron interactions in quantum chemistry. 
+%We can set the Hessian cutoff independently of the backbone radius.
+
+
+\subsection{HIP Hessian accuracy}
+\subsubsection{Benchmark}
+We assess Hessian quality using the element-wise mean absolute error (MAE), the MAE of the eigenvalues $\lambda$ and the smallest eigenvalue $\lambda_1$, and the cosine similarity of the smallest eigenvector $v_1$. We focus particularly on the lowest eigenvalue and eigenvector as they play an important role in downstream applications such as transition state search. We also measure the average inference time. Table~\ref{tab:model-performance} shows results on the HORM-T1x validation set.
+Models trained on energy and force labels but without Hessian information, such as EquiformerV2 (E-F), perform poorly, demonstrating that accurate second derivatives require explicit training. Among methods using automatic differentiation with Hessian training data, EquiformerV2 achieves the best accuracy. However, HIP-EquiformerV2 outperforms all baselines across every metric. Compared to AD-EquiformerV2, HIP achieves 2.5$\times$ lower Hessian MAE, 3.8$\times$ lower eigenvalue MAE, and higher eigenvector cosine similarity, while being 16$\times$ faster. Training HIP end-to-end (marked by * in Table \ref{tab:model-performance}) improves results further, achieving 0.020 eV/\AA$^2$ Hessian MAE at 31.4 ms per prediction.
+
+\subsubsection{Glycine proton transfer}
+% The aggregate errors in Table~\ref{tab:model-performance} summarize Hessian quality as scalar averages. To probe the curvature along a physically meaningful example, we study the intramolecular proton transfer of glycine from the Transition1x test split \cite{schreiner2022transition1x}. The motion is captured by the two distances $q_{\mathrm{NH}}$ and $q_{\mathrm{OH}}$ of the transferring proton (see \ref{sec:glycinedetails}).
+% 
+% We first study the two-dimensional $(q_{\mathrm{NH}}, q_{\mathrm{OH}})$ surface around the transition state. Starting from the Transition1x transition state geometry, we vary only the position of the transferring proton while keeping all heavy atoms fixed. We map the character of every point by counting the negative eigenvalues (modes) of the Eckart-projected, mass-weighted Hessian on a $36\times36$ grid of single-point DFT, HIP, and AD Hessian calculations (Fig.~\ref{fig:glycine}, top). HIP reproduces the DFT topology almost exactly, correctly separating the minima, the first-order transition state (star), and the higher-index regions toward proton dissociation. AD, by contrast, distorts this structure and invents spurious negative modes in the strained, hydrogen-dissociating regions, which leads to misclassified stationary points.
+The aggregate errors in Table~\ref{tab:model-performance} summarize Hessian quality as scalar averages. To probe the curvature along a physically meaningful example, we study the intramolecular proton transfer of glycine from the Transition1x test split \cite{schreiner2022transition1x}. The motion is described by the N--H and O--H distances of the transferring proton, \(q_{\mathrm{NH}}\) and \(q_{\mathrm{OH}}\), which we transform to the reaction coordinate \(\xi=q_{\mathrm{NH}}-q_{\mathrm{OH}}\) (see Methods).
+
+We study the two-dimensional \((q_{\mathrm{NH}}, q_{\mathrm{OH}})\) surface around the proton-transfer transition state. At each grid point, the transferring proton is placed to match the target values of \(q_{\mathrm{NH}}\) and \(q_{\mathrm{OH}}\), after which the remaining degrees of freedom are relaxed with the two distances constrained and the resulting geometry is reoptimized at the DFT level (Supplementary Fig.~\ref{fig:glycine_forcefield}). We then map the character of the surface by counting the negative eigenvalues
+% of the Eckart-projected, mass-weighted Hessian from DFT, HIP, and AD Hessian calculations 
+(Fig.~\ref{fig:glycine}a). HIP reproduces the DFT topology closely, while AD introduces spurious negative modes in the transition state and minima regions.
+
+We then track the six lowest vibrational eigenvalues along the all-atom minimum energy path as a function of the reaction coordinate $\xi$ (Fig.~\ref{fig:glycine}b). HIP overlaps the DFT reference across all six modes. AD Hessians capture only this first mode, but systematically underestimates the orthogonal curvatures of modes~2-6. This view matches the gap in Table~\ref{tab:model-performance}, where HIP captures the full curvature spectrum that AD Hessians miss.
+
+Finally, we project the Cartesian forces onto the reaction-coordinate direction $F\cdot\widehat{\xi}$ along the minimum energy path (Fig.~\ref{fig:glycine}c). We show EquiformerV2 (EqV2) and the conservative-force model LeftNet-CF, each differentiated to obtain the AD Hessians. Both MLIPs follow the overall DFT trend (left), yet their projected force predictions oscillate significantly compared to DFT (middle). These fluctuations are amplified by AD into large Hessian errors across the reaction path (right).
+Together with the spurious negative modes and the underestimated orthogonal curvatures, this suggests that AD Hessian failure is driven by noise in the underlying MLIP potential energy surface.
+% \[
+% (F_{\mathrm{model}}\cdot\widehat{\xi}) - (F_{\mathrm{DFT}}\cdot\widehat{\xi})
+% = (F_{\mathrm{model}} - F_{\mathrm{DFT}})\cdot\widehat{\xi}.
+% \]
+
+\subsection{Computational efficiency and scaling}
+A critical bottleneck in materials discovery is the scaling of compute with system size.
+Fig. \ref{fig:speed_memory}a-b compares the inference time and memory footprint of HIP versus AD approaches.
+HIP exhibits the same scaling as a regular forward pass, with only a constant 25\% additional time, roughly the cost of one extra layer on top of the four hidden layers.
+AD approaches, on the other hand, suffer from having to backpropagate through the graph for each row of the Hessian, which increases the cost to $3N$ of a forward pass.
+Quantitatively, HIP yields a $10\times$ to $70\times$ speedup on small molecules (5-30 atoms) and reduces peak memory usage by a factor of 2-3 compared to AD.
+This efficiency enables the calculation of Hessians for systems and timescales previously inaccessible to quantum mechanical levels of theory. 
+AD calculations are also much harder to parallelize across a batch dimension; see Supplementary Section~\ref{sec:batched_ad_explanation} for the explanation. 
+By comparison, since HIP reuses the message passing machinery, HIP parallelizes just as easily as the forward energy pass. We compared the batched AD Hessian as implemented by Cui et al.~\citep{cui2025horm} with our HIP-EquiformerV2. 
+We observe at least a $78\times$ speedup in batch size compared to AD, see Supplementary Section~\ref{sec:batched_ad_explanation} for more details.
+
+\subsection{Generalization to larger systems}
+To assess extrapolation beyond the training distribution, we evaluate HIP on molecules from the HORM-RGD1 dataset and 710 samples (30-100 atoms, 10 samples per number of atoms) from PubChem \citep{kim2025pubchem}. We calculate ground truth DFT Hessians using ORCA 6.0 \citep{ORCA}. Fig.~\ref{fig:speed_memory}c-d shows the error of the eigenvalues of the Hessian as a function of the number of atoms. We use the eigenvalues as a metric since their scale is independent of system size, while the MAE of Hessian elements lead to misleadingly low errors as a large share of Hessian elements go to zero for larger systems. 
+HIP maintains strong performance across system sizes, with errors remaining relatively flat even for molecules larger than those in the training set. 
+% The favorable $O(N)$ scaling of the sparse Hessian prediction ensures that both accuracy and computational efficiency extend to larger systems. 
+In contrast, the AD-based predictions show degraded performance along with the prohibitive computational costs for large molecules.
+
+
+\subsection{Validating downstream utility}
+
+\subsubsection{Geometry optimization}
+
+We evaluate HIP Hessians in geometry optimization workflows, comparing exact second-order methods (rational function optimization, RFO) using Hessians against first-order methods and quasi-second-order RFO using BFGS.
+Fig.~\ref{fig:relaxations_tssearch_zpe}a shows convergence statistics across the validation set. RFO with HIP Hessians converges in the fewest steps on average, whereas finite-difference and AD Hessians often fail to converge within a 150-step budget. Na\"ive steepest descent rarely converges, underscoring the importance of curvature information.
+Wall-clock timings reinforce this conclusion, as it can be observed in Fig.~\ref{fig:relaxations_tssearch_zpe}a. RFO with HIP Hessians is fastest overall, benefiting from both fewer optimization steps and efficient Hessian evaluations, while AD and finite-difference approaches are orders of magnitude slower.
+
+\subsubsection{Transition state search}
+Transition state search is a central challenge in computational chemistry, requiring accurate Hessian eigenvalues and eigenvectors. We evaluate HIP using the ReactBench benchmark \cite{zhao2025} with additional DFT verification (see Methods). The workflow comprises four stages: the growing string method (GSM) first approaches the TS using energies and forces; RFO optimization with Hessians then refines the TS; the intrinsic reaction coordinate (IRC) then verifies connectivity; and a final DFT Hessian confirms the saddle point.
+Fig.~\ref{fig:relaxations_tssearch_zpe}b shows the success rates at each stage.\\
+% Total Success: $89.38\%$ ($858/960$)
+% RFO Convergence: $72.71\%$ (HIP) vs $65.52\%$ (AD)
+% IRC Verification: $70.73\%$ (HIP) vs $67.08\%$ (AD)
+% DFT-Verified Transition States: $69.69\%$ (HIP) vs $64.79\%$ (AD)
+GSM performs equally well for both models because it relies only on energies and forces, which are identical. The differences emerge in Hessian-dependent stages. HIP achieves higher RFO convergence, better IRC verification, and most importantly, more DFT-verified transition states. When requiring both DFT verification and tight convergence, HIP improves 12\% over AD.
+These results demonstrate that HIP's superior Hessian quality translates to more reliable TS identification, which is crucial for estimating reaction barriers and rates.
+
+\subsubsection{Zero-point energy}
+% Absolute ZPE (Error Reduction by HIP):
+% vs. LeftNet-DF: HIP reduces error by $95.74\%$.
+% vs. AD-EquiformerV2: HIP reduces error by $99.33\%$.
+% Relative $\Delta$ZPE (Error Reduction by HIP):
+% vs. AD-EquiformerV2: HIP reduces error by $97.03\%$.
+Zero-point energy is a critical thermochemical property derived from vibrational frequencies, which depend directly on Hessian eigenvalues. We evaluate both absolute ZPE at the reactant geometry and relative $\Delta$ZPE between reactants and products (see Methods).
+Fig.~\ref{fig:relaxations_tssearch_zpe}c reveals dramatic improvements with HIP. For absolute ZPE, HIP achieves an order of magnitude better accuracy than LeftNet-DF and two orders of magnitude better than AD-EquiformerV2. For relative $\Delta$ZPE, HIP similarly reduces the error by $97.03\%$ compared to AD-EquiformerV2.
+These results demonstrate that HIP's improved eigenvalue predictions translate directly to better thermochemical properties, where small errors in vibrational frequencies can lead to large errors in free energy.
+
+
+
+\subsubsection{Frequency analysis for extrema classification}
+Characterizing stationary points on potential energy surfaces requires determining the number of negative Hessian eigenvalues: zero for minima, one for first-order transition states, and two or more for higher-index saddle points \cite{maronsson2012method}. We test this capability on 1000 geometries from the HORM-T1x validation, comprising 44\% first-order TSs, 37\% minima, and 19\% higher-order saddle points, as determined from DFT Hessians.
+Fig.~\ref{fig:relaxations_tssearch_zpe}d shows classification accuracy based on counting negative eigenvalues. HIP achieves 92\% accuracy, 10 percentage points better than the next-best AD model and 17 percentage points better than AD-EquiformerV2. This substantial improvement stems from HIP's more accurate eigenvalue predictions, particularly for the small eigenvalues that determine the character of the stationary point.
+Accurate extrema classification is essential for automated reaction pathway discovery and for validating that optimizations have reached the intended type of stationary point.
+
+
+\subsection{Synergistic improvements from Hessian training}
+Thus far, we trained only the Hessian readout while freezing the backbone, isolating Hessian quality from energy and force predictions. We now investigate joint end-to-end training of the full model, including Hessian supervision.
+We train both the standard EquiformerV2 (energy and forces only) and the HIP-EquiformerV2 (energy, forces, and Hessians) for equal wall-clock time (3 days) across various dataset sizes. Fig.~\ref{fig:datascaling}a-c reveals that Hessian supervision improves not only Hessian predictions but also energy and force accuracy across all data regimes.
+
+On 10{,}000 validation structures (Fig.~\ref{fig:datascaling}d-f), force and Hessian errors are positively correlated for Hessian-trained models, but nearly independent for an energy-force-only baseline, which can achieve good force accuracy while Hessian MAE remains an order of magnitude higher. HIP occupies a tighter, lower-error region than AD, indicating a more self-consistent potential energy surface.
+%
+% Fig.~\ref{fig:datascaling}(d-f) shows that Hessian supervision couples force and curvature accuracy across geometries, whereas energy-force training alone leaves large Hessian errors largely uncorrelated with force error.
+%
+% Fig.~\ref{fig:datascaling}(d-f) plots per-structure force and Hessian MAE on 10{,}000 HORM-T1x validation geometries. Models trained with Hessian labels exhibit a clear positive correlation between the two errors; an energy-force-only model does not, despite comparably low force errors on many structures. HIP lies below and tighter than AD, combining lower errors with stronger force-Hessian consistency.
+
+This synergistic effect suggests that Hessian information provides a richer training signal, helping the model learn a better potential energy surface representation.
+
+\section{Discussion}
+By directly predicting the molecular Hessian through an SE(3)-equivariant readout, the HIP framework resolves a major computational bottleneck in molecular simulations. Bypassing the prohibitive costs and scaling limits of automatic differentiation and finite differences, HIP achieves order-of-magnitude improvements in speed and memory efficiency while simultaneously increasing predictive accuracy. As demonstrated across rigorous benchmarks, from transition state search to zero-point energy corrections, the direct Hessian predictions are highly robust and immediately deployable for complex computational chemistry workflows.   
+
+
+%In this work, we have presented Hessian Interatomic Potentials (HIP), a novel method for directly predicting molecular Hessians using SE(3)-equivariant neural networks. Our approach eliminates the need for computationally intensive methods, such as finite differences or automatic differentiation, offering significant improvements in computational time, memory usage, and accuracy. Through extensive validation across a range of critical molecular tasks, we have shown that our predicted Hessians are highly effective for practical applications in computational chemistry. 
+
+Because HIP predicts Hessians directly rather than as exact second derivatives of a scalar energy, the predicted Hessians are not guaranteed to be globally integrable. In contrast to long-time molecular dynamics simulations, where non-integrability errors of the forces accumulate unbounded over time, all common workflows involving Hessians are insensitive to non-integrability errors. This is already evidenced by the success of the Broyden-Fletcher-Goldfarb-Shanno (BFGS) algorithm, a classical tool to approximate Hessians that does not satisfy any notion of integrability. A more mathematical discussion about this topic is provided in Supplementary Section~\ref{sec:conservative}.
+
+Looking forward, the architectural flexibility of HIP, which can be integrated into any message-passing base model built on spherical harmonics, opens significant opportunities beyond isolated molecules. By making accurate Hessians computationally inexpensive, this framework enables high-throughput automated reaction pathway discovery, materials design and drug discovery at previously inaccessible scales. A particularly promising direction is the straightforward adaptation of HIP to systems with periodic boundary conditions. Because HIP constructs the Hessian locally from atom-pair interactions within a cutoff radius, it inherently supports periodic boundary conditions via a standard periodic neighbour list. 
+% Reviewer: I’m also curious about how adaptable this method would be to lattice dynamics in cases with periodic boundary conditions - specifically for e.g. predictions of the second-order elastic tensor. The authors could comment on that in the prospects for future work. If that seems straightforward, it might promote interest in similar methodologies from the solid-state community.
+% Long answer:
+% HIP is highly adaptable to periodic systems. Because HIP constructs the Hessian locally from atom-pair interactions within a cutoff radius, it inherently supports periodic boundary conditions via a standard periodic neighbour list. 
+% Predicting the elastic tensor requires evaluating second derivatives of the energy with respect to macroscopic strain, rather than just atomic displacements, which would require a new global readout head. Because the elastic tensor is a rank-4 tensor, it can be decomposed into $l=0$, $l=2$, and $l=4$ spherical harmonics. The readout could pool its internal message-passing features globally to output these specific irreducible representations, allowing for the direct construction of the elastic tensor.
+% Luca's answer regarding the Dynamical Matrix for extended systems:
+% The dynamical matrix is momentum dependent. We were talking about the periodic Hessian of a supercell, which we can obtain in a HIP style. The cartesian supercell Hessian can then be Fourier transformed into the dynamical matrix (which induces the momentum dependency), which is a closed form, cheap operation. This is the same protocol used in existing works that start from MLIP-AD Hessians and convert them into a dynamical matrix for phonon calculations [1]; in our case HIP would simply provide the real-space Hessian directly instead of via AD.
+Extending this direct-prediction to periodic systems will enable the rapid evaluation of thermomechanical and vibrational properties in the condensed phase. 
+% The idea of HIP could be extended to the direct prediction of higher derivatives like the anharmonicity. 
+HIP could also be extended to the direction prediction of higher-rank objects like the elastic tensor. The rank-4 nature of the elastic tensor, the second derivatives of the energy with respect to macroscopic strain, could be learned by additionally building global $l=4$ features.
+The versatility naturally positions HIP as a powerful emerging tool for the broader materials science and catalysis communities, paving the way for large-scale modelling of complex reactions.
+% and dynamics across solid-state bulk and surface environments. 
+
+%Future work should explore applying Hessian prediction to other chemical systems, such as materials, larger complexes, or even proteins.
+%By making Hessians more accessible, our method opens new opportunities for high-throughput screening, materials discovery, and drug design. Future work will extend HIP to any base model built on spherical harmonics and message passing.
+
+
+
+\section{Methods}
+
+\subsection{Graph representation}
+Graph neural networks represent a molecule as a graph $\mathcal{G}=(\mathcal{V},\mathcal{E})$ in 3D Euclidean space $\mathbb{R}^3$, with nodes/atoms $I\in\mathcal{V}$ at positions $\mathbf{r}_I\in\mathbb{R}^3$ and edges $(I,J)\in\mathcal{E}$ defined by a cutoff radius. At layer $t$, each node carries a feature $\mathbf{h}_I^{(t)}$ that is a direct sum of irreducible $\mathrm{SO}(3)$ representations (irreps): $\mathbf{h}_I^{(t)}=\bigoplus_{l=0}^{l_{\max}}\mathbf{h}_{I}^{(t,l)}$, where $\mathbf{h}_{I}^{(t,l)}=\{\mathbf{h}^{(t)}_{I,l,m}\}_{m=-l}^{l}$ has $2l+1$ components. To update the node's features, the model sends messages between connected nodes, which are then aggregated in a permutation-invariant manner (typically the sum or an attention-weighted sum) and added to the receiving node.
+In $\mathrm{SO}(3)$-equivariant GNNs, node features transform under a global rotation $\mathbf{Q}$ via Wigner $\mathbf{D}$-matrices:
+\begin{align}
+\mathbf{h}^{(t)}_{i,l,m}\!\left(\mathbf{Q}\{\mathbf{r}_k\}_{k=1}^N\right)
+= \sum_{m'=-l}^{l} \mathbf{D}^{(l)}_{m m'}(\mathbf{Q})\,\mathbf{h}^{(t)}_{i,l,m'}\!\left(\{\mathbf{r}_k\}_{k=1}^N\right),
+\label{eq:so3-transform}
+\end{align}
+Translation equivariance is enforced by building messages from relative displacements $\mathbf{r}_{I,J}=\mathbf{r}_J-\mathbf{r}_I$. If we want O(3) instead of SO(3) equivariance, each order-$l$ feature has an extra parity label that determines the transformation under a global coordinate inversion.
+%
+Two irreps $\mathbf{p}_{l_1}$ and $\mathbf{g}_{l_2}$ interact using the Clebsch-Gordan tensor product \citep{thomas2018}
+\begin{align}
+    \mathbf{h}_{l_3,m_3} = \left( \mathbf{p}_{l_1,m_1} \otimes_{l_1, l_2}^{l_3} \mathbf{g}_{l_2,m_2} \right)_{m_3} = \sum_{m_1 = -l_1}^{l_1} \sum_{m_2 = -l_2}^{l_2} \mathbf{C}_{(l_1,m_1),(l_2,m_2)}^{(l_3,m_3)} \mathbf{p}_{l_1,m_1} \mathbf{g}_{l_2,m_2} \label{eq:tp}
+\end{align}
+A message from source atom $J$ to target atom $I$ is then constructed as
+\begin{align}
+    \mathbf{v}_{I,J, l_3} = \mathbf{v}_{l_3}(\mathbf{h}_I, \mathbf{h}_J, \mathbf{r}_{I,J}) = \sum_{l_1, l_2} w_{l_1, l_2, l_3}(||\mathbf{r}_{I,J}||) \left( \mathbf{f}_{l_1}(\mathbf{h}_{I},\mathbf{h}_{J}) \otimes_{l_1, l_2}^{l_3} \mathbf{Y}_{l_2}\left(\frac{\mathbf{r}_{I,J}}{||\mathbf{r}_{I,J}||}\right) \right) \label{eq:mp}
+\end{align}
+where $\mathbf{Y}_{l_2}$ is the $2l_2+1$ dimensional vector of the spherical harmonics of degree $l_2$, $w_{l_1, l_2, l_3}: \mathbb{R} \rightarrow \mathbb{R}$ is a learned weighting function, and $\mathbf{f}_{l_1}$ a simple function that takes both node features in, for example concatenation in the case of EquiformerV2.
+A more efficient variation of Eq.~\eqref{eq:mp} relying on the reduction of the $SO(3)$ tensor product to the $SO(2)$ tensor products was proposed by eSCN \citep{eSCN2023} and adopted by subsequent works, such as EquiformerV2.
+Finally, the messages are pooled to update the node features, which can be done, for example, via a sum or using graph attention \citep{liao2023equiformerv2}.
+
+% \section{HIP Hessian Prediction\label{sec:method}}
+\subsection{Hessian Symmetry Requirements}
+Hessians are symmetric, real-valued, Cartesian tensors. This means, under rotation of the coordinate system with rotation matrix $\mathbf{Q}$, each Hessian sub-block $\mathbf{H}_{I,J}$ transforms as 
+\begin{align}
+    \mathbf{H}_{I,J} \xrightarrow[]{\mathbf{Q}} \mathbf{Q} \mathbf{H}_{I,J} \mathbf{Q}^\top \label{eq:hessian_symmetry}
+\end{align}
+Any physically meaningful Hessian must satisfy this rotation symmetry, as well as the symmetry of the upper and lower triangular $\mathbf{H}=\mathbf{H}^\top$. We elaborate on the symmetry of Hessians in Supplementary Section~\ref{sec:hessian_properties}.
+
+\subsection{Hessian Prediction Head}
+Starting from $T$ layers of message passing in the backbone, we use the atom features $\mathbf{h}^{(T)}_{I,m,c}$, and feed them into a Hessian readout module. Here, we first add another Hessian readout-specific EquiformerV2 layer to improve expressivity. We then construct the Hessian sub-blocks: We first send normal messages with Eq.~\eqref{eq:mp}, but instead of attention and summing, we treat the messages as atom-pair features:
+\begin{align}
+    \mathbf{h}_{I,J,l,m,c} 
+    = \mathbf{v}_{I,J,l,m,c} 
+    = \mathbf{v} \big(\mathbf{h}^{(T)}_I, \mathbf{h}^{(T)}_J, \mathbf{r}_{I,J} \big)
+    % = \sum_{l_1, l_2} w_{l_1, l_2, l_3}(||\mathbf{r}_{I,J}||) \left( \mathbf{f}_{l_1}(\mathbf{h}_{I},\mathbf{h}_{J}) \otimes_{l_1, l_2}^{l_3} \mathbf{Y}_{l_2}\left(\frac{\mathbf{r}_{I,J}}{||\mathbf{r}_{I,J}||}\right) \right) 
+\end{align}
+As we are reusing the message passing machinery with an interaction cutoff radius, predicting Hessians scales $O(N)^2$ initially in memory and computing within the cutoff, and then reduces to $O(N)$ scaling for larger systems.
+This sparsity-with-distance assumption aligns with the sparsity of Hessians due to the locality of electron interactions, which is common in quantum chemistry and can be mathematically rigorously justified \citep{kussmann2015reduced}.
+After message passing, we transform the atom pair features $\mathbf{h}_{I,J,l,m,c}$ into the corresponding Hessian sub-blocks $\mathbf{H}_{I,J}$.
+First, we project the pair feature irreps down to a single $\{\mathbf{\tilde{h}}_{I,J,l,m}\}_{l\in\{0,1,2\}}$ irreps feature ($\texttt{1x0e + 1x1e + 1x2e}$ in \texttt{e3nn} notation \citep{geiger2022e3nn}) using a linear layer $\mathbf{W}_{l,c}$:
+$
+\mathbf{\tilde{h}}_{I,J,l,m} = \mathbf{W}_{l,c}\mathbf{h}_{I,J,l,m,c}
+$.
+We then expand $\mathbf{\tilde{h}}_{I,J,l,m}$  to an intermediate Hessian sub-block $\mathbf{H}'_{I,J}$ using the tensor product expansion \citep{unke2021se}:
+\begin{align}
+\mathbf{H}'_{I,J,m_1,m_2} &= \sum_{l,m}\mathbf{C}^{l,m}_{l_1=1,m_1,l_2=1,m_2}\mathbf{\tilde{h}}_{I,J,l,m} \label{eq:tensor_expansion}
+\end{align}
+where $\mathbf{C}^{l,m}_{l_1,m_1,l_2,m_2}$ are the Clebsch-Gordan coefficients ensuring that the relation in Eq.~\eqref{eq:hessian_symmetry} is enforced \citep{unke2021se}. Physically, this is a simple change of basis from the coupled to the uncoupled angular momentum basis \citep{edmonds1996angular}.
+$\mathbf{H}'_{I,J,m_1,m_2}$ is a $3\times3$ block, since $m_1$ and $m_2$ run from $-l_1=-l_2=-1$ to $l_1=l_2=1$. As $\mathbf{C}^{l,m}_{l_1=1,m_1,l_2=1,m_2} = 0$ for all $l>2$, $\mathbf{h}_{I, J,l,m,c}$ only needs to contain irreps up to $l=2$ to build the $3\times3$ Hessian sub-blocks. Intuitively, Eq.~\eqref{eq:tensor_expansion} is the inverse of the irreducible tensor decomposition, so it assembles a spherical tensor back from its irreducible components. Conversely, this also means we need all irreps up to $l=2$, as including only those up to $l=1$ would not be sufficient to express the $3\times3$ tensors that decompose into $l=2$ irreps.
+Finally, we symmetrize the immediate Hessian to the final prediction with $\mathbf{H}=\mathbf{H}' + \mathbf{H}'^\top$.\\
+Any equivariant neural network \citep{duvalHitchhikerGuideGeometric2024a} with features of at least $l=2$ can be turned HIP by equipping it with a Hessian readout head. In this work, we pick the EquiformerV2 architecture as the backbone \citep{liao2023equiformerv2}. Each layer contains a layer norm, message passing with graph attention, another layer norm, and a feed-forward layer. 
+
+\subsection{Loss function design}
+To learn the Hessians, one can use standard loss functions like mean absolute error (MAE) or mean squared error (MSE) between predicted and actual Hessian elements:
+\begin{align}
+    \mathcal{L}_\text{MAE / MSE} = \sum_{i,j} |\mathbf{H}_{i,j} - \mathbf{H}^\text{pred}_{i,j}|_\text{MAE / MSE}
+\end{align}
+However, we are often mainly interested in the smallest eigenvalues and the corresponding eigenvectors \citep{RSRFO1998a, cerjanFindingTransitionStates1981}. 
+%For this reason, we design a loss function to emphasize this subspace of the eigen-decomposition.
+For this reason, we use a loss function that emphasizes the relevant subspace of the Hessian. This loss function is similar to \cite{li2025enhancing}, which uses it to emphasize the subspace up to the Lowest Unoccupied Molecular Orbital (LUMO) in Fock matrix prediction.
+Let $\mathbf{V} = [\mathbf{v}_1,\mathbf{v}_2,...,\mathbf{v}_{3N}]$ be the matrix with columns made from eigenvectors of the ground truth Hessian $\mathbf{H}$, and $\mathbf{\Lambda}$ the corresponding matrix with eigenvalues on the diagonal and zeros everywhere else. Further, denote $\mathbf{V}_{[:,:k]}$ and $\mathbf{V}_{[:,k:]}$ the matrices sliced to contain all columns up to and including the $k^{th}$ one. We can then define a subspace loss by
+\begin{align}
+    \mathcal{L}_\text{sub} = \sum_{i,j} \left|\mathbf{V}_{[:,:k]}^\top \mathbf{H}^\text{pred}\mathbf{V}_{[:,:k]} - \mathbf{\Lambda}_{[:,:k]}\right|_{i,j} 
+    \label{eq:eigenloss}
+\end{align}
+If $\mathbf{H}^\text{pred} = \mathbf{H}$ we have $\mathbf{V}^\top \mathbf{H}^\text{pred}\mathbf{V} = \mathbf{\Lambda}$, and the loss has therefore the correct minimum. Using $\mathcal{L}=\mathcal{L}_\text{MAE/MSE}+\alpha\mathcal{L}_\text{sub}$ lets us emphasize the subspace corresponding to the $k$ lowest eigenvectors and eigenvalues. Since the Hessian always has six redundant degrees of freedom with eigenvalues close to zero, we need to set $k>6$. In practice, we use $k=8$.
+% 
+Predicting Hessians with HIP using any loss function significantly outperforms AD Hessians. MAE, combined with the subspace loss in Eq.~\eqref{eq:eigenloss}, further improves results in transition state search and extrema classification with frequency analysis by a small margin, which is why we use both in the main text experiment. 
+For details and ablations of the choice of loss function see Supplementary Section~\ref{sec:lossablation}. 
+
+\subsection{Data and DFT calculations}
+We evaluate HIP on the Hessian dataset for Optimizing Reactive MLIP (HORM) \citep{cui2025horm}, comprising 1,725,362 training molecules from Transition1x (T1x) \citep{schreiner2022transition1x} and 50,844 validation molecules. All geometries include energy, force, and Hessian labels computed with GPU4PySCF v1.3.0 at the $\omega$B97X/6-31G* level of theory. The training and validation data are available at \url{www.kaggle.com/datasets/yunhonghan/hessian-dataset-for-optimizing-reactive-mliphorm/data}. Additional DFT calculations used for validation are available at \url{huggingface.co/andreasburger/hip}.
+
+\subsection{Model training and hyperparameters}
+To isolate Hessian prediction quality from energy and force predictions, we train only the Hessian readout head while keeping the EquiformerV2 backbone, pre-trained on energies, forces, and AD Hessians, frozen. HIP-EquiformerV2 and AD-EquiformerV2 therefore have identical energy and force predictions. All AD-Hessian baselines were trained on the same DFT Hessians.
+
+We inherit the model and optimizer settings from HORM \citep{cui2025horm}. EquiformerV2 uses four layers, 128 sphere channels, 64 attention hidden, alpha, and value channels, four attention heads, 128 feed-forward hidden channels, SiLU activations, 512 Gaussian distance basis functions, and spherical harmonics with \(l_{\max}=4\) and \(m_{\max}=2\). The grid resolution is 18 with 128 sphere samples. The model and Hessian cutoffs are 12~\AA. The Hessian head uses three layers for frozen-backbone training and one for end-to-end training; dropout and drop path are zero. We use the MAE and subspace losses with weights 1, \(k=8\), and \(\alpha=1\). Models are trained for 500,000 steps with batch size 128 using AdamW, \(\beta=(0.9,0.999)\), AMSGrad, no weight decay, and gradient clipping at norm 0.1. The initial learning rate is \(5\times10^{-4}\), with StepLR step size 10 and decay factor 0.85. HIP is trained on one H100 GPU; training resources are compared in Supplementary Table~\ref{tab:traingpu}.
+
+\subsection{Evaluation metrics}
+We assess Hessian quality using the element-wise mean absolute error (MAE), the MAE of all eigenvalues and of the smallest eigenvalue, and the cosine similarity of the smallest eigenvector. We also measure mean inference time and peak memory. For comparisons of vibrational spectra, both reference and predicted Hessians are mass weighted and projected onto the vibrational subspace using Eckart projection before computing the eigenvalue MAE.
+
+\subsection{Size-generalization benchmarks}
+We evaluate size generalization on HORM-RGD1 and on 710 neutral PubChem molecules containing only C, H, N, and O, with 30--100 atoms and ten molecules per atom-count bin. For each target atom count \(N\), we enumerated stoichiometrically plausible neutral CHNO formulae and queried the PubChem PUG REST \texttt{fastformula} endpoint for up to 12 compound identifiers per formula. Candidates were retained if they had formal charge zero, contained only elements with \(Z\in\{1,6,7,8\}\), and had exactly \(N\) atoms in the retrieved 3D structure. When no suitable PubChem 3D conformer was available, we generated one from the isomeric SMILES using RDKit with ETKDGv3 followed by MMFF or UFF relaxation. Remaining atom-count bins were filled with deterministic RDKit-generated CHNO conformers.
+
+Reference energies, Cartesian gradients, and Hessians were computed on the fixed geometries with charge zero and multiplicity one using ORCA~6.0 \citep{ORCA} at $\omega$B97X/6-31G(d). We used separate \texttt{! wB97X 6-31G(d) TightSCF Freq} and \texttt{! wB97X 6-31G(d) TightSCF EnGrad} calculations for the analytical Hessian and energy/gradient, respectively. The dataset is available at \url{huggingface.co/andreasburger/hip/tree/main/orca_wb97x_631gd_chno_30_100}.
+
+Before bin-wise averaging, we identify outliers from the per-molecule Cartesian Hessian MAE,
+\[
+\mathrm{MAE}(\mathbf{H})=\frac{1}{9N^2}\sum_{i,j=1}^{3N}\left|H^{\mathrm{pred}}_{ij}-H^{\mathrm{ref}}_{ij}\right|.
+\]
+For each atom-count bin, we compute the median \(\tilde{x}_N\), median absolute deviation \(\mathrm{MAD}_N=\operatorname{median}_i|x_i-\tilde{x}_N|\), and modified \(z\)-score \(M_i=0.6745(x_i-\tilde{x}_N)/\mathrm{MAD}_N\) \citep{iglewicz1993outliers}. Outliers with \(|M_i|>10\) are detected independently for each method, and the union is removed from all methods to maintain comparable samples. This removes 10 of 710 PubChem molecules. We apply the same procedure to HORM-RGD1, detecting outliers independently for HIP, AD, and EquiformerV2 (E-F), and remove 72 of 60,000 molecules.
+
+\subsection{Geometry optimization}
+We compare RFO using predicted Hessians and RFO with BFGS updates initialized by a predicted Hessian against steepest descent, FIRE \citep{bitzek2006}, RFO-BFGS initialized from the identity, and RFO using AD or finite-difference Hessians. We relax 80 reactant geometries from the Transition1x validation set after adding noise with \(0.5\)~\AA{} RMS. We use the RS-RFO and redundant-coordinate implementation in pysisyphus \citep{steinmetzer2021,herbolComputationalImplementationNudged2017}, Gaussian default convergence criteria, and a budget of 150 steps. The maximum force, RMS force, maximum step, and RMS step thresholds are \(4.5\times10^{-4}\), \(3.0\times10^{-4}\), \(1.8\times10^{-3}\), and \(1.2\times10^{-3}\), respectively.
+
+\subsection{Transition-state search}
+We use ReactBench \citep{zhao2025}, with optimization routines implemented in pysisyphus \citep{steinmetzer2021} and PyGSM \citep{aldazZimmermanGroupPyGSM2025}. An initial guess is generated using the growing string method \citep{zimmerman2015}, followed by local search using RS-P-RFO \citep{RSRFO1998a}, frequency analysis, and the intrinsic reaction coordinate (IRC). Following previous work \citep{zhao2025,cui2025horm}, we report success at each stage: ``GSM Success'' requires a force RMS below \(5\times10^{-5}\) Hartree/Bohr within 100 iterations; ``TS Success'' requires frequency analysis after RS-P-RFO to identify a true transition state; and ``IRC Verified'' requires the IRC to converge to the same criteria and recover the original reactant and product. Samples passing all three stages are treated as transition-state proposals. For a subset of 100 proposals, we additionally use PySCF to verify that the DFT Hessian has one negative eigenvalue and the DFT force RMS is below \(2\times10^{-3}\) Hartree/Bohr.
+
+\subsection{ZPE and extrema classification}
+Starting from 80 reactant and product geometries from the Transition1x validation set, we relax the geometries at the same $\omega$B97X/6-31G* level as the training labels using the RS-RFO implementation in pysisyphus \citep{steinmetzer2021}, with BFGS and identity initialization. We use Gaussian tight convergence, with maximum force, RMS force, maximum step, and RMS step thresholds of \(1.5\times10^{-5}\), \(1.0\times10^{-5}\), \(6.0\times10^{-5}\), and \(4.0\times10^{-5}\), respectively. We compute ZPE from the Eckart-projected, mass-weighted Hessian and report energies in eV per molecule. For method \(m\), \(\Delta\mathrm{ZPE}_m=\mathrm{ZPE}_m(\mathrm{product})-\mathrm{ZPE}_m(\mathrm{reactant})\), and the model error is \(\left|\Delta\mathrm{ZPE}_{\mathrm{model}}-\Delta\mathrm{ZPE}_{\mathrm{DFT}}\right|\).
+
+For extrema classification, we count the negative eigenvalues of the projected Hessian for 1,000 HORM-T1x validation geometries. The DFT labels comprise 44\% first-order transition states, 37\% minima, and 19\% higher-order saddle points.
+
+\subsection{Glycine proton-transfer case study}
+We selected the intramolecular proton transfer of glycine from the Transition1x test split (sample ID 5, reaction 1961). The transferring proton is described by \(q_{\mathrm{NH}}=d(\mathrm{N4},\mathrm{H9})\) and \(q_{\mathrm{OH}}=d(\mathrm{O3},\mathrm{H9})\). For each point on the two-dimensional surface, we started from the Transition1x transition-state structure and placed the proton at the target distances. We excluded pairs violating the triangle inequalities \(q_{\mathrm{NH}}+q_{\mathrm{OH}}<d(\mathrm{N4},\mathrm{O3})\) or \(|q_{\mathrm{NH}}-q_{\mathrm{OH}}|>d(\mathrm{N4},\mathrm{O3})\). All other degrees of freedom were relaxed while both distances remained constrained. Structures were first relaxed with GFN2-xTB using TBLite and ASE BFGS and then reoptimized with the same constraints using ORCA~6.1.1 \citep{ORCA} and \texttt{! wB97X-D3 6-31G(d) TightSCF Opt}. This produced 579 DFT-relaxed geometries. Energies and forces were evaluated with \texttt{! wB97X-D3 6-31G(d) TightSCF EnGrad}, and Hessians with \texttt{! wB97X-D3 6-31G(d) TightSCF Freq}. The data are available at \url{huggingface.co/andreasburger/hip/tree/main/orca_wb97x_d3_631gd_glycine_pt_dft_relaxed_579}.
+
+For the one-dimensional minimum-energy path, we use the final saved block of eight Transition1x NEB images together with the reactant and product. Geodesic interpolation in redundant internal-coordinate space produces 150 fixed path geometries. Single-point energies, forces, and Hessians were computed with ORCA~6.1.1 using \texttt{! wB97X-D3 6-31G(d) TightSCF EnGrad Freq}; the data are available at \url{huggingface.co/andreasburger/hip/tree/main/orca_wb97x_631gd_glycine_mep_145}.
+
+
+% \FloatBarrier
+
+\backmatter
+
+\section{Data availability}
+The training and validation data is available at \url{www.kaggle.com/datasets/yunhonghan/hessian-dataset-for-optimizing-reactive-mliphorm/data}. Checkpoints and additional DFT calculations for validation are available under \url{huggingface.co/andreasburger/hip}.
+
+\section{Code availability}
+The training and validation code is available under \url{github.com/BurgerAndreas/hip}.
+All requests should be addressed to Andreas Burger \url{me@andreas-burger.com}.
+
+\section{Acknowledgements}
+A.A.-G. thanks Anders G. Frøseth for his generous support.
+Resources used in preparing this research were provided, in part, by the Province of Ontario, the Government of Canada through CIFAR, and companies sponsoring the Vector Institute.
+
+\section{Funding}
+We are thankful for funding by the Pioneer Center for Accelerating P2X Materials Discovery (CAPeX), DNRF grant number P3.
+A.B. and L.T. acknowledge the AIST support to the Matter lab for the project titled "SIP project - Quantum Computing".
+A.B. is thankful for support through the Google NSERC IRC award.
+L.T. thanks the NSERC for the support through the Discovery Grant.
+This research was undertaken thanks in part to funding provided to the University of Toronto’s Acceleration Consortium from the Canada First Research Excellence Fund CFREF-2022-00042.
+
+\section{Author contributions}
+Code, training, and experiments by A.B., Idea, theory, and Clebsch-Gordan transform code by L.T., Paper writing by L.T., A.B., N.R., Visualizations by A.B. and L.T., Supervision and paper editing by T.V., A.B, V.B., A.A.G.
+
+\section{Competing interests}
+The authors declare no competing interests.
+
+\clearpage
+\section*{Tables}
+
+\begin{table}[htbp]
+\centering
+\begin{tabular}{lccccccc}
+\hline
+\multirow{2}{*}{Model} & Hessian & Hessian & $H$ $\downarrow$ & $\lambda$ $\downarrow$ & Cos $\bm{v}_1$ $\uparrow$ & $\lambda_1$ $\downarrow$ & Time $\downarrow$ \\
+ & Method & Trained & eV/\AA$^2$ & eV/\AA$^2$ & unitless & eV/\AA$^2$ & ms \\
+\hline
+AlphaNet (E-F) & \multirow{4}{*}{AD} & & 0.502 & 1.190 & 0.903 & 0.245 & 728.6 \\
+LEFTNet-DF (E-F) & & & 1.650 & 2.247 & 0.505 & 1.362 & 331.4 \\
+LEFTNet-CF (E-F) & & & 0.364 & 1.011 & 0.947 & 0.130 & 1047.9 \\
+EquiformerV2 (E-F) & & & 2.254 & 4.199 & 0.279 & 1.372 & 564.9 \\
+\hline
+AlphaNet & \multirow{4}{*}{AD} & \checkmark & 0.390 & 0.790 & 0.899 & 0.244 & 747.0 \\
+LEFTNet-DF & & \checkmark & 0.200 & 0.172 & 0.937 & 0.136 & 332.2 \\
+LEFTNet-CF & & \checkmark & 0.153 & 0.226 & 0.951 & 0.127 & 1051.6 \\
+EquiformerV2 & & \checkmark & 0.077 & 0.070 & 0.916 & 0.104 & 562.3 \\
+\hline
+HIP-EquiformerV2 & \multirow{2}{*}{HIP} & \checkmark & 0.030 & 0.063 & \textbf{0.982} & \textbf{0.031} & 38.5 \\
+HIP-EquiformerV2* & & \checkmark & \textbf{0.020} & \textbf{0.041} & \textbf{0.982} & \textbf{0.031} & \textbf{31.4} \\
+\hline
+\end{tabular}
+\caption{
+\textbf{Hessian prediction errors on the HORM-T1x validation set.} Denoted are the mean absolute errors (MAE), cosine similarity (Cos), and average time per forward pass on an RTX 3060 GPU. $\lambda_1$ and $\bm{v}_1$ were obtained after Eckart-projection.
+Bold values highlight the best-performing model. Baseline AD models are taken from \cite{cui2025horm}. In HIP-EquiformerV2 we trained only the Hessian readout head while keeping the parameters of the backbone frozen, while HIP-EquiformerV2* is trained end-to-end.
+}
+\label{tab:model-performance}
+\end{table}
+
+\clearpage
+\section*{Figure legends}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.99\linewidth]{plots/HIP_Figure_green_whiterbackground2.png}
+    \caption{
+    Regular machine learning interatomic potentials predict the energy and forces for a given molecule geometry (grey).
+    Hessian Interatomic Potentials (HIP) expand MLIPs with a learned Hessian readout that predicts the Hessian \emph{directly} (green and orange).
+    In contrast, regular MLIPs rely on costly automatic differentiation (AD) to construct the Hessian matrix.
+    HIP can use both direct force prediction and conservative forces.
+    }
+    \label{fig:visual_abstract}
+\end{figure}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.99\linewidth]{plots/glycine_combined_q_markers.png}
+    \caption{
+    \textbf{Glycine proton transfer.}
+    \textbf{(a)} Number of negative eigenvalues of the Eckart-projected mass-weighted Hessian over the two-dimensional collective-variable surface, for DFT, HIP, and AD. The molecule (left) shows the transferring proton and the two distances. Black lines are DFT energy contours.
+    HIP reproduces the DFT stationary-point structure, while AD introduces spurious negative modes in the dissociating region.
+    \textbf{(b)} The six lowest Hessian modes (eigenvalues of the mass-weighted Hessian) along 145 geometries of the minimum energy path, as a function of the CV $\xi = q_{\mathrm{NH}} - q_{\mathrm{OH}}$.
+    DFT (black) and HIP (orange) overlap almost perfectly. AD mostly matches the first mode, but fails to reproduce modes 2 to 6.
+    \textbf{(c)} Forces $F$ used for AD, projected on the unit vector of the reaction coordinate $\widehat{\xi}=\xi/|\xi|$.
+    The predicted forces generally follow DFT (left), but oscillate significantly (middle) compared to DFT. The noise from the force predictions is amplified when taking the derivative for the AD Hessian (right).
+    }
+    \label{fig:glycine}
+\end{figure}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.99\linewidth]{plots/speed_memory_lambda.png}
+     \caption{\textbf{Computational cost (a-b).} (a) Speed and (b) memory footprint for a single sample as a function of molecule size.
+     Note that the same colors are used for panels (a) and (b), and that the Forward pass (shown in teal) and the HIP Hessian (this work, shown in orange) overlap.
+     Timings were performed on an RTX 3060 GPU.
+     \textbf{Size extrapolation (c-d).}
+     We plot the mean and standard deviation over samples in HORM-RGD1 (c), and over ten samples per number of atoms from PubChem (d). \cite{kim2025pubchem}.
+     For both (c) and (d), AD values are shown in blue, and HIP (this work) in orange. 
+     }
+     \label{fig:speed_memory}
+\end{figure}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.99\linewidth]{plots/relaxation_reactbench_zpe_corrected.png}
+    \caption{
+    \textbf{Geometry optimization.} Number of steps and wall-clock time to convergence (a). For clarity, we omit the wall-clock time of RFO with AD or finite-difference Hessians, as these methods operate on a timescale one to two orders of magnitude longer than RFO with HIP-predicted Hessians.
+    \textbf{Transition state search.}
+    The number of successful samples for HIP Hessians and AD Hessians out of 960 initial samples on the ReactBench benchmark \cite{zhao2025} (b).
+    \textbf{Zero-point energy.}
+    We report the absolute error of the ZPE of the predicted/AD Hessian relative to DFT, averaged over validation samples. We report both the ZPE at the reactant, as well as the relative $\Delta$ZPE between reactant and product on a log scale (c).
+    \textbf{Classifying extrema.}
+    Panel (d) depicts the accuracy by model in characterizing stationary points via the correct number of negative Hessian eigenvalues.
+    }
+    \label{fig:relaxations_tssearch_zpe}
+\end{figure}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.99\linewidth]{plots/datascaling_force_hessian_correlations_thick.png}
+     \caption{
+     \textbf{Accuracy scaling with dataset size.}
+     (a) Energy,  (b) Force, and (c) Hessian MAE on the HORM-T1x validation set as a function of the number of training samples randomly drawn from the HORM-T1x training set. The EquiformerV2 trained on energy and forces is shown in dark gray, whereas the same model trained as HIP end-to-end on Hessian data (this work) is shown in orange.
+     \textbf{Correlation between Hessian and force accuracy.} (d-f) show 10.000 data points of the HORM-T1x validation set of (d) EquiformerV2 with the HORM Hessian training (e) our HIP-EquiformerV2* (f) EquiformerV2 trained on only energies and forces.
+     }
+     \label{fig:datascaling}
+\end{figure}
+
+
+
+%%===========================================================================================%%
+%% If you are submitting to one of the Nature Portfolio journals, using the eJP submission   %%
+%% system, please include the references within the manuscript file itself. You may do this  %%
+%% by copying the reference list from your .bbl file, paste it into the main manuscript .tex %%
+%% file, and delete the associated \verb+\bibliography+ commands.                            %%
+%%===========================================================================================%%
+
+\bibliography{sn-bibliography}% common bib file
+%% if required, the content of .bbl file can be included here once bbl is generated
+%%\input sn-article.bbl
+
+\end{document}
