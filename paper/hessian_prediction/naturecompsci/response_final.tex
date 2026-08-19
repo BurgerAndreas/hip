@@ -1,0 +1,193 @@
+% Compile with pdfLaTeX (not XeLaTeX).
+\documentclass[11pt,letterpaper]{article}
+
+\usepackage[
+  letterpaper,
+  left=58.6pt,
+  right=64.7pt,
+  top=22pt,
+  bottom=48.5pt,
+]{geometry}
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{XCharter}
+\newcommand{\headerfont}{\fontfamily{ptm}\selectfont}
+
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage[normalem]{ulem}
+\usepackage{microtype}
+
+\definecolor{urlblue}{RGB}{30,55,101}
+\definecolor{responsecolour}{RGB}{30,55,101}
+
+\newcommand{\ulink}[2]{{\color{urlblue}\uline{\href{#1}{#2}}}}
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{12.5pt}
+\AtBeginDocument{\fontsize{11.04}{12.5}\selectfont}
+
+\hypersetup{
+  colorlinks=true,
+  urlcolor=urlblue,
+  linkcolor=black,
+  pdfborder={0 0 0},
+}
+
+\pagestyle{empty}
+
+\newcommand{\headerline}[1]{{\fontsize{8.04}{9.2}\selectfont\headerfont #1\par}}
+\newcommand{\headerlineit}[1]{{\fontsize{8.04}{9.2}\selectfont\headerfont\itshape #1\par}}
+
+\begin{document}
+
+\noindent
+\raisebox{-\height}{\includegraphics[width=203.4pt,keepaspectratio]{assets/page1_img0_trim.png}}%
+\hfill
+\raisebox{-\height}{\includegraphics[width=47.07pt,keepaspectratio]{assets/page1_img1_trim.png}}
+
+\vspace{5pt}
+
+\noindent
+\begin{minipage}[t]{0.52\textwidth}
+  \headerline{Al\'an Aspuru-Guzik}
+  \headerlineit{Professor}
+  \headerlineit{Department of Chemistry}
+  \headerlineit{Department of Computer Science}
+  \headerlineit{Department of Chemical Engineering and Applied Chemistry}
+  \headerlineit{Department of Materials Science and Engineering}
+  \headerlineit{Institute of Medical Science}
+\end{minipage}%
+\hfill
+\begin{minipage}[t]{0.46\textwidth}
+  \raggedleft
+  \headerlineit{80 St. George Street, Room 421D}
+  \headerlineit{Toronto, ON M5S 3H6}
+  \headerlineit{Tel:\ 416-978-8927}
+  \headerlineit{Email: aspuru@utoronto.ca}
+  \headerlineit{Website: matter.toronto.edu}
+\end{minipage}
+
+\noindent\hfill August 19, 2026
+
+\noindent
+Dr.~Kaitlin McCardle\\
+Senior Editor\\
+Nature Computational Science\\
+Springer Nature, United States of America
+
+\vspace{5pt}
+
+\noindent
+\textbf{RE: REVISION \textendash\ NATCOMPUTSCI-26-0870A, ``HIP: Hessian Interatomic Potentials without derivatives''}
+
+\vspace{5pt}
+
+\noindent Dear Dr.~McCardle and Reviewers,
+
+On behalf of my co-authors, I am pleased to submit our revised manuscript. We thank the reviewers for their positive assessments and Reviewer~1 for the constructive suggestion and careful corrections.
+
+In response, we added a Discussion paragraph proposing approximate Hessian pseudo-label pre-training followed by fine-tuning on a smaller set of reference DFT Hessians. We also resolved the figure and table cross-references and standardized the capitalization of ``Hessian'' throughout the manuscript and Supplementary Information.
+
+The requested summary for the journal website and e-alerts is: ``Researchers report HIP, a machine-learning model that predicts molecular Hessians directly rather than by differentiation. HIP is faster and more accurate for geometry optimization, transition-state search and vibrational analysis.''
+
+For social-media promotion, the first author can be tagged on X (\ulink{https://x.com/atAndreasBurger}{@atAndreasBurger}) and Bluesky (\ulink{https://bsky.app/profile/andreasburger.bsky.social}{@andreasburger.bsky.social}); the Matter Lab can be tagged on Bluesky (\ulink{https://bsky.app/profile/thematterlab.bsky.social}{@thematterlab.bsky.social}). Suggested hashtags are \#ComputationalChemistry, \#MachineLearning and \#AIforScience.
+
+We provide a point-by-point response ({\color{responsecolour}in blue}) below.
+
+Thank you for your time and consideration.
+
+\noindent Sincerely,\\
+Al\'an Aspuru-Guzik\\
+on behalf of all authors
+
+\vspace{3pt}
+\noindent\includegraphics[width=141.75pt,height=45pt,keepaspectratio]{assets/page2_img0.jpeg}
+
+\vspace{6pt}
+{\setlength{\parskip}{0pt}%
+\noindent
+Director, Acceleration Consortium\\
+Professor of Chemistry\\
+Professor of Computer Science\\
+Professor of Chemical Engineering and Applied Chemistry\\
+Professor of Materials Science and Engineering\\
+Faculty Member, Institute of Medical Science\\
+University of Toronto\\[12.5pt]
+CIFAR AI Chair\\
+Vector Institute for Artificial Intelligence\\
+Senior Director of Quantum Chemistry, NVIDIA\par}
+
+\newpage
+
+\section*{Response to reviewers}
+
+\subsection*{Reviewer 1: Remarks to the Author}
+
+\noindent I thank the authors for their careful and thorough revision. They have addressed all of the points raised by the other reviewer. I am happy to recommend it for publication.
+
+\vspace{1mm}
+{\color{responsecolour}
+\noindent We thank Reviewer~1 for the careful assessment and recommendation for publication.
+}
+
+\paragraph{Suggestion}
+
+\noindent It could be worth exploring whether a Hessian training set can be bootstrapped from an accurate model rather than relying entirely on ground-truth DFT Hessians. Concretely, one could take an energy-and-force model that is not trained on Hessians but already produces qualitatively reasonable Hessians via automatic differentiation (for instance one of the AD models in Table 1), use it to generate an initial set of approximate Hessian labels, and then fine-tune HIP on a small amount of ground-truth DFT Hessian data. The interesting question is whether such a pre-training/fine-tuning scheme could reach the same Hessian accuracy as training on a large ground-truth dataset, but with far fewer expensive DFT Hessian calculations. Given the authors' central argument that Hessian labels are the practical bottleneck, this would be a valuable direction for reducing the data cost, and even a brief comment or small proof-of-concept would be a welcome addition.
+
+\vspace{1mm}
+{\color{responsecolour}
+\noindent We thank the reviewer for this valuable suggestion. We agree that pseudo-label pre-training could reduce the number of reference DFT Hessians required. We added a paragraph to the Discussion proposing automatic-differentiation Hessians from an energy-and-force model as approximate pre-training labels, followed by fine-tuning on a smaller set of reference DFT Hessians. We also note that the value of this strategy will depend on whether fine-tuning can correct curvature errors in the AD Hessians. A controlled study of pseudo-label quality and final Hessian accuracy is therefore an important direction for future work.
+}
+
+\paragraph{Minor correction 1}
+
+\noindent There are several broken cross-references in the manuscript, appearing as ``Fig. ??'' and ``Table ??'' (for example in the geometry optimization, transition state search, and zero-point energy sections). These should be resolved before publication.
+
+\vspace{1mm}
+{\color{responsecolour}
+\noindent We corrected the cross-references.
+}
+
+\paragraph{Minor correction 2}
+
+\noindent ``Hessian'' is inconsistently capitalised throughout the text and is in several places written in lower case (``hessian''). This should be made consistent.
+
+\vspace{1mm}
+{\color{responsecolour}
+\noindent We standardized ``Hessian'' and ``Hessians'' to initial capitals throughout the manuscript, Supplementary Information and reference titles.
+}
+
+\vspace{1mm}
+\noindent I congratulate the authors on a strong contribution.
+
+\vspace{1mm}
+{\color{responsecolour}
+\noindent We thank the reviewer for the encouraging assessment.
+}
+
+\subsection*{Reviewer 2}
+
+\noindent No comments were provided.
+
+\subsection*{Reviewer 3: Remarks to the Author}
+
+\noindent My comments have all been addressed, appreciate that the authors have made the modifications to make it more accessible!
+
+\vspace{1mm}
+{\color{responsecolour}
+\noindent We thank Reviewer~3 for the positive assessment and for confirming that the previous comments have been addressed.
+}
+
+\subsection*{Reviewer 3: Remarks on code availability}
+
+\noindent Code installs more cleanly now, thanks for updating the procedure.
+
+\vspace{1mm}
+{\color{responsecolour}
+\noindent We thank the reviewer for testing the updated installation procedure.
+}
+
+\end{document}

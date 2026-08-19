@@ -1,0 +1,51 @@
+metric,training_objective,number_of_training_structures,validation_mae,validation_mae_unit
+Energy,Energy and force,10000,0.1899238973855972,eV
+Energy,Energy and force,100000,0.0620939396321773,eV
+Energy,Energy and force,400000,0.0467143282294273,eV
+Energy,Energy and force,1000000,0.0451295934617519,eV
+Energy,"Energy, force, and Hessian",1000,0.5061830878257751,eV
+Energy,"Energy, force, and Hessian",10000,0.1301967799663543,eV
+Energy,"Energy, force, and Hessian",40000,0.0667936131358146,eV
+Energy,"Energy, force, and Hessian",60000,0.055952850729227,eV
+Energy,"Energy, force, and Hessian",80000,0.0519492104649543,eV
+Energy,"Energy, force, and Hessian",100000,0.0497000813484191,eV
+Energy,"Energy, force, and Hessian",300000,0.0421764999628067,eV
+Energy,"Energy, force, and Hessian",400000,0.0417871326208114,eV
+Energy,"Energy, force, and Hessian",500000,0.0415789186954498,eV
+Energy,"Energy, force, and Hessian",600000,0.0408719070255756,eV
+Energy,"Energy, force, and Hessian",700000,0.0417901277542114,eV
+Energy,"Energy, force, and Hessian",800000,0.0407138168811798,eV
+Energy,"Energy, force, and Hessian",1000000,0.0402757637202739,eV
+Energy,"Energy, force, and Hessian",1700000,0.0405154377222061,eV
+Force,Energy and force,10000,0.0547078549861907,eV per angstrom
+Force,Energy and force,100000,0.0204621665179729,eV per angstrom
+Force,Energy and force,400000,0.0135972304269671,eV per angstrom
+Force,Energy and force,1000000,0.0126910731196403,eV per angstrom
+Force,"Energy, force, and Hessian",1000,0.1037809774279594,eV per angstrom
+Force,"Energy, force, and Hessian",10000,0.0427853092551231,eV per angstrom
+Force,"Energy, force, and Hessian",40000,0.0227587111294269,eV per angstrom
+Force,"Energy, force, and Hessian",60000,0.0188118014484643,eV per angstrom
+Force,"Energy, force, and Hessian",80000,0.0168319065123796,eV per angstrom
+Force,"Energy, force, and Hessian",100000,0.0151611203327775,eV per angstrom
+Force,"Energy, force, and Hessian",300000,0.0116200083866715,eV per angstrom
+Force,"Energy, force, and Hessian",400000,0.0114086978137493,eV per angstrom
+Force,"Energy, force, and Hessian",500000,0.0108485789969563,eV per angstrom
+Force,"Energy, force, and Hessian",600000,0.0105797527357935,eV per angstrom
+Force,"Energy, force, and Hessian",700000,0.0106399087235331,eV per angstrom
+Force,"Energy, force, and Hessian",800000,0.0107481246814131,eV per angstrom
+Force,"Energy, force, and Hessian",1000000,0.0107567999511957,eV per angstrom
+Force,"Energy, force, and Hessian",1700000,0.0106784785166382,eV per angstrom
+Hessian,"Energy, force, and Hessian",1000,0.1441071331501007,eV per angstrom squared
+Hessian,"Energy, force, and Hessian",10000,0.0666271895170211,eV per angstrom squared
+Hessian,"Energy, force, and Hessian",40000,0.0416700579226017,eV per angstrom squared
+Hessian,"Energy, force, and Hessian",60000,0.0380561128258705,eV per angstrom squared
+Hessian,"Energy, force, and Hessian",80000,0.0360302701592445,eV per angstrom squared
+Hessian,"Energy, force, and Hessian",100000,0.0348264649510383,eV per angstrom squared
+Hessian,"Energy, force, and Hessian",300000,0.0313613340258598,eV per angstrom squared
+Hessian,"Energy, force, and Hessian",400000,0.0314978063106536,eV per angstrom squared
+Hessian,"Energy, force, and Hessian",500000,0.0311763733625412,eV per angstrom squared
+Hessian,"Energy, force, and Hessian",600000,0.0300134997814893,eV per angstrom squared
+Hessian,"Energy, force, and Hessian",700000,0.0308528244495391,eV per angstrom squared
+Hessian,"Energy, force, and Hessian",800000,0.031001403927803,eV per angstrom squared
+Hessian,"Energy, force, and Hessian",1000000,0.0313803702592849,eV per angstrom squared
+Hessian,"Energy, force, and Hessian",1700000,0.0308303385972976,eV per angstrom squared

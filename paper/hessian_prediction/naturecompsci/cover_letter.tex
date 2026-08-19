@@ -1,0 +1,158 @@
+% Compile with pdfLaTeX (not XeLaTeX).
+% Local:  pdflatex -jobname=HIP_CoverLetter_generated HIP_CoverLetter_pdftex.tex
+% Overleaf: Menu -> Settings -> Compiler -> pdfLaTeX
+\documentclass[11pt,letterpaper]{article}
+
+\usepackage[
+  letterpaper,
+  left=58.6pt,
+  right=64.7pt,
+  top=22pt,
+  bottom=48.5pt,
+]{geometry}
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+
+% pdfLaTeX has no fontspec, so we use packaged Type 1 fonts.
+% Main text: XCharter (a close, embeddable stand-in for Georgia).
+% Header:    Times (ptm), always available, stands in for Times New Roman.
+\usepackage{XCharter}
+\newcommand{\headerfont}{\fontfamily{ptm}\selectfont}
+
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage[normalem]{ulem}
+\usepackage{microtype}
+
+\definecolor{urlblue}{RGB}{30,55,101}
+
+% Underlined link whose text and underline share the same colour.
+\newcommand{\ulink}[2]{{\color{urlblue}\uline{\href{#1}{#2}}}}
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{12.5pt}
+\AtBeginDocument{\fontsize{11.04}{12.5}\selectfont}
+
+\hypersetup{
+  colorlinks=true,
+  urlcolor=urlblue,
+  linkcolor=black,
+  pdfborder={0 0 0},
+}
+
+\pagestyle{empty}
+
+\newcommand{\headerline}[1]{{\fontsize{8.04}{9.2}\selectfont\headerfont #1\par}}
+\newcommand{\headerlineit}[1]{{\fontsize{8.04}{9.2}\selectfont\headerfont\itshape #1\par}}
+
+\begin{document}
+
+% --- Letterhead (page 1 only) ---
+\noindent
+\includegraphics[width=208.5pt,height=46.25pt,keepaspectratio]{assets/page1_img0.png}%
+\hfill
+\includegraphics[width=86.95pt,height=48.85pt,keepaspectratio]{assets/page1_img1.png}
+
+\vspace{13pt}
+
+% --- Contact block ---
+\noindent
+\begin{minipage}[t]{0.52\textwidth}
+  \headerline{Al\'an Aspuru-Guzik}
+  \headerlineit{Professor}
+  \headerlineit{Department of Chemistry}
+  \headerlineit{Department of Computer Science}
+  \headerlineit{Department of Chemical Engineering and Applied Chemistry}
+  \headerlineit{Department of Materials Science and Engineering}
+  \headerlineit{Institute of Medical Science}
+\end{minipage}%
+\hfill
+\begin{minipage}[t]{0.46\textwidth}
+  \raggedleft
+  \headerlineit{80 St. George Street, Room 421D}
+  \headerlineit{Toronto, ON M5S 3H6}
+  \headerlineit{Tel:\ 416-978-8927}
+  \headerlineit{Email:aspuru@utoronto.ca}
+  \headerlineit{Website: matter.toronto.edu}
+\end{minipage}
+
+\vspace{20pt}
+
+\noindent\hfill February 10, 2026
+
+\vspace{25pt}
+
+\noindent
+Dr.~Kaitlin McCardle\\
+Senior Editor\\
+Nature Computational Science\\
+Springer Nature, United States of America
+
+\vspace{25pt}
+
+\noindent
+\textbf{RE: INVITED MANUSCRIPT SUBMISSION \textendash\ ``Shoot from the HIP: Hessian Interatomic Potentials without Derivatives''}
+
+\vspace{13pt}
+
+\noindent Dear Dr.~McCardle,
+
+On behalf of my co-authors, I am pleased to submit our invited manuscript, ``Shoot from the HIP: Hessian Interatomic Potentials without Derivatives'' for consideration at Nature Computational Science. This submission follows your invitation after the work received one of the \textbf{Best Paper Awards at the EurIPS Symbiochem workshop}, and we are grateful for the opportunity to submit an expanded and strengthened version for your journal's broad computational-science readership.
+
+Accurate second-order information is central to modern computational chemistry and materials science: molecular Hessians underpin vibrational analysis, transition-state searches, robust second-order geometry optimization, and much more. The steep scaling of Hessians compared to energies and forces often renders them the limiting factor for applying computational methods at scale and in high-throughput screenings. While modern machine-learning interatomic potentials (MLIPs) have made energies and forces inexpensive to compute, \textbf{Hessians remain challenging} in practice: obtaining second derivatives through automatic differentiation (AD) or finite-difference approaches is costly, scaling as $O(N_{\mathrm{atoms}}^{3})$ in terms of MLIP evaluations, and memory-intensive. Additionally, MLIPs often fail to faithfully reproduce DFT Hessians, particularly due to the absence of dedicated, expensive Hessian training. This gap leaves many workflows without reliable, scalable access to curvature information even when accurate MLIPs are available.
+
+In this work, we introduce \textbf{Hessian Interatomic Potentials (HIP)}, a learning framework that \textbf{directly predicts molecular Hessians} using an equivariant graph neural network (GNN) while respecting required physical structure (e.g., symmetry and equivariance constraints), enabling fast and stable second-order information without resorting to finite differences or differentiating the model twice. This reduces the computational cost from $O(N_{\mathrm{atoms}}^{3})$ to $O(1)$ in terms of GNN forward passes, making the approach much more scalable. In our benchmarks, this yields almost \textbf{two orders of magnitude in speedup} alongside improved Hessian fidelity and consistently better downstream outcomes (e.g., transition-state search success, geometry optimization, and more accurate ZPEs) compared to MLIPs trained on the same data. We are confident that the sharply reduced
+
+\newgeometry{top=71.6pt, bottom=48.5pt, left=58.6pt, right=64.7pt}
+\newpage
+\enlargethispage{28pt}
+
+\noindent computational complexity, combined with high accuracy, will substantially accelerate established workflows and unlock currently impractical ones, such as high-throughput screening reliant on Hessian inputs.
+
+{\looseness=-2
+We have also directly addressed your comments to validate HIP in a size-extrapolative setting and compare its performance to MLIP Hessians obtained with AD. For this, we tested HIP on the RGD1 dataset with molecules of 30 atoms, about 50\% larger than those in our training dataset, as well as on a small subset of PubChem molecules with 100 atoms, about five times the number of atoms in the training dataset. We show that HIP's performance in terms of the eigenvalues and mean square error stays largely constant, whereas the MLIP AD-Hessian suffer significantly more. We believe these additions strengthen the manuscript's relevance to the journal's broad computational science readership by demonstrating not only methodological novelty but also clear operational advantages on challenging, practically relevant systems.
+}
+
+To encourage reuse and verification, we provide an open-source implementation and trained weights to facilitate adoption and extension by the community under the following GitHub repository:
+
+\ulink{https://github.com/BurgerAndreas/hip}{https://github.com/BurgerAndreas/hip}
+
+{\looseness=-1
+Given \textit{Nature Computational Science}'s mission to publish computational methods and tools that advance scientific research across disciplines, we believe HIP will be of interest to a diverse audience spanning scientific machine learning, computational chemistry, and applied mathematics, as it enables a class of second-order simulations and optimizations that are currently bottlenecked by derivative costs.
+}
+
+The authors confirm that the present manuscript has not been published previously and is not under consideration for publication elsewhere. A preprint version is available at
+
+\ulink{https://arxiv.org/abs/2509.21624}{https://arxiv.org/abs/2509.21624}
+
+Thank you for your time and consideration. We look forward to hearing from you.
+
+\noindent Sincerely,\\
+Al\'an Aspuru-Guzik\\
+on behalf of all authors
+
+\vspace{3pt}
+\noindent\includegraphics[width=141.75pt,height=45pt,keepaspectratio]{assets/page2_img0.jpeg}
+
+\vspace{6pt}
+{\setlength{\parskip}{0pt}%
+\noindent
+Director, Acceleration Consortium\\
+Professor of Chemistry\\
+Professor of Computer Science\\
+Professor of Chemical Engineering and Applied Chemistry\\
+Professor of Materials Science and Engineering\\
+Faculty Member, Institute of Medical Science\\
+University of Toronto\\[12.5pt]
+CIFAR AI Chair\\
+Vector Institute for Artificial Intelligence\\[12.5pt]
+Senior Director of Quantum Chemistry, NVIDIA\par}
+
+\newpage
+
+\noindent
+Fellow of the Royal Society of Canada (FRSC) | CIFAR Senior Fellow | Fellow Massey College | Fellow Royal Society of Chemistry (UK) | Fellow of the American Association for the Advancement of Science (AAAS) | American Physical Society (APS) Fellow | NSERC Industrial Research Chair in Quantum Computing | Canada 150 Laureate Chair in Quantum Chemistry
+
+\end{document}

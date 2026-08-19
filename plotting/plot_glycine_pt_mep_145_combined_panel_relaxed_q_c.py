@@ -38,6 +38,15 @@ from plot_style import (  # noqa: E402
     finish_axis,
     model_color,
 )
+from plot_glycine_pt_dft_relaxed_diagnostics_colour import (  # noqa: E402
+    style_colorbar,
+    vib_metrics,
+)
+from plot_glycine_pt_dft_relaxed_diagnostics_q_colour import (  # noqa: E402
+    draw_panel_q,
+    make_q_grid,
+    overlay_stationary_q,
+)
 from scripts.cache_glycine_pt_orca_vibrations import (  # noqa: E402
     NEG_EIGVAL_THRESHOLD,
     vibrational_eigh,
@@ -85,7 +94,7 @@ METHOD_COLORS = {
     LEFTNET_CF_LABEL: LEFTNET_CF_FORCE_COLOR,
 }
 METHOD_MARKERS = {DFT_LABEL: "D", HIP_LABEL: "s", EQV2_LABEL: "o"}
-METHOD_LINESTYLES = {DFT_LABEL: "-", HIP_LABEL: "-", EQV2_LABEL: "-"}
+METHOD_LINESTYLES = {DFT_LABEL: "-", HIP_LABEL: "-", EQV2_LABEL: ":"}
 PLOT_METHOD_ORDER = (DFT_LABEL, EQV2_LABEL, HIP_LABEL)
 DFT_EIGENVALUE_COLOR = "#5A5A5A"
 NEGATIVE_MODE_DODGE = {DFT_LABEL: -0.06, HIP_LABEL: 0.0, EQV2_LABEL: 0.06}
@@ -219,7 +228,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--x-axis", choices=["xi", "frame"], default="xi")
     parser.add_argument("--n-eigs", type=int, default=6)
     parser.add_argument("--negative-threshold", type=float, default=-1e-6)
-    parser.add_argument("--dpi", type=int, default=250)
+    parser.add_argument("--dpi", type=int, default=450)
     return parser.parse_args()
 
 
@@ -623,6 +632,91 @@ def place_top_panel(fig: plt.Figure, gs_row, panel: Image.Image, lower_axes: lis
     return ax
 
 
+def draw_vector_top_panel(fig: plt.Figure, gs_row, args: argparse.Namespace) -> plt.Axes:
+    """Draw the negative-mode surfaces as vector artists in the combined figure."""
+    scan = args.scan_dir
+    vib_path = args.vib_cache or scan / "orca_vib_cache.npz"
+    hip_path = args.hip_arrays or scan / "hip_v2_arrays.npz"
+    eqv2_path = args.eqv2_arrays or scan / "eqv2_autograd_arrays.npz"
+    stationary_path = resolve_stationary_json(args, scan)
+    stationary = json.loads(stationary_path.read_text()) if stationary_path.exists() else {}
+
+    with np.load(vib_path) as dft:
+        grid_id = np.asarray(dft["grid_id"])
+        s = np.asarray(dft["s"], dtype=float)
+        sigma = np.asarray(dft["sigma"], dtype=float)
+        masses = np.asarray(dft["masses_amu"], dtype=float)
+        coords = np.asarray(dft["coords_angstrom"], dtype=float)
+        pt_dirs = np.asarray(dft["pt_direction"], dtype=float)
+        nneg_dft = np.asarray(dft["n_negative"], dtype=int)
+        energy = np.asarray(dft["energy_hartree_engrad"], dtype=float)
+
+    with np.load(hip_path) as hip:
+        if not np.array_equal(grid_id, hip["grid_id"]):
+            raise ValueError("grid_id ordering mismatch between DFT and HIP")
+        _, nneg_hip, _ = vib_metrics(hip["hessians_cartesian"], coords, masses, pt_dirs)
+    with np.load(eqv2_path) as eqv2:
+        if not np.array_equal(grid_id, eqv2["grid_id"]):
+            raise ValueError("grid_id ordering mismatch between DFT and EqV2")
+        _, nneg_eqv2, _ = vib_metrics(eqv2["hessians_cartesian"], coords, masses, pt_dirs)
+
+    energy_rel = (energy - energy.min()) * HARTREE_TO_KCAL
+    energy_q_nh, energy_q_oh, energy_grid = make_q_grid(s, sigma, energy_rel)
+    mode_grids = [make_q_grid(s, sigma, values) for values in (nneg_dft, nneg_hip, nneg_eqv2)]
+
+    vmin = int(min(np.min(values) for values in (nneg_dft, nneg_hip, nneg_eqv2)))
+    vmax = int(max(np.max(values) for values in (nneg_dft, nneg_hip, nneg_eqv2)))
+    cmap = plt.get_cmap("magma", vmax - vmin + 1)
+    norm = BoundaryNorm(np.arange(vmin - 0.5, vmax + 1.5, 1.0), cmap.N)
+
+    sub = gs_row.subgridspec(1, 4, width_ratios=[0.78, 1.0, 1.0, 1.0], wspace=0.12)
+    molecule_ax = fig.add_subplot(sub[0, 0])
+    molecule_ax.imshow(trim_white(Image.open(args.ts_image), padding=4).convert("RGB"))
+    molecule_ax.axis("off")
+    molecule_ax.set_anchor("W")
+    molecule_position = molecule_ax.get_position()
+    molecule_ax.set_position(
+        [
+            molecule_position.x0 - 0.018,
+            molecule_position.y0,
+            molecule_position.width,
+            molecule_position.height,
+        ]
+    )
+
+    axes = [fig.add_subplot(sub[0, idx]) for idx in range(1, 4)]
+    mesh = None
+    for idx, (ax, (q_nh, q_oh, values), title) in enumerate(
+        zip(axes, mode_grids, ("DFT", "HIP", "AD"), strict=True)
+    ):
+        mesh = draw_panel_q(
+            ax,
+            q_nh,
+            q_oh,
+            values,
+            cmap=cmap,
+            norm=norm,
+            title=title,
+            idx=idx,
+            energy_grid=energy_grid,
+            energy_q_nh=energy_q_nh,
+            energy_q_oh=energy_q_oh,
+            hide_nonfirst_y_ticks=True,
+        )
+        mesh.set_rasterized(True)
+        overlay_stationary_q(ax, stationary)
+
+    cax = axes[-1].inset_axes([1.05, 0.0, 0.05, 1.0])
+    cbar = fig.colorbar(
+        mesh,
+        cax=cax,
+        ticks=np.arange(vmin, vmax + 1),
+        spacing="proportional",
+    )
+    style_colorbar(cbar, "Negative Mode Count")
+    return molecule_ax
+
+
 def draw_lowest_eigenvalues(
     fig: plt.Figure,
     gs_row,
@@ -734,6 +828,7 @@ def draw_force_xi_residual(
             ax=axes[0],
             color=METHOD_COLORS[label],
             lw=lw,
+            linestyle=METHOD_LINESTYLES.get(label, "-"),
             label=label,
         )
     overlay_stationary_on_curve(axes[0], xi, g_xi[DFT_LABEL], stationary_frames)
@@ -748,6 +843,7 @@ def draw_force_xi_residual(
             ax=axes[1],
             color=METHOD_COLORS[label],
             lw=lw,
+            linestyle=METHOD_LINESTYLES.get(label, "-"),
             label="_nolegend_",
         )
     overlay_stationary_on_curve(axes[1], xi, np.zeros_like(xi), stationary_frames)
@@ -762,6 +858,7 @@ def draw_force_xi_residual(
             ax=axes[2],
             color=METHOD_COLORS[label],
             lw=lw,
+            linestyle=METHOD_LINESTYLES.get(label, "-"),
             label="_nolegend_",
         )
 
@@ -942,16 +1039,7 @@ def plot_combined(args: argparse.Namespace) -> Path:
     target_left = min(ax.get_tightbbox(renderer).transformed(inv).x0 for ax in row2_axes)
     align_row_left(fig, row3_axes, target_left)
 
-    lower_axes = list(fig.axes)
-
-    panel = draw_ts_negative_panel(
-        fig,
-        gs[0],
-        row1_image=args.row1_image,
-        ts_image=args.ts_image,
-        dpi=args.dpi,
-    )
-    top_ax = place_top_panel(fig, gs[0], panel, lower_axes)
+    top_ax = draw_vector_top_panel(fig, gs[0], args)
     add_stationary_legend(fig, gs[0])
     if args.show_panel_labels:
         add_row_labels(fig, [top_ax, row2_axes[0], row3_axes[0]])

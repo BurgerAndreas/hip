@@ -1,0 +1,5 @@
+model,workflow_stage,plotted_success_count_out_of_960,total_transition_state_proposals,dft_verification_subset_size,dft_subset_pass_count,dft_subset_pass_fraction,unrounded_estimated_success_count
+HIP,DFT-verified transition state,669,669,100,100,1.00,669.00
+EquiformerV2 AD,DFT-verified transition state,622,628,100,99,0.99,621.72
+HIP,DFT-verified transition state and tight convergence,642,669,100,96,0.96,642.24
+EquiformerV2 AD,DFT-verified transition state and tight convergence,571,628,100,91,0.91,571.48

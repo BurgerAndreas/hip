@@ -1,0 +1,1921 @@
+model,reaction_identifier,gsm_converged,rfo_converged,irc_verified
+HIP,rxn9,True,True,True
+HIP,rxn26,True,True,True
+HIP,rxn31,True,True,True
+HIP,rxn39,True,True,True
+HIP,rxn53,True,True,True
+HIP,rxn57,True,True,True
+HIP,rxn59,True,True,True
+HIP,rxn61,True,True,True
+HIP,rxn64,True,True,False
+HIP,rxn66,True,True,True
+HIP,rxn72,True,True,True
+HIP,rxn74,True,True,True
+HIP,rxn78,True,True,True
+HIP,rxn79,True,True,True
+HIP,rxn102,True,True,True
+HIP,rxn123,True,True,True
+HIP,rxn124,True,True,True
+HIP,rxn143,True,True,True
+HIP,rxn144,True,False,False
+HIP,rxn148,True,True,True
+HIP,rxn160,True,True,True
+HIP,rxn164,True,False,False
+HIP,rxn165,True,False,False
+HIP,rxn170,True,True,True
+HIP,rxn196,False,False,False
+HIP,rxn199,True,True,True
+HIP,rxn207,False,False,False
+HIP,rxn209,True,False,False
+HIP,rxn220,True,True,True
+HIP,rxn233,True,True,True
+HIP,rxn235,True,True,True
+HIP,rxn263,True,True,True
+HIP,rxn282,True,True,False
+HIP,rxn288,True,True,True
+HIP,rxn293,True,False,False
+HIP,rxn296,True,True,True
+HIP,rxn298,True,False,False
+HIP,rxn313,True,False,False
+HIP,rxn320,True,False,False
+HIP,rxn326,True,True,True
+HIP,rxn333,True,True,True
+HIP,rxn336,True,True,True
+HIP,rxn346,True,True,False
+HIP,rxn348,False,False,False
+HIP,rxn356,True,True,True
+HIP,rxn388,True,True,False
+HIP,rxn397,True,True,True
+HIP,rxn398,True,True,True
+HIP,rxn403,True,True,True
+HIP,rxn408,True,True,False
+HIP,rxn411,True,True,True
+HIP,rxn416,True,True,True
+HIP,rxn417,True,True,True
+HIP,rxn432,True,True,True
+HIP,rxn436,True,True,True
+HIP,rxn442,False,False,False
+HIP,rxn447,True,True,True
+HIP,rxn459,True,True,True
+HIP,rxn464,True,True,True
+HIP,rxn475,True,False,False
+HIP,rxn479,True,False,False
+HIP,rxn487,True,True,True
+HIP,rxn511,True,False,False
+HIP,rxn522,True,True,True
+HIP,rxn526,True,True,True
+HIP,rxn532,True,True,True
+HIP,rxn541,True,False,False
+HIP,rxn548,True,True,True
+HIP,rxn575,True,True,True
+HIP,rxn591,True,True,True
+HIP,rxn593,False,False,False
+HIP,rxn596,True,False,False
+HIP,rxn600,True,True,True
+HIP,rxn602,True,True,True
+HIP,rxn604,True,True,True
+HIP,rxn618,True,True,True
+HIP,rxn662,True,True,True
+HIP,rxn670,True,True,True
+HIP,rxn677,True,True,True
+HIP,rxn678,True,True,True
+HIP,rxn697,True,True,True
+HIP,rxn707,True,True,True
+HIP,rxn720,True,False,False
+HIP,rxn760,True,True,False
+HIP,rxn780,True,True,True
+HIP,rxn792,True,True,True
+HIP,rxn793,True,True,True
+HIP,rxn811,True,True,True
+HIP,rxn843,True,True,True
+HIP,rxn846,True,True,True
+HIP,rxn867,True,True,True
+HIP,rxn873,True,False,False
+HIP,rxn874,True,False,False
+HIP,rxn900,True,True,True
+HIP,rxn914,True,True,True
+HIP,rxn935,True,True,True
+HIP,rxn942,True,True,True
+HIP,rxn956,True,False,True
+HIP,rxn957,True,True,True
+HIP,rxn958,True,False,False
+HIP,rxn966,False,False,False
+HIP,rxn969,True,True,True
+HIP,rxn981,False,False,False
+HIP,rxn1024,True,True,True
+HIP,rxn1041,True,True,True
+HIP,rxn1047,True,False,False
+HIP,rxn1048,False,False,False
+HIP,rxn1050,True,True,True
+HIP,rxn1058,True,True,True
+HIP,rxn1076,True,True,True
+HIP,rxn1077,True,True,False
+HIP,rxn1079,True,True,False
+HIP,rxn1081,True,True,True
+HIP,rxn1086,True,True,False
+HIP,rxn1148,False,False,False
+HIP,rxn1175,False,False,False
+HIP,rxn1185,True,False,False
+HIP,rxn1204,True,True,True
+HIP,rxn1208,True,True,True
+HIP,rxn1214,True,True,True
+HIP,rxn1216,True,True,True
+HIP,rxn1218,True,True,True
+HIP,rxn1220,True,True,True
+HIP,rxn1234,True,False,False
+HIP,rxn1238,True,True,True
+HIP,rxn1239,True,True,True
+HIP,rxn1249,True,False,False
+HIP,rxn1251,True,True,True
+HIP,rxn1279,True,True,True
+HIP,rxn1286,True,True,True
+HIP,rxn1299,True,True,True
+HIP,rxn1301,True,True,True
+HIP,rxn1311,True,False,False
+HIP,rxn1312,True,True,True
+HIP,rxn1318,True,True,True
+HIP,rxn1319,True,True,True
+HIP,rxn1326,False,False,False
+HIP,rxn1327,True,False,False
+HIP,rxn1328,True,False,False
+HIP,rxn1337,False,False,False
+HIP,rxn1341,True,True,True
+HIP,rxn1351,True,False,False
+HIP,rxn1354,True,False,False
+HIP,rxn1366,True,True,True
+HIP,rxn1376,True,True,True
+HIP,rxn1379,True,True,True
+HIP,rxn1387,False,False,False
+HIP,rxn1398,True,True,True
+HIP,rxn1417,True,False,True
+HIP,rxn1451,True,True,True
+HIP,rxn1461,True,True,True
+HIP,rxn1466,True,True,True
+HIP,rxn1476,True,True,True
+HIP,rxn1488,True,True,True
+HIP,rxn1493,True,False,True
+HIP,rxn1498,True,True,True
+HIP,rxn1500,True,True,True
+HIP,rxn1509,True,True,True
+HIP,rxn1518,False,False,False
+HIP,rxn1523,True,False,True
+HIP,rxn1590,True,True,True
+HIP,rxn1593,True,True,True
+HIP,rxn1595,True,True,True
+HIP,rxn1596,True,True,True
+HIP,rxn1625,True,False,True
+HIP,rxn1639,True,True,True
+HIP,rxn1648,True,True,True
+HIP,rxn1650,True,True,False
+HIP,rxn1658,True,True,True
+HIP,rxn1661,True,True,True
+HIP,rxn1666,False,False,False
+HIP,rxn1676,True,True,True
+HIP,rxn1713,True,True,True
+HIP,rxn1716,True,False,False
+HIP,rxn1721,False,False,False
+HIP,rxn1746,True,True,True
+HIP,rxn1749,True,True,True
+HIP,rxn1758,True,True,False
+HIP,rxn1770,True,True,False
+HIP,rxn1772,True,True,True
+HIP,rxn1783,True,False,True
+HIP,rxn1795,True,False,False
+HIP,rxn1800,True,False,False
+HIP,rxn1810,True,True,True
+HIP,rxn1811,False,False,False
+HIP,rxn1813,True,True,True
+HIP,rxn1816,True,True,True
+HIP,rxn1821,True,True,True
+HIP,rxn1827,True,True,True
+HIP,rxn1836,True,True,True
+HIP,rxn1846,True,True,False
+HIP,rxn1847,True,True,True
+HIP,rxn1866,True,False,False
+HIP,rxn1875,True,True,True
+HIP,rxn1879,True,True,True
+HIP,rxn1880,True,True,False
+HIP,rxn1897,True,True,True
+HIP,rxn1915,True,False,True
+HIP,rxn1922,True,True,True
+HIP,rxn1929,True,True,True
+HIP,rxn1946,True,True,True
+HIP,rxn1961,True,True,True
+HIP,rxn1976,True,True,True
+HIP,rxn1983,True,True,True
+HIP,rxn1984,True,True,True
+HIP,rxn1991,True,True,True
+HIP,rxn2009,True,True,True
+HIP,rxn2012,True,False,False
+HIP,rxn2024,True,True,False
+HIP,rxn2026,True,False,False
+HIP,rxn2032,True,True,True
+HIP,rxn2034,True,True,True
+HIP,rxn2065,True,True,True
+HIP,rxn2070,True,True,False
+HIP,rxn2073,True,True,True
+HIP,rxn2088,True,True,True
+HIP,rxn2097,False,False,False
+HIP,rxn2099,False,False,False
+HIP,rxn2104,True,False,False
+HIP,rxn2131,True,False,True
+HIP,rxn2145,True,False,False
+HIP,rxn2149,True,True,True
+HIP,rxn2176,True,True,False
+HIP,rxn2179,True,True,True
+HIP,rxn2195,True,True,True
+HIP,rxn2212,True,True,True
+HIP,rxn2226,True,True,True
+HIP,rxn2271,True,True,True
+HIP,rxn2279,True,True,True
+HIP,rxn2289,True,True,True
+HIP,rxn2306,True,True,True
+HIP,rxn2317,True,True,True
+HIP,rxn2318,True,True,True
+HIP,rxn2337,True,True,True
+HIP,rxn2349,True,True,True
+HIP,rxn2356,True,True,True
+HIP,rxn2357,True,True,True
+HIP,rxn2380,True,False,False
+HIP,rxn2382,True,True,True
+HIP,rxn2395,True,True,True
+HIP,rxn2407,True,True,True
+HIP,rxn2410,True,True,True
+HIP,rxn2411,True,True,True
+HIP,rxn2417,True,True,True
+HIP,rxn2421,True,True,True
+HIP,rxn2422,True,True,True
+HIP,rxn2440,True,True,False
+HIP,rxn2445,True,True,True
+HIP,rxn2446,True,True,True
+HIP,rxn2461,True,True,False
+HIP,rxn2478,True,True,True
+HIP,rxn2490,False,False,False
+HIP,rxn2500,True,True,True
+HIP,rxn2501,True,True,True
+HIP,rxn2510,True,True,True
+HIP,rxn2564,True,True,True
+HIP,rxn2567,True,True,True
+HIP,rxn2574,True,True,True
+HIP,rxn2587,False,False,False
+HIP,rxn2591,True,True,True
+HIP,rxn2608,True,True,True
+HIP,rxn2646,True,True,True
+HIP,rxn2651,True,True,True
+HIP,rxn2656,True,True,True
+HIP,rxn2669,True,True,True
+HIP,rxn2672,True,True,True
+HIP,rxn2673,True,True,True
+HIP,rxn2675,True,True,False
+HIP,rxn2681,True,False,False
+HIP,rxn2687,True,True,True
+HIP,rxn2692,True,True,True
+HIP,rxn2706,True,True,True
+HIP,rxn2722,True,True,True
+HIP,rxn2730,True,True,True
+HIP,rxn2738,True,True,True
+HIP,rxn2748,False,False,False
+HIP,rxn2756,True,True,True
+HIP,rxn2757,True,True,True
+HIP,rxn2779,True,True,True
+HIP,rxn2788,True,True,True
+HIP,rxn2817,False,False,False
+HIP,rxn2823,True,True,True
+HIP,rxn2834,True,True,True
+HIP,rxn2839,False,False,False
+HIP,rxn2847,False,False,False
+HIP,rxn2858,True,True,True
+HIP,rxn2877,True,True,True
+HIP,rxn2880,False,False,False
+HIP,rxn2881,True,True,True
+HIP,rxn2885,True,False,False
+HIP,rxn2897,True,True,True
+HIP,rxn2902,True,True,True
+HIP,rxn2909,True,True,True
+HIP,rxn2912,False,False,False
+HIP,rxn2917,True,True,True
+HIP,rxn2920,True,True,True
+HIP,rxn2931,False,False,False
+HIP,rxn2932,True,True,True
+HIP,rxn2943,False,False,False
+HIP,rxn2950,True,True,False
+HIP,rxn2957,True,True,True
+HIP,rxn2961,True,True,True
+HIP,rxn2972,True,True,True
+HIP,rxn2973,True,False,False
+HIP,rxn2978,True,True,True
+HIP,rxn2983,True,True,True
+HIP,rxn2986,False,False,False
+HIP,rxn3010,True,False,False
+HIP,rxn3015,True,True,True
+HIP,rxn3053,True,True,True
+HIP,rxn3068,True,True,True
+HIP,rxn3075,True,True,True
+HIP,rxn3086,True,True,True
+HIP,rxn3092,True,True,True
+HIP,rxn3100,True,True,True
+HIP,rxn3108,True,False,False
+HIP,rxn3111,True,True,True
+HIP,rxn3122,True,True,True
+HIP,rxn3127,False,False,False
+HIP,rxn3133,True,True,True
+HIP,rxn3144,True,True,True
+HIP,rxn3154,True,True,True
+HIP,rxn3162,True,True,True
+HIP,rxn3168,True,True,True
+HIP,rxn3173,True,True,True
+HIP,rxn3174,True,True,True
+HIP,rxn3177,False,False,False
+HIP,rxn3192,True,False,False
+HIP,rxn3194,True,False,True
+HIP,rxn3196,True,True,True
+HIP,rxn3202,True,False,False
+HIP,rxn3206,True,False,False
+HIP,rxn3214,True,True,True
+HIP,rxn3217,True,True,True
+HIP,rxn3221,True,True,True
+HIP,rxn3231,False,False,False
+HIP,rxn3233,True,False,True
+HIP,rxn3235,True,True,True
+HIP,rxn3244,True,True,True
+HIP,rxn3246,True,True,True
+HIP,rxn3256,True,True,True
+HIP,rxn3264,True,True,True
+HIP,rxn3266,False,False,False
+HIP,rxn3277,True,True,True
+HIP,rxn3295,True,True,True
+HIP,rxn3305,False,False,False
+HIP,rxn3309,True,True,True
+HIP,rxn3323,True,False,False
+HIP,rxn3329,True,True,True
+HIP,rxn3335,False,False,False
+HIP,rxn3338,False,False,False
+HIP,rxn3339,True,False,False
+HIP,rxn3343,True,True,True
+HIP,rxn3345,True,True,True
+HIP,rxn3387,False,False,False
+HIP,rxn3398,True,True,True
+HIP,rxn3422,False,False,False
+HIP,rxn3429,True,True,True
+HIP,rxn3464,True,True,True
+HIP,rxn3466,True,True,True
+HIP,rxn3485,True,True,True
+HIP,rxn3514,False,False,False
+HIP,rxn3528,True,True,True
+HIP,rxn3536,True,False,False
+HIP,rxn3558,False,False,False
+HIP,rxn3575,True,True,True
+HIP,rxn3576,False,False,False
+HIP,rxn3596,True,True,True
+HIP,rxn3600,True,True,True
+HIP,rxn3607,True,True,True
+HIP,rxn3618,True,True,True
+HIP,rxn3631,True,True,True
+HIP,rxn3639,True,True,True
+HIP,rxn3642,False,False,False
+HIP,rxn3645,True,True,True
+HIP,rxn3654,True,True,True
+HIP,rxn3655,True,True,True
+HIP,rxn3657,True,True,True
+HIP,rxn3674,True,True,True
+HIP,rxn3675,True,True,True
+HIP,rxn3688,True,True,False
+HIP,rxn3692,True,True,True
+HIP,rxn3702,True,True,True
+HIP,rxn3705,True,False,False
+HIP,rxn3710,True,True,True
+HIP,rxn3726,True,False,False
+HIP,rxn3729,True,True,True
+HIP,rxn3742,False,False,False
+HIP,rxn3748,True,True,True
+HIP,rxn3764,True,True,True
+HIP,rxn3773,False,False,False
+HIP,rxn3774,True,True,False
+HIP,rxn3790,True,True,False
+HIP,rxn3801,True,True,True
+HIP,rxn3802,False,False,False
+HIP,rxn3811,True,True,False
+HIP,rxn3813,True,True,True
+HIP,rxn3818,True,True,True
+HIP,rxn3832,True,True,False
+HIP,rxn3835,True,True,True
+HIP,rxn3837,True,True,True
+HIP,rxn3843,True,True,True
+HIP,rxn3845,True,True,True
+HIP,rxn3847,True,True,True
+HIP,rxn3854,True,True,True
+HIP,rxn3881,True,False,False
+HIP,rxn3898,False,False,False
+HIP,rxn3908,True,True,False
+HIP,rxn3914,True,True,True
+HIP,rxn3920,True,False,False
+HIP,rxn3922,True,False,True
+HIP,rxn3934,True,True,True
+HIP,rxn3943,True,False,False
+HIP,rxn3952,True,True,True
+HIP,rxn3984,True,False,False
+HIP,rxn3994,True,True,True
+HIP,rxn4011,True,True,True
+HIP,rxn4022,False,False,False
+HIP,rxn4023,True,True,True
+HIP,rxn4043,True,True,True
+HIP,rxn4059,False,False,False
+HIP,rxn4064,True,True,True
+HIP,rxn4066,True,True,True
+HIP,rxn4082,True,True,True
+HIP,rxn4086,True,True,True
+HIP,rxn4087,True,True,True
+HIP,rxn4091,True,True,True
+HIP,rxn4093,False,False,False
+HIP,rxn4101,False,False,False
+HIP,rxn4103,True,True,True
+HIP,rxn4107,True,False,False
+HIP,rxn4111,True,True,True
+HIP,rxn4119,True,True,True
+HIP,rxn4146,False,False,False
+HIP,rxn4202,True,True,True
+HIP,rxn4205,True,True,True
+HIP,rxn4218,True,True,True
+HIP,rxn4226,False,False,False
+HIP,rxn4228,True,True,True
+HIP,rxn4260,True,True,True
+HIP,rxn4272,False,False,False
+HIP,rxn4298,True,True,False
+HIP,rxn4310,True,False,False
+HIP,rxn4314,True,False,False
+HIP,rxn4317,True,True,True
+HIP,rxn4321,True,False,True
+HIP,rxn4323,True,True,True
+HIP,rxn4324,True,True,True
+HIP,rxn4326,True,True,True
+HIP,rxn4330,False,False,False
+HIP,rxn4345,True,True,True
+HIP,rxn4384,True,True,True
+HIP,rxn4389,True,True,True
+HIP,rxn4391,True,False,True
+HIP,rxn4392,True,True,True
+HIP,rxn4414,True,True,True
+HIP,rxn4419,True,True,True
+HIP,rxn4424,True,True,True
+HIP,rxn4425,True,True,True
+HIP,rxn4428,True,True,True
+HIP,rxn4440,True,True,True
+HIP,rxn4461,False,False,False
+HIP,rxn4467,True,True,True
+HIP,rxn4468,True,True,True
+HIP,rxn4477,True,True,True
+HIP,rxn4484,True,True,True
+HIP,rxn4490,True,True,True
+HIP,rxn4496,True,True,True
+HIP,rxn4497,True,False,False
+HIP,rxn4507,True,True,True
+HIP,rxn4528,True,False,False
+HIP,rxn4530,True,False,False
+HIP,rxn4535,False,False,False
+HIP,rxn4544,True,True,True
+HIP,rxn4555,True,True,False
+HIP,rxn4567,True,True,True
+HIP,rxn4569,True,True,True
+HIP,rxn4574,True,True,True
+HIP,rxn4583,True,True,True
+HIP,rxn4599,True,True,False
+HIP,rxn4608,False,False,False
+HIP,rxn4618,True,True,True
+HIP,rxn4620,True,True,False
+HIP,rxn4627,True,True,False
+HIP,rxn4631,True,True,True
+HIP,rxn4654,True,True,True
+HIP,rxn4683,True,False,True
+HIP,rxn4685,False,False,False
+HIP,rxn4688,True,True,True
+HIP,rxn4694,True,True,True
+HIP,rxn4698,False,False,False
+HIP,rxn4726,True,True,True
+HIP,rxn4729,True,False,False
+HIP,rxn4736,True,True,True
+HIP,rxn4739,True,True,True
+HIP,rxn4742,True,True,True
+HIP,rxn4767,True,True,True
+HIP,rxn4771,False,False,False
+HIP,rxn4772,True,True,True
+HIP,rxn4776,True,True,True
+HIP,rxn4787,True,True,True
+HIP,rxn4793,True,True,True
+HIP,rxn4808,True,True,True
+HIP,rxn4821,True,True,True
+HIP,rxn4825,True,True,True
+HIP,rxn4838,True,True,False
+HIP,rxn4850,True,False,True
+HIP,rxn4857,True,True,True
+HIP,rxn4860,False,False,False
+HIP,rxn4864,True,True,True
+HIP,rxn4869,True,True,False
+HIP,rxn4879,True,True,True
+HIP,rxn4885,True,True,True
+HIP,rxn4887,True,True,True
+HIP,rxn4890,True,True,True
+HIP,rxn4900,True,True,True
+HIP,rxn4901,True,True,True
+HIP,rxn4905,True,True,True
+HIP,rxn4917,True,True,True
+HIP,rxn4918,True,False,False
+HIP,rxn4922,True,True,True
+HIP,rxn4933,True,False,True
+HIP,rxn4939,True,True,True
+HIP,rxn4941,False,False,False
+HIP,rxn4956,True,True,True
+HIP,rxn4961,True,True,True
+HIP,rxn4968,True,True,True
+HIP,rxn4970,False,False,False
+HIP,rxn4971,True,True,False
+HIP,rxn4976,True,True,True
+HIP,rxn4988,False,False,False
+HIP,rxn5002,True,True,True
+HIP,rxn5014,True,True,True
+HIP,rxn5018,True,True,True
+HIP,rxn5035,True,True,True
+HIP,rxn5038,True,True,True
+HIP,rxn5043,True,True,True
+HIP,rxn5061,True,True,True
+HIP,rxn5081,True,True,True
+HIP,rxn5083,True,True,True
+HIP,rxn5096,True,True,True
+HIP,rxn5097,True,True,True
+HIP,rxn5121,True,True,True
+HIP,rxn5150,False,False,False
+HIP,rxn5156,True,True,True
+HIP,rxn5158,True,True,False
+HIP,rxn5169,True,True,False
+HIP,rxn5170,True,True,True
+HIP,rxn5211,True,True,True
+HIP,rxn5221,True,True,True
+HIP,rxn5229,True,True,False
+HIP,rxn5234,True,True,False
+HIP,rxn5242,True,True,True
+HIP,rxn5255,True,True,True
+HIP,rxn5286,True,False,True
+HIP,rxn5294,True,True,True
+HIP,rxn5309,True,True,True
+HIP,rxn5314,True,True,True
+HIP,rxn5322,True,True,True
+HIP,rxn5327,True,True,True
+HIP,rxn5367,False,False,False
+HIP,rxn5377,True,True,False
+HIP,rxn5393,True,True,True
+HIP,rxn5411,True,True,True
+HIP,rxn5426,True,True,True
+HIP,rxn5439,True,True,False
+HIP,rxn5450,True,True,True
+HIP,rxn5456,True,True,True
+HIP,rxn5483,True,True,True
+HIP,rxn5484,True,True,False
+HIP,rxn5487,False,False,False
+HIP,rxn5503,True,False,False
+HIP,rxn5505,True,True,True
+HIP,rxn5515,True,True,True
+HIP,rxn5527,True,True,True
+HIP,rxn5530,True,True,True
+HIP,rxn5531,True,True,True
+HIP,rxn5537,True,True,True
+HIP,rxn5556,True,True,True
+HIP,rxn5577,True,True,True
+HIP,rxn5581,True,False,True
+HIP,rxn5584,True,True,True
+HIP,rxn5614,True,True,True
+HIP,rxn5615,True,True,True
+HIP,rxn5620,True,True,False
+HIP,rxn5628,True,True,True
+HIP,rxn5630,True,True,True
+HIP,rxn5640,True,True,True
+HIP,rxn5641,True,True,False
+HIP,rxn5666,True,True,True
+HIP,rxn5693,True,False,True
+HIP,rxn5703,True,True,True
+HIP,rxn5713,True,False,True
+HIP,rxn5732,True,True,True
+HIP,rxn5733,True,True,True
+HIP,rxn5745,True,True,True
+HIP,rxn5747,True,True,True
+HIP,rxn5752,True,True,True
+HIP,rxn5759,True,True,True
+HIP,rxn5760,True,True,True
+HIP,rxn5775,True,True,True
+HIP,rxn5784,True,True,True
+HIP,rxn5803,True,False,False
+HIP,rxn5808,True,True,True
+HIP,rxn5842,True,True,True
+HIP,rxn5849,True,False,True
+HIP,rxn5896,True,False,True
+HIP,rxn5912,True,True,True
+HIP,rxn5942,True,True,True
+HIP,rxn5962,True,False,False
+HIP,rxn5990,True,False,False
+HIP,rxn5995,True,True,True
+HIP,rxn5999,True,True,True
+HIP,rxn6007,True,False,False
+HIP,rxn6011,True,False,False
+HIP,rxn6025,True,True,True
+HIP,rxn6036,False,False,False
+HIP,rxn6046,True,True,True
+HIP,rxn6051,True,True,True
+HIP,rxn6057,True,True,True
+HIP,rxn6066,True,False,False
+HIP,rxn6080,True,True,True
+HIP,rxn6094,True,False,False
+HIP,rxn6113,True,True,True
+HIP,rxn6115,True,True,True
+HIP,rxn6155,True,True,True
+HIP,rxn6156,True,True,True
+HIP,rxn6170,True,True,True
+HIP,rxn6172,True,True,False
+HIP,rxn6194,False,False,False
+HIP,rxn6195,True,False,False
+HIP,rxn6198,True,False,False
+HIP,rxn6215,True,False,False
+HIP,rxn6216,True,True,True
+HIP,rxn6227,True,True,True
+HIP,rxn6246,True,True,True
+HIP,rxn6253,True,True,True
+HIP,rxn6272,True,True,True
+HIP,rxn6281,True,True,True
+HIP,rxn6298,True,True,True
+HIP,rxn6317,True,True,True
+HIP,rxn6318,True,True,True
+HIP,rxn6330,True,True,True
+HIP,rxn6333,True,False,True
+HIP,rxn6344,True,True,True
+HIP,rxn6349,True,True,True
+HIP,rxn6357,False,False,False
+HIP,rxn6369,True,True,True
+HIP,rxn6401,True,True,True
+HIP,rxn6407,True,True,False
+HIP,rxn6439,True,True,True
+HIP,rxn6441,True,True,True
+HIP,rxn6444,False,False,False
+HIP,rxn6453,True,True,True
+HIP,rxn6462,True,False,False
+HIP,rxn6511,True,False,False
+HIP,rxn6514,True,True,True
+HIP,rxn6546,False,False,False
+HIP,rxn6550,True,True,True
+HIP,rxn6553,False,False,False
+HIP,rxn6578,True,True,True
+HIP,rxn6584,True,True,True
+HIP,rxn6590,True,False,True
+HIP,rxn6592,True,True,True
+HIP,rxn6601,True,True,False
+HIP,rxn6610,True,True,True
+HIP,rxn6628,True,True,True
+HIP,rxn6629,True,True,False
+HIP,rxn6639,True,True,True
+HIP,rxn6644,True,True,True
+HIP,rxn6660,True,True,True
+HIP,rxn6665,True,True,True
+HIP,rxn6684,False,False,False
+HIP,rxn6708,True,True,True
+HIP,rxn6710,True,True,False
+HIP,rxn6712,True,True,True
+HIP,rxn6714,True,True,True
+HIP,rxn6722,True,True,True
+HIP,rxn6731,True,True,True
+HIP,rxn6748,True,True,True
+HIP,rxn6751,True,True,True
+HIP,rxn6758,False,False,False
+HIP,rxn6767,True,True,True
+HIP,rxn6772,False,False,False
+HIP,rxn6777,True,False,False
+HIP,rxn6798,True,True,True
+HIP,rxn6802,True,True,True
+HIP,rxn6805,True,True,True
+HIP,rxn6823,True,True,False
+HIP,rxn6838,True,False,True
+HIP,rxn6857,True,True,True
+HIP,rxn6863,True,True,True
+HIP,rxn6880,True,True,False
+HIP,rxn6890,True,True,True
+HIP,rxn6893,True,True,True
+HIP,rxn6895,True,True,True
+HIP,rxn6930,True,True,True
+HIP,rxn6949,True,False,True
+HIP,rxn6955,True,False,False
+HIP,rxn6961,True,True,True
+HIP,rxn6983,True,True,True
+HIP,rxn6990,True,True,True
+HIP,rxn7014,True,False,False
+HIP,rxn7016,True,True,True
+HIP,rxn7018,True,True,True
+HIP,rxn7030,True,True,True
+HIP,rxn7036,False,False,False
+HIP,rxn7041,True,True,True
+HIP,rxn7048,True,True,True
+HIP,rxn7058,True,False,False
+HIP,rxn7070,True,False,False
+HIP,rxn7071,True,False,False
+HIP,rxn7084,True,True,True
+HIP,rxn7088,True,True,True
+HIP,rxn7093,True,True,True
+HIP,rxn7108,True,False,False
+HIP,rxn7110,True,True,True
+HIP,rxn7130,True,True,True
+HIP,rxn7136,True,True,True
+HIP,rxn7145,True,True,True
+HIP,rxn7151,True,False,False
+HIP,rxn7158,True,True,True
+HIP,rxn7184,True,True,True
+HIP,rxn7185,True,True,True
+HIP,rxn7193,True,True,True
+HIP,rxn7210,True,True,True
+HIP,rxn7222,True,True,True
+HIP,rxn7241,True,True,True
+HIP,rxn7298,True,False,True
+HIP,rxn7303,True,True,True
+HIP,rxn7309,True,False,False
+HIP,rxn7317,True,True,True
+HIP,rxn7323,True,True,True
+HIP,rxn7344,False,False,False
+HIP,rxn7357,True,False,True
+HIP,rxn7361,True,False,True
+HIP,rxn7364,True,False,False
+HIP,rxn7374,True,True,True
+HIP,rxn7378,True,True,True
+HIP,rxn7398,True,False,True
+HIP,rxn7424,True,True,True
+HIP,rxn7427,True,True,True
+HIP,rxn7428,True,True,True
+HIP,rxn7430,True,True,True
+HIP,rxn7436,True,True,True
+HIP,rxn7492,True,True,True
+HIP,rxn7493,True,True,True
+HIP,rxn7511,True,False,True
+HIP,rxn7521,True,True,True
+HIP,rxn7524,True,False,False
+HIP,rxn7529,True,True,True
+HIP,rxn7533,True,True,True
+HIP,rxn7535,True,False,False
+HIP,rxn7539,True,True,True
+HIP,rxn7544,True,True,True
+HIP,rxn7549,True,True,True
+HIP,rxn7560,False,False,False
+HIP,rxn7566,True,True,False
+HIP,rxn7569,True,True,True
+HIP,rxn7570,True,False,True
+HIP,rxn7578,True,True,True
+HIP,rxn7579,True,True,True
+HIP,rxn7581,True,True,True
+HIP,rxn7599,True,True,False
+HIP,rxn7600,True,True,True
+HIP,rxn7606,True,True,True
+HIP,rxn7638,True,True,True
+HIP,rxn7648,True,False,True
+HIP,rxn7674,True,False,True
+HIP,rxn7681,True,True,True
+HIP,rxn7689,False,False,False
+HIP,rxn7719,True,False,False
+HIP,rxn7728,True,False,True
+HIP,rxn7742,True,False,False
+HIP,rxn7754,True,True,False
+HIP,rxn7756,True,True,True
+HIP,rxn7764,True,True,True
+HIP,rxn7769,True,False,False
+HIP,rxn7797,True,False,True
+HIP,rxn7808,True,True,True
+HIP,rxn7829,False,False,False
+HIP,rxn7833,True,False,True
+HIP,rxn7855,False,False,False
+HIP,rxn7884,True,True,True
+HIP,rxn7890,True,True,True
+HIP,rxn7895,True,False,False
+HIP,rxn7896,True,True,False
+HIP,rxn7930,True,True,True
+HIP,rxn7932,True,True,True
+HIP,rxn7938,True,True,True
+HIP,rxn7941,False,False,False
+HIP,rxn7947,True,True,True
+HIP,rxn7957,True,False,False
+HIP,rxn7961,True,True,True
+HIP,rxn7965,True,True,False
+HIP,rxn7975,True,True,True
+HIP,rxn7979,True,True,True
+HIP,rxn7981,True,True,True
+HIP,rxn8026,True,False,False
+HIP,rxn8034,True,False,True
+HIP,rxn8036,True,True,True
+HIP,rxn8062,False,False,False
+HIP,rxn8081,True,True,True
+HIP,rxn8083,True,False,True
+HIP,rxn8085,True,True,True
+HIP,rxn8087,True,True,True
+HIP,rxn8103,True,True,True
+HIP,rxn8113,True,True,True
+HIP,rxn8125,True,True,True
+HIP,rxn8133,True,True,True
+HIP,rxn8149,True,True,True
+HIP,rxn8151,True,True,False
+HIP,rxn8152,True,True,True
+HIP,rxn8176,True,True,True
+HIP,rxn8178,True,True,True
+HIP,rxn8180,True,True,True
+HIP,rxn8190,True,False,True
+HIP,rxn8191,True,True,True
+HIP,rxn8219,True,True,True
+HIP,rxn8228,True,False,True
+HIP,rxn8235,True,True,True
+HIP,rxn8241,True,False,False
+HIP,rxn8259,True,True,True
+HIP,rxn8278,False,False,False
+HIP,rxn8289,True,False,False
+HIP,rxn8297,True,True,True
+HIP,rxn8315,True,True,True
+HIP,rxn8329,True,True,True
+HIP,rxn8330,True,True,True
+HIP,rxn8345,True,True,True
+HIP,rxn8346,True,True,True
+HIP,rxn8358,True,True,True
+HIP,rxn8378,True,True,True
+HIP,rxn8383,True,True,False
+HIP,rxn8395,True,True,True
+HIP,rxn8398,True,True,True
+HIP,rxn8413,True,True,False
+HIP,rxn8418,True,True,False
+HIP,rxn8431,True,True,True
+HIP,rxn8439,True,True,True
+HIP,rxn8442,False,False,False
+HIP,rxn8446,True,True,True
+HIP,rxn8449,True,False,True
+HIP,rxn8505,False,False,False
+HIP,rxn8532,True,True,True
+HIP,rxn8540,True,True,True
+HIP,rxn8543,True,True,True
+HIP,rxn8548,True,True,True
+HIP,rxn8557,True,True,True
+HIP,rxn8562,True,True,True
+HIP,rxn8603,False,False,False
+HIP,rxn8610,True,True,True
+HIP,rxn8624,True,True,False
+HIP,rxn8634,True,True,True
+HIP,rxn8638,False,False,False
+HIP,rxn8652,True,True,True
+HIP,rxn8680,True,False,True
+HIP,rxn8684,False,False,False
+HIP,rxn8686,False,False,False
+HIP,rxn8689,True,False,False
+HIP,rxn8690,True,False,False
+HIP,rxn8695,True,True,True
+HIP,rxn8696,True,True,True
+HIP,rxn8697,False,False,False
+HIP,rxn8708,True,True,True
+HIP,rxn8721,True,True,True
+HIP,rxn8722,True,True,True
+HIP,rxn8725,True,True,True
+HIP,rxn8730,True,False,False
+HIP,rxn8733,True,True,True
+HIP,rxn8751,True,True,True
+HIP,rxn8759,True,True,True
+HIP,rxn8760,True,True,True
+HIP,rxn8765,True,True,True
+HIP,rxn8802,True,False,True
+HIP,rxn8806,False,False,False
+HIP,rxn8818,True,True,True
+HIP,rxn8823,True,False,False
+HIP,rxn8851,True,False,False
+HIP,rxn8854,True,True,True
+HIP,rxn8866,True,False,False
+HIP,rxn8880,True,True,True
+HIP,rxn8902,True,True,True
+HIP,rxn8931,True,False,True
+HIP,rxn8936,True,True,True
+HIP,rxn8949,True,True,True
+HIP,rxn8960,True,True,True
+HIP,rxn8964,False,False,False
+HIP,rxn8973,True,False,False
+HIP,rxn8991,False,False,False
+HIP,rxn9000,False,False,False
+HIP,rxn9044,True,False,False
+HIP,rxn9058,False,False,False
+HIP,rxn9094,True,True,True
+HIP,rxn9185,False,False,False
+HIP,rxn9201,True,True,False
+HIP,rxn9228,True,True,True
+HIP,rxn9252,False,False,False
+HIP,rxn9262,True,True,True
+HIP,rxn9286,True,True,True
+HIP,rxn9298,True,True,True
+HIP,rxn9310,True,True,True
+HIP,rxn9322,True,True,True
+HIP,rxn9325,True,True,True
+HIP,rxn9338,True,True,True
+HIP,rxn9365,True,True,True
+HIP,rxn9375,True,True,True
+HIP,rxn9379,True,False,False
+HIP,rxn9422,False,False,False
+HIP,rxn9433,True,False,False
+HIP,rxn9439,True,True,True
+HIP,rxn9445,True,True,True
+HIP,rxn9446,True,True,True
+HIP,rxn9460,True,False,False
+HIP,rxn9465,True,True,True
+HIP,rxn9498,True,True,True
+HIP,rxn9513,True,False,True
+HIP,rxn9520,True,False,False
+HIP,rxn9526,True,True,True
+HIP,rxn9543,True,True,True
+HIP,rxn9547,True,False,False
+HIP,rxn9554,True,False,False
+HIP,rxn9555,True,True,True
+HIP,rxn9600,True,True,True
+HIP,rxn9605,True,True,True
+HIP,rxn9627,True,True,True
+HIP,rxn9658,True,True,True
+HIP,rxn9680,True,True,True
+HIP,rxn9683,True,True,True
+HIP,rxn9704,True,True,True
+HIP,rxn9705,True,True,False
+HIP,rxn9711,True,True,True
+HIP,rxn9715,True,True,True
+HIP,rxn9721,True,True,True
+HIP,rxn9734,True,True,True
+HIP,rxn9737,True,True,True
+HIP,rxn9789,True,True,True
+HIP,rxn9790,True,True,True
+HIP,rxn9799,True,True,False
+HIP,rxn9803,True,True,True
+HIP,rxn9828,True,True,True
+HIP,rxn9855,True,True,False
+HIP,rxn9863,True,False,False
+HIP,rxn9864,True,True,True
+HIP,rxn9883,True,False,False
+HIP,rxn9887,True,False,True
+HIP,rxn9907,True,True,False
+HIP,rxn9910,True,True,True
+HIP,rxn9928,True,True,False
+HIP,rxn9941,True,False,False
+HIP,rxn9952,True,True,True
+HIP,rxn9953,True,True,True
+HIP,rxn9963,True,False,True
+HIP,rxn9989,False,False,False
+HIP,rxn10019,True,False,False
+HIP,rxn10032,True,True,True
+HIP,rxn10038,True,True,True
+HIP,rxn10042,True,True,False
+HIP,rxn10054,True,True,True
+HIP,rxn10071,True,False,True
+EquiformerV2 AD,rxn9,True,True,True
+EquiformerV2 AD,rxn26,True,True,True
+EquiformerV2 AD,rxn31,True,True,True
+EquiformerV2 AD,rxn39,True,False,False
+EquiformerV2 AD,rxn53,True,True,True
+EquiformerV2 AD,rxn57,True,True,True
+EquiformerV2 AD,rxn59,True,True,True
+EquiformerV2 AD,rxn61,True,True,True
+EquiformerV2 AD,rxn64,True,False,False
+EquiformerV2 AD,rxn66,True,False,True
+EquiformerV2 AD,rxn72,True,True,True
+EquiformerV2 AD,rxn74,True,True,True
+EquiformerV2 AD,rxn78,True,True,True
+EquiformerV2 AD,rxn79,True,True,True
+EquiformerV2 AD,rxn102,True,True,True
+EquiformerV2 AD,rxn123,False,False,False
+EquiformerV2 AD,rxn124,True,True,True
+EquiformerV2 AD,rxn143,True,True,True
+EquiformerV2 AD,rxn144,True,False,False
+EquiformerV2 AD,rxn148,True,True,True
+EquiformerV2 AD,rxn160,True,True,True
+EquiformerV2 AD,rxn164,False,False,False
+EquiformerV2 AD,rxn165,True,False,False
+EquiformerV2 AD,rxn170,True,True,True
+EquiformerV2 AD,rxn196,False,False,False
+EquiformerV2 AD,rxn199,True,True,True
+EquiformerV2 AD,rxn207,False,False,False
+EquiformerV2 AD,rxn209,True,False,False
+EquiformerV2 AD,rxn220,True,True,True
+EquiformerV2 AD,rxn233,True,True,True
+EquiformerV2 AD,rxn235,True,True,True
+EquiformerV2 AD,rxn263,True,False,False
+EquiformerV2 AD,rxn282,True,True,True
+EquiformerV2 AD,rxn288,True,True,True
+EquiformerV2 AD,rxn293,True,False,False
+EquiformerV2 AD,rxn296,True,True,True
+EquiformerV2 AD,rxn298,True,False,False
+EquiformerV2 AD,rxn313,True,False,False
+EquiformerV2 AD,rxn320,False,False,False
+EquiformerV2 AD,rxn326,True,True,True
+EquiformerV2 AD,rxn333,True,False,True
+EquiformerV2 AD,rxn336,True,False,True
+EquiformerV2 AD,rxn346,True,True,True
+EquiformerV2 AD,rxn348,False,False,False
+EquiformerV2 AD,rxn356,True,True,True
+EquiformerV2 AD,rxn388,True,True,False
+EquiformerV2 AD,rxn397,True,True,True
+EquiformerV2 AD,rxn398,True,True,True
+EquiformerV2 AD,rxn403,True,True,True
+EquiformerV2 AD,rxn408,True,True,False
+EquiformerV2 AD,rxn411,True,True,True
+EquiformerV2 AD,rxn416,True,False,True
+EquiformerV2 AD,rxn417,True,True,True
+EquiformerV2 AD,rxn432,True,True,True
+EquiformerV2 AD,rxn436,True,True,True
+EquiformerV2 AD,rxn442,False,False,False
+EquiformerV2 AD,rxn447,True,True,True
+EquiformerV2 AD,rxn459,True,False,False
+EquiformerV2 AD,rxn464,True,True,True
+EquiformerV2 AD,rxn475,True,False,False
+EquiformerV2 AD,rxn479,True,False,False
+EquiformerV2 AD,rxn487,True,False,True
+EquiformerV2 AD,rxn511,True,False,False
+EquiformerV2 AD,rxn522,True,True,True
+EquiformerV2 AD,rxn526,True,True,True
+EquiformerV2 AD,rxn532,True,True,True
+EquiformerV2 AD,rxn541,True,False,False
+EquiformerV2 AD,rxn548,True,False,False
+EquiformerV2 AD,rxn575,True,True,True
+EquiformerV2 AD,rxn591,True,True,True
+EquiformerV2 AD,rxn593,False,False,False
+EquiformerV2 AD,rxn596,True,False,False
+EquiformerV2 AD,rxn600,True,True,True
+EquiformerV2 AD,rxn602,True,True,True
+EquiformerV2 AD,rxn604,True,True,True
+EquiformerV2 AD,rxn618,True,True,True
+EquiformerV2 AD,rxn662,True,True,True
+EquiformerV2 AD,rxn670,True,True,True
+EquiformerV2 AD,rxn677,True,True,True
+EquiformerV2 AD,rxn678,True,True,True
+EquiformerV2 AD,rxn697,True,True,True
+EquiformerV2 AD,rxn707,True,False,True
+EquiformerV2 AD,rxn720,False,False,False
+EquiformerV2 AD,rxn760,True,True,False
+EquiformerV2 AD,rxn780,True,True,True
+EquiformerV2 AD,rxn792,True,True,True
+EquiformerV2 AD,rxn793,True,True,False
+EquiformerV2 AD,rxn811,True,True,True
+EquiformerV2 AD,rxn843,True,True,True
+EquiformerV2 AD,rxn846,True,True,True
+EquiformerV2 AD,rxn867,True,False,True
+EquiformerV2 AD,rxn873,False,False,False
+EquiformerV2 AD,rxn874,True,False,False
+EquiformerV2 AD,rxn900,True,True,True
+EquiformerV2 AD,rxn914,True,True,True
+EquiformerV2 AD,rxn935,False,False,False
+EquiformerV2 AD,rxn942,True,False,True
+EquiformerV2 AD,rxn956,True,False,False
+EquiformerV2 AD,rxn957,True,True,True
+EquiformerV2 AD,rxn958,True,False,False
+EquiformerV2 AD,rxn966,False,False,False
+EquiformerV2 AD,rxn969,True,True,True
+EquiformerV2 AD,rxn981,False,False,False
+EquiformerV2 AD,rxn1024,True,True,True
+EquiformerV2 AD,rxn1041,True,True,True
+EquiformerV2 AD,rxn1047,True,False,False
+EquiformerV2 AD,rxn1048,False,False,False
+EquiformerV2 AD,rxn1050,True,True,True
+EquiformerV2 AD,rxn1058,True,True,True
+EquiformerV2 AD,rxn1076,True,True,True
+EquiformerV2 AD,rxn1077,True,True,True
+EquiformerV2 AD,rxn1079,True,True,True
+EquiformerV2 AD,rxn1081,True,True,True
+EquiformerV2 AD,rxn1086,True,True,True
+EquiformerV2 AD,rxn1148,False,False,False
+EquiformerV2 AD,rxn1175,False,False,False
+EquiformerV2 AD,rxn1185,True,False,False
+EquiformerV2 AD,rxn1204,True,True,True
+EquiformerV2 AD,rxn1208,True,True,True
+EquiformerV2 AD,rxn1214,True,True,True
+EquiformerV2 AD,rxn1216,True,True,True
+EquiformerV2 AD,rxn1218,True,True,True
+EquiformerV2 AD,rxn1220,True,True,True
+EquiformerV2 AD,rxn1234,True,False,False
+EquiformerV2 AD,rxn1238,True,True,True
+EquiformerV2 AD,rxn1239,True,True,True
+EquiformerV2 AD,rxn1249,True,False,False
+EquiformerV2 AD,rxn1251,True,False,False
+EquiformerV2 AD,rxn1279,True,True,True
+EquiformerV2 AD,rxn1286,True,True,True
+EquiformerV2 AD,rxn1299,True,True,True
+EquiformerV2 AD,rxn1301,True,False,True
+EquiformerV2 AD,rxn1311,True,False,False
+EquiformerV2 AD,rxn1312,True,True,True
+EquiformerV2 AD,rxn1318,True,True,True
+EquiformerV2 AD,rxn1319,True,True,True
+EquiformerV2 AD,rxn1326,False,False,False
+EquiformerV2 AD,rxn1327,True,False,False
+EquiformerV2 AD,rxn1328,True,False,False
+EquiformerV2 AD,rxn1337,False,False,False
+EquiformerV2 AD,rxn1341,True,True,True
+EquiformerV2 AD,rxn1351,True,True,True
+EquiformerV2 AD,rxn1354,True,False,False
+EquiformerV2 AD,rxn1366,True,False,False
+EquiformerV2 AD,rxn1376,True,False,False
+EquiformerV2 AD,rxn1379,True,True,False
+EquiformerV2 AD,rxn1387,False,False,False
+EquiformerV2 AD,rxn1398,True,False,False
+EquiformerV2 AD,rxn1417,True,False,False
+EquiformerV2 AD,rxn1451,True,True,True
+EquiformerV2 AD,rxn1461,True,True,True
+EquiformerV2 AD,rxn1466,True,True,True
+EquiformerV2 AD,rxn1476,True,True,True
+EquiformerV2 AD,rxn1488,True,True,True
+EquiformerV2 AD,rxn1493,True,True,True
+EquiformerV2 AD,rxn1498,True,True,True
+EquiformerV2 AD,rxn1500,True,False,False
+EquiformerV2 AD,rxn1509,True,True,True
+EquiformerV2 AD,rxn1518,False,False,False
+EquiformerV2 AD,rxn1523,True,True,True
+EquiformerV2 AD,rxn1590,True,True,True
+EquiformerV2 AD,rxn1593,True,True,True
+EquiformerV2 AD,rxn1595,True,False,False
+EquiformerV2 AD,rxn1596,True,True,True
+EquiformerV2 AD,rxn1625,True,False,False
+EquiformerV2 AD,rxn1639,True,True,True
+EquiformerV2 AD,rxn1648,True,True,True
+EquiformerV2 AD,rxn1650,True,True,True
+EquiformerV2 AD,rxn1658,True,True,True
+EquiformerV2 AD,rxn1661,True,False,False
+EquiformerV2 AD,rxn1666,False,False,False
+EquiformerV2 AD,rxn1676,True,False,True
+EquiformerV2 AD,rxn1713,True,True,True
+EquiformerV2 AD,rxn1716,True,False,False
+EquiformerV2 AD,rxn1721,False,False,False
+EquiformerV2 AD,rxn1746,True,True,True
+EquiformerV2 AD,rxn1749,True,True,True
+EquiformerV2 AD,rxn1758,True,True,False
+EquiformerV2 AD,rxn1770,True,True,True
+EquiformerV2 AD,rxn1772,True,True,True
+EquiformerV2 AD,rxn1783,True,True,True
+EquiformerV2 AD,rxn1795,True,True,True
+EquiformerV2 AD,rxn1800,True,True,True
+EquiformerV2 AD,rxn1810,True,True,True
+EquiformerV2 AD,rxn1811,False,False,False
+EquiformerV2 AD,rxn1813,True,True,True
+EquiformerV2 AD,rxn1816,True,True,True
+EquiformerV2 AD,rxn1821,True,False,True
+EquiformerV2 AD,rxn1827,True,False,False
+EquiformerV2 AD,rxn1836,True,True,True
+EquiformerV2 AD,rxn1846,True,True,False
+EquiformerV2 AD,rxn1847,True,True,True
+EquiformerV2 AD,rxn1866,True,False,False
+EquiformerV2 AD,rxn1875,True,True,True
+EquiformerV2 AD,rxn1879,True,False,True
+EquiformerV2 AD,rxn1880,True,True,True
+EquiformerV2 AD,rxn1897,False,False,False
+EquiformerV2 AD,rxn1915,True,True,True
+EquiformerV2 AD,rxn1922,True,True,True
+EquiformerV2 AD,rxn1929,True,False,True
+EquiformerV2 AD,rxn1946,True,True,True
+EquiformerV2 AD,rxn1961,True,False,False
+EquiformerV2 AD,rxn1976,True,True,True
+EquiformerV2 AD,rxn1983,True,True,True
+EquiformerV2 AD,rxn1984,True,True,True
+EquiformerV2 AD,rxn1991,True,True,True
+EquiformerV2 AD,rxn2009,True,False,False
+EquiformerV2 AD,rxn2012,True,False,False
+EquiformerV2 AD,rxn2024,True,True,True
+EquiformerV2 AD,rxn2026,False,False,False
+EquiformerV2 AD,rxn2032,True,True,True
+EquiformerV2 AD,rxn2034,True,True,True
+EquiformerV2 AD,rxn2065,True,True,True
+EquiformerV2 AD,rxn2070,True,False,False
+EquiformerV2 AD,rxn2073,True,True,True
+EquiformerV2 AD,rxn2088,True,True,True
+EquiformerV2 AD,rxn2097,False,False,False
+EquiformerV2 AD,rxn2099,False,False,False
+EquiformerV2 AD,rxn2104,True,True,True
+EquiformerV2 AD,rxn2131,True,True,True
+EquiformerV2 AD,rxn2145,True,False,False
+EquiformerV2 AD,rxn2149,True,True,True
+EquiformerV2 AD,rxn2176,True,True,True
+EquiformerV2 AD,rxn2179,True,True,True
+EquiformerV2 AD,rxn2195,True,True,True
+EquiformerV2 AD,rxn2212,True,True,True
+EquiformerV2 AD,rxn2226,True,True,True
+EquiformerV2 AD,rxn2271,True,True,True
+EquiformerV2 AD,rxn2279,True,True,True
+EquiformerV2 AD,rxn2289,True,True,True
+EquiformerV2 AD,rxn2306,False,False,False
+EquiformerV2 AD,rxn2317,True,False,True
+EquiformerV2 AD,rxn2318,True,False,False
+EquiformerV2 AD,rxn2337,True,True,True
+EquiformerV2 AD,rxn2349,True,True,False
+EquiformerV2 AD,rxn2356,True,True,True
+EquiformerV2 AD,rxn2357,True,True,True
+EquiformerV2 AD,rxn2380,True,False,False
+EquiformerV2 AD,rxn2382,True,False,True
+EquiformerV2 AD,rxn2395,True,True,True
+EquiformerV2 AD,rxn2407,True,True,True
+EquiformerV2 AD,rxn2410,True,True,True
+EquiformerV2 AD,rxn2411,True,False,False
+EquiformerV2 AD,rxn2417,True,True,True
+EquiformerV2 AD,rxn2421,True,True,True
+EquiformerV2 AD,rxn2422,True,True,True
+EquiformerV2 AD,rxn2440,True,True,False
+EquiformerV2 AD,rxn2445,True,True,True
+EquiformerV2 AD,rxn2446,True,True,True
+EquiformerV2 AD,rxn2461,True,True,False
+EquiformerV2 AD,rxn2478,True,False,True
+EquiformerV2 AD,rxn2490,True,False,False
+EquiformerV2 AD,rxn2500,True,True,True
+EquiformerV2 AD,rxn2501,True,True,True
+EquiformerV2 AD,rxn2510,True,True,True
+EquiformerV2 AD,rxn2564,True,True,True
+EquiformerV2 AD,rxn2567,True,True,True
+EquiformerV2 AD,rxn2574,True,True,True
+EquiformerV2 AD,rxn2587,False,False,False
+EquiformerV2 AD,rxn2591,True,True,True
+EquiformerV2 AD,rxn2608,True,True,True
+EquiformerV2 AD,rxn2646,True,True,True
+EquiformerV2 AD,rxn2651,True,True,True
+EquiformerV2 AD,rxn2656,True,True,True
+EquiformerV2 AD,rxn2669,True,True,True
+EquiformerV2 AD,rxn2672,True,True,True
+EquiformerV2 AD,rxn2673,True,True,True
+EquiformerV2 AD,rxn2675,True,True,False
+EquiformerV2 AD,rxn2681,True,False,False
+EquiformerV2 AD,rxn2687,True,False,True
+EquiformerV2 AD,rxn2692,True,False,True
+EquiformerV2 AD,rxn2706,True,True,True
+EquiformerV2 AD,rxn2722,True,True,True
+EquiformerV2 AD,rxn2730,True,True,True
+EquiformerV2 AD,rxn2738,True,True,True
+EquiformerV2 AD,rxn2748,True,False,False
+EquiformerV2 AD,rxn2756,True,True,True
+EquiformerV2 AD,rxn2757,True,True,True
+EquiformerV2 AD,rxn2779,True,True,True
+EquiformerV2 AD,rxn2788,True,True,True
+EquiformerV2 AD,rxn2817,False,False,False
+EquiformerV2 AD,rxn2823,False,False,False
+EquiformerV2 AD,rxn2834,True,True,True
+EquiformerV2 AD,rxn2839,False,False,False
+EquiformerV2 AD,rxn2847,False,False,False
+EquiformerV2 AD,rxn2858,True,True,True
+EquiformerV2 AD,rxn2877,True,True,True
+EquiformerV2 AD,rxn2880,True,False,False
+EquiformerV2 AD,rxn2881,True,True,True
+EquiformerV2 AD,rxn2885,True,False,False
+EquiformerV2 AD,rxn2897,True,True,True
+EquiformerV2 AD,rxn2902,True,True,True
+EquiformerV2 AD,rxn2909,True,True,True
+EquiformerV2 AD,rxn2912,False,False,False
+EquiformerV2 AD,rxn2917,True,False,True
+EquiformerV2 AD,rxn2920,True,True,True
+EquiformerV2 AD,rxn2931,True,False,False
+EquiformerV2 AD,rxn2932,True,False,False
+EquiformerV2 AD,rxn2943,False,False,False
+EquiformerV2 AD,rxn2950,True,True,True
+EquiformerV2 AD,rxn2957,True,True,True
+EquiformerV2 AD,rxn2961,True,True,True
+EquiformerV2 AD,rxn2972,True,False,True
+EquiformerV2 AD,rxn2973,True,True,False
+EquiformerV2 AD,rxn2978,True,True,True
+EquiformerV2 AD,rxn2983,True,True,True
+EquiformerV2 AD,rxn2986,True,True,True
+EquiformerV2 AD,rxn3010,True,False,False
+EquiformerV2 AD,rxn3015,True,False,True
+EquiformerV2 AD,rxn3053,True,True,True
+EquiformerV2 AD,rxn3068,True,True,True
+EquiformerV2 AD,rxn3075,True,False,True
+EquiformerV2 AD,rxn3086,True,True,True
+EquiformerV2 AD,rxn3092,True,True,True
+EquiformerV2 AD,rxn3100,True,True,True
+EquiformerV2 AD,rxn3108,True,False,False
+EquiformerV2 AD,rxn3111,True,True,True
+EquiformerV2 AD,rxn3122,True,False,True
+EquiformerV2 AD,rxn3127,False,False,False
+EquiformerV2 AD,rxn3133,True,False,True
+EquiformerV2 AD,rxn3144,True,True,True
+EquiformerV2 AD,rxn3154,True,True,True
+EquiformerV2 AD,rxn3162,True,True,True
+EquiformerV2 AD,rxn3168,True,True,True
+EquiformerV2 AD,rxn3173,True,True,True
+EquiformerV2 AD,rxn3174,True,True,True
+EquiformerV2 AD,rxn3177,True,True,False
+EquiformerV2 AD,rxn3192,False,False,False
+EquiformerV2 AD,rxn3194,True,False,True
+EquiformerV2 AD,rxn3196,True,False,False
+EquiformerV2 AD,rxn3202,True,False,False
+EquiformerV2 AD,rxn3206,True,False,False
+EquiformerV2 AD,rxn3214,True,True,True
+EquiformerV2 AD,rxn3217,True,True,True
+EquiformerV2 AD,rxn3221,True,True,True
+EquiformerV2 AD,rxn3231,True,False,False
+EquiformerV2 AD,rxn3233,True,True,True
+EquiformerV2 AD,rxn3235,True,True,True
+EquiformerV2 AD,rxn3244,True,True,False
+EquiformerV2 AD,rxn3246,True,True,True
+EquiformerV2 AD,rxn3256,True,True,True
+EquiformerV2 AD,rxn3264,True,False,True
+EquiformerV2 AD,rxn3266,True,False,False
+EquiformerV2 AD,rxn3277,True,False,True
+EquiformerV2 AD,rxn3295,False,False,False
+EquiformerV2 AD,rxn3305,False,False,False
+EquiformerV2 AD,rxn3309,True,True,True
+EquiformerV2 AD,rxn3323,False,False,False
+EquiformerV2 AD,rxn3329,True,False,False
+EquiformerV2 AD,rxn3335,False,False,False
+EquiformerV2 AD,rxn3338,True,True,True
+EquiformerV2 AD,rxn3339,True,False,False
+EquiformerV2 AD,rxn3343,True,True,True
+EquiformerV2 AD,rxn3345,True,True,True
+EquiformerV2 AD,rxn3387,True,False,False
+EquiformerV2 AD,rxn3398,True,True,True
+EquiformerV2 AD,rxn3422,True,False,False
+EquiformerV2 AD,rxn3429,True,True,True
+EquiformerV2 AD,rxn3464,True,True,True
+EquiformerV2 AD,rxn3466,True,True,True
+EquiformerV2 AD,rxn3485,True,True,True
+EquiformerV2 AD,rxn3514,False,False,False
+EquiformerV2 AD,rxn3528,True,True,True
+EquiformerV2 AD,rxn3536,True,False,False
+EquiformerV2 AD,rxn3558,False,False,False
+EquiformerV2 AD,rxn3575,True,True,True
+EquiformerV2 AD,rxn3576,False,False,False
+EquiformerV2 AD,rxn3596,True,False,False
+EquiformerV2 AD,rxn3600,True,False,True
+EquiformerV2 AD,rxn3607,True,True,True
+EquiformerV2 AD,rxn3618,True,True,True
+EquiformerV2 AD,rxn3631,True,True,True
+EquiformerV2 AD,rxn3639,True,True,True
+EquiformerV2 AD,rxn3642,False,False,False
+EquiformerV2 AD,rxn3645,True,False,False
+EquiformerV2 AD,rxn3654,True,False,True
+EquiformerV2 AD,rxn3655,True,True,True
+EquiformerV2 AD,rxn3657,True,True,True
+EquiformerV2 AD,rxn3674,True,True,True
+EquiformerV2 AD,rxn3675,True,True,True
+EquiformerV2 AD,rxn3688,True,True,True
+EquiformerV2 AD,rxn3692,True,False,False
+EquiformerV2 AD,rxn3702,False,False,False
+EquiformerV2 AD,rxn3705,True,False,False
+EquiformerV2 AD,rxn3710,True,True,True
+EquiformerV2 AD,rxn3726,True,False,False
+EquiformerV2 AD,rxn3729,True,True,True
+EquiformerV2 AD,rxn3742,False,False,False
+EquiformerV2 AD,rxn3748,True,True,True
+EquiformerV2 AD,rxn3764,True,True,True
+EquiformerV2 AD,rxn3773,True,False,False
+EquiformerV2 AD,rxn3774,True,True,False
+EquiformerV2 AD,rxn3790,True,True,False
+EquiformerV2 AD,rxn3801,True,True,True
+EquiformerV2 AD,rxn3802,True,True,False
+EquiformerV2 AD,rxn3811,True,True,False
+EquiformerV2 AD,rxn3813,True,True,True
+EquiformerV2 AD,rxn3818,True,True,True
+EquiformerV2 AD,rxn3832,True,True,True
+EquiformerV2 AD,rxn3835,True,True,True
+EquiformerV2 AD,rxn3837,True,True,True
+EquiformerV2 AD,rxn3843,True,False,True
+EquiformerV2 AD,rxn3845,True,False,False
+EquiformerV2 AD,rxn3847,True,False,True
+EquiformerV2 AD,rxn3854,True,True,True
+EquiformerV2 AD,rxn3881,True,False,False
+EquiformerV2 AD,rxn3898,True,True,False
+EquiformerV2 AD,rxn3908,True,True,False
+EquiformerV2 AD,rxn3914,True,True,True
+EquiformerV2 AD,rxn3920,True,False,False
+EquiformerV2 AD,rxn3922,True,True,True
+EquiformerV2 AD,rxn3934,True,True,True
+EquiformerV2 AD,rxn3943,True,False,False
+EquiformerV2 AD,rxn3952,True,False,False
+EquiformerV2 AD,rxn3984,True,False,False
+EquiformerV2 AD,rxn3994,True,True,True
+EquiformerV2 AD,rxn4011,True,True,True
+EquiformerV2 AD,rxn4022,False,False,False
+EquiformerV2 AD,rxn4023,True,True,True
+EquiformerV2 AD,rxn4043,True,True,True
+EquiformerV2 AD,rxn4059,True,False,False
+EquiformerV2 AD,rxn4064,True,True,True
+EquiformerV2 AD,rxn4066,True,True,True
+EquiformerV2 AD,rxn4082,True,True,True
+EquiformerV2 AD,rxn4086,True,True,True
+EquiformerV2 AD,rxn4087,True,True,True
+EquiformerV2 AD,rxn4091,True,True,True
+EquiformerV2 AD,rxn4093,True,False,False
+EquiformerV2 AD,rxn4101,False,False,False
+EquiformerV2 AD,rxn4103,True,False,False
+EquiformerV2 AD,rxn4107,False,False,False
+EquiformerV2 AD,rxn4111,True,True,True
+EquiformerV2 AD,rxn4119,True,True,True
+EquiformerV2 AD,rxn4146,False,False,False
+EquiformerV2 AD,rxn4202,True,True,True
+EquiformerV2 AD,rxn4205,True,True,True
+EquiformerV2 AD,rxn4218,True,True,True
+EquiformerV2 AD,rxn4226,False,False,False
+EquiformerV2 AD,rxn4228,True,False,False
+EquiformerV2 AD,rxn4260,True,True,True
+EquiformerV2 AD,rxn4272,False,False,False
+EquiformerV2 AD,rxn4298,True,True,False
+EquiformerV2 AD,rxn4310,False,False,False
+EquiformerV2 AD,rxn4314,True,False,True
+EquiformerV2 AD,rxn4317,True,True,True
+EquiformerV2 AD,rxn4321,True,False,False
+EquiformerV2 AD,rxn4323,True,True,True
+EquiformerV2 AD,rxn4324,True,True,True
+EquiformerV2 AD,rxn4326,True,True,True
+EquiformerV2 AD,rxn4330,False,False,False
+EquiformerV2 AD,rxn4345,True,True,True
+EquiformerV2 AD,rxn4384,True,True,True
+EquiformerV2 AD,rxn4389,True,True,True
+EquiformerV2 AD,rxn4391,True,True,True
+EquiformerV2 AD,rxn4392,True,True,True
+EquiformerV2 AD,rxn4414,True,True,True
+EquiformerV2 AD,rxn4419,True,True,True
+EquiformerV2 AD,rxn4424,True,True,True
+EquiformerV2 AD,rxn4425,True,True,True
+EquiformerV2 AD,rxn4428,True,True,True
+EquiformerV2 AD,rxn4440,True,False,False
+EquiformerV2 AD,rxn4461,False,False,False
+EquiformerV2 AD,rxn4467,True,True,True
+EquiformerV2 AD,rxn4468,True,True,True
+EquiformerV2 AD,rxn4477,True,True,True
+EquiformerV2 AD,rxn4484,True,False,False
+EquiformerV2 AD,rxn4490,True,True,True
+EquiformerV2 AD,rxn4496,True,True,True
+EquiformerV2 AD,rxn4497,True,False,False
+EquiformerV2 AD,rxn4507,True,True,True
+EquiformerV2 AD,rxn4528,True,False,False
+EquiformerV2 AD,rxn4530,True,False,False
+EquiformerV2 AD,rxn4535,True,False,False
+EquiformerV2 AD,rxn4544,True,True,True
+EquiformerV2 AD,rxn4555,True,True,False
+EquiformerV2 AD,rxn4567,True,True,True
+EquiformerV2 AD,rxn4569,True,True,True
+EquiformerV2 AD,rxn4574,True,True,True
+EquiformerV2 AD,rxn4583,True,True,True
+EquiformerV2 AD,rxn4599,True,True,True
+EquiformerV2 AD,rxn4608,False,False,False
+EquiformerV2 AD,rxn4618,True,True,True
+EquiformerV2 AD,rxn4620,True,True,True
+EquiformerV2 AD,rxn4627,True,True,True
+EquiformerV2 AD,rxn4631,True,True,True
+EquiformerV2 AD,rxn4654,True,True,True
+EquiformerV2 AD,rxn4683,True,True,False
+EquiformerV2 AD,rxn4685,True,True,False
+EquiformerV2 AD,rxn4688,True,True,True
+EquiformerV2 AD,rxn4694,True,True,True
+EquiformerV2 AD,rxn4698,True,False,False
+EquiformerV2 AD,rxn4726,True,True,True
+EquiformerV2 AD,rxn4729,True,False,False
+EquiformerV2 AD,rxn4736,True,True,True
+EquiformerV2 AD,rxn4739,True,True,True
+EquiformerV2 AD,rxn4742,True,True,True
+EquiformerV2 AD,rxn4767,True,True,True
+EquiformerV2 AD,rxn4771,False,False,False
+EquiformerV2 AD,rxn4772,True,True,True
+EquiformerV2 AD,rxn4776,True,True,True
+EquiformerV2 AD,rxn4787,True,True,True
+EquiformerV2 AD,rxn4793,True,True,True
+EquiformerV2 AD,rxn4808,True,True,True
+EquiformerV2 AD,rxn4821,True,True,True
+EquiformerV2 AD,rxn4825,True,True,True
+EquiformerV2 AD,rxn4838,True,True,False
+EquiformerV2 AD,rxn4850,True,True,True
+EquiformerV2 AD,rxn4857,True,True,True
+EquiformerV2 AD,rxn4860,False,False,False
+EquiformerV2 AD,rxn4864,True,True,True
+EquiformerV2 AD,rxn4869,True,True,False
+EquiformerV2 AD,rxn4879,True,True,True
+EquiformerV2 AD,rxn4885,True,True,True
+EquiformerV2 AD,rxn4887,True,True,True
+EquiformerV2 AD,rxn4890,True,True,True
+EquiformerV2 AD,rxn4900,True,True,True
+EquiformerV2 AD,rxn4901,True,True,True
+EquiformerV2 AD,rxn4905,True,True,True
+EquiformerV2 AD,rxn4917,True,True,True
+EquiformerV2 AD,rxn4918,True,False,True
+EquiformerV2 AD,rxn4922,True,True,True
+EquiformerV2 AD,rxn4933,True,True,True
+EquiformerV2 AD,rxn4939,True,True,True
+EquiformerV2 AD,rxn4941,True,True,True
+EquiformerV2 AD,rxn4956,True,False,True
+EquiformerV2 AD,rxn4961,True,True,True
+EquiformerV2 AD,rxn4968,True,True,True
+EquiformerV2 AD,rxn4970,False,False,False
+EquiformerV2 AD,rxn4971,True,True,False
+EquiformerV2 AD,rxn4976,False,False,False
+EquiformerV2 AD,rxn4988,False,False,False
+EquiformerV2 AD,rxn5002,True,True,True
+EquiformerV2 AD,rxn5014,True,True,True
+EquiformerV2 AD,rxn5018,True,True,True
+EquiformerV2 AD,rxn5035,True,True,True
+EquiformerV2 AD,rxn5038,True,True,True
+EquiformerV2 AD,rxn5043,True,True,True
+EquiformerV2 AD,rxn5061,True,True,True
+EquiformerV2 AD,rxn5081,True,True,True
+EquiformerV2 AD,rxn5083,True,True,True
+EquiformerV2 AD,rxn5096,True,True,True
+EquiformerV2 AD,rxn5097,True,True,True
+EquiformerV2 AD,rxn5121,True,True,True
+EquiformerV2 AD,rxn5150,False,False,False
+EquiformerV2 AD,rxn5156,True,True,True
+EquiformerV2 AD,rxn5158,True,True,True
+EquiformerV2 AD,rxn5169,True,True,True
+EquiformerV2 AD,rxn5170,True,True,True
+EquiformerV2 AD,rxn5211,True,False,False
+EquiformerV2 AD,rxn5221,True,True,True
+EquiformerV2 AD,rxn5229,True,True,False
+EquiformerV2 AD,rxn5234,True,True,False
+EquiformerV2 AD,rxn5242,True,True,True
+EquiformerV2 AD,rxn5255,True,True,False
+EquiformerV2 AD,rxn5286,True,False,False
+EquiformerV2 AD,rxn5294,True,True,True
+EquiformerV2 AD,rxn5309,True,False,True
+EquiformerV2 AD,rxn5314,True,True,True
+EquiformerV2 AD,rxn5322,True,True,True
+EquiformerV2 AD,rxn5327,True,True,True
+EquiformerV2 AD,rxn5367,True,False,False
+EquiformerV2 AD,rxn5377,True,True,False
+EquiformerV2 AD,rxn5393,True,True,True
+EquiformerV2 AD,rxn5411,True,True,True
+EquiformerV2 AD,rxn5426,True,True,True
+EquiformerV2 AD,rxn5439,True,False,False
+EquiformerV2 AD,rxn5450,True,True,True
+EquiformerV2 AD,rxn5456,True,True,True
+EquiformerV2 AD,rxn5483,True,True,True
+EquiformerV2 AD,rxn5484,True,True,True
+EquiformerV2 AD,rxn5487,False,False,False
+EquiformerV2 AD,rxn5503,True,False,False
+EquiformerV2 AD,rxn5505,True,False,False
+EquiformerV2 AD,rxn5515,True,True,True
+EquiformerV2 AD,rxn5527,True,False,True
+EquiformerV2 AD,rxn5530,True,True,True
+EquiformerV2 AD,rxn5531,True,True,True
+EquiformerV2 AD,rxn5537,True,True,False
+EquiformerV2 AD,rxn5556,True,True,True
+EquiformerV2 AD,rxn5577,True,True,True
+EquiformerV2 AD,rxn5581,True,True,True
+EquiformerV2 AD,rxn5584,True,True,True
+EquiformerV2 AD,rxn5614,True,True,True
+EquiformerV2 AD,rxn5615,True,True,True
+EquiformerV2 AD,rxn5620,True,True,False
+EquiformerV2 AD,rxn5628,True,True,True
+EquiformerV2 AD,rxn5630,True,True,True
+EquiformerV2 AD,rxn5640,True,True,True
+EquiformerV2 AD,rxn5641,True,True,False
+EquiformerV2 AD,rxn5666,True,False,True
+EquiformerV2 AD,rxn5693,False,False,False
+EquiformerV2 AD,rxn5703,True,False,True
+EquiformerV2 AD,rxn5713,True,False,False
+EquiformerV2 AD,rxn5732,True,True,True
+EquiformerV2 AD,rxn5733,True,True,True
+EquiformerV2 AD,rxn5745,True,True,True
+EquiformerV2 AD,rxn5747,True,True,True
+EquiformerV2 AD,rxn5752,True,True,True
+EquiformerV2 AD,rxn5759,True,True,True
+EquiformerV2 AD,rxn5760,True,True,True
+EquiformerV2 AD,rxn5775,True,True,True
+EquiformerV2 AD,rxn5784,True,True,True
+EquiformerV2 AD,rxn5803,True,False,True
+EquiformerV2 AD,rxn5808,True,True,True
+EquiformerV2 AD,rxn5842,True,False,False
+EquiformerV2 AD,rxn5849,True,True,True
+EquiformerV2 AD,rxn5896,True,False,True
+EquiformerV2 AD,rxn5912,True,True,True
+EquiformerV2 AD,rxn5942,True,True,True
+EquiformerV2 AD,rxn5962,False,False,False
+EquiformerV2 AD,rxn5990,True,False,False
+EquiformerV2 AD,rxn5995,True,True,True
+EquiformerV2 AD,rxn5999,True,True,True
+EquiformerV2 AD,rxn6007,False,False,False
+EquiformerV2 AD,rxn6011,True,False,True
+EquiformerV2 AD,rxn6025,True,True,True
+EquiformerV2 AD,rxn6036,False,False,False
+EquiformerV2 AD,rxn6046,True,False,True
+EquiformerV2 AD,rxn6051,True,False,True
+EquiformerV2 AD,rxn6057,True,False,False
+EquiformerV2 AD,rxn6066,True,False,False
+EquiformerV2 AD,rxn6080,True,True,True
+EquiformerV2 AD,rxn6094,True,False,False
+EquiformerV2 AD,rxn6113,True,True,True
+EquiformerV2 AD,rxn6115,True,True,True
+EquiformerV2 AD,rxn6155,True,True,True
+EquiformerV2 AD,rxn6156,True,True,True
+EquiformerV2 AD,rxn6170,True,True,True
+EquiformerV2 AD,rxn6172,True,False,False
+EquiformerV2 AD,rxn6194,False,False,False
+EquiformerV2 AD,rxn6195,True,False,False
+EquiformerV2 AD,rxn6198,True,False,False
+EquiformerV2 AD,rxn6215,True,True,True
+EquiformerV2 AD,rxn6216,True,True,True
+EquiformerV2 AD,rxn6227,True,True,True
+EquiformerV2 AD,rxn6246,True,False,False
+EquiformerV2 AD,rxn6253,True,True,True
+EquiformerV2 AD,rxn6272,True,True,True
+EquiformerV2 AD,rxn6281,True,True,True
+EquiformerV2 AD,rxn6298,True,False,True
+EquiformerV2 AD,rxn6317,True,True,True
+EquiformerV2 AD,rxn6318,True,True,True
+EquiformerV2 AD,rxn6330,True,True,True
+EquiformerV2 AD,rxn6333,True,True,True
+EquiformerV2 AD,rxn6344,True,True,True
+EquiformerV2 AD,rxn6349,True,True,True
+EquiformerV2 AD,rxn6357,False,False,False
+EquiformerV2 AD,rxn6369,True,True,True
+EquiformerV2 AD,rxn6401,True,False,True
+EquiformerV2 AD,rxn6407,False,False,False
+EquiformerV2 AD,rxn6439,True,True,True
+EquiformerV2 AD,rxn6441,True,True,True
+EquiformerV2 AD,rxn6444,False,False,False
+EquiformerV2 AD,rxn6453,True,True,True
+EquiformerV2 AD,rxn6462,False,False,False
+EquiformerV2 AD,rxn6511,True,False,False
+EquiformerV2 AD,rxn6514,True,False,False
+EquiformerV2 AD,rxn6546,False,False,False
+EquiformerV2 AD,rxn6550,True,False,True
+EquiformerV2 AD,rxn6553,False,False,False
+EquiformerV2 AD,rxn6578,True,False,True
+EquiformerV2 AD,rxn6584,True,True,True
+EquiformerV2 AD,rxn6590,True,False,True
+EquiformerV2 AD,rxn6592,True,False,True
+EquiformerV2 AD,rxn6601,True,True,True
+EquiformerV2 AD,rxn6610,True,True,True
+EquiformerV2 AD,rxn6628,True,True,True
+EquiformerV2 AD,rxn6629,True,True,False
+EquiformerV2 AD,rxn6639,True,False,True
+EquiformerV2 AD,rxn6644,True,True,True
+EquiformerV2 AD,rxn6660,True,True,True
+EquiformerV2 AD,rxn6665,True,True,True
+EquiformerV2 AD,rxn6684,True,True,False
+EquiformerV2 AD,rxn6708,True,True,True
+EquiformerV2 AD,rxn6710,True,True,True
+EquiformerV2 AD,rxn6712,True,True,True
+EquiformerV2 AD,rxn6714,True,True,True
+EquiformerV2 AD,rxn6722,True,True,True
+EquiformerV2 AD,rxn6731,True,True,True
+EquiformerV2 AD,rxn6748,True,False,True
+EquiformerV2 AD,rxn6751,True,True,True
+EquiformerV2 AD,rxn6758,True,True,True
+EquiformerV2 AD,rxn6767,True,True,True
+EquiformerV2 AD,rxn6772,True,False,False
+EquiformerV2 AD,rxn6777,True,False,False
+EquiformerV2 AD,rxn6798,True,True,True
+EquiformerV2 AD,rxn6802,True,True,True
+EquiformerV2 AD,rxn6805,True,True,True
+EquiformerV2 AD,rxn6823,True,True,False
+EquiformerV2 AD,rxn6838,True,False,True
+EquiformerV2 AD,rxn6857,True,True,True
+EquiformerV2 AD,rxn6863,True,True,True
+EquiformerV2 AD,rxn6880,True,True,False
+EquiformerV2 AD,rxn6890,True,True,True
+EquiformerV2 AD,rxn6893,True,True,True
+EquiformerV2 AD,rxn6895,True,False,True
+EquiformerV2 AD,rxn6930,True,True,True
+EquiformerV2 AD,rxn6949,True,True,True
+EquiformerV2 AD,rxn6955,True,False,False
+EquiformerV2 AD,rxn6961,True,True,True
+EquiformerV2 AD,rxn6983,True,True,True
+EquiformerV2 AD,rxn6990,True,True,True
+EquiformerV2 AD,rxn7014,True,False,False
+EquiformerV2 AD,rxn7016,True,True,True
+EquiformerV2 AD,rxn7018,True,False,True
+EquiformerV2 AD,rxn7030,True,True,True
+EquiformerV2 AD,rxn7036,False,False,False
+EquiformerV2 AD,rxn7041,True,True,True
+EquiformerV2 AD,rxn7048,True,True,True
+EquiformerV2 AD,rxn7058,True,False,False
+EquiformerV2 AD,rxn7070,True,False,False
+EquiformerV2 AD,rxn7071,True,False,False
+EquiformerV2 AD,rxn7084,True,True,True
+EquiformerV2 AD,rxn7088,True,True,True
+EquiformerV2 AD,rxn7093,True,True,True
+EquiformerV2 AD,rxn7108,True,True,False
+EquiformerV2 AD,rxn7110,True,True,True
+EquiformerV2 AD,rxn7130,True,True,True
+EquiformerV2 AD,rxn7136,True,True,True
+EquiformerV2 AD,rxn7145,True,True,True
+EquiformerV2 AD,rxn7151,True,False,False
+EquiformerV2 AD,rxn7158,True,False,False
+EquiformerV2 AD,rxn7184,True,True,True
+EquiformerV2 AD,rxn7185,True,True,True
+EquiformerV2 AD,rxn7193,True,True,True
+EquiformerV2 AD,rxn7210,True,True,True
+EquiformerV2 AD,rxn7222,True,True,True
+EquiformerV2 AD,rxn7241,True,True,True
+EquiformerV2 AD,rxn7298,True,True,True
+EquiformerV2 AD,rxn7303,True,True,True
+EquiformerV2 AD,rxn7309,True,False,False
+EquiformerV2 AD,rxn7317,True,True,True
+EquiformerV2 AD,rxn7323,True,True,True
+EquiformerV2 AD,rxn7344,True,False,False
+EquiformerV2 AD,rxn7357,True,False,False
+EquiformerV2 AD,rxn7361,True,False,False
+EquiformerV2 AD,rxn7364,True,False,False
+EquiformerV2 AD,rxn7374,True,True,True
+EquiformerV2 AD,rxn7378,True,False,True
+EquiformerV2 AD,rxn7398,True,True,False
+EquiformerV2 AD,rxn7424,True,True,True
+EquiformerV2 AD,rxn7427,True,True,True
+EquiformerV2 AD,rxn7428,True,True,True
+EquiformerV2 AD,rxn7430,True,True,True
+EquiformerV2 AD,rxn7436,True,True,True
+EquiformerV2 AD,rxn7492,True,True,True
+EquiformerV2 AD,rxn7493,True,True,True
+EquiformerV2 AD,rxn7511,True,False,False
+EquiformerV2 AD,rxn7521,True,True,True
+EquiformerV2 AD,rxn7524,False,False,False
+EquiformerV2 AD,rxn7529,True,True,True
+EquiformerV2 AD,rxn7533,True,True,True
+EquiformerV2 AD,rxn7535,True,False,False
+EquiformerV2 AD,rxn7539,True,False,False
+EquiformerV2 AD,rxn7544,True,True,True
+EquiformerV2 AD,rxn7549,True,True,True
+EquiformerV2 AD,rxn7560,False,False,False
+EquiformerV2 AD,rxn7566,True,False,False
+EquiformerV2 AD,rxn7569,True,True,True
+EquiformerV2 AD,rxn7570,True,False,False
+EquiformerV2 AD,rxn7578,True,True,True
+EquiformerV2 AD,rxn7579,True,True,True
+EquiformerV2 AD,rxn7581,True,True,False
+EquiformerV2 AD,rxn7599,True,True,False
+EquiformerV2 AD,rxn7600,True,True,True
+EquiformerV2 AD,rxn7606,True,True,True
+EquiformerV2 AD,rxn7638,True,True,True
+EquiformerV2 AD,rxn7648,True,True,True
+EquiformerV2 AD,rxn7674,True,False,True
+EquiformerV2 AD,rxn7681,True,True,True
+EquiformerV2 AD,rxn7689,True,True,True
+EquiformerV2 AD,rxn7719,False,False,False
+EquiformerV2 AD,rxn7728,True,False,False
+EquiformerV2 AD,rxn7742,True,False,True
+EquiformerV2 AD,rxn7754,True,True,True
+EquiformerV2 AD,rxn7756,True,True,True
+EquiformerV2 AD,rxn7764,True,False,True
+EquiformerV2 AD,rxn7769,False,False,False
+EquiformerV2 AD,rxn7797,True,True,True
+EquiformerV2 AD,rxn7808,True,False,True
+EquiformerV2 AD,rxn7829,True,True,False
+EquiformerV2 AD,rxn7833,True,True,True
+EquiformerV2 AD,rxn7855,False,False,False
+EquiformerV2 AD,rxn7884,True,False,False
+EquiformerV2 AD,rxn7890,True,True,True
+EquiformerV2 AD,rxn7895,True,False,False
+EquiformerV2 AD,rxn7896,True,True,True
+EquiformerV2 AD,rxn7930,True,True,True
+EquiformerV2 AD,rxn7932,True,True,True
+EquiformerV2 AD,rxn7938,True,False,False
+EquiformerV2 AD,rxn7941,False,False,False
+EquiformerV2 AD,rxn7947,True,True,True
+EquiformerV2 AD,rxn7957,True,False,False
+EquiformerV2 AD,rxn7961,True,False,False
+EquiformerV2 AD,rxn7965,True,True,True
+EquiformerV2 AD,rxn7975,True,True,True
+EquiformerV2 AD,rxn7979,True,True,True
+EquiformerV2 AD,rxn7981,True,True,True
+EquiformerV2 AD,rxn8026,False,False,False
+EquiformerV2 AD,rxn8034,True,True,True
+EquiformerV2 AD,rxn8036,True,True,True
+EquiformerV2 AD,rxn8062,False,False,False
+EquiformerV2 AD,rxn8081,True,True,True
+EquiformerV2 AD,rxn8083,True,True,True
+EquiformerV2 AD,rxn8085,True,True,True
+EquiformerV2 AD,rxn8087,True,True,True
+EquiformerV2 AD,rxn8103,True,True,True
+EquiformerV2 AD,rxn8113,True,True,True
+EquiformerV2 AD,rxn8125,True,False,True
+EquiformerV2 AD,rxn8133,True,True,True
+EquiformerV2 AD,rxn8149,True,True,True
+EquiformerV2 AD,rxn8151,True,True,False
+EquiformerV2 AD,rxn8152,True,True,True
+EquiformerV2 AD,rxn8176,True,True,True
+EquiformerV2 AD,rxn8178,True,True,True
+EquiformerV2 AD,rxn8180,True,True,True
+EquiformerV2 AD,rxn8190,True,True,True
+EquiformerV2 AD,rxn8191,True,True,True
+EquiformerV2 AD,rxn8219,True,True,True
+EquiformerV2 AD,rxn8228,True,True,True
+EquiformerV2 AD,rxn8235,True,True,True
+EquiformerV2 AD,rxn8241,True,False,True
+EquiformerV2 AD,rxn8259,True,True,True
+EquiformerV2 AD,rxn8278,False,False,False
+EquiformerV2 AD,rxn8289,True,False,False
+EquiformerV2 AD,rxn8297,True,False,True
+EquiformerV2 AD,rxn8315,True,False,False
+EquiformerV2 AD,rxn8329,True,True,True
+EquiformerV2 AD,rxn8330,True,True,True
+EquiformerV2 AD,rxn8345,True,True,True
+EquiformerV2 AD,rxn8346,True,True,True
+EquiformerV2 AD,rxn8358,True,True,True
+EquiformerV2 AD,rxn8378,True,True,True
+EquiformerV2 AD,rxn8383,True,False,False
+EquiformerV2 AD,rxn8395,True,True,True
+EquiformerV2 AD,rxn8398,True,True,True
+EquiformerV2 AD,rxn8413,False,False,False
+EquiformerV2 AD,rxn8418,True,True,False
+EquiformerV2 AD,rxn8431,True,True,True
+EquiformerV2 AD,rxn8439,True,True,True
+EquiformerV2 AD,rxn8442,False,False,False
+EquiformerV2 AD,rxn8446,True,False,True
+EquiformerV2 AD,rxn8449,True,False,True
+EquiformerV2 AD,rxn8505,False,False,False
+EquiformerV2 AD,rxn8532,True,True,True
+EquiformerV2 AD,rxn8540,True,True,True
+EquiformerV2 AD,rxn8543,True,True,True
+EquiformerV2 AD,rxn8548,True,False,True
+EquiformerV2 AD,rxn8557,True,True,False
+EquiformerV2 AD,rxn8562,True,True,False
+EquiformerV2 AD,rxn8603,False,False,False
+EquiformerV2 AD,rxn8610,True,True,True
+EquiformerV2 AD,rxn8624,True,True,False
+EquiformerV2 AD,rxn8634,True,True,True
+EquiformerV2 AD,rxn8638,False,False,False
+EquiformerV2 AD,rxn8652,True,True,True
+EquiformerV2 AD,rxn8680,True,True,True
+EquiformerV2 AD,rxn8684,False,False,False
+EquiformerV2 AD,rxn8686,False,False,False
+EquiformerV2 AD,rxn8689,True,True,True
+EquiformerV2 AD,rxn8690,False,False,False
+EquiformerV2 AD,rxn8695,True,True,True
+EquiformerV2 AD,rxn8696,True,True,True
+EquiformerV2 AD,rxn8697,True,False,False
+EquiformerV2 AD,rxn8708,True,True,True
+EquiformerV2 AD,rxn8721,True,False,True
+EquiformerV2 AD,rxn8722,True,True,True
+EquiformerV2 AD,rxn8725,True,False,False
+EquiformerV2 AD,rxn8730,True,True,True
+EquiformerV2 AD,rxn8733,True,True,True
+EquiformerV2 AD,rxn8751,True,False,False
+EquiformerV2 AD,rxn8759,True,True,True
+EquiformerV2 AD,rxn8760,True,True,True
+EquiformerV2 AD,rxn8765,True,True,True
+EquiformerV2 AD,rxn8802,True,True,True
+EquiformerV2 AD,rxn8806,True,False,False
+EquiformerV2 AD,rxn8818,True,True,True
+EquiformerV2 AD,rxn8823,True,False,False
+EquiformerV2 AD,rxn8851,False,False,False
+EquiformerV2 AD,rxn8854,True,False,True
+EquiformerV2 AD,rxn8866,True,True,True
+EquiformerV2 AD,rxn8880,True,False,False
+EquiformerV2 AD,rxn8902,True,True,True
+EquiformerV2 AD,rxn8931,True,False,True
+EquiformerV2 AD,rxn8936,True,True,True
+EquiformerV2 AD,rxn8949,True,True,True
+EquiformerV2 AD,rxn8960,True,True,True
+EquiformerV2 AD,rxn8964,False,False,False
+EquiformerV2 AD,rxn8973,True,True,False
+EquiformerV2 AD,rxn8991,True,True,True
+EquiformerV2 AD,rxn9000,True,False,False
+EquiformerV2 AD,rxn9044,True,False,False
+EquiformerV2 AD,rxn9058,False,False,False
+EquiformerV2 AD,rxn9094,True,False,False
+EquiformerV2 AD,rxn9185,True,True,True
+EquiformerV2 AD,rxn9201,True,True,False
+EquiformerV2 AD,rxn9228,True,True,True
+EquiformerV2 AD,rxn9252,False,False,False
+EquiformerV2 AD,rxn9262,True,True,True
+EquiformerV2 AD,rxn9286,True,False,True
+EquiformerV2 AD,rxn9298,True,True,True
+EquiformerV2 AD,rxn9310,True,True,True
+EquiformerV2 AD,rxn9322,True,True,True
+EquiformerV2 AD,rxn9325,True,True,True
+EquiformerV2 AD,rxn9338,True,True,True
+EquiformerV2 AD,rxn9365,True,True,True
+EquiformerV2 AD,rxn9375,True,False,False
+EquiformerV2 AD,rxn9379,True,False,False
+EquiformerV2 AD,rxn9422,True,True,True
+EquiformerV2 AD,rxn9433,True,True,False
+EquiformerV2 AD,rxn9439,True,True,True
+EquiformerV2 AD,rxn9445,True,True,True
+EquiformerV2 AD,rxn9446,True,True,True
+EquiformerV2 AD,rxn9460,False,False,False
+EquiformerV2 AD,rxn9465,True,True,True
+EquiformerV2 AD,rxn9498,True,True,True
+EquiformerV2 AD,rxn9513,True,False,False
+EquiformerV2 AD,rxn9520,True,True,True
+EquiformerV2 AD,rxn9526,False,False,False
+EquiformerV2 AD,rxn9543,True,True,True
+EquiformerV2 AD,rxn9547,True,False,False
+EquiformerV2 AD,rxn9554,True,False,False
+EquiformerV2 AD,rxn9555,True,True,False
+EquiformerV2 AD,rxn9600,True,True,True
+EquiformerV2 AD,rxn9605,True,True,True
+EquiformerV2 AD,rxn9627,True,True,True
+EquiformerV2 AD,rxn9658,True,True,True
+EquiformerV2 AD,rxn9680,True,True,True
+EquiformerV2 AD,rxn9683,True,True,True
+EquiformerV2 AD,rxn9704,True,True,False
+EquiformerV2 AD,rxn9705,True,True,False
+EquiformerV2 AD,rxn9711,True,True,True
+EquiformerV2 AD,rxn9715,True,True,True
+EquiformerV2 AD,rxn9721,True,True,True
+EquiformerV2 AD,rxn9734,True,True,True
+EquiformerV2 AD,rxn9737,True,True,True
+EquiformerV2 AD,rxn9789,True,True,False
+EquiformerV2 AD,rxn9790,True,False,False
+EquiformerV2 AD,rxn9799,False,False,False
+EquiformerV2 AD,rxn9803,True,False,False
+EquiformerV2 AD,rxn9828,True,True,True
+EquiformerV2 AD,rxn9855,True,True,False
+EquiformerV2 AD,rxn9863,True,False,False
+EquiformerV2 AD,rxn9864,True,True,True
+EquiformerV2 AD,rxn9883,True,False,False
+EquiformerV2 AD,rxn9887,True,False,True
+EquiformerV2 AD,rxn9907,True,True,False
+EquiformerV2 AD,rxn9910,True,False,True
+EquiformerV2 AD,rxn9928,True,True,True
+EquiformerV2 AD,rxn9941,True,False,False
+EquiformerV2 AD,rxn9952,True,True,True
+EquiformerV2 AD,rxn9953,True,True,True
+EquiformerV2 AD,rxn9963,True,True,True
+EquiformerV2 AD,rxn9989,False,False,False
+EquiformerV2 AD,rxn10019,True,True,True
+EquiformerV2 AD,rxn10032,True,True,True
+EquiformerV2 AD,rxn10038,True,False,True
+EquiformerV2 AD,rxn10042,True,True,False
+EquiformerV2 AD,rxn10054,True,False,True
+EquiformerV2 AD,rxn10071,False,False,False

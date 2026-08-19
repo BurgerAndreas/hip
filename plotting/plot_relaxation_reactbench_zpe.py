@@ -5,11 +5,13 @@ import ast
 from pathlib import Path
 
 import matplotlib
+import numpy as np
 import pandas as pd
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt  # noqa: E402
 from matplotlib.lines import Line2D  # noqa: E402
+from matplotlib.ticker import LogLocator, NullFormatter  # noqa: E402
 from matplotlib.transforms import offset_copy  # noqa: E402
 import seaborn as sns  # noqa: E402
 
@@ -27,6 +29,11 @@ DEFAULT_RELAXATION_CSV = (
 )
 DEFAULT_REACTBENCH_CSV = DEFAULT_DATA_DIR / "reactbench.csv"
 DEFAULT_ZPE_CSV = DEFAULT_DATA_DIR / "zpe_classification.csv"
+DEFAULT_SOURCE_DATA_DIR = ROOT_DIR / "paper" / "source_data" / "Figure_4"
+DEFAULT_ZPE_SAMPLES_CSV = DEFAULT_SOURCE_DATA_DIR / "figure_4c_zpe_error_per_sample.csv"
+DEFAULT_CLASSIFICATION_SAMPLES_CSV = (
+    DEFAULT_SOURCE_DATA_DIR / "figure_4d_stationary_point_classification_per_geometry.csv"
+)
 DEFAULT_OUTPUT = (
     ROOT_DIR
     / "plots"
@@ -204,7 +211,12 @@ def finish_axis(ax: matplotlib.axes.Axes, *, legend: bool = False) -> None:
     ax.yaxis.grid(True, color="#E9E9E9", linewidth=1.0)
     if ax.get_yscale() == "log":
         ax.minorticks_on()
-        ax.yaxis.grid(True, which="minor", color="#F1F1F1", linewidth=0.7, alpha=0.85)
+        ax.yaxis.set_major_locator(LogLocator(base=10.0))
+        ax.yaxis.set_minor_locator(
+            LogLocator(base=10.0, subs=np.arange(2, 10) * 0.1, numticks=100)
+        )
+        ax.yaxis.set_minor_formatter(NullFormatter())
+        ax.yaxis.grid(True, which="minor", color="#E9E9E9", linewidth=0.6, alpha=0.8)
     sns.despine(ax=ax, trim=False)
     if legend:
         ax.legend(frameon=True, edgecolor="none")
@@ -683,6 +695,213 @@ def _format_zpe_bar_value(value: float) -> str:
     return f"{value:.4f}"
 
 
+def _source_model_name(model: str) -> str:
+    return {
+        "AlphaNet AD": "AlphaNet",
+        "LeftNet-CF AD": "LeftNet-CF",
+        "LeftNet-DF AD": "LeftNet-DF",
+        "EquiformerV2 AD": "EquiformerV2",
+    }.get(model, model)
+
+
+def _bootstrap_mean_interval(
+    values: np.ndarray,
+    *,
+    confidence: float = 0.95,
+    n_resamples: int = 20_000,
+    seed: int = 20260818,
+) -> tuple[float, float, float]:
+    values = np.asarray(values, dtype=float)
+    rng = np.random.default_rng(seed)
+    samples = rng.choice(values, size=(n_resamples, values.size), replace=True)
+    boot_means = samples.mean(axis=1)
+    alpha = 0.5 * (1.0 - confidence)
+    low, high = np.quantile(boot_means, [alpha, 1.0 - alpha])
+    return float(values.mean()), float(low), float(high)
+
+
+def _wilson_interval(successes: int, total: int, z: float = 1.959963984540054) -> tuple[float, float]:
+    p = successes / total
+    denominator = 1.0 + z**2 / total
+    center = (p + z**2 / (2.0 * total)) / denominator
+    half_width = z * np.sqrt(p * (1.0 - p) / total + z**2 / (4.0 * total**2)) / denominator
+    return float(center - half_width), float(center + half_width)
+
+
+def _load_zpe_samples(path: Path) -> pd.DataFrame:
+    df = pd.read_csv(path)
+    df["model"] = df["model"].map(_source_model_name)
+    return df[df["model"].isin(ZPE_MODEL_ORDER)].copy()
+
+
+def _load_classification_samples(path: Path) -> pd.DataFrame:
+    df = pd.read_csv(path)
+    df["model"] = df["model"].map(_source_model_name)
+    return df[df["model"].isin(ZPE_MODEL_ORDER)].copy()
+
+
+def _plot_zpe_samples_panel(
+    ax: plt.Axes,
+    samples: pd.DataFrame,
+    *,
+    metric: str,
+    ylabel: str,
+    display: str,
+) -> None:
+    models = [model for model in ZPE_MODEL_ORDER if model in set(samples["model"])]
+    palette = _zpe_model_palette(models)
+    x = np.arange(len(models), dtype=float)
+    intervals = [
+        _bootstrap_mean_interval(samples.loc[samples["model"] == model, metric].to_numpy())
+        for model in models
+    ]
+    means = np.asarray([interval[0] for interval in intervals])
+    lows = np.asarray([interval[1] for interval in intervals])
+    highs = np.asarray([interval[2] for interval in intervals])
+
+    if display == "bars":
+        bars = ax.bar(
+            x,
+            means,
+            color=[palette[model] for model in models],
+            width=0.72,
+            edgecolor="none",
+            zorder=2,
+        )
+    elif display == "points":
+        rng = np.random.default_rng(20260818)
+        bars = None
+        for xpos, model in zip(x, models, strict=True):
+            values = samples.loc[samples["model"] == model, metric].to_numpy(dtype=float)
+            jitter = rng.uniform(-0.20, 0.20, size=values.size)
+            ax.scatter(
+                xpos + jitter,
+                values,
+                s=11,
+                color=palette[model],
+                alpha=0.42,
+                linewidths=0,
+                zorder=2,
+            )
+    else:
+        raise ValueError(f"Unknown ZPE display mode: {display}")
+
+    ax.errorbar(
+        x,
+        means,
+        yerr=np.vstack([means - lows, highs - means]),
+        fmt="D" if display == "points" else "none",
+        markersize=4.5,
+        markerfacecolor="white",
+        markeredgecolor=PLOT_FONT_COLOR,
+        ecolor=PLOT_FONT_COLOR,
+        elinewidth=1.1,
+        capsize=3,
+        capthick=1.1,
+        zorder=4,
+    )
+    if bars is not None:
+        for bar, model, value, high in zip(bars, models, means, highs, strict=True):
+            ax.text(
+                bar.get_x() + bar.get_width() / 2,
+                high * 1.18,
+                _format_zpe_bar_value(float(value)),
+                ha="center",
+                va="bottom",
+                fontsize=BAR_LABEL_SIZE,
+                color=PLOT_FONT_COLOR,
+                fontweight="bold" if model in ZPE_BOLD_MODELS else "normal",
+            )
+
+    ax.set_xticks(x)
+    ax.set_xticklabels([_zpe_display_name(model) for model in models])
+    ax.set_xlabel("")
+    if display == "points":
+        point_ylabel = (
+            r"Abs. $\Delta$ZPE error [eV]"
+            if r"\Delta" in ylabel
+            else "Abs. ZPE error [eV]"
+        )
+        ax.set_ylabel(point_ylabel)
+    else:
+        ax.set_ylabel(ylabel)
+    if r"\Delta" in ylabel:
+        ax.yaxis.labelpad = 1.5
+    ax.set_yscale("log")
+    all_values = samples[metric].to_numpy(dtype=float)
+    positive = all_values[all_values > 0]
+    ax.set_ylim(max(positive.min() * 0.35, 1e-5), positive.max() * 3.2)
+    _format_categorical_xaxis(ax, bold_targets=ZPE_BOLD_MODELS)
+    finish_axis(ax)
+
+
+def _plot_classification_samples_panel(
+    ax: plt.Axes,
+    samples: pd.DataFrame,
+    *,
+    metric: str,
+    interval: str,
+) -> None:
+    models = [model for model in ZPE_MODEL_ORDER if model in set(samples["model"])]
+    palette = _zpe_model_palette(models)
+    x = np.arange(len(models), dtype=float)
+    means, lows, highs = [], [], []
+    for model in models:
+        values = samples.loc[samples["model"] == model, metric].astype(bool).to_numpy()
+        if interval == "bootstrap":
+            mean, low, high = _bootstrap_mean_interval(values.astype(float))
+        elif interval == "wilson":
+            mean = float(values.mean())
+            low, high = _wilson_interval(int(values.sum()), int(values.size))
+        else:
+            raise ValueError(f"Unknown classification interval: {interval}")
+        means.append(100.0 * mean)
+        lows.append(100.0 * low)
+        highs.append(100.0 * high)
+
+    means = np.asarray(means)
+    lows = np.asarray(lows)
+    highs = np.asarray(highs)
+    bars = ax.bar(
+        x,
+        means,
+        color=[palette[model] for model in models],
+        width=0.72,
+        edgecolor="none",
+        zorder=2,
+    )
+    ax.errorbar(
+        x,
+        means,
+        yerr=np.vstack([means - lows, highs - means]),
+        fmt="none",
+        ecolor=PLOT_FONT_COLOR,
+        elinewidth=1.1,
+        capsize=3,
+        capthick=1.1,
+        zorder=4,
+    )
+    for bar, model, value, high in zip(bars, models, means, highs, strict=True):
+        ax.text(
+            bar.get_x() + bar.get_width() / 2,
+            high + 0.8,
+            f"{value:.0f}%",
+            ha="center",
+            va="bottom",
+            fontsize=BAR_LABEL_SIZE,
+            color=PLOT_FONT_COLOR,
+            fontweight="bold" if model in ZPE_BOLD_MODELS else "normal",
+        )
+    ax.set_xticks(x)
+    ax.set_xticklabels([_zpe_display_name(model) for model in models])
+    ax.set_title("Stationary Point Class")
+    ax.set_xlabel("")
+    ax.set_ylabel("Accuracy [%]")
+    ax.set_ylim(50, 102)
+    _format_categorical_xaxis(ax, bold_targets=ZPE_BOLD_MODELS)
+    finish_axis(ax)
+
+
 def _plot_zpe_metric_panel(
     ax: plt.Axes,
     df_zpe: pd.DataFrame,
@@ -770,8 +989,13 @@ def plot_relaxation_reactbench_zpe(
     relaxation_csv: Path,
     reactbench_csv: Path,
     zpe_csv: Path,
+    zpe_samples_csv: Path | None,
+    classification_samples_csv: Path | None,
     output_path: Path,
     max_cycles: int,
+    zpe_display: str,
+    classification_metric: str,
+    classification_interval: str,
 ) -> None:
     apply_plot_style()
     df = pd.read_csv(relaxation_csv)
@@ -793,6 +1017,12 @@ def plot_relaxation_reactbench_zpe(
     )
     df_rb = _load_reactbench(reactbench_csv)
     df_zpe = _load_zpe_metrics(zpe_csv)
+    zpe_samples = _load_zpe_samples(zpe_samples_csv) if zpe_samples_csv is not None else None
+    classification_samples = (
+        _load_classification_samples(classification_samples_csv)
+        if classification_samples_csv is not None
+        else None
+    )
 
     fig, axes_grid = plt.subplots(2, 3, figsize=(12, 7.2))
     axes = list(axes_grid.ravel())
@@ -854,23 +1084,47 @@ def plot_relaxation_reactbench_zpe(
         legend.get_frame().set_linewidth(0)
 
     _plot_reactbench_panel(axes[2], df_rb)
-    _plot_zpe_metric_panel(
-        axes[3],
-        df_zpe,
-        metric="zpe_mae",
-        title=None,
-        ylabel=r"ZPE MAE [eV]",
-        log_y=True,
-    )
-    _plot_zpe_metric_panel(
-        axes[4],
-        df_zpe,
-        metric="delta_zpe_mae",
-        title=None,
-        ylabel=r"$\Delta$ZPE MAE [eV]",
-        log_y=True,
-    )
-    _plot_classification_panel(axes[5], df_zpe)
+    if zpe_samples is None:
+        _plot_zpe_metric_panel(
+            axes[3],
+            df_zpe,
+            metric="zpe_mae",
+            title=None,
+            ylabel=r"ZPE MAE [eV]",
+            log_y=True,
+        )
+        _plot_zpe_metric_panel(
+            axes[4],
+            df_zpe,
+            metric="delta_zpe_mae",
+            title=None,
+            ylabel=r"$\Delta$ZPE MAE [eV]",
+            log_y=True,
+        )
+    else:
+        _plot_zpe_samples_panel(
+            axes[3],
+            zpe_samples,
+            metric="absolute_zpe_error_eV",
+            ylabel=r"ZPE MAE [eV]",
+            display=zpe_display,
+        )
+        _plot_zpe_samples_panel(
+            axes[4],
+            zpe_samples,
+            metric="absolute_reaction_delta_zpe_error_eV",
+            ylabel=r"$\Delta$ZPE MAE [eV]",
+            display=zpe_display,
+        )
+    if classification_samples is None:
+        _plot_classification_panel(axes[5], df_zpe)
+    else:
+        _plot_classification_samples_panel(
+            axes[5],
+            classification_samples,
+            metric=classification_metric,
+            interval=classification_interval,
+        )
     axes[0].set_ylim(0, 155)
     axes[1].set_ylim(0, 4.9)
     add_panel_labels(fig, axes, labels=("a", "", "b", "c", "", "d"))
@@ -905,6 +1159,33 @@ def parse_args() -> argparse.Namespace:
         help="CSV with ZPE MAE, delta ZPE MAE, and classification metrics.",
     )
     parser.add_argument(
+        "--zpe-samples-csv",
+        type=Path,
+        default=None,
+        help="Optional per-sample ZPE errors used for bootstrap intervals and point plots.",
+    )
+    parser.add_argument(
+        "--classification-samples-csv",
+        type=Path,
+        default=None,
+        help="Optional per-geometry classifications used for confidence intervals.",
+    )
+    parser.add_argument(
+        "--zpe-display",
+        choices=("bars", "points"),
+        default="bars",
+    )
+    parser.add_argument(
+        "--classification-metric",
+        choices=("exact_negative_mode_count_match", "three_class_match"),
+        default="exact_negative_mode_count_match",
+    )
+    parser.add_argument(
+        "--classification-interval",
+        choices=("bootstrap", "wilson"),
+        default="wilson",
+    )
+    parser.add_argument(
         "--output",
         type=Path,
         default=DEFAULT_OUTPUT,
@@ -925,8 +1206,13 @@ def main() -> None:
         relaxation_csv=args.relaxation_csv,
         reactbench_csv=args.reactbench_csv,
         zpe_csv=args.zpe_csv,
+        zpe_samples_csv=args.zpe_samples_csv,
+        classification_samples_csv=args.classification_samples_csv,
         output_path=args.output,
         max_cycles=args.max_cycles,
+        zpe_display=args.zpe_display,
+        classification_metric=args.classification_metric,
+        classification_interval=args.classification_interval,
     )
 
 

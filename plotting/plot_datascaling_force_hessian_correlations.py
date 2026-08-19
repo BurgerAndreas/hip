@@ -62,7 +62,7 @@ SCATTER_KWARGS = {
     "s": 8,
     "alpha": 0.18,
     "linewidths": 0,
-    "rasterized": True,
+    "rasterized": False,
 }
 
 
@@ -291,7 +291,7 @@ def plot_force_hessian_scatter_row(
                 x,
                 y,
                 c=c,
-                cmap="viridis",
+                cmap="magma",
                 norm=color_norm,
                 s=SCATTER_KWARGS["s"],
                 alpha=0.35,

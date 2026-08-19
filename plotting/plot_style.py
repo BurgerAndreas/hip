@@ -23,9 +23,25 @@ FORWARD_PASS_COLOR = "#8ed3c3" # #68c4af
 # Annotation/train line uses named gray (#808080)
 EQV2_NO_H_FORCE_COLOR = AD_NO_H_COLOR
 HIP_FORCE_COLOR = HIP_COLOR
-LEFTNET_CF_FORCE_COLOR = "#8b9f98" # #89a198 #8b9f98 #8cb5a5 #7cab99 #9bbfb1 #659C87 "#4a8a72"
+LEFTNET_CF_FORCE_COLOR = "#8F7891"  # Muted purple; distinct from AD while keeping HIP prominent.
 LEFTNET_DF_FORCE_COLOR = "#B98C8C" # #9C5C5C #B98C8C #A76F6F "#8A3F3F" # #8A3F3F #743737
 PLOTLY_FONT_COLOR = "#2F4565" # #2a3f5f
+
+EDITORIAL_SEQUENTIAL_COLORS = (
+    "#3B3555",
+    "#505B78",
+    "#5F7F7A",
+    "#A58A62",
+    "#D5C39A",
+)
+
+
+def editorial_sequential_cmap() -> matplotlib.colors.LinearSegmentedColormap:
+    """Muted, viridis-adjacent map with stronger adjacent-color separation."""
+    return matplotlib.colors.LinearSegmentedColormap.from_list(
+        "editorial_sequential",
+        EDITORIAL_SEQUENTIAL_COLORS,
+    )
 
 #0A0A0A`
 #26302E
@@ -68,9 +84,9 @@ PLOT_FONT_FAMILY = ("Open Sans", "Arial", "Helvetica", "DejaVu Sans", "sans-seri
 
 HESSIAN_METHOD_TO_COLOUR = {
     "autograd": AD_COLOR,  # Alternate: "#a1c9f4"
-    "autograd_conservative": "#cfcfcf", # "#b482c8",
+    "autograd_conservative": "#B7A4C7",
     "forward_pass": FORWARD_PASS_COLOR,
-    "finite_difference_bz1": "#aea9ab",
+    "finite_difference_bz1": "#6F686C",
     "finite_difference_bz32": "#ffa8af",
     "prediction": HIP_COLOR,
     "ef": AD_NO_H_COLOR,

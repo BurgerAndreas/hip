@@ -1,0 +1,4 @@
+model,loss_function,hessian_method,number_of_geometries,true_positive_count,false_positive_count,true_negative_count,false_negative_count,true_positive_rate,false_positive_rate,false_negative_rate,true_negative_rate,precision,transition_state_identification_accuracy_fraction,exact_negative_mode_accuracy_fraction
+HIP,MSE,Direct prediction,1000,390,61,498,51,0.8843537414965986,0.10912343470483005,0.11564625850340136,0.8908765652951699,0.8647450110864745,0.888,0.863
+HIP,MAE,Direct prediction,1000,411,40,519,30,0.9319727891156463,0.07155635062611806,0.06802721088435375,0.9284436493738819,0.9113082039911308,0.93,0.911
+HIP,MAE+Sub,Direct prediction,1000,412,36,523,29,0.9342403628117913,0.06440071556350627,0.06575963718820861,0.9355992844364938,0.9196428571428571,0.935,0.919

@@ -41,7 +41,7 @@ from plot_glycine_pt_dft_relaxed_diagnostics_colour import (  # noqa: E402
     vib_metrics,
     v1_cos_vs_dft,
 )
-from plot_style import finish_axis  # noqa: E402
+from plot_style import editorial_sequential_cmap, finish_axis  # noqa: E402
 
 Q_LIM = (0.85, 2.78)
 
@@ -379,7 +379,7 @@ def main() -> None:
         ["DFT", "HIP", "AD"],
         "relaxed_n_negative.png",
         cbar_label="Negative Mode Count",
-        cmap="viridis",
+        cmap=editorial_sequential_cmap(),
         discrete=True,
         vmin=0,
         vmax=max(1, nmax),

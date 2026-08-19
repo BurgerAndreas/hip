@@ -1,0 +1,856 @@
+%% BioMed_Central_Bib_Style_v1.01
+
+\begin{thebibliography}{47}
+% BibTex style file: bmc-mathphys.bst (version 2.1), 2014-07-24
+\ifx \bisbn   \undefined \def \bisbn  #1{ISBN #1}\fi
+\ifx \binits  \undefined \def \binits#1{#1}\fi
+\ifx \bauthor  \undefined \def \bauthor#1{#1}\fi
+\ifx \batitle  \undefined \def \batitle#1{#1}\fi
+\ifx \bjtitle  \undefined \def \bjtitle#1{#1}\fi
+\ifx \bvolume  \undefined \def \bvolume#1{\textbf{#1}}\fi
+\ifx \byear  \undefined \def \byear#1{#1}\fi
+\ifx \bissue  \undefined \def \bissue#1{#1}\fi
+\ifx \bfpage  \undefined \def \bfpage#1{#1}\fi
+\ifx \blpage  \undefined \def \blpage #1{#1}\fi
+\ifx \burl  \undefined \def \burl#1{\textsf{#1}}\fi
+\ifx \doiurl  \undefined \def \doiurl#1{\url{https://doi.org/#1}}\fi
+\ifx \betal  \undefined \def \betal{\textit{et al.}}\fi
+\ifx \binstitute  \undefined \def \binstitute#1{#1}\fi
+\ifx \binstitutionaled  \undefined \def \binstitutionaled#1{#1}\fi
+\ifx \bctitle  \undefined \def \bctitle#1{#1}\fi
+\ifx \beditor  \undefined \def \beditor#1{#1}\fi
+\ifx \bpublisher  \undefined \def \bpublisher#1{#1}\fi
+\ifx \bbtitle  \undefined \def \bbtitle#1{#1}\fi
+\ifx \bedition  \undefined \def \bedition#1{#1}\fi
+\ifx \bseriesno  \undefined \def \bseriesno#1{#1}\fi
+\ifx \blocation  \undefined \def \blocation#1{#1}\fi
+\ifx \bsertitle  \undefined \def \bsertitle#1{#1}\fi
+\ifx \bsnm \undefined \def \bsnm#1{#1}\fi
+\ifx \bsuffix \undefined \def \bsuffix#1{#1}\fi
+\ifx \bparticle \undefined \def \bparticle#1{#1}\fi
+\ifx \barticle \undefined \def \barticle#1{#1}\fi
+\bibcommenthead
+\ifx \bconfdate \undefined \def \bconfdate #1{#1}\fi
+\ifx \botherref \undefined \def \botherref #1{#1}\fi
+\ifx \url \undefined \def \url#1{\textsf{#1}}\fi
+\ifx \bchapter \undefined \def \bchapter#1{#1}\fi
+\ifx \bbook \undefined \def \bbook#1{#1}\fi
+\ifx \bcomment \undefined \def \bcomment#1{#1}\fi
+\ifx \oauthor \undefined \def \oauthor#1{#1}\fi
+\ifx \citeauthoryear \undefined \def \citeauthoryear#1{#1}\fi
+\ifx \endbibitem  \undefined \def \endbibitem {}\fi
+\ifx \bconflocation  \undefined \def \bconflocation#1{#1}\fi
+\ifx \arxivurl  \undefined \def \arxivurl#1{\textsf{#1}}\fi
+\csname PreBibitemsHook\endcsname
+
+%%% 1
+\bibitem[\protect\citeauthoryear{Thompson et~al.}{2015}]{thompson2015}
+\begin{barticle}
+\bauthor{\bsnm{Thompson}, \binits{A.P.}},
+\bauthor{\bsnm{Swiler}, \binits{L.P.}},
+\bauthor{\bsnm{Trott}, \binits{C.R.}},
+\bauthor{\bsnm{Foiles}, \binits{S.M.}},
+\bauthor{\bsnm{Tucker}, \binits{G.J.}}:
+\batitle{Spectral neighbor analysis method for automated generation of
+  quantum-accurate interatomic potentials}.
+\bjtitle{Journal of Computational Physics}
+\bvolume{285},
+\bfpage{316}--\blpage{330}
+(\byear{2015})
+\end{barticle}
+\endbibitem
+
+%%% 2
+\bibitem[\protect\citeauthoryear{Shapeev}{2016}]{shapeev2016}
+\begin{barticle}
+\bauthor{\bsnm{Shapeev}, \binits{A.V.}}:
+\batitle{Moment tensor potentials: A class of systematically improvable
+  interatomic potentials}.
+\bjtitle{Multiscale Modeling \& Simulation}
+\bvolume{14}(\bissue{3}),
+\bfpage{1153}--\blpage{1173}
+(\byear{2016})
+\end{barticle}
+\endbibitem
+
+%%% 3
+\bibitem[\protect\citeauthoryear{Bart{\'o}k et~al.}{2010}]{bartok2010}
+\begin{barticle}
+\bauthor{\bsnm{Bart{\'o}k}, \binits{A.P.}},
+\bauthor{\bsnm{Payne}, \binits{M.C.}},
+\bauthor{\bsnm{Kondor}, \binits{R.}},
+\bauthor{\bsnm{Cs{\'a}nyi}, \binits{G.}}:
+\batitle{Gaussian approximation potentials: The accuracy of quantum mechanics,
+  without the electrons}.
+\bjtitle{Physical review letters}
+\bvolume{104}(\bissue{13}),
+\bfpage{136403}
+(\byear{2010})
+\end{barticle}
+\endbibitem
+
+%%% 4
+\bibitem[\protect\citeauthoryear{Behler and Parrinello}{2007}]{behler2007}
+\begin{barticle}
+\bauthor{\bsnm{Behler}, \binits{J.}},
+\bauthor{\bsnm{Parrinello}, \binits{M.}}:
+\batitle{Generalized neural-network representation of high-dimensional
+  potential-energy surfaces}.
+\bjtitle{Physical review letters}
+\bvolume{98}(\bissue{14}),
+\bfpage{146401}
+(\byear{2007})
+\end{barticle}
+\endbibitem
+
+%%% 5
+\bibitem[\protect\citeauthoryear{Sch{\"u}tt et~al.}{2018}]{schutt2018}
+\begin{barticle}
+\bauthor{\bsnm{Sch{\"u}tt}, \binits{K.T.}},
+\bauthor{\bsnm{Sauceda}, \binits{H.E.}},
+\bauthor{\bsnm{Kindermans}, \binits{P.-J.}},
+\bauthor{\bsnm{Tkatchenko}, \binits{A.}},
+\bauthor{\bsnm{M{\"u}ller}, \binits{K.-R.}}:
+\batitle{{{SchNet}} -- {{A}} deep learning architecture for molecules and
+  materials}.
+\bjtitle{The Journal of Chemical Physics}
+\bvolume{148}(\bissue{24}),
+\bfpage{241722}
+(\byear{2018})
+\doiurl{10.1063/1.5019779}
+\end{barticle}
+\endbibitem
+
+%%% 6
+\bibitem[\protect\citeauthoryear{Anderson et~al.}{2019}]{anderson2019}
+\begin{botherref}
+\oauthor{\bsnm{Anderson}, \binits{B.}},
+\oauthor{\bsnm{Hy}, \binits{T.S.}},
+\oauthor{\bsnm{Kondor}, \binits{R.}}:
+Cormorant: Covariant molecular neural networks.
+Advances in neural information processing systems
+\textbf{32}
+(2019)
+\end{botherref}
+\endbibitem
+
+%%% 7
+\bibitem[\protect\citeauthoryear{Gasteiger et~al.}{2020}]{gasteiger2020}
+\begin{bchapter}
+\bauthor{\bsnm{Gasteiger}, \binits{J.}},
+\bauthor{\bsnm{Gro{\ss}}, \binits{J.}},
+\bauthor{\bsnm{G{\"u}nnemann}, \binits{S.}}:
+\bctitle{Directional message passing for molecular graphs}.
+In: \bbtitle{International Conference on Learning Representations}
+(\byear{2020}).
+\burl{https://openreview.net/forum?id=B1eWbxStPH}
+\end{bchapter}
+\endbibitem
+
+%%% 8
+\bibitem[\protect\citeauthoryear{Gasteiger et~al.}{2021}]{gasteiger2021}
+\begin{bchapter}
+\bauthor{\bsnm{Gasteiger}, \binits{J.}},
+\bauthor{\bsnm{Becker}, \binits{F.}},
+\bauthor{\bsnm{G{\"u}nnemann}, \binits{S.}}:
+\bctitle{{{GemNet}}: {{Universal Directional Graph Neural Networks}} for
+  {{Molecules}}}.
+In: \bbtitle{Advances in Neural Information Processing Systems},
+vol. \bseriesno{34},
+pp. \bfpage{6790}--\blpage{6802}.
+\bpublisher{Curran Associates, Inc.}, \blocation{???}
+(\byear{2021})
+\end{bchapter}
+\endbibitem
+
+%%% 9
+\bibitem[\protect\citeauthoryear{Sch{\"u}tt et~al.}{2021}]{schutt2021}
+\begin{bchapter}
+\bauthor{\bsnm{Sch{\"u}tt}, \binits{K.}},
+\bauthor{\bsnm{Unke}, \binits{O.}},
+\bauthor{\bsnm{Gastegger}, \binits{M.}}:
+\bctitle{Equivariant message passing for the prediction of tensorial properties
+  and molecular spectra}.
+In: \bbtitle{Proceedings of the 38th International Conference on Machine
+  Learning},
+pp. \bfpage{9377}--\blpage{9388}.
+\bpublisher{PMLR}, \blocation{???}
+(\byear{2021})
+\end{bchapter}
+\endbibitem
+
+%%% 10
+\bibitem[\protect\citeauthoryear{Batzner et~al.}{2022}]{batzner2022}
+\begin{barticle}
+\bauthor{\bsnm{Batzner}, \binits{S.}},
+\bauthor{\bsnm{Musaelian}, \binits{A.}},
+\bauthor{\bsnm{Sun}, \binits{L.}},
+\bauthor{\bsnm{Geiger}, \binits{M.}},
+\bauthor{\bsnm{Mailoa}, \binits{J.P.}},
+\bauthor{\bsnm{Kornbluth}, \binits{M.}},
+\bauthor{\bsnm{Molinari}, \binits{N.}},
+\bauthor{\bsnm{Smidt}, \binits{T.E.}},
+\bauthor{\bsnm{Kozinsky}, \binits{B.}}:
+\batitle{E(3)-equivariant graph neural networks for data-efficient and accurate
+  interatomic potentials}.
+\bjtitle{Nature Communications}
+\bvolume{13}(\bissue{1}),
+\bfpage{2453}
+(\byear{2022})
+\doiurl{10.1038/s41467-022-29939-5}
+\end{barticle}
+\endbibitem
+
+%%% 11
+\bibitem[\protect\citeauthoryear{Liu et~al.}{2022}]{liu2022}
+\begin{bchapter}
+\bauthor{\bsnm{Liu}, \binits{Y.}},
+\bauthor{\bsnm{Wang}, \binits{L.}},
+\bauthor{\bsnm{Liu}, \binits{M.}},
+\bauthor{\bsnm{Lin}, \binits{Y.}},
+\bauthor{\bsnm{Zhang}, \binits{X.}},
+\bauthor{\bsnm{Oztekin}, \binits{B.}},
+\bauthor{\bsnm{Ji}, \binits{S.}}:
+\bctitle{Spherical message passing for 3d molecular graphs}.
+In: \bbtitle{International Conference on Learning Representations}
+(\byear{2022}).
+\burl{https://openreview.net/forum?id=givsRXsOt9r}
+\end{bchapter}
+\endbibitem
+
+%%% 12
+\bibitem[\protect\citeauthoryear{Wang et~al.}{2024}]{wang2022}
+\begin{barticle}
+\bauthor{\bsnm{Wang}, \binits{Y.}},
+\bauthor{\bsnm{Wang}, \binits{T.}},
+\bauthor{\bsnm{Li}, \binits{S.}},
+\bauthor{\bsnm{He}, \binits{X.}},
+\bauthor{\bsnm{Li}, \binits{M.}},
+\bauthor{\bsnm{Wang}, \binits{Z.}},
+\bauthor{\bsnm{Zheng}, \binits{N.}},
+\bauthor{\bsnm{Shao}, \binits{B.}},
+\bauthor{\bsnm{Liu}, \binits{T.-Y.}}:
+\batitle{Enhancing geometric representations for molecules with equivariant
+  vector-scalar interactive message passing}.
+\bjtitle{Nature Communications}
+\bvolume{15},
+\bfpage{313}
+(\byear{2024})
+\doiurl{10.1038/s41467-023-43720-2}
+\end{barticle}
+\endbibitem
+
+%%% 13
+\bibitem[\protect\citeauthoryear{Wang et~al.}{2023}]{wang2024}
+\begin{botherref}
+\oauthor{\bsnm{Wang}, \binits{Z.}},
+\oauthor{\bsnm{Liu}, \binits{G.}},
+\oauthor{\bsnm{Zhou}, \binits{Y.}},
+\oauthor{\bsnm{Wang}, \binits{T.}},
+\oauthor{\bsnm{Shao}, \binits{B.}}:
+Efficiently incorporating quintuple interactions into geometric deep learning
+  force fields.
+Advances in Neural Information Processing Systems
+\textbf{36}
+(2023)
+\doiurl{10.52202/075280-3368}
+\end{botherref}
+\endbibitem
+
+%%% 14
+\bibitem[\protect\citeauthoryear{Batatia et~al.}{2022}]{batatia2022}
+\begin{barticle}
+\bauthor{\bsnm{Batatia}, \binits{I.}},
+\bauthor{\bsnm{Kovacs}, \binits{D.P.}},
+\bauthor{\bsnm{Simm}, \binits{G.}},
+\bauthor{\bsnm{Ortner}, \binits{C.}},
+\bauthor{\bsnm{Csanyi}, \binits{G.}}:
+\batitle{{{MACE}}: {{Higher Order Equivariant Message Passing Neural Networks}}
+  for {{Fast}} and {{Accurate Force Fields}}}.
+\bjtitle{Advances in Neural Information Processing Systems}
+\bvolume{35},
+\bfpage{11423}--\blpage{11436}
+(\byear{2022})
+\end{barticle}
+\endbibitem
+
+%%% 15
+\bibitem[\protect\citeauthoryear{Liao and Smidt}{2023}]{liao2023}
+\begin{bchapter}
+\bauthor{\bsnm{Liao}, \binits{Y.-L.}},
+\bauthor{\bsnm{Smidt}, \binits{T.}}:
+\bctitle{Equiformer: Equivariant graph attention transformer for 3d atomistic
+  graphs}.
+In: \bbtitle{International Conference on Learning Representations}
+(\byear{2023}).
+\burl{https://openreview.net/forum?id=KwmPfARgOTD}
+\end{bchapter}
+\endbibitem
+
+%%% 16
+\bibitem[\protect\citeauthoryear{Liao et~al.}{2024}]{liao2023equiformerv2}
+\begin{bchapter}
+\bauthor{\bsnm{Liao}, \binits{Y.-L.}},
+\bauthor{\bsnm{Wood}, \binits{B.M.}},
+\bauthor{\bsnm{Das}, \binits{A.}},
+\bauthor{\bsnm{Smidt}, \binits{T.}}:
+\bctitle{Equiformerv2: Improved equivariant transformer for scaling to
+  higher-degree representations}.
+In: \bbtitle{The Twelfth International Conference on Learning Representations}
+(\byear{2024}).
+\burl{https://openreview.net/forum?id=mCOBKZmrzD}
+\end{bchapter}
+\endbibitem
+
+%%% 17
+\bibitem[\protect\citeauthoryear{Burger et~al.}{2025}]{burger2025dequify}
+\begin{bchapter}
+\bauthor{\bsnm{Burger}, \binits{A.}},
+\bauthor{\bsnm{Thiede}, \binits{L.}},
+\bauthor{\bsnm{Aspuru-Guzik}, \binits{A.}},
+\bauthor{\bsnm{Vijaykumar}, \binits{N.}}:
+\bctitle{{DEQ}uify your force field: More efficient simulations using deep
+  equilibrium models}.
+In: \bbtitle{AI for Accelerated Materials Design - ICLR 2025}
+(\byear{2025}).
+\burl{https://openreview.net/forum?id=XACVRYePQQ}
+\end{bchapter}
+\endbibitem
+
+%%% 18
+\bibitem[\protect\citeauthoryear{Unke et~al.}{2021}]{unke2021se}
+\begin{barticle}
+\bauthor{\bsnm{Unke}, \binits{O.}},
+\bauthor{\bsnm{Bogojeski}, \binits{M.}},
+\bauthor{\bsnm{Gastegger}, \binits{M.}},
+\bauthor{\bsnm{Geiger}, \binits{M.}},
+\bauthor{\bsnm{Smidt}, \binits{T.}},
+\bauthor{\bsnm{M{\"u}ller}, \binits{K.-R.}}:
+\batitle{{SE}(3)-equivariant prediction of molecular wavefunctions and
+  electronic densities}.
+\bjtitle{Advances in Neural Information Processing Systems}
+\bvolume{34},
+\bfpage{14434}--\blpage{14447}
+(\byear{2021})
+\end{barticle}
+\endbibitem
+
+%%% 19
+\bibitem[\protect\citeauthoryear{Yu et~al.}{2023}]{yu2023efficient}
+\begin{bchapter}
+\bauthor{\bsnm{Yu}, \binits{H.}},
+\bauthor{\bsnm{Xu}, \binits{Z.}},
+\bauthor{\bsnm{Qian}, \binits{X.}},
+\bauthor{\bsnm{Qian}, \binits{X.}},
+\bauthor{\bsnm{Ji}, \binits{S.}}:
+\bctitle{Efficient and equivariant graph networks for predicting quantum
+  hamiltonian}.
+In: \bbtitle{International Conference on Machine Learning},
+pp. \bfpage{40412}--\blpage{40424}
+(\byear{2023}).
+\bcomment{PMLR}
+\end{bchapter}
+\endbibitem
+
+%%% 20
+\bibitem[\protect\citeauthoryear{Kaniselvan et~al.}{2026}]{kaniselvan2025helm}
+\begin{bchapter}
+\bauthor{\bsnm{Kaniselvan}, \binits{M.}},
+\bauthor{\bsnm{Miller}, \binits{B.K.}},
+\bauthor{\bsnm{Gao}, \binits{M.}},
+\bauthor{\bsnm{Nam}, \binits{J.}},
+\bauthor{\bsnm{Levine}, \binits{D.S.}}:
+\bctitle{Learning from the electronic structure of molecules across the
+  periodic table}.
+In: \bbtitle{The Fourteenth International Conference on Learning
+  Representations}
+(\byear{2026}).
+\burl{https://openreview.net/forum?id=PS1YS8Wv4t}
+\end{bchapter}
+\endbibitem
+
+%%% 21
+\bibitem[\protect\citeauthoryear{Li et~al.}{2025}]{li2025enhancing}
+\begin{bchapter}
+\bauthor{\bsnm{Li}, \binits{Y.}},
+\bauthor{\bsnm{Xia}, \binits{Z.}},
+\bauthor{\bsnm{Huang}, \binits{L.}},
+\bauthor{\bsnm{Wei}, \binits{X.}},
+\bauthor{\bsnm{Harshe}, \binits{S.}},
+\bauthor{\bsnm{Yang}, \binits{H.}},
+\bauthor{\bsnm{Luo}, \binits{E.}},
+\bauthor{\bsnm{Wang}, \binits{Z.}},
+\bauthor{\bsnm{Zhang}, \binits{J.}},
+\bauthor{\bsnm{Liu}, \binits{C.}},
+\bauthor{\bsnm{Shao}, \binits{B.}},
+\bauthor{\bsnm{Gerstein}, \binits{M.}}:
+\bctitle{Enhancing the scalability and applicability of kohn-sham hamiltonians
+  for molecular systems}.
+In: \bbtitle{The Thirteenth International Conference on Learning
+  Representations}
+(\byear{2025}).
+\burl{https://openreview.net/forum?id=twEvvkQqPS}
+\end{bchapter}
+\endbibitem
+
+%%% 22
+\bibitem[\protect\citeauthoryear{Febrer et~al.}{2025}]{febrer2025graph2mat}
+\begin{barticle}
+\bauthor{\bsnm{Febrer}, \binits{P.}},
+\bauthor{\bsnm{J{\o}rgensen}, \binits{P.B.}},
+\bauthor{\bsnm{Pruneda}, \binits{M.}},
+\bauthor{\bsnm{Garc{\'\i}a}, \binits{A.}},
+\bauthor{\bsnm{Ordej{\'o}n}, \binits{P.}},
+\bauthor{\bsnm{Bhowmik}, \binits{A.}}:
+\batitle{Graph2mat: universal graph to matrix conversion for electron density
+  prediction}.
+\bjtitle{Machine Learning: Science and Technology}
+\bvolume{6}(\bissue{2}),
+\bfpage{025013}
+(\byear{2025})
+\end{barticle}
+\endbibitem
+
+%%% 23
+\bibitem[\protect\citeauthoryear{Thiede et~al.}{2026}]{thiede2026mole}
+\begin{bchapter}
+\bauthor{\bsnm{Thiede}, \binits{L.A.}},
+\bauthor{\bsnm{Aldossary}, \binits{A.}},
+\bauthor{\bsnm{Burger}, \binits{A.}},
+\bauthor{\bsnm{Campos-Gonzalez-Angulo}, \binits{J.A.}},
+\bauthor{\bsnm{Zook}, \binits{A.}},
+\bauthor{\bsnm{Alkan}, \binits{M.}},
+\bauthor{\bsnm{Nakaji}, \binits{K.}},
+\bauthor{\bsnm{Patti}, \binits{T.L.}},
+\bauthor{\bsnm{Gonthier}, \binits{J.F.}},
+\bauthor{\bsnm{Vakili}, \binits{M.G.}},
+\bauthor{\bsnm{Aspuru-Guzik}, \binits{A.}}:
+\bctitle{Coupled cluster con {M{\={o}}Le}: Molecular orbital learning for
+  neural wavefunctions}.
+In: \bbtitle{Proceedings of the 43rd International Conference on Machine
+  Learning}.
+\bsertitle{Proceedings of Machine Learning Research},
+vol. \bseriesno{306}.
+\bpublisher{PMLR},
+\blocation{Seoul, South Korea}
+(\byear{2026}).
+\bcomment{arXiv:2602.20232}.
+\burl{https://openreview.net/forum?id=i5QhkUCzJh}
+\end{bchapter}
+\endbibitem
+
+%%% 24
+\bibitem[\protect\citeauthoryear{Burger et~al.}{2026}]{burger2026molelambda}
+\begin{bchapter}
+\bauthor{\bsnm{Burger}, \binits{A.}},
+\bauthor{\bsnm{Thiede}, \binits{L.A.}},
+\bauthor{\bsnm{Aldossary}, \binits{A.}},
+\bauthor{\bsnm{Campos-Gonzalez-Angulo}, \binits{J.A.}},
+\bauthor{\bsnm{Zook}, \binits{A.}},
+\bauthor{\bsnm{Gonthier}, \binits{J.F.}},
+\bauthor{\bsnm{Aspuru-Guzik}, \binits{A.}}:
+\bctitle{{M{\={o}}Le}-{$\Lambda$}: Learning the coupled-cluster response state
+  for energies, gradients, and properties}.
+In: \bbtitle{AI4Physics: An {ICML} 2026 Workshop on {AI} for Physics},
+\bconflocation{Seoul, South Korea}
+(\byear{2026}).
+\bcomment{arXiv:2605.29622}.
+\burl{https://icml.cc/virtual/2026/72615}
+\end{bchapter}
+\endbibitem
+
+%%% 25
+\bibitem[\protect\citeauthoryear{Yang et~al.}{2024}]{yang2024}
+\begin{barticle}
+\bauthor{\bsnm{Yang}, \binits{X.}},
+\bauthor{\bsnm{Ma}, \binits{H.}},
+\bauthor{\bsnm{Lu}, \binits{Q.}},
+\bauthor{\bsnm{Bian}, \binits{W.}}:
+\batitle{Efficient {{Method}} for {{Numerical Calculations}} of {{Molecular
+  Vibrational Frequencies}} by {{Exploiting Sparseness}} of {{Hessian
+  Matrix}}}.
+\bjtitle{The Journal of Physical Chemistry A}
+\bvolume{128}(\bissue{15}),
+\bfpage{3024}--\blpage{3032}
+(\byear{2024})
+\doiurl{10.1021/acs.jpca.3c07645}
+\end{barticle}
+\endbibitem
+
+%%% 26
+\bibitem[\protect\citeauthoryear{Yuan et~al.}{2024}]{yuan2024}
+\begin{barticle}
+\bauthor{\bsnm{Yuan}, \binits{E.C.-Y.}},
+\bauthor{\bsnm{Kumar}, \binits{A.}},
+\bauthor{\bsnm{Guan}, \binits{X.}},
+\bauthor{\bsnm{Hermes}, \binits{E.D.}},
+\bauthor{\bsnm{Rosen}, \binits{A.S.}},
+\bauthor{\bsnm{Z{\'a}dor}, \binits{J.}},
+\bauthor{\bsnm{{Head-Gordon}}, \binits{T.}},
+\bauthor{\bsnm{Blau}, \binits{S.M.}}:
+\batitle{Analytical ab initio hessian from a deep learning potential for
+  transition state optimization}.
+\bjtitle{Nature Communications}
+\bvolume{15}(\bissue{1}),
+\bfpage{8865}
+(\byear{2024})
+\doiurl{10.1038/s41467-024-52481-5}
+\end{barticle}
+\endbibitem
+
+%%% 27
+\bibitem[\protect\citeauthoryear{G{\"o}nnheimer et~al.}{2025}]{gonnheimer2025}
+\begin{barticle}
+\bauthor{\bsnm{G{\"o}nnheimer}, \binits{N.}},
+\bauthor{\bsnm{Reuter}, \binits{K.}},
+\bauthor{\bsnm{Margraf}, \binits{J.T.}}:
+\batitle{Beyond {{Numerical Hessians}}: {{Higher-Order Derivatives}} for
+  {{Machine Learning Interatomic Potentials}} via {{Automatic
+  Differentiation}}}.
+\bjtitle{Journal of Chemical Theory and Computation}
+\bvolume{21}(\bissue{9}),
+\bfpage{4742}--\blpage{4752}
+(\byear{2025})
+\doiurl{10.1021/acs.jctc.4c01790}
+\end{barticle}
+\endbibitem
+
+%%% 28
+\bibitem[\protect\citeauthoryear{Rodriguez et~al.}{2025}]{rodriguez2025}
+\begin{barticle}
+\bauthor{\bsnm{Rodriguez}, \binits{A.}},
+\bauthor{\bsnm{Smith}, \binits{J.S.}},
+\bauthor{\bsnm{{Mendoza-Cortes}}, \binits{J.L.}}:
+\batitle{Does {{Hessian Data Improve}} the {{Performance}} of {{Machine
+  Learning Potentials}}?}
+\bjtitle{Journal of Chemical Theory and Computation}
+(\byear{2025})
+\doiurl{10.1021/acs.jctc.5c00402}
+\end{barticle}
+\endbibitem
+
+%%% 29
+\bibitem[\protect\citeauthoryear{Williams et~al.}{2025}]{williams2025}
+\begin{barticle}
+\bauthor{\bsnm{Williams}, \binits{N.J.}},
+\bauthor{\bsnm{Kabalan}, \binits{L.}},
+\bauthor{\bsnm{Stojanovic}, \binits{L.}},
+\bauthor{\bsnm{Z{\'o}lyomi}, \binits{V.}},
+\bauthor{\bsnm{{Pyzer-Knapp}}, \binits{E.O.}}:
+\batitle{Hessian {{QM9}}: {{A}} quantum chemistry database of molecular
+  {{Hessians}} in implicit solvents}.
+\bjtitle{Scientific Data}
+\bvolume{12}(\bissue{1}),
+\bfpage{9}
+(\byear{2025})
+\doiurl{10.1038/s41597-024-04361-2}
+\end{barticle}
+\endbibitem
+
+%%% 30
+\bibitem[\protect\citeauthoryear{Cui et~al.}{2026}]{cui2025horm}
+\begin{barticle}
+\bauthor{\bsnm{Cui}, \binits{T.}},
+\bauthor{\bsnm{Han}, \binits{Y.}},
+\bauthor{\bsnm{Jia}, \binits{H.}},
+\bauthor{\bsnm{Duan}, \binits{C.}},
+\bauthor{\bsnm{Zhao}, \binits{Q.}}:
+\batitle{A large scale molecular hessian database for optimizing reactive
+  machine learning interatomic potentials}.
+\bjtitle{Scientific Data}
+\bvolume{13},
+\bfpage{37}
+(\byear{2026})
+\doiurl{10.1038/s41597-025-06350-5}
+\end{barticle}
+\endbibitem
+
+%%% 31
+\bibitem[\protect\citeauthoryear{Zhao et~al.}{2025}]{zhao2025}
+\begin{barticle}
+\bauthor{\bsnm{Zhao}, \binits{Q.}},
+\bauthor{\bsnm{Han}, \binits{Y.}},
+\bauthor{\bsnm{Zhang}, \binits{D.}},
+\bauthor{\bsnm{Wang}, \binits{J.}},
+\bauthor{\bsnm{Zhong}, \binits{P.}},
+\bauthor{\bsnm{Cui}, \binits{T.}},
+\bauthor{\bsnm{Yin}, \binits{B.}},
+\bauthor{\bsnm{Cao}, \binits{Y.}},
+\bauthor{\bsnm{Jia}, \binits{H.}},
+\bauthor{\bsnm{Duan}, \binits{C.}}:
+\batitle{Harnessing machine learning to enhance transition state search with
+  interatomic potentials and generative models}.
+\bjtitle{Advanced Science}
+\bvolume{12}(\bissue{34}),
+\bfpage{06240}
+(\byear{2025})
+\doiurl{10.1002/advs.202506240}
+\end{barticle}
+\endbibitem
+
+%%% 32
+\bibitem[\protect\citeauthoryear{Christensen and
+  Von~Lilienfeld}{2020}]{christensen2020forces}
+\begin{barticle}
+\bauthor{\bsnm{Christensen}, \binits{A.S.}},
+\bauthor{\bsnm{Von~Lilienfeld}, \binits{O.A.}}:
+\batitle{On the role of gradients for machine learning of molecular energies
+  and forces}.
+\bjtitle{Machine Learning: Science and Technology}
+\bvolume{1}(\bissue{4}),
+\bfpage{045018}
+(\byear{2020})
+\doiurl{10.1088/2632-2153/abba6f}
+\end{barticle}
+\endbibitem
+
+%%% 33
+\bibitem[\protect\citeauthoryear{Fu et~al.}{2025}]{fu2025}
+\begin{bchapter}
+\bauthor{\bsnm{Fu}, \binits{X.}},
+\bauthor{\bsnm{Wood}, \binits{B.M.}},
+\bauthor{\bsnm{Barroso-Luque}, \binits{L.}},
+\bauthor{\bsnm{Levine}, \binits{D.S.}},
+\bauthor{\bsnm{Gao}, \binits{M.}},
+\bauthor{\bsnm{Dzamba}, \binits{M.}},
+\bauthor{\bsnm{Zitnick}, \binits{C.L.}}:
+\bctitle{Learning smooth and expressive interatomic potentials for physical
+  property prediction}.
+In: \bbtitle{Proceedings of the 42nd International Conference on Machine
+  Learning}.
+\bsertitle{Proceedings of Machine Learning Research},
+vol. \bseriesno{267},
+pp. \bfpage{17875}--\blpage{17893}.
+\bpublisher{PMLR},
+\blocation{Vancouver, Canada}
+(\byear{2025}).
+\burl{https://proceedings.mlr.press/v267/fu25h.html}
+\end{bchapter}
+\endbibitem
+
+%%% 34
+\bibitem[\protect\citeauthoryear{Wander et~al.}{2025}]{wander2025accessing}
+\begin{barticle}
+\bauthor{\bsnm{Wander}, \binits{B.}},
+\bauthor{\bsnm{Musielewicz}, \binits{J.}},
+\bauthor{\bsnm{Cheula}, \binits{R.}},
+\bauthor{\bsnm{Kitchin}, \binits{J.R.}}:
+\batitle{Accessing numerical energy hessians with graph neural network
+  potentials and their application in heterogeneous catalysis}.
+\bjtitle{The Journal of Physical Chemistry C}
+\bvolume{129}(\bissue{7}),
+\bfpage{3510}--\blpage{3521}
+(\byear{2025})
+\end{barticle}
+\endbibitem
+
+%%% 35
+\bibitem[\protect\citeauthoryear{Christiansen et~al.}{2022}]{christiansen2022}
+\begin{barticle}
+\bauthor{\bsnm{Christiansen}, \binits{M.-P.V.}},
+\bauthor{\bsnm{R{\o}nne}, \binits{N.}},
+\bauthor{\bsnm{Hammer}, \binits{B.}}:
+\batitle{Atomistic global optimization {{X}}: {{A Python}} package for
+  optimization of atomistic structures}.
+\bjtitle{The Journal of Chemical Physics}
+\bvolume{157}(\bissue{5}),
+\bfpage{054701}
+(\byear{2022})
+\doiurl{10.1063/5.0094165}
+\end{barticle}
+\endbibitem
+
+%%% 36
+\bibitem[\protect\citeauthoryear{R{\o}nne et~al.}{2022}]{ronne2022}
+\begin{barticle}
+\bauthor{\bsnm{R{\o}nne}, \binits{N.}},
+\bauthor{\bsnm{Christiansen}, \binits{M.-P.V.}},
+\bauthor{\bsnm{Slavensky}, \binits{A.M.}},
+\bauthor{\bsnm{Tang}, \binits{Z.}},
+\bauthor{\bsnm{Brix}, \binits{F.}},
+\bauthor{\bsnm{Pedersen}, \binits{M.E.}},
+\bauthor{\bsnm{Bisbo}, \binits{M.K.}},
+\bauthor{\bsnm{Hammer}, \binits{B.}}:
+\batitle{Atomistic structure search using local surrogate model}.
+\bjtitle{The Journal of Chemical Physics}
+\bvolume{157}(\bissue{17}),
+\bfpage{174115}
+(\byear{2022})
+\doiurl{10.1063/5.0121748}
+\end{barticle}
+\endbibitem
+
+%%% 37
+\bibitem[\protect\citeauthoryear{Westermayr et~al.}{2023}]{westermayr2023}
+\begin{barticle}
+\bauthor{\bsnm{Westermayr}, \binits{J.}},
+\bauthor{\bsnm{Gilkes}, \binits{J.}},
+\bauthor{\bsnm{Barrett}, \binits{R.}},
+\bauthor{\bsnm{Maurer}, \binits{R.J.}}:
+\batitle{High-throughput property-driven generative design of functional
+  organic molecules}.
+\bjtitle{Nature Computational Science}
+\bvolume{3}(\bissue{2}),
+\bfpage{139}--\blpage{148}
+(\byear{2023})
+\doiurl{10.1038/s43588-022-00391-1}
+\end{barticle}
+\endbibitem
+
+%%% 38
+\bibitem[\protect\citeauthoryear{R{\o}nne}{2024}]{ronne2024}
+\begin{botherref}
+\oauthor{\bsnm{R{\o}nne}, \binits{N.}}:
+Generative diffusion model for surface structure discovery.
+Physical Review B
+\textbf{110}(23)
+(2024)
+\doiurl{10.1103/PhysRevB.110.235427}
+\end{botherref}
+\endbibitem
+
+%%% 39
+\bibitem[\protect\citeauthoryear{Bitzek et~al.}{2006}]{bitzek2006}
+\begin{barticle}
+\bauthor{\bsnm{Bitzek}, \binits{E.}},
+\bauthor{\bsnm{Koskinen}, \binits{P.}},
+\bauthor{\bsnm{Gähler}, \binits{F.}},
+\bauthor{\bsnm{Moseler}, \binits{M.}},
+\bauthor{\bsnm{Gumbsch}, \binits{P.}}:
+\batitle{Structural {{Relaxation Made Simple}}}.
+\bjtitle{Physical Review Letters}
+\bvolume{97}(\bissue{17}),
+\bfpage{170201}
+(\byear{2006})
+\doiurl{10.1103/PhysRevLett.97.170201}
+\end{barticle}
+\endbibitem
+
+%%% 40
+\bibitem[\protect\citeauthoryear{Simons et~al.}{1983}]{simons1983}
+\begin{barticle}
+\bauthor{\bsnm{Simons}, \binits{J.}},
+\bauthor{\bsnm{Joergensen}, \binits{P.}},
+\bauthor{\bsnm{Taylor}, \binits{H.}},
+\bauthor{\bsnm{Ozment}, \binits{J.}}:
+\batitle{Walking on potential energy surfaces}.
+\bjtitle{The Journal of Physical Chemistry}
+\bvolume{87}(\bissue{15}),
+\bfpage{2745}--\blpage{2753}
+(\byear{1983})
+\doiurl{10.1021/j100238a013} .
+Accessed 2025-09-16
+\end{barticle}
+\endbibitem
+
+%%% 41
+\bibitem[\protect\citeauthoryear{Banerjee et~al.}{1985}]{banerjee1985}
+\begin{barticle}
+\bauthor{\bsnm{Banerjee}, \binits{A.}},
+\bauthor{\bsnm{Adams}, \binits{N.}},
+\bauthor{\bsnm{Simons}, \binits{J.}},
+\bauthor{\bsnm{Shepard}, \binits{R.}}:
+\batitle{Search for stationary points on surfaces}.
+\bjtitle{The Journal of Physical Chemistry}
+\bvolume{89}(\bissue{1}),
+\bfpage{52}--\blpage{57}
+(\byear{1985})
+\doiurl{10.1021/j100247a015}
+\end{barticle}
+\endbibitem
+
+%%% 42
+\bibitem[\protect\citeauthoryear{Henkelman and Jónsson}{1999}]{henkelman1999}
+\begin{barticle}
+\bauthor{\bsnm{Henkelman}, \binits{G.}},
+\bauthor{\bsnm{Jónsson}, \binits{H.}}:
+\batitle{A dimer method for finding saddle points on high dimensional potential
+  surfaces using only first derivatives}.
+\bjtitle{The Journal of Chemical Physics}
+\bvolume{111}(\bissue{15}),
+\bfpage{7010}--\blpage{7022}
+(\byear{1999})
+\doiurl{10.1063/1.480097}
+\end{barticle}
+\endbibitem
+
+%%% 43
+\bibitem[\protect\citeauthoryear{Henkelman et~al.}{2000}]{henkelman2000}
+\begin{barticle}
+\bauthor{\bsnm{Henkelman}, \binits{G.}},
+\bauthor{\bsnm{Uberuaga}, \binits{B.P.}},
+\bauthor{\bsnm{Jónsson}, \binits{H.}}:
+\batitle{A climbing image nudged elastic band method for finding saddle points
+  and minimum energy paths}.
+\bjtitle{The Journal of Chemical Physics}
+\bvolume{113}(\bissue{22}),
+\bfpage{9901}--\blpage{9904}
+(\byear{2000})
+\doiurl{10.1063/1.1329672} .
+Accessed 2025-09-11
+\end{barticle}
+\endbibitem
+
+%%% 44
+\bibitem[\protect\citeauthoryear{Peters et~al.}{2004}]{peters2004}
+\begin{barticle}
+\bauthor{\bsnm{Peters}, \binits{B.}},
+\bauthor{\bsnm{Heyden}, \binits{A.}},
+\bauthor{\bsnm{Bell}, \binits{A.T.}},
+\bauthor{\bsnm{Chakraborty}, \binits{A.}}:
+\batitle{A growing string method for determining transition states:
+  {{Comparison}} to the nudged elastic band and string methods}.
+\bjtitle{The Journal of Chemical Physics}
+\bvolume{120}(\bissue{17}),
+\bfpage{7877}--\blpage{7886}
+(\byear{2004})
+\doiurl{10.1063/1.1691018} .
+Accessed 2025-09-11
+\end{barticle}
+\endbibitem
+
+%%% 45
+\bibitem[\protect\citeauthoryear{Zimmerman}{2015}]{zimmerman2015}
+\begin{barticle}
+\bauthor{\bsnm{Zimmerman}, \binits{P.M.}}:
+\batitle{Single-ended transition state finding with the growing string method}.
+\bjtitle{Journal of Computational Chemistry}
+\bvolume{36}(\bissue{9}),
+\bfpage{601}--\blpage{611}
+(\byear{2015})
+\doiurl{10.1002/jcc.23833}
+\end{barticle}
+\endbibitem
+
+%%% 46
+\bibitem[\protect\citeauthoryear{Louck and Galbraith}{1976}]{louck1976}
+\begin{barticle}
+\bauthor{\bsnm{Louck}, \binits{J.D.}},
+\bauthor{\bsnm{Galbraith}, \binits{H.W.}}:
+\batitle{Eckart vectors, {{Eckart}} frames, and polyatomic molecules}.
+\bjtitle{Reviews of Modern Physics}
+\bvolume{48}(\bissue{1}),
+\bfpage{69}--\blpage{106}
+(\byear{1976})
+\doiurl{10.1103/RevModPhys.48.69}
+\end{barticle}
+\endbibitem
+
+%%% 47
+\bibitem[\protect\citeauthoryear{van~der Aa
+  et~al.}{2007}]{aaComputationEigenvalueEigenvector2007}
+\begin{barticle}
+\bauthor{\bsnm{Aa}, \binits{N.}},
+\bauthor{\bsnm{Morsche}, \binits{H.}},
+\bauthor{\bsnm{Mattheij}, \binits{R.}}:
+\batitle{Computation of eigenvalue and eigenvector derivatives for a general
+  complex-valued eigensystem}.
+\bjtitle{The Electronic Journal of Linear Algebra}
+\bvolume{16},
+\bfpage{300}--\blpage{314}
+(\byear{2007})
+\doiurl{10.13001/1081-3810.1203}
+\end{barticle}
+\endbibitem
+
+\end{thebibliography}

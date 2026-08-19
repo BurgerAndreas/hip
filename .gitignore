@@ -17,6 +17,8 @@ runs/
 baseline_outputs/
 orca_*/
 
+data/reactbench_relaxation
+
 paper/
 latex/
 .overleaf-output/

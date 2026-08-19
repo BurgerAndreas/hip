@@ -1,0 +1,287 @@
+% Compile with pdfLaTeX (not XeLaTeX).
+% Local:  pdflatex -jobname=HIP_CoverLetter_generated HIP_CoverLetter_pdftex.tex
+% Overleaf: Menu -> Settings -> Compiler -> pdfLaTeX
+\documentclass[11pt,letterpaper]{article}
+
+\usepackage[
+  letterpaper,
+  left=58.6pt,
+  right=64.7pt,
+  top=22pt,
+  bottom=48.5pt,
+]{geometry}
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+
+% pdfLaTeX has no fontspec, so we use packaged Type 1 fonts.
+% Main text: XCharter (a close, embeddable stand-in for Georgia).
+% Header:    Times (ptm), always available, stands in for Times New Roman.
+\usepackage{XCharter}
+\newcommand{\headerfont}{\fontfamily{ptm}\selectfont}
+
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage[normalem]{ulem}
+\usepackage{microtype}
+
+\definecolor{urlblue}{RGB}{30,55,101}
+\definecolor{responsecolour}{RGB}{30,55,101}
+
+% Underlined link whose text and underline share the same colour.
+\newcommand{\ulink}[2]{{\color{urlblue}\uline{\href{#1}{#2}}}}
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{12.5pt}
+\AtBeginDocument{\fontsize{11.04}{12.5}\selectfont}
+
+\hypersetup{
+  colorlinks=true,
+  urlcolor=urlblue,
+  linkcolor=black,
+  pdfborder={0 0 0},
+}
+
+\pagestyle{empty}
+
+% \vspace*{-1cm}
+\newcommand{\headerline}[1]{{\fontsize{8.04}{9.2}\selectfont\headerfont #1\par}}
+\newcommand{\headerlineit}[1]{{\fontsize{8.04}{9.2}\selectfont\headerfont\itshape #1\par}}
+
+\begin{document}
+
+% --- Letterhead (page 1 only) ---
+\noindent
+\noindent
+\raisebox{-\height}{\includegraphics[width=203.4pt,keepaspectratio]{assets/page1_img0_trim.png}}%
+\hfill
+\raisebox{-\height}{\includegraphics[width=47.07pt,keepaspectratio]{assets/page1_img1_trim.png}}
+
+
+\vspace{5pt}
+
+% --- Contact block ---
+\noindent
+\begin{minipage}[t]{0.52\textwidth}
+  \headerline{Al\'an Aspuru-Guzik}
+  \headerlineit{Professor}
+  \headerlineit{Department of Chemistry}
+  \headerlineit{Department of Computer Science}
+  \headerlineit{Department of Chemical Engineering and Applied Chemistry}
+  \headerlineit{Department of Materials Science and Engineering}
+  \headerlineit{Institute of Medical Science}
+\end{minipage}%
+\hfill
+\begin{minipage}[t]{0.46\textwidth}
+  \raggedleft
+  \headerlineit{80 St. George Street, Room 421D}
+  \headerlineit{Toronto, ON M5S 3H6}
+  \headerlineit{Tel:\ 416-978-8927}
+  \headerlineit{Email:aspuru@utoronto.ca}
+  \headerlineit{Website: matter.toronto.edu}
+\end{minipage}
+
+% \vspace{10pt}
+
+\noindent\hfill June 23, 2026
+
+% \vspace{25pt}
+
+\noindent
+Dr.~Kaitlin McCardle\\
+Senior Editor\\
+Nature Computational Science\\
+Springer Nature, United States of America
+
+\vspace{5pt}
+
+\noindent
+\textbf{RE: REVISION \textendash\ ``Shoot from the HIP: Hessian Interatomic Potentials without Derivatives''}
+
+\vspace{5pt}
+
+\noindent Dear Dr.~McCardle and Reviewers,
+
+On behalf of my co-authors, I am pleased to submit our revised manuscript.
+We thank both reviewers for taking the time to provide constructive feedback. We believe the changes made in response to these reviews have substantially improved the work. 
+
+Most notably, we have expanded the out-of-distribution evaluation of the HIP methodology by investigating its predictive accuracy on molecules significantly larger than those included in the training dataset. Furthermore, we have made significant efforts to increase the interpretability of the work through the concrete case study of a proton transfer process in glycine, analyzing the correlation between Hessian and force errors, and demonstrating the positive influence on force predictions when Hessians are included during training. With these additions, we believe we have fully addressed the editor's request for additional quantitative experiments demonstrating the method's generalizability, as well as a deeper discussion of its interpretability and limitations.
+
+We provide a point-by-point response ({\color{responsecolour}in blue}) to each of the reviewer's comments below, alongside the updated manuscript and a diff indicating the changes made.
+
+Thank you for your time and consideration. We look forward to hearing from you.
+
+\noindent Sincerely,\\
+Al\'an Aspuru-Guzik\\
+on behalf of all authors
+
+\vspace{3pt}
+\noindent\includegraphics[width=141.75pt,height=45pt,keepaspectratio]{assets/page2_img0.jpeg}
+
+\vspace{6pt}
+{\setlength{\parskip}{0pt}%
+\noindent
+Director, Acceleration Consortium\\
+Professor of Chemistry\\
+Professor of Computer Science\\
+Professor of Chemical Engineering and Applied Chemistry\\
+Professor of Materials Science and Engineering\\
+Faculty Member, Institute of Medical Science\\
+University of Toronto\\ [12.5pt]
+CIFAR AI Chair\\
+Vector Institute for Artificial Intelligence\\ %[12.5pt]
+Senior Director of Quantum Chemistry, NVIDIA\par}
+
+% \newpage
+
+\noindent
+Fellow of the Royal Society of Canada (FRSC) | CIFAR Senior Fellow | Fellow Massey College | Fellow Royal Society of Chemistry (UK) | Fellow of the American Association for the Advancement of Science (AAAS) | American Physical Society (APS) Fellow | NSERC Industrial Research Chair in Quantum Computing | Canada 150 Laureate Chair in Quantum Chemistry
+
+% \newpage
+
+\subsection*{Reviewer 2: Remarks to the Author}
+\paragraph{Summary}
+
+\noindent This paper introduces Hessian Interatomic Potentials (HIP), a method for directly predicting molecular Hessians using SE(3)-equivariant neural networks without relying on automatic differentiation or finite differences. The approach constructs symmetric, equivariant Hessians from learned features and demonstrates substantial reductions in computational cost along with improved accuracy across several downstream tasks including geometry optimization, transition state search, and vibrational analysis.
+
+\paragraph{Strengths}
+
+\noindent The paper addresses an important computational bottleneck in chemistry and materials science. The idea of directly predicting Hessians is conceptually simple and impactful. The method is grounded in symmetry principles, ensuring equivariance and matrix symmetry by construction. The reported speedups and memory improvements are substantial. I appreciate that the evaluation includes downstream applications, strengthening the practical relevance of the approach. Overall, I find this to be a technically sophisticated and well-written study that merits publication in Nature Computational Science.
+
+\vspace{1mm}
+{\color{responsecolour}
+\noindent We thank Reviewer 2 for taking the time to review our work and for the highly positive assessment of our methodology and results.
+}
+\vspace{5mm}
+
+\paragraph{Weaknesses}
+
+\noindent There are only a few noted weaknesses, some of which is with the framing and publication.
+
+
+\noindent 1. A key place that I think that the authors could do more due diligence is identifying and explaining where and when Hessian-misprediction occurs in AD architectures, and the implications of this on the underlying energy surface. Is any of this attributable to underlying noise in the energy surface? How well-behaved and physically consistent are the learned Hessians? In essence, I feel the paper could go much further with the interpretable aspect of the work, and its implications for actual simulations, rather than benchmark values.
+
+\vspace{1mm}
+{\color{responsecolour}
+\noindent We completely agree that an increased focus on the interpretability of the work is highly valuable, and the inclusion of several new analyses has substantially strengthened the revised manuscript. Concretely, we investigated a proton transfer process in glycine (Fig. 2) to directly compare HIP and AD Hessian accuracy.
+
+This analysis reveals that AD Hessians are significantly less accurate—often completely misclassifying stationary points (Fig. 2a) and that these errors are directly attributable to underlying noise in the learned potential energy surface (Fig. 2c). As the reviewer correctly intuited, AD Hessians fail in regions where the learned force field is accurate on average, but lacks absolute smoothness. Because AD relies on exact mathematical derivatives, small fluctuations in the forces are drastically amplified, resulting in large Hessian errors and spurious imaginary modes.
+
+Crucially, we demonstrate that this pathological noise amplification persists across both direct-force (EquiformerV2) and conservative (LeftNet-CF) architectures. Consequently, AD Hessians often lack physical consistency. In contrast, HIP’s direct, supervised prediction bypasses this sequential differentiation entirely, allowing it to predict highly accurate Hessians (Fig. 2a-b) without being derailed by local noise.
+
+To further strengthen the interpretability, we also added scatter plots correlating the force and Hessian mean absolute errors for HIP, AD, and AD without Hessian training (Fig. 5d-f in the revised manuscript). This demonstrates that the HIP methodology not only improves Hessian predictions but synergistically improves the underlying force predictions as well.
+
+}
+\vspace{1mm}
+
+\noindent 2. Furthermore, the authors present results limited to nice, large, benchmark datasets. How does HIP-NN perform in the low-data limit or for out-of-sample data?
+
+{\color{responsecolour}
+\noindent We have significantly expanded the out-of-sample testing of the HIP methodology and compared it directly against AD Hessians. Fig. 3c-d in the revised manuscript shows the accuracy of the predicted Hessian eigenvalues compared to DFT for the RGD1 dataset (which includes molecules larger than those in the training set) and for larger molecules taken from PubChem. We demonstrate a significant improvement in accuracy over AD Hessians, while maintaining a fraction of the computational cost.
+
+To address performance in the low-data limit, Fig. 5a-c in the revised manuscript plots the energy, force, and Hessian MAE as a function of the number of training samples. We observe a learning curve for Hessians that closely mirrors the learning curves for energies and forces, demonstrating robust data efficiency and confirming that HIP performs reliably even in low-data regimes.
+
+}
+\vspace{1mm}
+
+
+\noindent 3. The paper is very long, and some tightening of wording or writing is warranted.
+
+
+{\color{responsecolour}
+\noindent We agree and have tightened the wording. Specifically, we condensed the conceptual HIP overview in the Introduction and streamlined the "HIP framework for Hessian prediction" subsection in the Results. We also conducted a comprehensive proofread to refine the phrasing throughout the manuscript.
+}
+
+\subsection*{Reviewer 2: Remarks on code availability}
+The code is approximately 8 months old with one contributor. This is no real documentation, and in the developer's words "Unfortunetly, the code is a horrible mess."
+
+I would require considerable cleanup of code and creation of proper documentation prior to publication.
+
+{\color{responsecolour}
+\noindent We are unsure if these comments relate to our github repository BurgerAndreas/hip or the repository deepprinciple/ReactBench. We completely agree that the deepprinciple/ReactBench is a "horrible mess". This benchmark was released based on work from Zhao et al. We use this benchmark as is to remain comparable but have no influence on their codebase.
+
+Our repository BurgerAndreas/hip was previously updated before the submission three months ago. We since optimized the code further, and updated dependencies (June 9 2026). Our code includes documentation in the readme and a ready-to-run example file.
+}
+
+
+\subsection*{Reviewer 3: Remarks to the Author}
+This paper is solid. The results and methods are presented straightforwardly, which is much appreciated, the benefits are clear, and the advance represented is compelling. I don’t do much with molecular MLIPs these days, but if I did I’d definitely be interested in using this. Thus, I have very little feedback, and recommend publication. In the spirit of finding something constructive to say, here are a few things that the authors could consider.
+
+{\color{responsecolour}
+\noindent We thank Reviewer 3 for taking the time to read the manuscript and for the highly encouraging feedback.
+}
+\vspace{1mm}
+
+\noindent 1) You could expand a little on the utility of hessians for broader audiences in the introduction - specifically mentioning that (a) transition state searching is used for parameterization of reaction rates and microkinetic models used in longer-length scale models and (b) vibrational analysis is used for computation of free energies at non-zero-K conditions.
+
+{\color{responsecolour}
+\noindent Thank you for this excellent suggestion. We agree that the manuscript benefits from contextualizing the work for a broader audience. We have expanded the Introduction to elaborate on the concrete computational workflows that require Hessian information. Specifically, we explicitly mention the connection between transition-state searching and parameterizing microkinetic models, as well as the necessity of vibrational analysis for computing non-zero temperature thermodynamic free energies.
+}
+\vspace{1mm}
+
+\noindent 2) I’m also curious about how adaptable this method would be to lattice dynamics in cases with periodic boundary conditions - specifically for e.g. predictions of the second-order elastic tensor. The authors could comment on that in the prospects for future work. If that seems straightforward, it might promote interest in similar methodologies from the solid-state community.
+
+{\color{responsecolour}
+\noindent HIP is highly adaptable to periodic systems, provided the underlying graph neural network backbone accommodates periodic boundary conditions. The HIP readout can thus be easily appended to most modern MLIPs and trained on periodic structures. We anticipate this will be a highly impactful tool for predicting phonon dispersions and second-order elastic tensors. We thank the reviewer for this insight. We have added a more elaborate discussion on the connection to solid-state systems and periodic boundary conditions to the Discussion section of the revised manuscript.
+
+}
+\vspace{1mm}
+
+\noindent I also had a conversation with a (appropriately sandboxed) LLM about the paper, but I found many of its critiques to be overstated. For example, it suggested a more even-handed presentation of the fact that AD doesn’t strictly require hessian labels and can infer directly from forces/energies, whereas HIP has a more hard requirement of hessian labels, which are expensive, but the authors address this point in their discussion of AD’s practical requirements of Hessian labels. As a comment, it is a bit curious that a method with more strict ties to physics and derivative relationships (e.g. AD) would have the practical weaknesses highlighted in this paper - but my intuition is that the authors’ method has the right “mix” of physics and mathematical constraints to keep predictions grounded, accurate, and efficient.
+
+{\color{responsecolour}
+\noindent We thank the reviewer for this comment and appreciate the critical evaluation of the LLM's critique. While an MLIP trained solely on energies and forces can technically be used to evaluate the Hessian via AD, the resulting accuracy is generally insufficient for practical downstream applications (see Fig. 5f in the revised manuscript). Although AD is a mathematically natural choice, its severe computational expense inherently restricts its viability for large-scale training with Hessian supervision.
+
+Conversely, HIP provides very fast Hessian predictions, enabling much simpler and more scalable training on ground-truth Hessians. While AD is strictly grounded in exact derivative relationships, Fig. 5d-e in the revised manuscript shows that HIP actually improves force predictions more effectively than the AD model. We hypothesize that this behavior stems from the HIP model possessing a more navigable and stable loss landscape compared to the highly complex gradients required by AD.
+}
+\vspace{1mm}
+
+\noindent Minor typos:\\
+Line 91: “by a an order”\\
+Line 566: “Schwartz” should be “Schwarz”\\
+Fig 1 Caption: usually see F = dE / dR denoted F = -dE / dR\\
+
+{\color{responsecolour}
+\noindent The typos have been corrected. We thank the reviewer for catching them.
+}
+\vspace{1mm}
+
+\subsection*{Reviewer 3: Remarks on code availability}
+
+Code looks pretty solid. I'm not gonna be able to verify the training code works, don't have access to the necessary hardware. Did verify that the example code works by slightly modifying the default install to use Python 3.12 and CPU-compatible torch-cluster / torch-scatter. Probably not worth looking into in too much detail.
+
+{\color{responsecolour}
+\noindent We thank the reviewer for testing and validating the example code.
+}
+
+% \newpage
+% Thank you for your time and consideration. We look forward to hearing from you.
+
+% \noindent Sincerely,\\
+% Al\'an Aspuru-Guzik\\
+% on behalf of all authors
+
+% \vspace{3pt}
+% \noindent\includegraphics[width=141.75pt,height=45pt,keepaspectratio]{assets/page2_img0.jpeg}
+
+% \vspace{6pt}
+% {\setlength{\parskip}{0pt}%
+% \noindent
+% Director, Acceleration Consortium\\
+% Professor of Chemistry\\
+% Professor of Computer Science\\
+% Professor of Chemical Engineering and Applied Chemistry\\
+% Professor of Materials Science and Engineering\\
+% Faculty Member, Institute of Medical Science\\
+% University of Toronto\\[12.5pt]
+% CIFAR AI Chair\\
+% Vector Institute for Artificial Intelligence\\[12.5pt]
+% Senior Director of Quantum Chemistry, NVIDIA\par}
+
+% \newpage
+
+% \noindent
+% Fellow of the Royal Society of Canada (FRSC) | CIFAR Senior Fellow | Fellow Massey College | Fellow Royal Society of Chemistry (UK) | Fellow of the American Association for the Advancement of Science (AAAS) | American Physical Society (APS) Fellow | NSERC Industrial Research Chair in Quantum Computing | Canada 150 Laureate Chair in Quantum Chemistry
+
+\end{document}

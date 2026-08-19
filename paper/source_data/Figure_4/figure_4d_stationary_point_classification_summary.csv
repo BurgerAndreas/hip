@@ -1,0 +1,6 @@
+model,number_of_geometries,exact_negative_mode_matches,exact_negative_mode_accuracy_fraction,three_class_matches,three_class_accuracy_fraction
+AlphaNet AD,1000,692,0.692,749,0.749
+LeftNet-CF AD,1000,837,0.837,877,0.877
+LeftNet-DF AD,1000,804,0.804,843,0.843
+EquiformerV2 AD,1000,751,0.751,789,0.789
+HIP,1000,868,0.868,902,0.902
