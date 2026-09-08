@@ -1418,7 +1418,7 @@ Bold values highlight the best-performing model. Baseline AD models are taken fr
     \textbf{Glycine proton transfer.}
     \textbf{(a)} Number of negative eigenvalues of the Eckart-projected, mass-weighted Hessian over the two-dimensional surface defined by the N--H and O--H distances, $q_{\mathrm{NH}}$ and $q_{\mathrm{OH}}$. Density-functional theory (DFT) provides the reference. Hessian interatomic potential (HIP) denotes direct Hessian prediction and automatic differentiation (AD) denotes Hessians differentiated from learned forces. Shading gives the integer negative-mode count and black lines are DFT energy contours. Circles, stars and triangles mark the reactant, transition state and product, respectively. In the molecular rendering, carbon is grey, hydrogen white, nitrogen blue and oxygen red.
     \textbf{(b)} Six lowest Hessian eigenvalues, $\lambda_1$--$\lambda_6$, along 145 minimum-energy-path (MEP) geometries versus the collective variable $\xi=q_{\mathrm{NH}}-q_{\mathrm{OH}}$. DFT is shown as grey points, HIP as solid orange lines and EquiformerV2 (EqV2) AD as dotted blue lines.
-    \textbf{(c)} Force projected onto the unit tangent $\widehat{\bm{\xi}}$ of the MEP (left), force residual relative to DFT (middle) and Hessian mean absolute error (MAE; right). DFT is shown as grey points, EqV2 AD as dotted blue lines and LeftNet-CF AD as solid purple lines.
+    \textbf{(c)} Force projected onto the unit tangent $\widehat{\bm{\xi}}$ of the MEP (left), force residual relative to DFT (middle) and Hessian mean absolute error (MAE; right). DFT is shown as grey points, EqV2 AD as dotted blue lines and LeftNet-CF AD as dashed purple lines.
     }
     \label{fig:glycine}
 \end{figure}
@@ -1428,8 +1428,8 @@ Bold values highlight the best-performing model. Baseline AD models are taken fr
      \caption{
      \textbf{Computational cost and molecular-size scaling.}
      Hessian interatomic potential (HIP) denotes direct Hessian prediction, automatic differentiation (AD) denotes Hessians differentiated from learned forces or energies, and finite difference (FD) denotes numerical force differentiation.
-     \textbf{(a,b)} Mean single-molecule inference time (a) and peak graphics-processing-unit (GPU) memory (b) versus atom count on an RTX 3060 GPU; shading shows one standard deviation over replicates. The forward pass is teal and dotted, HIP orange, direct-force AD blue, conservative-force AD purple and FD dark grey. The forward-pass and HIP curves overlap.
-     \textbf{(c,d)} Mean eigenvalue mean absolute error (MAE) of the Eckart-projected Hessian versus atom count for HORM-RGD1 (c) and ten PubChem samples per atom count (d) \cite{kim2025pubchem}; shading shows one standard deviation over samples. HIP is shown by orange diamonds and AD by blue circles. The vertical grey dashed line in panel c marks the largest molecule size represented during training.
+     \textbf{(a,b)} Mean single-molecule inference time (a) and peak graphics-processing-unit (GPU) memory (b) versus atom count on an RTX 3060 GPU; shading shows one standard deviation over replicates. The forward pass is teal and dotted, HIP orange, direct-force AD dotted blue, conservative-force AD dashed purple and FD dark grey (dash-dotted in panel a, solid in panel b), all without markers except HIP circles. The forward-pass and HIP curves overlap.
+     \textbf{(c,d)} Mean eigenvalue mean absolute error (MAE) of the Eckart-projected Hessian versus atom count for HORM-RGD1 (c) and ten PubChem samples per atom count (d) \cite{kim2025pubchem}; shading shows one standard deviation over samples. HIP is shown by orange circles and AD as a dotted blue line. The vertical grey dashed line in panel c marks the largest molecule size represented during training.
      }
      \label{fig:speed_memory}
 \end{figure}

@@ -19,6 +19,7 @@ from plot_style import (  # noqa: E402
 PANEL_LABEL_SIZE = 18
 AXIS_LABEL_SIZE = 15.5
 LEGEND_FONT_SIZE = 11.5
+HIP_MARKER_SIZE = 3.6
 
 
 EIGVAL_MAE_COLUMNS = (
@@ -42,13 +43,44 @@ def _color_for_method(method):
     return HESSIAN_METHOD_TO_COLOUR.get(method_lower, "#cfcfcf")
 
 
-def _dash_for_memory(method):
+def _is_finite_difference(method):
+    return "finite_difference" in str(method).lower()
+
+
+def _style_for_time(method):
     method_lower = str(method).lower()
     if method_lower == "prediction":
-        return ""
+        return {"marker": "o", "linestyle": "--"}
+    if method_lower == "autograd":
+        return {"marker": "None", "linestyle": ":"}
+    if method_lower == "autograd_conservative":
+        return {"marker": "None", "linestyle": "--"}
+    if _is_finite_difference(method):
+        return {"marker": "None", "linestyle": "-."}
     if method_lower == "forward_pass":
-        return "dot"
-    return "solid"
+        return {"marker": "None", "linestyle": "-"}
+    return {"marker": "o", "linestyle": "-"}
+
+
+def _markersize_for_method(method):
+    if str(method).lower() == "prediction":
+        return HIP_MARKER_SIZE
+    return MARKER_SIZE
+
+
+def _style_for_memory(method):
+    method_lower = str(method).lower()
+    if method_lower == "prediction":
+        return {"marker": "o", "linestyle": "None"}
+    if method_lower == "autograd":
+        return {"marker": "None", "linestyle": ":"}
+    if method_lower == "autograd_conservative":
+        return {"marker": "None", "linestyle": "--"}
+    if _is_finite_difference(method):
+        return {"marker": "None", "linestyle": "-"}
+    if method_lower == "forward_pass":
+        return {"marker": "None", "linestyle": ":"}
+    return {"marker": "o", "linestyle": "-"}
 
 
 def _display_name(method):
@@ -279,6 +311,7 @@ def make_plot_seaborn(
 
     for method in avg_times.columns:
         color = _color_for_method(method)
+        style = _style_for_time(method)
         ax_time.fill_between(
             avg_times.index,
             avg_times[method] - std_times[method],
@@ -291,18 +324,17 @@ def make_plot_seaborn(
         ax_time.plot(
             avg_times.index,
             avg_times[method],
-            marker="D" if method == "prediction" else "o",
-            linestyle="--" if method == "prediction" else "-",
             linewidth=LINE_WIDTH,
-            markersize=MARKER_SIZE,
+            markersize=_markersize_for_method(method),
             label=_display_name(method),
             color=color,
             zorder=3,
+            **style,
         )
 
     for method in avg_memory.columns:
         color = _color_for_method(method)
-        linestyle = ":" if _dash_for_memory(method) == "dot" else "-"
+        style = _style_for_memory(method)
         ax_memory.fill_between(
             avg_memory.index,
             avg_memory[method] - std_memory[method],
@@ -312,27 +344,15 @@ def make_plot_seaborn(
             linewidth=0,
             zorder=2,
         )
-        if method == "prediction":
-            ax_memory.plot(
-                avg_memory.index,
-                avg_memory[method],
-                marker="D",
-                linestyle="None",
-                markersize=MARKER_SIZE,
-                color=color,
-                zorder=3,
-            )
-        else:
-            ax_memory.plot(
-                avg_memory.index,
-                avg_memory[method],
-                marker="o",
-                linewidth=LINE_WIDTH,
-                markersize=MARKER_SIZE,
-                linestyle=linestyle,
-                color=color,
-                zorder=3,
-            )
+        ax_memory.plot(
+            avg_memory.index,
+            avg_memory[method],
+            linewidth=LINE_WIDTH,
+            markersize=_markersize_for_method(method),
+            color=color,
+            zorder=3,
+            **style,
+        )
 
     label_to_method = {"HIP": "prediction", "AD": "autograd"}
     for label in ["HIP", "AD"]:
@@ -354,9 +374,10 @@ def make_plot_seaborn(
             ax_rgd1.plot(
                 x_values,
                 mean,
-                marker="D" if label == "HIP" else "o",
+                marker="o" if label == "HIP" else "None",
+                linestyle="-" if label == "HIP" else ":",
                 linewidth=LINE_WIDTH,
-                markersize=MARKER_SIZE,
+                markersize=HIP_MARKER_SIZE if label == "HIP" else MARKER_SIZE,
                 color=color,
                 zorder=3,
             )
@@ -378,9 +399,10 @@ def make_plot_seaborn(
             ax_pubchem.plot(
                 x_values,
                 mean,
-                marker="D" if label == "HIP" else "o",
+                marker="o" if label == "HIP" else "None",
+                linestyle="-" if label == "HIP" else ":",
                 linewidth=LINE_WIDTH,
-                markersize=MARKER_SIZE,
+                markersize=HIP_MARKER_SIZE if label == "HIP" else MARKER_SIZE,
                 color=color,
                 zorder=3,
             )

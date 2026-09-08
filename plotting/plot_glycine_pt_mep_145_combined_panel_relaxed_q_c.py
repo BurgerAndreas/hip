@@ -83,8 +83,12 @@ STATIONARY_LEGEND_FONTSIZE_SCALE = 1.18
 PANEL_LABEL_SIZE = 18
 PANEL_LABEL_COLOR = "#2F4565"
 ROW_LABEL_Y_DOTS = 28
-ROW_LABEL_Y_DOTS_BC_EXTRA = 48
 ROW_LABEL_X_DOTS = -72
+TOP_ROW_LEFT_SHIFT = 0.022
+MOLECULE_EXTRA_LEFT_SHIFT = 0.024
+TOP_ROW_MOLECULE_WIDTH = 0.58
+TOP_ROW_WSPACE = 0.08
+TOP_ROW_SURFACE_SCALE = 0.95
 
 METHOD_COLORS = {
     DFT_LABEL: DFT_COLOR,
@@ -94,7 +98,12 @@ METHOD_COLORS = {
     LEFTNET_CF_LABEL: LEFTNET_CF_FORCE_COLOR,
 }
 METHOD_MARKERS = {DFT_LABEL: "D", HIP_LABEL: "s", EQV2_LABEL: "o"}
-METHOD_LINESTYLES = {DFT_LABEL: "-", HIP_LABEL: "-", EQV2_LABEL: ":"}
+METHOD_LINESTYLES = {
+    DFT_LABEL: "-",
+    HIP_LABEL: "-",
+    EQV2_LABEL: ":",
+    LEFTNET_CF_LABEL: "--",
+}
 PLOT_METHOD_ORDER = (DFT_LABEL, EQV2_LABEL, HIP_LABEL)
 DFT_EIGENVALUE_COLOR = "#5A5A5A"
 NEGATIVE_MODE_DODGE = {DFT_LABEL: -0.06, HIP_LABEL: 0.0, EQV2_LABEL: 0.06}
@@ -224,7 +233,11 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--mep-eqv2-arrays", type=Path, default=None)
     parser.add_argument("--leftnet-cf-arrays", type=Path, default=None)
     parser.add_argument("--output", type=Path, default=None)
-    parser.add_argument("--show-panel-labels", action="store_true", default=False)
+    parser.add_argument(
+        "--show-panel-labels",
+        action=argparse.BooleanOptionalAction,
+        default=True,
+    )
     parser.add_argument("--x-axis", choices=["xi", "frame"], default="xi")
     parser.add_argument("--n-eigs", type=int, default=6)
     parser.add_argument("--negative-threshold", type=float, default=-1e-6)
@@ -401,9 +414,8 @@ def add_row_labels(fig: plt.Figure, anchor_axes: list[plt.Axes]) -> None:
     fig.draw_without_rendering()
     x_label = row_label_x_figure(fig, anchor_axes[1])
     for panel_label, ax in zip("abc", anchor_axes, strict=True):
-        y_dots = ROW_LABEL_Y_DOTS + (ROW_LABEL_Y_DOTS_BC_EXTRA if panel_label in "bc" else 0)
         base = blended_transform_factory(fig.transFigure, ax.transAxes)
-        transform = offset_copy(base, fig=fig, x=0, y=y_dots, units="dots")
+        transform = offset_copy(base, fig=fig, x=0, y=ROW_LABEL_Y_DOTS, units="dots")
         ax.text(
             x_label,
             1.0,
@@ -431,8 +443,7 @@ def add_stationary_legend(fig: plt.Figure, gs_row) -> None:
         bbox_transform=fig.transFigure,
         ncol=3,
         fontsize=tick_label_size() * STATIONARY_LEGEND_FONTSIZE_SCALE,
-        frameon=True,
-        edgecolor="none",
+        frameon=False,
         markerscale=1.05,
         borderaxespad=0,
         handletextpad=0.4,
@@ -669,22 +680,39 @@ def draw_vector_top_panel(fig: plt.Figure, gs_row, args: argparse.Namespace) -> 
     cmap = plt.get_cmap("magma", vmax - vmin + 1)
     norm = BoundaryNorm(np.arange(vmin - 0.5, vmax + 1.5, 1.0), cmap.N)
 
-    sub = gs_row.subgridspec(1, 4, width_ratios=[0.78, 1.0, 1.0, 1.0], wspace=0.12)
+    sub = gs_row.subgridspec(
+        1, 4, width_ratios=[TOP_ROW_MOLECULE_WIDTH, 1.0, 1.0, 1.0], wspace=TOP_ROW_WSPACE
+    )
     molecule_ax = fig.add_subplot(sub[0, 0])
     molecule_ax.imshow(trim_white(Image.open(args.ts_image), padding=4).convert("RGB"))
     molecule_ax.axis("off")
     molecule_ax.set_anchor("W")
-    molecule_position = molecule_ax.get_position()
-    molecule_ax.set_position(
-        [
-            molecule_position.x0 - 0.018,
-            molecule_position.y0,
-            molecule_position.width,
-            molecule_position.height,
-        ]
-    )
 
     axes = [fig.add_subplot(sub[0, idx]) for idx in range(1, 4)]
+    for ax in (molecule_ax, *axes):
+        extra = MOLECULE_EXTRA_LEFT_SHIFT if ax is molecule_ax else 0.0
+        position = ax.get_position()
+        ax.set_position(
+            [
+                position.x0 - TOP_ROW_LEFT_SHIFT - extra,
+                position.y0,
+                position.width,
+                position.height,
+            ]
+        )
+    surface_positions = [ax.get_position() for ax in axes]
+    group_x0 = min(p.x0 for p in surface_positions)
+    group_y0 = min(p.y0 for p in surface_positions)
+    scale = TOP_ROW_SURFACE_SCALE
+    for ax, position in zip(axes, surface_positions, strict=True):
+        ax.set_position(
+            [
+                group_x0 + (position.x0 - group_x0) * scale,
+                group_y0 + (position.y0 - group_y0) * scale,
+                position.width * scale,
+                position.height * scale,
+            ]
+        )
     mesh = None
     for idx, (ax, (q_nh, q_oh, values), title) in enumerate(
         zip(axes, mode_grids, ("DFT", "HIP", "AD"), strict=True)

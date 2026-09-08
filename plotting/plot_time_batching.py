@@ -108,11 +108,17 @@ def main() -> None:
     )
     ratio = ad1 / hip
     ax.annotate(
-        f"{ratio:.0f}$\\times$",
+        "",
         xy=(hip_max_bz, hip),
-        xytext=(18, ad1 * 0.45),
+        xytext=(1, ad1),
         textcoords="data",
         arrowprops=dict(arrowstyle="->", color="#5A5A5A", lw=1.2),
+        zorder=4,
+    )
+    ax.text(
+        (1 + hip_max_bz) / 2,
+        1.2 * (ad1 * hip) ** 0.5,
+        f"{ratio:.0f}$\\times$",
         ha="center",
         va="bottom",
         fontsize=14,
