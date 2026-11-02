@@ -9,6 +9,7 @@ from nets.equiformer_v2.equiformer_v2_oc20 import EquiformerV2_OC20
 def test_generate_graph_honors_explicit_false(monkeypatch):
     model = EquiformerV2_OC20.__new__(EquiformerV2_OC20)
     torch.nn.Module.__init__(model)
+    model.regress_forces = False
     model.cutoff = 5.0
     model.max_neighbors = 1000
     model.use_pbc = False
