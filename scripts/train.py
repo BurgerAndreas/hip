@@ -63,7 +63,9 @@ def configure_runtime_warnings():
         message=r"The AccumulateGrad node's stream does not match.*",
         category=UserWarning,
     )
-    torch.autograd.graph.set_warn_on_accumulate_grad_stream_mismatch(False)
+    set_stream_warning = getattr(torch.autograd.graph, "set_warn_on_accumulate_grad_stream_mismatch", None)
+    if set_stream_warning is not None:
+        set_stream_warning(False)
 
 
 def setup_training(cfg: DictConfig):
