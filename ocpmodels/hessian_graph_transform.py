@@ -49,14 +49,14 @@ class HessianGraphTransform(BaseTransform):
         self,
         cutoff=5.0,
         cutoff_hessian=100,
-        backbone_max_neighbors=32,
+        backbone_max_neighbors=1000,
         use_pbc=False,
         fully_connected_hessian=True,
     ):
         """
         Args:
             cutoff: cutoff radius for the graph
-            backbone_max_neighbors: maximum number of neighbors for the backbone graph. None means 32.
+            backbone_max_neighbors: maximum number of neighbors for the backbone graph. The default is 1000.
             use_pbc: whether to use periodic boundary conditions
         """
         super().__init__()

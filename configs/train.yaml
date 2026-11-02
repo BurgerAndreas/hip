@@ -19,7 +19,7 @@ model:
   enable_hessian_head: true
 
   max_radius: 5.0
-  max_neighbors: 32
+  max_neighbors: 1000
   cutoff_hessian: 100.0
   fully_connected_hessian: true # ignores cutoff_hessian
 

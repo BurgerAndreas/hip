@@ -42,6 +42,17 @@ uv sync --python 3.12 --extra cuda121
 
 ## Use our model
 
+New training runs and the checkpoint inference helpers use a backbone limit of
+1,000 neighbors by default. Set `max_neighbors` on the ASE or Torch calculator
+to choose another limit, or use `None` to retain the checkpoint value. Models
+passed directly to a calculator keep their own settings. Loading a checkpoint
+directly with Lightning also retains its saved setting.
+
+For direct model calls, `rebuild_backbone_graph` and `rebuild_hessian_graph`
+control graph creation independently. `None` retains the model default for the
+backbone and the legacy `otf_graph` choice for the Hessian. Explicit `False`
+reuses an available graph. Full Hessian connectivity is a separate setting.
+
 Download the latest checkpoints from HuggingFace:
 
 ```bash
