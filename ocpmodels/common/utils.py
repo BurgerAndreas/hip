@@ -47,7 +47,7 @@ def conditional_grad(dec):
 def generate_graph(
     data,
     cutoff=None,
-    max_neighbors=32,
+    max_neighbors=1000,
     use_pbc=None,
 ):
     if use_pbc:

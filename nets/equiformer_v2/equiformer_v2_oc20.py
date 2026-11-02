@@ -154,7 +154,7 @@ class EquiformerV2_OC20(BaseModel):
         use_pbc=True,
         regress_forces=True,
         otf_graph=True,
-        max_neighbors=500,
+        max_neighbors=1000,
         max_radius=5.0,
         max_num_elements=90,
         num_layers=12,
@@ -611,10 +611,10 @@ class EquiformerV2_OC20(BaseModel):
         use_pbc=None,
         otf_graph=None,
     ):
-        cutoff = cutoff or self.cutoff
-        max_neighbors = max_neighbors or self.max_neighbors
-        use_pbc = use_pbc or self.use_pbc
-        otf_graph = otf_graph or self.otf_graph
+        cutoff = self.cutoff if cutoff is None else cutoff
+        max_neighbors = self.max_neighbors if max_neighbors is None else max_neighbors
+        use_pbc = self.use_pbc if use_pbc is None else use_pbc
+        otf_graph = self.otf_graph if otf_graph is None else otf_graph
 
         if not otf_graph:
             try:
@@ -683,11 +683,11 @@ class EquiformerV2_OC20(BaseModel):
         Used by HORM.
         Not sure why, maybe it is easier to differentiate through for autograd hessian?
         """
-        otf_graph = otf_graph or self.otf_graph
-        cutoff = cutoff or self.cutoff
+        otf_graph = self.otf_graph if otf_graph is None else otf_graph
+        cutoff = self.cutoff if cutoff is None else cutoff
         if otf_graph or not hasattr(data, "edge_distance"):
             pos = data.pos
-            edge_index = radius_graph(pos, r=cutoff, batch=data.batch)
+            edge_index = radius_graph(pos, r=cutoff, batch=data.batch, max_num_neighbors=self.max_neighbors)
             j, i = edge_index
             posj = pos[j]
             posi = pos[i]
@@ -708,13 +708,18 @@ class EquiformerV2_OC20(BaseModel):
         data,
         hessian=True,
         return_l_features=False,
-        otf_graph=None,  # will default to self.otf_graph
+        otf_graph=None,  # legacy Hessian graph choice
+        rebuild_backbone_graph=None,
+        rebuild_hessian_graph=None,
         **kwargs,
     ):
         """
         hessian=True means direct prediction of the Hessian.
 
-        Only pass otf_graph=True if you want to do Hessian from autograd on forces (no hessian prediction)!
+        rebuild_backbone_graph and rebuild_hessian_graph select graph generation
+        independently. None keeps the model default for the backbone, and the
+        legacy otf_graph choice for the Hessian. Explicit False reuses graph data
+        when available; missing graph data is generated on demand.
 
         Returns:
             energy: (N*B,)
@@ -723,6 +728,8 @@ class EquiformerV2_OC20(BaseModel):
                 hessian: (B*N*3*N*3)
         """
         otf_graph = self.otf_graph if otf_graph is None else otf_graph
+        if rebuild_hessian_graph is None:
+            rebuild_hessian_graph = otf_graph
         if hessian and not self.enable_hessian_head:
             raise ValueError(
                 "This EquiformerV2 checkpoint was loaded with enable_hessian_head=False. "
@@ -751,7 +758,7 @@ class EquiformerV2_OC20(BaseModel):
                 _,  # cell_offsets,
                 _,  # cell offset distances
                 _,  # neighbors,
-            ) = self.generate_graph(data)
+            ) = self.generate_graph(data, otf_graph=rebuild_backbone_graph)
 
             # (
             #     edge_index,  # [E, 2]
@@ -761,7 +768,7 @@ class EquiformerV2_OC20(BaseModel):
 
             if hessian:
                 # Generate graph for direct Hessian prediction.
-                if otf_graph or not hasattr(data, "nedges_hessian"):
+                if rebuild_hessian_graph or not hasattr(data, "nedges_hessian"):
                     data = add_hessian_graph_batch(
                         data,
                         cutoff=self.cutoff_hessian,

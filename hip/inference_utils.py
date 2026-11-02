@@ -35,7 +35,8 @@ def resolve_checkpoint_path(checkpoint_path):
     return str(path)
 
 
-def get_model_from_checkpoint(checkpoint_path, device):
+def get_model_from_checkpoint(checkpoint_path, device, max_neighbors=1000):
+    """Load a model with the inference neighbor limit; None uses the checkpoint."""
     ckpt = torch.load(checkpoint_path, weights_only=False, map_location=device)
     model_name = ckpt["hyper_parameters"]["model_config"]["name"]
     model = PotentialModule.load_from_checkpoint(
@@ -44,6 +45,8 @@ def get_model_from_checkpoint(checkpoint_path, device):
         map_location=device,
         weights_only=False,
     ).potential
+    if max_neighbors is not None:
+        model.max_neighbors = max_neighbors
     model.eval()
     model.name = model_name
     return model

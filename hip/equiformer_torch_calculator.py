@@ -61,6 +61,7 @@ class EquiformerTorchCalculator:
         device: Optional[torch.device] = None,
         hessian_method: str = "predict",
         model: torch.nn.Module = None,
+        max_neighbors: Optional[int] = 1000,
         **kwargs,
     ):
         """
@@ -70,6 +71,7 @@ class EquiformerTorchCalculator:
             checkpoint_path: Path to the trained Equiformer checkpoint file
             device: Optional device specification (defaults to auto-detect)
             hessian_method: Method to compute the Hessian
+            max_neighbors: Backbone limit for loaded checkpoints; None uses the saved value.
             model: Optional model (otherwise loaded from checkpoint)
         """
         if device is None:
@@ -78,7 +80,7 @@ class EquiformerTorchCalculator:
 
         if model is None:
             checkpoint_path = resolve_checkpoint_path(checkpoint_path)
-            model = get_model_from_checkpoint(checkpoint_path, device)
+            model = get_model_from_checkpoint(checkpoint_path, device, max_neighbors=max_neighbors)
 
         # Ensure model resides on the requested device
         self.potential = model.to(self.device)
