@@ -77,6 +77,11 @@ uv run example.py
 
 ## Setting up the HORM dataset for training
 
+Training checkpoints include a `provenance` record with the resolved settings,
+Git revision and dirty status, dataset SHA-256 hashes, software, and run details.
+The source patch and dataset contents are not stored. Dataset hashes are computed
+once in the background per training run; the first save waits if they are not ready.
+
 Our models are trained on the Hessian dataset for Optimizing Reactive MLIP (HORM).
 
 The HORM dataset is hosted on Kaggle.

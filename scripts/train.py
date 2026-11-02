@@ -24,6 +24,7 @@ from hip.path_config import (
     CHECKPOINT_PATH_EQUIFORMER_ORIG,
 )
 from hip.logging_utils import name_from_config, find_latest_checkpoint
+from hip.checkpoint_provenance import CheckpointProvenance
 
 
 def patch_argparse_lazy_help_for_python314():
@@ -269,6 +270,8 @@ def setup_training(cfg: DictConfig):
     #     cfg.checkpoint_name = checkpoint_name
     cfg_dict = OmegaConf.to_container(cfg, resolve=True, throw_on_missing=False)
     cfg_dict["checkpoint_name"] = checkpoint_name
+    if cfg.ckpt_do_save:
+        callbacks.append(CheckpointProvenance(cfg_dict, os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
     if cfg.use_wandb:
         wandb_logger = WandbLogger(
