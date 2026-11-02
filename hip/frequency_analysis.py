@@ -338,6 +338,22 @@ def massweigh_and_eckartprojection_torch(
     return proj_hessian_t
 
 
+def massweigh_and_eckartprojection_pair_torch(hessian_a, hessian_b, cart_coords, atomsymbols):
+    """Project two Hessians for the same geometry using one Eckart projector."""
+    masses = torch.tensor(
+        [MASS_DICT[atom.lower()] for atom in atomsymbols],
+        dtype=torch.float64, device=hessian_a.device,
+    )
+    projector = get_trans_rot_projector_torch(cart_coords, masses=masses, full=False)
+    masses3d = masses.repeat_interleave(3)
+    projected = []
+    for hessian in (hessian_a, hessian_b):
+        weighted = massweigh_hessian_torch(hessian, masses3d)
+        matrix = projector @ weighted @ projector.T
+        projected.append((matrix + matrix.T) / 2.0)
+    return tuple(projected)
+
+
 def analyze_frequencies_torch(
     hessian: torch.Tensor,  # eV/Angstrom^2
     cart_coords: torch.Tensor,  # Angstrom
