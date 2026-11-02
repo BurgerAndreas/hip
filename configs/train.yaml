@@ -21,6 +21,7 @@ model:
   max_radius: 5.0
   max_neighbors: 1000
   cutoff_hessian: 100.0
+  hessian_graph_cutoff: null # null uses cutoff_hessian; does not change the radial basis
   fully_connected_hessian: true # ignores cutoff_hessian
 
   hessian_no_attn_weights: True # build Hessian off-diagonal elements from raw messages without attention weights

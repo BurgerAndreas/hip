@@ -312,7 +312,7 @@ class PotentialModule(LightningModule):
                 if self.use_hessian_graph_transform:
                     transform = HessianGraphTransform(
                         cutoff=self.potential.cutoff,
-                        cutoff_hessian=self.potential.cutoff_hessian,
+                        cutoff_hessian=self.potential.hessian_graph_cutoff,
                         backbone_max_neighbors=self.potential.max_neighbors,
                         use_pbc=self.potential.use_pbc,
                         fully_connected_hessian=getattr(
@@ -340,7 +340,7 @@ class PotentialModule(LightningModule):
                 if self.use_hessian_graph_transform:
                     transform = HessianGraphTransform(
                         cutoff=self.potential.cutoff,
-                        cutoff_hessian=self.potential.cutoff_hessian,
+                        cutoff_hessian=self.potential.hessian_graph_cutoff,
                         backbone_max_neighbors=self.potential.max_neighbors,
                         use_pbc=self.potential.use_pbc,
                         fully_connected_hessian=getattr(

@@ -101,7 +101,7 @@ class CheckpointProvenance(Callback):
                 packages[name] = None
         model = pl_module.potential
         graph = {key: getattr(model, key, None) for key in
-                 ("max_neighbors", "cutoff", "cutoff_hessian", "fully_connected_hessian", "otf_graph", "use_pbc")}
+                 ("max_neighbors", "cutoff", "cutoff_hessian", "hessian_graph_cutoff", "fully_connected_hessian", "otf_graph", "use_pbc")}
         graph["backbone_builder"] = "radius_graph_pbc" if graph["use_pbc"] else "torch_geometric.nn.radius_graph"
         devices = [torch.cuda.get_device_name(i) for i in range(torch.cuda.device_count())]
         batch_size = self.config.get("training", {}).get("bz")

@@ -195,6 +195,7 @@ class EquiformerV2_OC20(BaseModel):
         # if to also use atom type embedding or just relative distances for edge features
         # in edge_distance
         cutoff_hessian=100.0,
+        hessian_graph_cutoff=None,
         hessian_no_attn_weights=False,  # messages without attention weights
         attn_wo_sigmoid=False,  # do not apply sigmoid to attention weights
         # not used, for compatibilit with old  with legacy ckpt
@@ -459,6 +460,7 @@ class EquiformerV2_OC20(BaseModel):
         ################################################################
 
         self.cutoff_hessian = cutoff_hessian
+        self.hessian_graph_cutoff = cutoff_hessian if hessian_graph_cutoff is None else hessian_graph_cutoff
         self.fully_connected_hessian = fully_connected_hessian
         self.hessian_module_list = []
         self.avg_degree_hessian = avg_degree_hessian
@@ -771,7 +773,7 @@ class EquiformerV2_OC20(BaseModel):
                 if rebuild_hessian_graph or not hasattr(data, "nedges_hessian"):
                     data = add_hessian_graph_batch(
                         data,
-                        cutoff=self.cutoff_hessian,
+                        cutoff=self.hessian_graph_cutoff,
                         use_pbc=False,
                         fully_connected=self.fully_connected_hessian,
                     )
