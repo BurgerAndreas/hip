@@ -3,11 +3,11 @@ from types import SimpleNamespace
 import torch
 from torch_geometric.data import Batch, Data
 
-from nets.equiformer_v2.equiformer_v2_oc20 import EquiformerV2
+from nets.equiformer_v2.equiformer_v2_oc20 import EquiformerV2_OC20
 
 
 def test_generate_graph_honors_explicit_false(monkeypatch):
-    model = EquiformerV2.__new__(EquiformerV2)
+    model = EquiformerV2_OC20.__new__(EquiformerV2_OC20)
     torch.nn.Module.__init__(model)
     model.cutoff = 5.0
     model.max_neighbors = 1000
