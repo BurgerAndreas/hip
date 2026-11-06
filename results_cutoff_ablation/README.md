@@ -27,12 +27,22 @@ than `hip_v3.ckpt`?
 | `hesspred_v1.ckpt` ([3a0aef9d](https://huggingface.co/andreasburger/hip/tree/3a0aef9d/ckpt)) | 2025-09 | 12.0 (precomputed graph, `otf_graph=False`) | 20 | 100 | v5 `ts1x_hess_train_big-hesspred` + RGD1 | 262 |
 | `hip_v2.ckpt` original ([3a0aef9d](https://huggingface.co/andreasburger/hip/commit/3a0aef9d)) | 2025-10-20 | **5.0** | 32 | 100 | v5 `ts1x_hess_train_big` | 1144 |
 | `hip_v2.ckpt` re-upload ([d3abd854](https://huggingface.co/andreasburger/hip/commit/d3abd854)) | 2026-06-12 | 5.0 | **1000** | 100 | same; weights bit-identical | 1144 |
-| `hip_v3.ckpt` ([49095693](https://huggingface.co/andreasburger/hip/commit/49095693)) | 2026-05-06 | **5.0** | 32 | 100 | v6 `ts1x_hess_train` | 1108 |
+| `hip_v3.ckpt` ([49095693](https://huggingface.co/andreasburger/hip/commit/49095693)) | 2026-05-06 | **5.0** | 32 | 100 | v6 `ts1x_hess_train` (byte-identical to v5 `train_big`) | 1108 |
 
-The graph settings of hip_v2 and hip_v3 are identical. Their other saved hyperparameter differences
-are the optimiser and data:
-- v2: lr 3e-4, betas (0.8, 0.95), Muon lr 0.02, cosine T_max 800, HORM v5 `train_big`.
-- v3: lr 4.4e-4, betas (0.965, 0.965), Muon lr 1e-3, T_max 300, HORM v6 `train`.
+The graph settings of hip_v2 and hip_v3 are identical. The backbone RBF buffer
+`distance_expansion.offset` in the weights spans 0–5 Å in both (0–12 Å in `hesspred_v1`). The buffer
+is fixed at construction and restored on every resume, so both models used 5 Å from the first step.
+
+The training data are also identical. HORM v6 `ts1x_hess_train.lmdb` has the same SHA-256 as v5
+`ts1x_hess_train_big.lmdb` (`a404b9eb…`); v6 only renamed it and dropped the `.h5`/`.json`
+side files. `ts1x-val.lmdb` is byte-identical too (`aab37592…`). The energy target is the LMDB `ae`
+field in every code version, with no E0 or atom-reference transform.
+
+The remaining saved differences are optimiser, schedule and length:
+- v2: lr 3e-4, betas (0.8, 0.95), Muon lr 0.02, weight decay 1e-5 (Muon 0.01), cosine T_max 800
+  with 40 warm-up epochs, 1144 epochs.
+- v3: lr 4.4e-4, betas (0.965, 0.965), Muon lr 1e-3, weight decay 2e-5 (Muon 1e-3), T_max 300 with
+  10 warm-up epochs, 1108 epochs.
 
 ### Code at the time hip_v2 was uploaded (commit [744423b](https://github.com/BurgerAndreas/hip/tree/744423bec207ed3092462eaf18c8e39116a31b20), 2025-10-20)
 
@@ -140,7 +150,12 @@ using the same projected evaluator (`scripts/eval_released.sbatch`). Results wil
   degrade above about 40 atoms.
 - So the 5 Å setting in hip_v2, Hessian graph included, was an accident, but it is what made hip_v2
   generalise.
-- hip_v3 was probably trained with the same 5 Å / 5 Å code, because its hyperparameters predate
-  `fully_connected_hessian`. Its PubChem numbers come from the fully connected Hessian graph and the
-  32-neighbour cap, and possibly reflect the HORM v6 data and different optimiser settings. These
-  confounds have not been separated yet.
+- hip_v3 was also trained as 5 Å / 5 Å. Commit a8c44d9 added `fully_connected_hessian: true` to
+  `configs/train.yaml`, and hip_v3's saved hyperparameters lack that key, so it predates the change.
+- Both released checkpoints are therefore evaluated out of their training setting. The current code
+  defaults to a fully connected Hessian graph when the key is missing, so every current evaluation,
+  including all numbers above, runs them with a fully connected Hessian graph. The ablation shows
+  this costs about 19× in PubChem Hessian MAE. hip_v3's existing numbers additionally use the
+  32-neighbour backbone cap.
+- Next step: evaluate both released checkpoints with `fully_connected_hessian=False`,
+  `hessian_graph_cutoff=5` and `max_neighbors=1000`, as they were trained.
