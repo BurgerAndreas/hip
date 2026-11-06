@@ -122,6 +122,9 @@ Definitions:
 | 12 Å / 12 Å | all | 0.181 (0.159) | 0.257 (0.212) | 13.3 (10.2) | 0.174 (0.020) |
 | 12 Å / 12 Å | clean | 0.131 (0.159) | 0.175 (0.212) | 9.25 (10.6) | 0.175 (0.020) |
 | 7 Å / 7 Å | – | training (jobs 7320441→7320443), evaluation queued (7320698) | | | |
+| 5 Å / 5 Å, Hessian Gaussians 0–5 Å (`cutoff_hessian=5`) | – | training (7321863→7321865), evaluation queued (7321875) | | | |
+| 5 Å / 5 Å + smooth envelope | – | training (7321866→7321868), evaluation queued (7321876) | | | |
+| 12 Å / 12 Å + smooth envelope | – | training (7321869→7321871), evaluation queued (7321877) | | | |
 
 Raw (unprojected) results, the outlier analysis and plots are in `pubchem/`:
 - `report.md` and `summary.json`
@@ -135,6 +138,24 @@ and PubChem_5281673 and PubChem_5281792 have contacts of 0.38 Å.
 Validation of the evaluator: on six smoke-test molecules, the adapted evaluator agrees with the
 unmodified `natcompsci-rebuttal` evaluator to within 5.6e-7. The full-space projector matches the
 rebuttal projector numerically.
+
+### Smooth-envelope ablation
+
+The baseline model has no smooth cutoff: the last backbone Gaussian is centred on the cutoff and the
+radial MLP has biases. Moving one H atom across 5 Å changes the 5 Å / 5 Å model's energy by
+**1.19 eV** (24.868 → 23.678 eV), and its Hessian block drops from 0.137 to exactly 0
+(`scripts/test_envelope.py`).
+
+`scripts/patch_envelope.py` adds `model.edge_envelope` with the DimeNet polynomial envelope u(d/r_c),
+p = 5. It applies the envelope in three places:
+- backbone attention weights, as u · softmax(a + log u), which keeps the normaliser continuous;
+- each edge's term in the edge-degree embedding;
+- the Hessian-head attention, and each off-diagonal 3×3 block via u(d / r_Hessian).
+
+With `edge_envelope=false` the patched code reproduces the original bit-for-bit. With it on, energy
+and Hessian are continuous through the cutoff. Training uses the copy
+`hip-envelope-20261106` of `hip-neighbors-retrain-20261102`, with the same settings via
+`scripts/train_ablation.sbatch`.
 
 ## Released checkpoints, same evaluator
 
