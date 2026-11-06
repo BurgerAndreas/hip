@@ -1,0 +1,170 @@
+{
+  "dataset": "andreasburger/hip:orca_wb97x_631gd_chno_30_100/h5",
+  "dataset_revision": "f869cabd92ebcc66223891d0b3e815766c9bba0e",
+  "rebuttal_commit": "666463211257c5ae3d345fae6882ae22f718b505",
+  "outlier_rule": "absolute modified z-score > 10 within each atom count, on Hessian MAE; remove the union of flagged sample names from all models",
+  "outlier_sample_count": 51,
+  "outlier_samples": [
+    "PubChem_5280344",
+    "PubChem_5280349",
+    "PubChem_5280489",
+    "PubChem_5280805",
+    "PubChem_5281673",
+    "PubChem_5281675",
+    "PubChem_5281792",
+    "PubChem_5281794",
+    "chno_xyz__n030_pubchem_04_2c581595d2",
+    "chno_xyz__n031_pubchem_06_e15c77b082",
+    "chno_xyz__n031_pubchem_07_35deea2bdf",
+    "chno_xyz__n031_pubchem_08_8ad1d3a56a",
+    "chno_xyz__n032_pubchem_06_8b2b26c9ac",
+    "chno_xyz__n033_pubchem_02_4e9d6319a4",
+    "chno_xyz__n033_pubchem_08_7bdc4e5df3",
+    "chno_xyz__n034_pubchem_03_6fbd989337",
+    "chno_xyz__n034_pubchem_05_97e54e66fa",
+    "chno_xyz__n035_pubchem_05_46d2d4caeb",
+    "chno_xyz__n035_pubchem_07_8b3afd7d12",
+    "chno_xyz__n035_pubchem_10_da4c68144e",
+    "chno_xyz__n036_pubchem_01_9372688d2e",
+    "chno_xyz__n036_pubchem_03_9753251700",
+    "chno_xyz__n036_pubchem_04_8a06f2e81b",
+    "chno_xyz__n036_pubchem_09_be2e4d5977",
+    "chno_xyz__n037_pubchem_05_de8c8b427f",
+    "chno_xyz__n037_pubchem_09_bf1544d8ab",
+    "chno_xyz__n038_pubchem_09_46d090e834",
+    "chno_xyz__n039_pubchem_01_0a1f9a6ff4",
+    "chno_xyz__n039_pubchem_02_7a8f6a9c70",
+    "chno_xyz__n041_pubchem_08_5eac95a579",
+    "chno_xyz__n043_pubchem_05_c52799fa6c",
+    "chno_xyz__n043_pubchem_06_854e1985bc",
+    "chno_xyz__n043_pubchem_09_be1552cadb",
+    "chno_xyz__n045_pubchem_08_c6e5c36f1c",
+    "chno_xyz__n046_pubchem_02_ff8f0e37ae",
+    "chno_xyz__n046_pubchem_03_ace899fa3a",
+    "chno_xyz__n046_pubchem_04_f3878c6165",
+    "chno_xyz__n046_pubchem_07_234fc5db1d",
+    "chno_xyz__n058_pubchem_03_b4a120b4f9",
+    "chno_xyz__n058_pubchem_08_cf06f97a88",
+    "chno_xyz__n058_pubchem_09_644b4dc9f4",
+    "chno_xyz__n061_pubchem_10_c54bccf0d9",
+    "chno_xyz__n075_pubchem_04_5ffe965e89",
+    "chno_xyz__n076_pubchem_03_8cff5d42ef",
+    "chno_xyz__n083_pubchem_03_1b8fa1d8e7",
+    "chno_xyz__n086_pubchem_07_da3121ab0c",
+    "chno_xyz__n091_pubchem_09_e77d16fae6",
+    "chno_xyz__n094_pubchem_03_d0da68bf22",
+    "chno_xyz__n094_pubchem_04_8f1a85008a",
+    "chno_xyz__n097_pubchem_04_b350a4372e",
+    "chno_xyz__n100_pubchem_01_2067bbedd4"
+  ],
+  "models": {
+    "5A_all": {
+      "all": {
+        "n": 710,
+        "mean": {
+          "hessian_mae_ev_a2": 0.20074097789365103,
+          "hessian_rel_mae": 0.20247524594610716,
+          "eckart_eigval_mae_ev_a2": 5.032986948955266,
+          "eckart_lowest_eigval_mae_ev_a2": 114.70638256094625,
+          "neg_num_agree": 0.061971830985915494
+        },
+        "median": {
+          "hessian_mae_ev_a2": 0.0600875962820799,
+          "hessian_rel_mae": 0.12970426943697744,
+          "eckart_eigval_mae_ev_a2": 0.39586018691037644,
+          "eckart_lowest_eigval_mae_ev_a2": 1.143272830497203,
+          "neg_num_agree": 0.0
+        }
+      },
+      "without_shared_outliers": {
+        "n": 659,
+        "mean": {
+          "hessian_mae_ev_a2": 0.0862947898274067,
+          "hessian_rel_mae": 0.1953799179928881,
+          "eckart_eigval_mae_ev_a2": 0.6961352238424823,
+          "eckart_lowest_eigval_mae_ev_a2": 1.3530050943559029,
+          "neg_num_agree": 0.0637329286798179
+        },
+        "median": {
+          "hessian_mae_ev_a2": 0.0586476471382782,
+          "hessian_rel_mae": 0.1296076655938887,
+          "eckart_eigval_mae_ev_a2": 0.3980714452106272,
+          "eckart_lowest_eigval_mae_ev_a2": 1.169264116697581,
+          "neg_num_agree": 0.0
+        }
+      }
+    },
+    "5A_5A": {
+      "all": {
+        "n": 710,
+        "mean": {
+          "hessian_mae_ev_a2": 0.11880489128603887,
+          "hessian_rel_mae": 0.021148614671604605,
+          "eckart_eigval_mae_ev_a2": 4.367328502575164,
+          "eckart_lowest_eigval_mae_ev_a2": 113.47349220954798,
+          "neg_num_agree": 0.04647887323943662
+        },
+        "median": {
+          "hessian_mae_ev_a2": 0.0052023145446162995,
+          "hessian_rel_mae": 0.00947502060196295,
+          "eckart_eigval_mae_ev_a2": 0.01555296127147285,
+          "eckart_lowest_eigval_mae_ev_a2": 0.012122219897459801,
+          "neg_num_agree": 0.0
+        }
+      },
+      "without_shared_outliers": {
+        "n": 659,
+        "mean": {
+          "hessian_mae_ev_a2": 0.005469186947710789,
+          "hessian_rel_mae": 0.010516145738000658,
+          "eckart_eigval_mae_ev_a2": 0.02326283314751093,
+          "eckart_lowest_eigval_mae_ev_a2": 0.01684697340322692,
+          "neg_num_agree": 0.042488619119878605
+        },
+        "median": {
+          "hessian_mae_ev_a2": 0.0051040908782414,
+          "hessian_rel_mae": 0.009583881107618,
+          "eckart_eigval_mae_ev_a2": 0.0159356326031836,
+          "eckart_lowest_eigval_mae_ev_a2": 0.0120899108906157,
+          "neg_num_agree": 0.0
+        }
+      }
+    },
+    "12A_12A": {
+      "all": {
+        "n": 710,
+        "mean": {
+          "hessian_mae_ev_a2": 0.5593974856766497,
+          "hessian_rel_mae": 0.9709540900538021,
+          "eckart_eigval_mae_ev_a2": 13.283868109939114,
+          "eckart_lowest_eigval_mae_ev_a2": 126.63494710529729,
+          "neg_num_agree": 0.056338028169014086
+        },
+        "median": {
+          "hessian_mae_ev_a2": 0.5236506004088788,
+          "hessian_rel_mae": 1.197001794686991,
+          "eckart_eigval_mae_ev_a2": 10.225895819336534,
+          "eckart_lowest_eigval_mae_ev_a2": 11.825952111075395,
+          "neg_num_agree": 0.0
+        }
+      },
+      "without_shared_outliers": {
+        "n": 659,
+        "mean": {
+          "hessian_mae_ev_a2": 0.4431883474285487,
+          "hessian_rel_mae": 0.9828052485511578,
+          "eckart_eigval_mae_ev_a2": 9.24788276706379,
+          "eckart_lowest_eigval_mae_ev_a2": 13.758278557866547,
+          "neg_num_agree": 0.05918057663125948
+        },
+        "median": {
+          "hessian_mae_ev_a2": 0.5183017803586196,
+          "hessian_rel_mae": 1.2615086036851342,
+          "eckart_eigval_mae_ev_a2": 10.622036727561827,
+          "eckart_lowest_eigval_mae_ev_a2": 12.101589703216712,
+          "neg_num_agree": 0.0
+        }
+      }
+    }
+  }
+}
