@@ -150,12 +150,21 @@ using the same projected evaluator (`scripts/eval_released.sbatch`). Results wil
   degrade above about 40 atoms.
 - So the 5 Å setting in hip_v2, Hessian graph included, was an accident, but it is what made hip_v2
   generalise.
-- hip_v3 was also trained as 5 Å / 5 Å. Commit a8c44d9 added `fully_connected_hessian: true` to
-  `configs/train.yaml`, and hip_v3's saved hyperparameters lack that key, so it predates the change.
-- Both released checkpoints are therefore evaluated out of their training setting. The current code
-  defaults to a fully connected Hessian graph when the key is missing, so every current evaluation,
-  including all numbers above, runs them with a fully connected Hessian graph. The ablation shows
-  this costs about 19× in PubChem Hessian MAE. hip_v3's existing numbers additionally use the
-  32-neighbour backbone cap.
-- Next step: evaluate both released checkpoints with `fully_connected_hessian=False`,
-  `hessian_graph_cutoff=5` and `max_neighbors=1000`, as they were trained.
+- **Correction (Hessian graph history).** On `main` the Hessian graph went through three phases:
+  - until 2026-01-02 it reused the backbone settings (5 Å, 32 neighbours);
+  - [195218c](https://github.com/BurgerAndreas/hip/commit/195218c) ("hessian graph cutoff bug",
+    2026-01-02) switched it to `cutoff_hessian=100` with a 1,000,000-neighbour cap, i.e. every atom
+    pair in these molecules;
+  - a8c44d9 (2026-05-03) replaced that with the explicit `fully_connected_hessian` flag.
+- hip_v2 (uploaded 2025-10-20) therefore trained as **5 Å / 5 Å**. hip_v3's hyperparameters (HORM v6
+  path, Lightning 2.6.1, both from 2026-03-28) date its last launch to between 2026-03-28 and
+  2026-05-03. So it most likely trained as **5 Å / fully connected**, the configuration that is about
+  19× worse on PubChem in the ablation. Earlier training segments may have used other code, because
+  the hyperparameters record only the last launch.
+- Optimiser: the saved optimiser state shows that hip_v2 was trained with **AdamW** (one parameter
+  group, Adam moments; `lr_muon` unused), while hip_v3 used Muon plus auxiliary Adam. The eigenvalue
+  loss was off for both (`alpha=None`). The ablations all used the hip_v3 optimiser, so the
+  optimiser effect is untested.
+- Pending: a behavioural probe (`scripts/probe_graph.py`, job 7321535) evaluates each checkpoint on
+  T1x-val and PubChem with the backbone capped at 32 or 1000 neighbours, and the Hessian graph fully
+  connected or at the backbone cutoff. The in-distribution optimum identifies the training graph.
