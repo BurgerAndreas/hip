@@ -209,6 +209,35 @@ Findings:
 - The means are dominated by the 51 reference outliers in every setting. The medians are the
   comparable numbers.
 
+### Inference Hessian-graph cutoff sweep
+
+`scripts/probe_cross.py` (job 7355327, [log](pubchem/probe-cross-7355327.out)) evaluates each
+checkpoint with its own backbone and a radius Hessian graph of 4–32 Å or fully connected, on the same 60
+PubChem molecules. Values are the median raw Hessian MAE in eV/Å². The best cutoff per model is in bold.
+
+| ckpt (training graph) | 4 | 5 | 6 | 7 | 9 | 12 | 16 | 32 | full |
+|---|---|---|---|---|---|---|---|---|---|
+| hip_v2 (5 / 5) | 0.0064 | **0.0049** | 0.0064 | 0.071 | 0.168 | 0.252 | 0.292 | 0.300 | 0.300 |
+| abl 5 / 5 | 0.0064 | **0.0047** | 0.0095 | 0.032 | 0.146 | 0.274 | 0.331 | 0.332 | 0.332 |
+| hip_v3 (5 / full) | 0.0057 | 0.0044 | 0.0039 | **0.0038** | 0.0043 | 0.256 | 0.278 | 0.278 | 0.278 |
+| abl 5 / full | 0.0064 | 0.0048 | 0.0042 | **0.0041** | 0.0047 | 0.053 | 0.078 | 0.078 | 0.078 |
+| abl 12 / 12 | **0.237** | 0.284 | 0.314 | 0.335 | 0.406 | 0.555 | 0.635 | 0.645 | 0.645 |
+
+- **Models trained with a 5 Å Hessian graph** are best at 5 Å, and their error rises quickly above 6 Å.
+- **Models trained fully connected** are best at about 7 Å, and the error stays flat from 6 to 9 Å. It
+  jumps at 12 Å.
+- **The jump is mostly in the near blocks, not the far ones.** When the 12 Å graph is used, the error on
+  atom pairs closer than 5 Å rises from 0.0075 to 0.64 for hip_v3, while the far-pair error only rises
+  to 0.03.
+  - The Hessian head's attention aggregates over every Hessian-graph neighbour. On large molecules it
+    sees far more neighbours than in T1x training, and this corrupts the local blocks too.
+  - So restricting the graph at inference keeps the Hessian layers in distribution; zeroing the
+    distant blocks is not the main effect.
+- **The 12 Å backbone fails at every Hessian cutoff.** Its far-pair error is small, but its near-pair
+  error is 0.6–1.5. **So the backbone graph also matters, independently of the Hessian graph.** The
+  12 Å / 5 Å and 5 Å / 12 Å training runs will separate the two in training.
+- Caveat: these cutoffs were chosen on PubChem molecules, which are the test set.
+
 ### Released checkpoints on all 710 molecules, same projected evaluator
 
 Job 7320536 (`scripts/eval_released.sbatch`) evaluates hip_v2 and hip_v3 on all 710 PubChem molecules
