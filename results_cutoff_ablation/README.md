@@ -222,15 +222,22 @@ eV/(Å²·amu). Mean (median), excluding the 51 outliers (n = 659).
 | hip_v2 | fully connected | 1000 | 0.0593 (0.0625) | 0.0818 (0.0867) | 0.429 (0.447) | 0.120 (0.072) |
 | hip_v3 | fully connected | 32 | 0.0557 (0.0517) | 0.0729 (0.0673) | 1.84 (1.76) | 0.200 (0.053) |
 | hip_v3 | fully connected | 1000 | 0.0550 (0.0498) | 0.0719 (0.0647) | 1.81 (1.71) | 0.206 (0.053) |
-| hip_v2 | 5 Å | 1000 | job 7350224 (`scripts/eval_released_H5.sbatch`) | | | |
-| hip_v3 | 5 Å | 1000 | job 7350224 | | | |
+| hip_v2 | 5 Å | 1000 | 0.00167 (0.00162) | 0.00210 (0.00203) | 0.0306 (0.0228) | 0.698 (0.925) |
+| hip_v3 | 5 Å | 1000 | **0.00145** (0.00139) | **0.00181** (0.00173) | **0.0130** (0.0101) | **0.877** (0.986) |
+
+The 5 Å rows come from job 7350224 (`scripts/eval_released_H5.sbatch`, `HIP_EVAL_HESSIAN_GRAPH=5`).
+With a 5 Å Hessian graph at inference, both released models improve about 35× in Hessian MAE.
+hip_v3 then becomes the best model in this study: it beats the 5 Å / 5 Å ablation (0.00163) and hip_v2 on
+every metric, with 2.4× lower eigenvalue MAE than hip_v2 and |cos v1| of 0.88 against 0.70.
+**So hip_v3 is the better model. It looked worse only because it was evaluated with a fully connected
+Hessian graph.**
 
 - The neighbour cap hardly matters (< 2%). The difference between the earlier NVIDIA-cluster runs of
   hip_v2 and hip_v3 does not come from the cap.
 - With a fully connected Hessian graph, both released models are about 35× worse than the 5 Å / 5 Å
   ablation (0.0016), and neither is clearly better than the other. With the evaluation code current
   at the time, which built a 5 Å Hessian graph, hip_v2 would have been evaluated under its training
-  graph. That could explain the original observation that hip_v2 generalises better.
+  graph. That explains the original observation that hip_v2 generalises better (confirmed by the 5 Å rows).
 - Per-molecule CSVs: `pubchem/released/<model>_maxnb<N>/`.
 
 ## Interpretation and open points

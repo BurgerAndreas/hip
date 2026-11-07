@@ -15,7 +15,7 @@ rows = []
 for cname, path in C.CKPTS.items():
     module = C.load_module_for_inference(Path(path), C.dev)
     model = module.potential.to(C.dev).eval(); model.max_neighbors = 1000
-    for hg in (5.0, 7.0, 12.0, 'full'):
+    for hg in (4.0, 5.0, 6.0, 7.0, 9.0, 12.0, 16.0, 32.0, 'full'):
         model.fully_connected_hessian = hg == 'full'
         model.hessian_graph_cutoff = 100.0 if hg == 'full' else hg
         mae, near, far = [], [], []
