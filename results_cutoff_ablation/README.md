@@ -131,6 +131,8 @@ Definitions:
 | 5 Å / 5 Å, Hessian Gaussians 0–5 Å (`cutoff_hessian=5`) | – | training (7321863→7321865), evaluation queued (7321875) | | | |
 | 5 Å / 5 Å + smooth envelope | – | training (7321866→7321868), evaluation queued (7321876) | | | |
 | 12 Å / 12 Å + smooth envelope | – | training (7321869→7321871), evaluation queued (7321877) | | | |
+| 12 Å / 5 Å (backbone vs Hessian graph, 2×2) | – | training (7350381→7350383), evaluation queued (7350384) | | | |
+| 5 Å / 12 Å (2×2) | – | training (7350385→7350387), evaluation queued (7350388) | | | |
 
 Raw (unprojected) results, the outlier analysis and plots are in `pubchem/`:
 - `report.md` and `summary.json`
