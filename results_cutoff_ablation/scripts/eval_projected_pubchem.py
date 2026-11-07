@@ -414,6 +414,10 @@ def main() -> None:
         model.cutoff_hessian = args.cutoff_hessian
     if args.max_neighbors is not None:
         model.max_neighbors = args.max_neighbors
+    if os.environ.get('HIP_EVAL_HESSIAN_GRAPH'):
+        # Evaluate with a radius Hessian graph (e.g. the 5 A graph hip_v2 was trained with).
+        model.fully_connected_hessian = False
+        model.hessian_graph_cutoff = float(os.environ['HIP_EVAL_HESSIAN_GRAPH'])
     print(
         "Effective graph settings: "
         f"cutoff={model.cutoff}, "

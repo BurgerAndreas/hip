@@ -1,0 +1,56 @@
+NB t1x_r5: mean 12.6 max 20
+NB t1x_r7: mean 13.3 max 20
+NB t1x_r12: mean 13.3 max 20
+NB t1x_natoms: mean 13.8 max 21
+NB pubchem_r5: mean 27.1 max 70
+NB pubchem_r7: mean 42.9 max 94
+NB pubchem_r12: mean 64.2 max 99
+NB pubchem_natoms: mean 65.0 max 100
+/project/aip-aspuru/aburger/hip-pubchem-eval-20261106/.venv/lib/python3.12/site-packages/lightning/fabric/utilities/cloud_io.py:73: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+CHECK_WEIGHTS all checkpoint state keys loaded
+ROW {"ckpt": "hip_v2", "setting": "nb32_Hfull", "backbone": 5.0, "t1x_H": 0.024424321354211617, "t1x_F": 0.01021509570729298, "t1x_E": 0.2521388244877259, "pub_H_mean": 0.3883409387671069, "pub_H_median": 0.30026469495025565}
+ROW {"ckpt": "hip_v2", "setting": "nb1000_Hfull", "backbone": 5.0, "t1x_H": 0.02442432295996696, "t1x_F": 0.010215095254437378, "t1x_E": 0.2521388248602549, "pub_H_mean": 0.387283568899519, "pub_H_median": 0.29982897380399387}
+ROW {"ckpt": "hip_v2", "setting": "nb32_Hown", "backbone": 5.0, "t1x_H": 0.021712054654490203, "t1x_F": 0.010215096149186137, "t1x_E": 0.25213882243881625, "pub_H_mean": 0.12144865041700166, "pub_H_median": 0.005002043596714453}
+ROW {"ckpt": "hip_v2", "setting": "nb1000_Hown", "backbone": 5.0, "t1x_H": 0.021712055402652673, "t1x_F": 0.01021509560853398, "t1x_E": 0.25213882644971214, "pub_H_mean": 0.11932466543970202, "pub_H_median": 0.0049161580943062125}
+CHECK_WEIGHTS all checkpoint state keys loaded
+ROW {"ckpt": "hip_v3", "setting": "nb32_Hfull", "backbone": 5.0, "t1x_H": 0.017821490086304646, "t1x_F": 0.007514755142716846, "t1x_E": 0.2527579086398085, "pub_H_mean": 0.3569416988471641, "pub_H_median": 0.2852070299870099}
+ROW {"ckpt": "hip_v3", "setting": "nb1000_Hfull", "backbone": 5.0, "t1x_H": 0.017821490531011175, "t1x_F": 0.007514755408628844, "t1x_E": 0.2527578931550185, "pub_H_mean": 0.3541252537157691, "pub_H_median": 0.27746036794396617}
+ROW {"ckpt": "hip_v3", "setting": "nb32_Hown", "backbone": 5.0, "t1x_H": 0.01823558889174213, "t1x_F": 0.007514754985362136, "t1x_E": 0.2527579235782226, "pub_H_mean": 0.11589657529410373, "pub_H_median": 0.0045292352869803106}
+ROW {"ckpt": "hip_v3", "setting": "nb1000_Hown", "backbone": 5.0, "t1x_H": 0.018235591573175045, "t1x_F": 0.007514754778142863, "t1x_E": 0.25275788314640524, "pub_H_mean": 0.11339023527223417, "pub_H_median": 0.0043637944616043145}
+CHECK_WEIGHTS all checkpoint state keys loaded
+ROW {"ckpt": "abl_5_all", "setting": "nb32_Hfull", "backbone": 5.0, "t1x_H": 0.022714039040729404, "t1x_F": 0.009831670227771004, "t1x_E": 0.2520718831010163, "pub_H_mean": 0.20679475961220325, "pub_H_median": 0.0922791601215939}
+ROW {"ckpt": "abl_5_all", "setting": "nb1000_Hfull", "backbone": 5.0, "t1x_H": 0.022714040362431357, "t1x_F": 0.009831669544413064, "t1x_E": 0.2520718866959214, "pub_H_mean": 0.20314075616422078, "pub_H_median": 0.07765789890871796}
+ROW {"ckpt": "abl_5_all", "setting": "nb32_Hown", "backbone": 5.0, "t1x_H": 0.023195658617963393, "t1x_F": 0.009831668990664184, "t1x_E": 0.2520718803318838, "pub_H_mean": 0.11638745141557792, "pub_H_median": 0.004802871084263081}
+ROW {"ckpt": "abl_5_all", "setting": "nb1000_Hown", "backbone": 5.0, "t1x_H": 0.02319566104095429, "t1x_F": 0.009831670343798275, "t1x_E": 0.2520718706585467, "pub_H_mean": 0.11413830287556676, "pub_H_median": 0.004771273839155637}
+CHECK_WEIGHTS all checkpoint state keys loaded
+ROW {"ckpt": "abl_5_5", "setting": "nb32_Hfull", "backbone": 5.0, "t1x_H": 0.025971440225839616, "t1x_F": 0.009805892057678041, "t1x_E": 0.24974363286048173, "pub_H_mean": 0.4142013268421082, "pub_H_median": 0.33142530613220955}
+ROW {"ckpt": "abl_5_5", "setting": "nb1000_Hfull", "backbone": 5.0, "t1x_H": 0.025971442201795678, "t1x_F": 0.009805892186705023, "t1x_E": 0.24974362215648094, "pub_H_mean": 0.4131555922558341, "pub_H_median": 0.33157113657621484}
+ROW {"ckpt": "abl_5_5", "setting": "nb32_Hown", "backbone": 5.0, "t1x_H": 0.02329339533112943, "t1x_F": 0.009805892529548145, "t1x_E": 0.2497436325872938, "pub_H_mean": 0.11699625344050993, "pub_H_median": 0.005028082247358229}
+ROW {"ckpt": "abl_5_5", "setting": "nb1000_Hown", "backbone": 5.0, "t1x_H": 0.0232933979962642, "t1x_F": 0.009805892529936197, "t1x_E": 0.24974363101025424, "pub_H_mean": 0.11473004748184698, "pub_H_median": 0.004747738448362701}
+CHECK_WEIGHTS all checkpoint state keys loaded
+ROW {"ckpt": "abl_12_12", "setting": "nb32_Hfull", "backbone": 12.0, "t1x_H": 0.023254954176954924, "t1x_F": 0.00984805177586774, "t1x_E": 0.2506338289131721, "pub_H_mean": 0.5940387896254137, "pub_H_median": 0.5643735041762157}
+ROW {"ckpt": "abl_12_12", "setting": "nb1000_Hfull", "backbone": 12.0, "t1x_H": 0.023254953686458368, "t1x_F": 0.009848051470859598, "t1x_E": 0.2506338489986956, "pub_H_mean": 0.6270779753478336, "pub_H_median": 0.6452775475969073}
+ROW {"ckpt": "abl_12_12", "setting": "nb32_Hown", "backbone": 12.0, "t1x_H": 0.02325495196894432, "t1x_F": 0.009848051096390312, "t1x_E": 0.25063384234284364, "pub_H_mean": 0.529773878082108, "pub_H_median": 0.5037971098361373}
+ROW {"ckpt": "abl_12_12", "setting": "nb1000_Hown", "backbone": 12.0, "t1x_H": 0.02325495396818345, "t1x_F": 0.009848051588827123, "t1x_E": 0.2506338278576732, "pub_H_mean": 0.5623921476910623, "pub_H_median": 0.5552963273198461}
+
+| ckpt | setting | T1x H MAE | T1x F MAE | T1x E MAE | PubChem H MAE mean | median |
+| hip_v2 | nb32_Hfull | 0.0244 | 0.0102 | 0.2521 | 0.3883 | 0.3003 |
+| hip_v2 | nb1000_Hfull | 0.0244 | 0.0102 | 0.2521 | 0.3873 | 0.2998 |
+| hip_v2 | nb32_Hown | 0.0217 | 0.0102 | 0.2521 | 0.1214 | 0.0050 |
+| hip_v2 | nb1000_Hown | 0.0217 | 0.0102 | 0.2521 | 0.1193 | 0.0049 |
+| hip_v3 | nb32_Hfull | 0.0178 | 0.0075 | 0.2528 | 0.3569 | 0.2852 |
+| hip_v3 | nb1000_Hfull | 0.0178 | 0.0075 | 0.2528 | 0.3541 | 0.2775 |
+| hip_v3 | nb32_Hown | 0.0182 | 0.0075 | 0.2528 | 0.1159 | 0.0045 |
+| hip_v3 | nb1000_Hown | 0.0182 | 0.0075 | 0.2528 | 0.1134 | 0.0044 |
+| abl_5_all | nb32_Hfull | 0.0227 | 0.0098 | 0.2521 | 0.2068 | 0.0923 |
+| abl_5_all | nb1000_Hfull | 0.0227 | 0.0098 | 0.2521 | 0.2031 | 0.0777 |
+| abl_5_all | nb32_Hown | 0.0232 | 0.0098 | 0.2521 | 0.1164 | 0.0048 |
+| abl_5_all | nb1000_Hown | 0.0232 | 0.0098 | 0.2521 | 0.1141 | 0.0048 |
+| abl_5_5 | nb32_Hfull | 0.0260 | 0.0098 | 0.2497 | 0.4142 | 0.3314 |
+| abl_5_5 | nb1000_Hfull | 0.0260 | 0.0098 | 0.2497 | 0.4132 | 0.3316 |
+| abl_5_5 | nb32_Hown | 0.0233 | 0.0098 | 0.2497 | 0.1170 | 0.0050 |
+| abl_5_5 | nb1000_Hown | 0.0233 | 0.0098 | 0.2497 | 0.1147 | 0.0047 |
+| abl_12_12 | nb32_Hfull | 0.0233 | 0.0098 | 0.2506 | 0.5940 | 0.5644 |
+| abl_12_12 | nb1000_Hfull | 0.0233 | 0.0098 | 0.2506 | 0.6271 | 0.6453 |
+| abl_12_12 | nb32_Hown | 0.0233 | 0.0098 | 0.2506 | 0.5298 | 0.5038 |
+| abl_12_12 | nb1000_Hown | 0.0233 | 0.0098 | 0.2506 | 0.5624 | 0.5553 |

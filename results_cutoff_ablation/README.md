@@ -16,7 +16,13 @@ than `hip_v3.ckpt`?
    `max_neighbors=1000`, hip_v3 with `max_neighbors=32`. With a 5 Å radius, a 32-neighbour cap
    truncates the graph of 26% of atoms (550/710 molecules) in the PubChem set, but never applies to
    T1x training molecules (< 32 atoms). A controlled re-evaluation is in
-   [Released checkpoints](#released-checkpoints-same-evaluator).
+   [Released checkpoints](#released-checkpoints-on-all-710-molecules-same-projected-evaluator). The
+   cap changes the PubChem results by less than 2%.
+5. **Update (behavioural probe).** hip_v2 was trained 5 Å / 5 Å and hip_v3 5 Å / fully connected. On
+   PubChem, what matters most is the Hessian graph used **at inference**. Evaluated with a 5 Å Hessian
+   graph, hip_v3 and the ablation trained fully connected are as accurate as 5 Å / 5 Å (median raw
+   Hessian MAE ≈ 0.005 eV/Å²). Evaluated fully connected, every model is 15–70× worse. The 12 Å
+   backbone fails under both settings.
 
 ## 1. Evidence for the bug
 
@@ -159,8 +165,71 @@ and Hessian are continuous through the cutoff. Training uses the copy
 
 ## Released checkpoints, same evaluator
 
-Job 7320536 evaluates hip_v2 and hip_v3 (HF files above) with `max_neighbors` set to 32 and 1000,
-using the same projected evaluator (`scripts/eval_released.sbatch`). Results will be added here.
+### Behavioural probe: which graph were hip_v2 and hip_v3 trained with?
+
+`scripts/probe_graph.py` (job 7321535) evaluates each checkpoint on 300 T1x-val samples and on 60
+PubChem molecules spaced evenly across the set. Four runtime graph settings are tested:
+- backbone capped at 32 or at 1000 neighbours;
+- Hessian graph fully connected (`Hfull`) or a radius graph at the model's own backbone cutoff (`Hown`).
+
+A model is most accurate in distribution under the graph it was trained with. The ablation checkpoints,
+whose training graph is known, calibrate the test. Units are raw (unprojected) eV/Å². The T1x energy
+column compares with `ae` and is identical for every setting, so it is not shown.
+[Full log](pubchem/probe-7321535.out).
+
+| ckpt | T1x H MAE, Hfull | T1x H MAE, Hown | PubChem H MAE Hfull: mean (median) | PubChem H MAE Hown: mean (median) |
+|---|---|---|---|---|
+| ablation 5 Å / fully connected | **0.0227** | 0.0232 | 0.203 (0.078) | 0.114 (0.0048) |
+| ablation 5 Å / 5 Å | 0.0260 | **0.0233** | 0.413 (0.332) | 0.115 (0.0047) |
+| ablation 12 Å / 12 Å | 0.0233 | 0.0233 | 0.627 (0.645) | 0.562 (0.555) |
+| hip_v2 | 0.0244 | **0.0217** | 0.387 (0.300) | 0.119 (0.0049) |
+| hip_v3 | **0.0178** | 0.0182 | 0.354 (0.278) | 0.113 (0.0044) |
+
+These are the `max_neighbors=1000` rows; the 32-neighbour cap changes the means by up to 6% and the medians by up to 20%.
+For 12 Å / 12 Å, `Hown` is 12 Å, which already contains almost every atom pair of a T1x molecule.
+
+Findings:
+- **hip_v2 was trained with the 5 Å Hessian graph.** It matches the 5 Å / 5 Å calibration: 12% worse
+  T1x Hessian MAE when evaluated fully connected.
+- **hip_v3 was trained with the fully connected Hessian graph.** It matches the 5 Å / fully connected
+  calibration: slightly better T1x MAE when evaluated fully connected. This confirms the dating from
+  the hyperparameters.
+- **On PubChem, the Hessian graph used at inference matters more than the one used in training.**
+  - Every 5 Å backbone model reaches a median PubChem Hessian MAE of about 0.005 eV/Å² when evaluated
+    with the 5 Å Hessian graph. That includes hip_v3 and the ablation trained fully connected.
+  - Evaluated fully connected, every model is 15–70× worse at the median.
+  - So the ablation's 19× gap between 5 Å / fully connected and 5 Å / 5 Å was measured with each
+    model under its own training graph. The fully connected model loses its accuracy through the
+    long-range blocks it predicts at inference. Training it on the long-range pairs that small T1x
+    molecules contain did not hurt it measurably.
+- The 12 Å backbone is bad under both settings, so the backbone cutoff is a separate size-extrapolation
+  failure. At 12 Å, a PubChem atom has 64 neighbours on average; in T1x it has at most 20.
+- The means are dominated by the 51 reference outliers in every setting. The medians are the
+  comparable numbers.
+
+### Released checkpoints on all 710 molecules, same projected evaluator
+
+Job 7320536 (`scripts/eval_released.sbatch`) evaluates hip_v2 and hip_v3 on all 710 PubChem molecules
+with the **fully connected** Hessian graph that the current code uses by default. It is the same
+evaluator, in the same units, as the ablation table above: mass-weighted, Eckart-projected,
+eV/(Å²·amu). Mean (median), excluding the 51 outliers (n = 659).
+
+| model | Hessian graph | max_neighbors | Hessian MAE | block RMSE | eigval MAE | abs cos v1 |
+|---|---|---|---|---|---|---|
+| hip_v2 | fully connected | 32 | 0.0596 (0.0627) | 0.0823 (0.0873) | 0.433 (0.459) | 0.123 (0.074) |
+| hip_v2 | fully connected | 1000 | 0.0593 (0.0625) | 0.0818 (0.0867) | 0.429 (0.447) | 0.120 (0.072) |
+| hip_v3 | fully connected | 32 | 0.0557 (0.0517) | 0.0729 (0.0673) | 1.84 (1.76) | 0.200 (0.053) |
+| hip_v3 | fully connected | 1000 | 0.0550 (0.0498) | 0.0719 (0.0647) | 1.81 (1.71) | 0.206 (0.053) |
+| hip_v2 | 5 Å | 1000 | job 7350224 (`scripts/eval_released_H5.sbatch`) | | | |
+| hip_v3 | 5 Å | 1000 | job 7350224 | | | |
+
+- The neighbour cap hardly matters (< 2%). The difference between the earlier NVIDIA-cluster runs of
+  hip_v2 and hip_v3 does not come from the cap.
+- With a fully connected Hessian graph, both released models are about 35× worse than the 5 Å / 5 Å
+  ablation (0.0016), and neither is clearly better than the other. With the evaluation code current
+  at the time, which built a 5 Å Hessian graph, hip_v2 would have been evaluated under its training
+  graph. That could explain the original observation that hip_v2 generalises better.
+- Per-molecule CSVs: `pubchem/released/<model>_maxnb<N>/`.
 
 ## Interpretation and open points
 
@@ -186,6 +255,6 @@ using the same projected evaluator (`scripts/eval_released.sbatch`). Results wil
   group, Adam moments; `lr_muon` unused), while hip_v3 used Muon plus auxiliary Adam. The eigenvalue
   loss was off for both (`alpha=None`). The ablations all used the hip_v3 optimiser, so the
   optimiser effect is untested.
-- Pending: a behavioural probe (`scripts/probe_graph.py`, job 7321535) evaluates each checkpoint on
-  T1x-val and PubChem with the backbone capped at 32 or 1000 neighbours, and the Hessian graph fully
-  connected or at the backbone cutoff. The in-distribution optimum identifies the training graph.
+- The behavioural probe confirms both: hip_v2 trained 5 Å / 5 Å, hip_v3 trained 5 Å / fully connected
+  (see [the probe](#behavioural-probe-which-graph-were-hip_v2-and-hip_v3-trained-with)). It also shows
+  that the size-generalisation gap closes when both are evaluated with the 5 Å Hessian graph.
