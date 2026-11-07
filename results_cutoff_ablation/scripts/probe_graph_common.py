@@ -18,3 +18,5 @@ VAL = '/project/aip-aspuru/aburger/.cache/kagglehub/datasets/yunhonghan/hessian-
 H5 = sorted(glob.glob(f'{P}/pubchem-reference/orca_wb97x_631gd_chno_30_100/h5/*.h5'))
 
 pub = [H5[i] for i in np.linspace(0, len(H5) - 1, 60).astype(int)]
+HB2EVA2 = 27.211386245988 / 0.529177210903**2
+dev = torch.device('cuda')
