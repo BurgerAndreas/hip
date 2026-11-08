@@ -213,7 +213,15 @@ Findings:
 
 `scripts/probe_cross.py` (job 7355327, [log](pubchem/probe-cross-7355327.out)) evaluates each
 checkpoint with its own backbone and a radius Hessian graph of 4–32 Å or fully connected, on the same 60
-PubChem molecules. Values are the median raw Hessian MAE in eV/Å². The best cutoff per model is in bold.
+PubChem molecules. The 60 molecules are a subset of the 710: every ~12th file in sorted order, chosen for speed. Each
+value is computed in two steps:
+- per molecule, the MAE over all 3N×3N Hessian entries, raw: not mass-weighted and not projected, in
+  eV/Å²;
+- then the median of that over the 60 molecules.
+
+The near/far split averages the 3×3 atom-pair block MAEs over pairs closer or farther than 5 Å within each
+molecule, then takes the median over molecules. Full-set projected results at the selected cutoffs:
+job 7360962 (`scripts/eval_released_Hcut.sbatch`). The best cutoff per model is in bold.
 
 | ckpt (training graph) | 4 | 5 | 6 | 7 | 9 | 12 | 16 | 32 | full |
 |---|---|---|---|---|---|---|---|---|---|
