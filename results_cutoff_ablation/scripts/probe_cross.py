@@ -3,14 +3,19 @@
 
 Separates the backbone and Hessian-graph contributions to PubChem size extrapolation. 60 PubChem
 molecules (same subset as probe_graph.py), raw Hessian MAE in eV/A^2, and MAE restricted to atom
-pairs closer / farther than 5 A. Prints one markdown table.
+pairs closer / farther than 5 A. Prints one markdown table and writes per-molecule errors to
+$PROBE_OUT/probe-cross-per-molecule.csv (default <run>/pubchem-eval-20261106/probe-out).
 """
-import sys, json
+import sys, json, csv, os
 from pathlib import Path
 import numpy as np, torch
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import probe_graph_common as C
 
+OUT = Path(os.environ.get('PROBE_OUT', f'{C.P}/pubchem-eval-20261106/probe-out')); OUT.mkdir(parents=True, exist_ok=True)
+PM = OUT / 'probe-cross-per-molecule.csv'
+FIELDS = ['ckpt', 'backbone', 'hessian_graph', 'sample_name', 'natoms', 'hessian_mae_ev_a2', 'near_block_mae_ev_a2', 'far_block_mae_ev_a2']
+with PM.open('w', newline='') as fh: csv.DictWriter(fh, FIELDS).writeheader()
 rows = []
 for cname, path in C.CKPTS.items():
     module = C.load_module_for_inference(Path(path), C.dev)
@@ -18,7 +23,7 @@ for cname, path in C.CKPTS.items():
     for hg in (4.0, 5.0, 6.0, 7.0, 9.0, 12.0, 16.0, 32.0, 'full'):
         model.fully_connected_hessian = hg == 'full'
         model.hessian_graph_cutoff = 100.0 if hg == 'full' else hg
-        mae, near, far = [], [], []
+        mae, near, far, per = [], [], [], []
         for p in C.pub:
             z, xb, _, hb = C.load_hf_orca_hessian(Path(p))
             pos = xb * 0.529177210903
@@ -28,9 +33,12 @@ for cname, path in C.CKPTS.items():
             n = len(z); d = np.abs(out['hessian'].reshape(3*n, 3*n).double().cpu().numpy() - hb * C.HB2EVA2)
             blk = d.reshape(n, 3, n, 3).mean(axis=(1, 3))
             r = np.linalg.norm(pos[:, None] - pos[None], axis=-1)
-            mae.append(d.mean()); near.append(blk[r < 5].mean()); far.append(blk[r >= 5].mean())
+            mae.append(d.mean()); near.append(blk[r < 5].mean()); far.append(blk[r >= 5].mean() if (r >= 5).any() else float('nan'))
+            per.append(dict(ckpt=cname, backbone=float(model.cutoff), hessian_graph=hg, sample_name=Path(p).stem, natoms=n,
+                            hessian_mae_ev_a2=mae[-1], near_block_mae_ev_a2=near[-1], far_block_mae_ev_a2=far[-1]))
         rows.append(dict(ckpt=cname, backbone=float(model.cutoff), hessian_graph=hg,
-                         med=np.median(mae), mean=np.mean(mae), near=np.median(near), far=np.median(far)))
+                         med=np.median(mae), mean=np.mean(mae), near=np.median(near), far=np.nanmedian(far)))
+        with PM.open('a', newline='') as fh: csv.DictWriter(fh, FIELDS).writerows(per)
         print('ROW', json.dumps(rows[-1]), flush=True)
     del model, module; torch.cuda.empty_cache()
 print('\n| ckpt | backbone | Hessian graph | PubChem H MAE median | mean | median MAE pairs < 5 A | pairs >= 5 A |')

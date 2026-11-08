@@ -3,9 +3,10 @@
 
 Evaluates each checkpoint on a T1x-val subset (in distribution) and a PubChem subset under
 several runtime graph settings. The setting that reproduces in-distribution accuracy is the
-training setting. Prints one summary table.
+training setting. Prints one summary table and writes per-molecule errors to
+$PROBE_OUT/probe-graph-per-molecule.csv (default <run>/pubchem-eval-20261106/probe-out).
 """
-import glob, sys, json
+import glob, sys, json, csv, os
 from pathlib import Path
 import numpy as np, torch, h5py
 
@@ -55,6 +56,10 @@ def run(model, batch):
     n = batch.pos.numel()
     return e, f, out['hessian'].reshape(n, n)
 
+OUT = Path(os.environ.get('PROBE_OUT', f'{P}/pubchem-eval-20261106/probe-out')); OUT.mkdir(parents=True, exist_ok=True)
+PM = OUT / 'probe-graph-per-molecule.csv'
+FIELDS = ['ckpt', 'setting', 'dataset', 'sample', 'natoms', 'hessian_mae_ev_a2', 'forces_mae_ev_a', 'energy_ae_ev']
+with PM.open('w', newline='') as fh: csv.DictWriter(fh, FIELDS).writeheader()
 rows = []
 for cname, path in CKPTS.items():
     module = load_module_for_inference(Path(path), dev)
@@ -64,7 +69,7 @@ for cname, path in CKPTS.items():
         model.max_neighbors = nb
         model.fully_connected_hessian = fc
         model.hessian_graph_cutoff = own if hc is None else hc
-        t_h, t_f, t_e = [], [], []
+        t_h, t_f, t_e, per = [], [], [], []
         for i in val_idx:
             d = val[int(i)]
             b = make_batch(d.z.numpy(), d.pos.numpy(), dev)
@@ -73,15 +78,20 @@ for cname, path in CKPTS.items():
             t_h.append(float((h.cpu() - d.hessian.reshape(n, n)).abs().mean()))
             t_f.append(float((f.cpu() - d.forces).abs().mean()))
             t_e.append(abs(float(e.squeeze()) - float(d.ae)))
+            per.append(dict(ckpt=cname, setting=label, dataset='t1x_val', sample=int(i), natoms=len(d.z),
+                            hessian_mae_ev_a2=t_h[-1], forces_mae_ev_a=t_f[-1], energy_ae_ev=t_e[-1]))
         p_h = []
         for p in pub:
             z, xb, _, hb = load_hf_orca_hessian(Path(p))
             b = make_batch(z, xb * 0.529177210903, dev)
             _, _, h = run(model, b)
             p_h.append(float((h.cpu().double() - torch.as_tensor(hb * HB2EVA2)).abs().mean()))
+            per.append(dict(ckpt=cname, setting=label, dataset='pubchem', sample=Path(p).stem, natoms=len(z),
+                            hessian_mae_ev_a2=p_h[-1], forces_mae_ev_a='', energy_ae_ev=''))
         rows.append(dict(ckpt=cname, setting=label, backbone=own, t1x_H=np.mean(t_h), t1x_F=np.mean(t_f),
                          t1x_E=np.mean(t_e), pub_H_mean=np.mean(p_h), pub_H_median=np.median(p_h)))
         print('ROW', json.dumps(rows[-1]), flush=True)
+        with PM.open('a', newline='') as fh: csv.DictWriter(fh, FIELDS).writerows(per)
     del model, module; torch.cuda.empty_cache()
 
 print('\n| ckpt | setting | T1x H MAE | T1x F MAE | T1x E MAE | PubChem H MAE mean | median |')
