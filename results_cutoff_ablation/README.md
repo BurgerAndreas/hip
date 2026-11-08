@@ -269,8 +269,8 @@ This confirms the 60-molecule sweep:
 
 ![error vs size](pubchem/cutoff-grid-size.png)
 
-How to read the figure: line style is the model; colour is the inference Hessian cutoff, light to dark
-yellow-green for large, purple for small. Each point is the median per 10-atom bin, plotted at the bin's
+How to read the figure: line style is the model; colour is the inference Hessian cutoff, from dark purple (4 Å) to light
+yellow-green (fully connected). Each point is the median per 10-atom bin, plotted at the bin's
 mean N. The 90–100 bin includes N = 100. Made by `scripts/plot_cutoff_grid.py`.
 
 ### Released checkpoints on all 710 molecules, same projected evaluator
