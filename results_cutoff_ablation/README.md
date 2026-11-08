@@ -246,6 +246,33 @@ job 7360962 (`scripts/eval_released_Hcut.sbatch`). The best cutoff per model is 
   12 Å / 5 Å and 5 Å / 12 Å training runs will separate the two in training.
 - Caveat: these cutoffs were chosen on PubChem molecules, which are the test set.
 
+### Inference cutoff grid on all 710 molecules (projected)
+
+Job 7361024 (`scripts/eval_cutoff_grid.sbatch`, 45 tasks) evaluates the 5 checkpoints at 9 inference
+Hessian-graph cutoffs with the projected evaluator on all 710 molecules. The per-molecule CSVs are in
+`pubchem/cutoff-grid/<model>_H<cutoff>/`. Each value is the median over molecules (n = 659, outliers
+excluded) of the mass-weighted, Eckart-projected Hessian MAE, in eV/(Å²·amu). Best per model in bold.
+
+| model (training graph) | 4 | 5 | 6 | 7 | 9 | 12 | 16 | 32 | full |
+|---|---|---|---|---|---|---|---|---|---|
+| hip_v2 (5 / 5) | 0.00225 | **0.00162** | 0.00215 | 0.0204 | 0.0448 | 0.0585 | 0.0619 | 0.0625 | 0.0625 |
+| hip_v3 (5 / full) | 0.00207 | 0.00139 | 0.00127 | **0.00125** | 0.00147 | 0.0462 | 0.0498 | 0.0498 | 0.0498 |
+| abl 5 / 5 | 0.00224 | **0.00155** | 0.00366 | 0.0130 | 0.0437 | 0.0678 | 0.0745 | 0.0745 | 0.0745 |
+| abl 5 / full | 0.00222 | 0.00152 | 0.00142 | **0.00142** | 0.00160 | 0.0118 | 0.0213 | 0.0213 | 0.0213 |
+| abl 12 / 12 | **0.0833** | 0.0942 | 0.0995 | 0.104 | 0.121 | 0.159 | 0.168 | 0.168 | 0.168 |
+
+This confirms the 60-molecule sweep:
+- 5 Å is optimal for models trained with a 5 Å Hessian graph.
+- 6–7 Å is optimal for models trained fully connected.
+- hip_v3 at 7 Å is the best result: 0.00125, 50× better than fully connected.
+- The 12 Å backbone is 50× worse than the 5 Å backbones at any Hessian cutoff.
+
+![error vs size](pubchem/cutoff-grid-size.png)
+
+How to read the figure: line style is the model; colour is the inference Hessian cutoff, light to dark
+yellow-green for large, purple for small. Each point is the median per 10-atom bin, plotted at the bin's
+mean N. The 90–100 bin includes N = 100. Made by `scripts/plot_cutoff_grid.py`.
+
 ### Released checkpoints on all 710 molecules, same projected evaluator
 
 Job 7320536 (`scripts/eval_released.sbatch`) evaluates hip_v2 and hip_v3 on all 710 PubChem molecules
