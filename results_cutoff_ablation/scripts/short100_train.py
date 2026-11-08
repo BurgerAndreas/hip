@@ -55,5 +55,29 @@ class ShortTrainer(OriginalTrainer):
         super().__init__(*args, **kwargs)
 
 pl.Trainer = ShortTrainer
+
+def _resume_arg():
+    """Resume from the newest last.ckpt under ckpt_base_dir (train.py auto-resume mis-resolves absolute paths)."""
+    if SMOKE or any(a.lstrip('+').startswith('ckpt_trainer_path=') for a in sys.argv[1:]):
+        return
+    base = next((a.split('=', 1)[1] for a in sys.argv[1:] if a.startswith('ckpt_base_dir=')), None)
+    if not base or not Path(base).is_absolute():
+        return
+    best = None
+    for p in Path(base).glob('*/last.ckpt'):
+        try:
+            step = torch.load(p, map_location='cpu', mmap=True, weights_only=False)['global_step']
+        except Exception as e:
+            print(f'SHORT100 resume: skipping unreadable {p}: {e}', flush=True)
+            continue
+        if best is None or step > best[0]:
+            best = (step, p)
+    if best:
+        print(f'SHORT100 resume from {best[1]} (global_step {best[0]})', flush=True)
+        sys.argv.append(f'ckpt_trainer_path={best[1]}')
+    else:
+        print(f'SHORT100 resume: no last.ckpt under {base}, starting fresh', flush=True)
+
+_resume_arg()
 sys.path.insert(0, os.environ['HIP_RUN'])
 runpy.run_path(os.path.join(os.environ['HIP_RUN'], 'seeded_train.py'), run_name='__main__')
