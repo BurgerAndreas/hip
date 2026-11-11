@@ -232,7 +232,7 @@ class EquiformerV2_OC20(BaseModel):
         compute_stress=None,
         do_hessian=None,
         num_gaussians_distance_hessian=None,
-        fully_connected_hessian=True,
+        fully_connected_hessian=None,  # None (legacy checkpoint without the key) -> see below
         edge_envelope=False,
         envelope_exponent=5,
         device=None,
