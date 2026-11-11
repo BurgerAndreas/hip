@@ -13,6 +13,8 @@ HIP_CHECKPOINT_REPO_ID = "andreasburger/hip"
 HIP_AUTO_DOWNLOAD_CHECKPOINTS = {
     "hip_v2.ckpt": "ckpt/hip_v2.ckpt",
     "hip_v3.ckpt": "ckpt/hip_v3.ckpt",
+    "hip_v2-1.ckpt": "ckpt/hip_v2-1.ckpt",
+    "hip_v3-1.ckpt": "ckpt/hip_v3-1.ckpt",
 }
 
 

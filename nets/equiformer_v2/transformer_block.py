@@ -364,7 +364,13 @@ class SO2EquivariantGraphAttention(torch.nn.Module):
             # softmax is computed per destination node over its incoming edges
             # i.e. incoming message attn weights have to sum to 1 for each node
             # not normalized over num_heads
-            alpha = torch_geometric.utils.softmax(src=alpha, index=edge_index[1])
+            _env = getattr(self, "_edge_envelope", None)
+            if _env is not None:
+                # smooth attention: env * softmax(a + log env) -> continuous normaliser, weight -> 0 at cutoff
+                _env = _env.to(alpha.dtype).unsqueeze(-1)
+                alpha = torch_geometric.utils.softmax(src=alpha + torch.log(_env.clamp_min(1e-30)), index=edge_index[1]) * _env
+            else:
+                alpha = torch_geometric.utils.softmax(src=alpha, index=edge_index[1])
         alpha = alpha.reshape(
             alpha.shape[0], 1, self.num_heads, 1
         )  # (E, 1, num_heads, 1)

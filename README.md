@@ -46,6 +46,7 @@ Download the latest checkpoints from HuggingFace:
 
 ```bash
 mkdir -p ckpt
+wget https://huggingface.co/andreasburger/hip/resolve/main/ckpt/hip_v3-1.ckpt -O ckpt/hip_v3-1.ckpt
 wget https://huggingface.co/andreasburger/hip/resolve/main/ckpt/hip_v3.ckpt -O ckpt/hip_v3.ckpt
 wget https://huggingface.co/andreasburger/hip/resolve/main/ckpt/hip_v3.yaml -O ckpt/hip_v3.yaml
 wget https://huggingface.co/andreasburger/hip/resolve/main/ckpt/hip_v3_cf.ckpt -O ckpt/hip_v3_cf.ckpt
@@ -54,9 +55,34 @@ wget https://huggingface.co/andreasburger/hip/resolve/main/ckpt/hip_v3_cf.yaml -
 
 Available checkpoints:
 
-- `hip_v3.ckpt`: latest HIP checkpoint with direct force prediction.
+- `hip_v3-1.ckpt` (recommended): same weights as `hip_v3.ckpt`, with the Hessian-graph settings fixed (see below).
+- `hip_v2-1.ckpt`: same weights as `hip_v2.ckpt`, with the Hessian-graph settings fixed.
+- `hip_v3.ckpt`: HIP checkpoint with direct force prediction, as used in the paper.
 - `hip_v3_cf.ckpt`: latest HIP checkpoint trained with conservative forces (`model.direct_forces=False`).
 - `hip_v3.yaml` and `hip_v3_cf.yaml`: saved model, optimizer, and training configs for the matching checkpoints.
+
+### Graph settings for inference
+
+The backbone of `hip_v2` and `hip_v3` was trained with a 5 Å radius graph, and the Hessian head only saw
+atom pairs up to ~5-12 Å (the largest pair distance in the training set is 12.21 Å). Evaluating the
+Hessian head on a fully connected graph, the old default, makes Hessians of larger molecules much worse
+(e.g. ~40x on PubChem molecules with 30-100 atoms). Use:
+
+| checkpoint | backbone cutoff | `max_neighbors` | Hessian graph |
+|---|---|---|---|
+| `hip_v3-1.ckpt` (recommended) | 5 Å (as trained) | 1000 (no cap) | 6 Å radius graph (5-7 Å all work) |
+| `hip_v2-1.ckpt` | 5 Å (as trained) | 1000 (no cap) | 5 Å radius graph |
+
+The `-1` checkpoints store these settings (`fully_connected_hessian: false`, `hessian_graph_cutoff`,
+`max_neighbors: 1000`). Checkpoints without `fully_connected_hessian` in their config, like
+`hip_v2.ckpt` and `hip_v3.ckpt`, now fall back to a Hessian graph with the backbone cutoff (5 Å) and
+no neighbour cap, and log a warning. `cutoff_hessian` only sets the range of the Hessian-head distance
+basis and must stay at its trained value (100). Details and benchmarks:
+[results_cutoff_ablation](https://github.com/BurgerAndreas/hip/tree/natcompsci-rebuttal/results_cutoff_ablation).
+
+For training new models, the ideal settings going forward are a 5 Å backbone and a 5 Å Hessian graph
+with no neighbour cap and a smooth envelope on all edges (`configs/train_envelope.yaml`), which gave the
+best size extrapolation in our ablations.
 
 Run a few forward passes (should take 30s)
 

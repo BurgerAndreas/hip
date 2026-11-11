@@ -98,6 +98,13 @@ def center_batch_positions(data):
 
 
 @registry.register_model("equiformer_v2")
+
+def poly_envelope(x, p=5):
+    """Smooth cutoff u(x), x = d / cutoff: u(0)=1, u(1)=u'(1)=u''(1)=0, zero for x >= 1 (DimeNet)."""
+    x = x.clamp(min=0.0, max=1.0)
+    u = 1 - (p + 1) * (p + 2) / 2 * x**p + p * (p + 2) * x ** (p + 1) - p * (p + 1) / 2 * x ** (p + 2)
+    return u * (x < 1).to(u.dtype)
+
 class EquiformerV2_OC20(BaseModel):
     """
     Equiformer with graph attention built upon SO(2) convolution and feedforward network built upon S2 activation
@@ -194,7 +201,8 @@ class EquiformerV2_OC20(BaseModel):
         enable_hessian_head=True,
         # if to also use atom type embedding or just relative distances for edge features
         # in edge_distance
-        cutoff_hessian=100.0,
+        cutoff_hessian=100.0,  # range of the Gaussian distance basis of the Hessian head
+        hessian_graph_cutoff=None,  # radius of the Hessian graph; None -> cutoff_hessian
         hessian_no_attn_weights=False,  # messages without attention weights
         attn_wo_sigmoid=False,  # do not apply sigmoid to attention weights
         # not used, for compatibilit with old  with legacy ckpt
@@ -225,10 +233,14 @@ class EquiformerV2_OC20(BaseModel):
         do_hessian=None,
         num_gaussians_distance_hessian=None,
         fully_connected_hessian=True,
+        edge_envelope=False,
+        envelope_exponent=5,
         device=None,
         **kwargs,
     ):
         super().__init__()
+        self.edge_envelope = bool(edge_envelope)
+        self.envelope_exponent = int(envelope_exponent)
 
         # H, C, N, O
         self.atom_numbers = torch.tensor([1, 6, 7, 8])
@@ -459,7 +471,26 @@ class EquiformerV2_OC20(BaseModel):
         ################################################################
 
         self.cutoff_hessian = cutoff_hessian
+        if fully_connected_hessian is None:
+            # Checkpoints released before the Hessian graph had its own settings (hip_v2.ckpt,
+            # hip_v3.ckpt) were trained with a 5 A backbone capped at 32 neighbours, and the Hessian
+            # head only saw pair distances up to ~5-12 A. A fully connected Hessian graph degrades
+            # badly on molecules larger than the training data, so default to a radius graph with
+            # the backbone cutoff and no neighbour cap.
+            logging.warning(
+                "EquiformerV2: config has no fully_connected_hessian (legacy checkpoint). Using a "
+                f"{max_radius:g} A Hessian graph and max_neighbors=1000 instead of a fully connected "
+                "graph. Set fully_connected_hessian / hessian_graph_cutoff explicitly to override; "
+                "hip_v2-1.ckpt and hip_v3-1.ckpt carry the recommended settings."
+            )
+            fully_connected_hessian = False
+            if hessian_graph_cutoff is None:
+                hessian_graph_cutoff = max_radius
+            self.max_neighbors = max(self.max_neighbors, 1000)
         self.fully_connected_hessian = fully_connected_hessian
+        self.hessian_graph_cutoff = (
+            cutoff_hessian if hessian_graph_cutoff is None else hessian_graph_cutoff
+        )
         self.hessian_module_list = []
         self.avg_degree_hessian = avg_degree_hessian
 
@@ -764,7 +795,7 @@ class EquiformerV2_OC20(BaseModel):
                 if otf_graph or not hasattr(data, "nedges_hessian"):
                     data = add_hessian_graph_batch(
                         data,
-                        cutoff=self.cutoff_hessian,
+                        cutoff=self.hessian_graph_cutoff,
                         use_pbc=False,
                         fully_connected=self.fully_connected_hessian,
                     )
@@ -815,6 +846,10 @@ class EquiformerV2_OC20(BaseModel):
                 offset_res = offset_res + int((self.lmax_list[i] + 1) ** 2)
 
             # Edge encoding (distance and atom edge)
+            env_bb = poly_envelope(edge_distance / self.cutoff, self.envelope_exponent) if self.edge_envelope else None
+            self.edge_degree_embedding._edge_envelope = env_bb
+            for _blk in self.blocks:
+                _blk.ga._edge_envelope = env_bb
             edge_distance = self.distance_expansion(edge_distance)
             if self.share_atom_edge_embedding and self.use_atom_edge_embedding:
                 source_element = atomic_numbers[edge_index[0]]  # Source atom atomic number
@@ -904,6 +939,12 @@ class EquiformerV2_OC20(BaseModel):
                     self.SO3_rotation_hessian[i].set_wigner(edge_rot_mat_hessian)
 
                 # Edge encoding (distance and atom edge)
+                env_h = (
+                    poly_envelope(edge_distance_hessian / self.hessian_graph_cutoff, self.envelope_exponent)
+                    if (self.edge_envelope and not self.fully_connected_hessian) else None
+                )
+                for _blk in self.hessian_layers:
+                    _blk.ga._edge_envelope = env_h
                 edge_distance_hessian = self.distance_expansion_hessian(
                     edge_distance_hessian
                 )
@@ -971,6 +1012,8 @@ class EquiformerV2_OC20(BaseModel):
                     self.hessian_cartesian_basis,
                 )
 
+                if env_h is not None:
+                    l012_edge_features_3x3 = l012_edge_features_3x3 * env_h.view(-1, *([1] * (l012_edge_features_3x3.dim() - 1)))
                 hessian = self._get_hessian_from_features(
                     edge_index=edge_index_hessian,
                     data=data,

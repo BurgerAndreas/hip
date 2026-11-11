@@ -1,0 +1,30 @@
+# Recommended settings for training a new HIP model (not yet trained at full length).
+# Smooth polynomial envelope on all edge messages, 5 A backbone and 5 A Hessian graph, no
+# neighbour cap. In a 100-epoch ablation this extrapolated best to PubChem molecules with
+# 30-100 atoms (Eckart eigenvalue MAE 0.0145 vs 0.0233 eV/(A^2 amu) without the envelope).
+# Usage: uv run scripts/train.py --config-name train_envelope
+defaults:
+  - train
+  - _self_
+
+model:
+  max_radius: 5.0
+  max_neighbors: 1000          # no truncation; torch_cluster does not sort neighbours by distance
+  cutoff_hessian: 100.0        # range of the Hessian-head Gaussian distance basis
+  hessian_graph_cutoff: 5.0    # radius of the Hessian graph
+  fully_connected_hessian: false
+  edge_envelope: true
+  envelope_exponent: 5
+
+# optimizer used for the ablation run (hip_v3-style Muon)
+optimizer:
+  optimizer: muon
+  lr: 0.00044
+  betas: [0.965, 0.965]
+  weight_decay: 0.00002
+  lr_muon: 0.001
+  weight_decay_muon: 0.001
+
+training:
+  bz: 64
+  bz_val: 64
