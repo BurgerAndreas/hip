@@ -1,0 +1,9 @@
+samples 1725362
+MAX pair distance 12.210 A at index 584484 (natoms 14)
+per-molecule max distance percentiles 50/90/99/99.9: [5.456, 6.555, 7.635, 8.961]
+natoms max 23 mean 13.92
+fraction of molecules with any pair > 5 A: 0.78040
+fraction of molecules with any pair > 7.5 A: 0.01349
+fraction of molecules with any pair > 10 A: 0.00008
+fraction of molecules with any pair > 12 A: 0.00001
+fraction of molecules with any pair > 14.36 A: 0.00000
