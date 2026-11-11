@@ -1,0 +1,22 @@
+{
+  "completed_epochs": 100,
+  "global_step": 269500,
+  "metrics": {
+    "val-Loss Hessian": 0.01926598697900772,
+    "val-Loss E": 0.028850821778178215,
+    "val-Loss F": 0.008823784999549389,
+    "val-trainloss": 0.44210532307624817,
+    "val-MAE E": 0.028850821778178215,
+    "val-MAE F": 0.008823784999549389,
+    "val-MSE Hessian": 0.002405656734481454,
+    "val-MAE Hessian": 0.01926598697900772,
+    "val-Abs Cosine Sim v1 Eckart": 0.9785361289978027,
+    "val-Abs Cosine Sim v2 Eckart": 0.9545578956604004,
+    "val-MAE Val1 Eckart": 0.03031756542623043,
+    "val-MAE Val2 Eckart": 0.008627831004559994,
+    "val-MAE Eigvals Eckart": 0.013726617209613323,
+    "val-Neg Eigvals Match": 0.8730000257492065,
+    "val-totloss": 0.05694059655070305,
+    "val-val_duration_seconds": 12.87053394317627
+  }
+}

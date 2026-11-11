@@ -1,6 +1,6 @@
 # HIP graph-cutoff ablation (epoch 100)
 
-Three EquiformerV2-HIP models that differ only in their graph cutoffs. They were trained to test why
+EquiformerV2-HIP models that differ only in their graph cutoffs (and, for two, a smooth edge envelope). They were trained to test why
 `ckpt/hip_v2.ckpt` generalises to large molecules better than `ckpt/hip_v3.ckpt`. Full write-up, code
 links and per-molecule results:
 https://github.com/BurgerAndreas/hip/tree/natcompsci-rebuttal/results_cutoff_ablation
@@ -10,8 +10,17 @@ https://github.com/BurgerAndreas/hip/tree/natcompsci-rebuttal/results_cutoff_abl
 | `backbone5_hessian_all/` | 5 Å | fully connected | `49ee65b178963bf7fa1ca7ebf0fa30d670d5152fceff58206769c32646311e25` |
 | `backbone5_hessian5/` | 5 Å | 5 Å | `e065547d7bb3afa053bd9b6e21881566c97b7085aaca4a3697d9bc0807d46099` |
 | `backbone12_hessian12/` | 12 Å | 12 Å | `4ba078642cf603d997b9cf5915c952d04e2828bf4922c194bf820cc617f26ffe` |
+| `backbone5_hessian5_rbf5/` | 5 Å | 5 Å, Hessian-edge Gaussians 0–5 Å (`cutoff_hessian=5`) | `16efd04a34b4bb34ab9e628c0fa9b3dee682fcc8f8c1c6e84d786eabb54b97be` |
+| `backbone5_hessian5_envelope/` | 5 Å | 5 Å, smooth envelope | `f688bf2bcfb7ad240abb9fdf86e82c0efb7a6058fb0c44ada3ceccd9225eec25` |
+| `backbone12_hessian12_envelope/` | 12 Å | 12 Å, smooth envelope | `4ed3b6e027e7e4be9d0d0ada0bd585e0b599738b19acae9b4d079c53add902e9` |
+| `backbone12_hessian5/` | 12 Å | 5 Å | `324b2f8bd0d985f89c2b1e53fb91323654e39efa08dcb4a32e8d211fa5395122` |
+| `backbone5_hessian12/` | 5 Å | 12 Å | `b969c2d3d4b205654d8242ca235b0704973219e8c46049a80f1deba12ad05ce5` |
 
-All three use `max_neighbors=1000` (no neighbour cap), seed 20261102, and the hip_v3 optimiser:
+The `_envelope` checkpoints use a DimeNet polynomial envelope (p = 5) on backbone and Hessian-head edge
+messages (`model.edge_envelope=true`). They need the envelope patch
+(`results_cutoff_ablation/scripts/patch_envelope.py` on GitHub) to load.
+
+All use `max_neighbors=1000` (no neighbour cap), seed 20261102, and the hip_v3 optimiser:
 Muon, lr 4.4e-4, betas (0.965, 0.965), weight decay 2e-5, Muon lr 1e-3, Muon weight decay 1e-3.
 They also share batch size 64, `limit_train_batches=0.1`, and HORM Kaggle v5 `ts1x_hess_train_big.lmdb`.
 Training ran 100 epochs (269,500 steps) on one L40S each. Each folder holds a Lightning checkpoint and
@@ -37,6 +46,14 @@ median in parentheses, after excluding the 51 flagged reference outliers (n = 65
 | backbone5_hessian_all | 0.0306 (0.0213) | 0.0394 (0.0266) | 0.696 (0.398) | 0.246 (0.080) |
 | backbone5_hessian5 | 0.00163 (0.00155) | 0.00204 (0.00195) | 0.0233 (0.0159) | 0.763 (0.946) |
 | backbone12_hessian12 | 0.131 (0.159) | 0.175 (0.212) | 9.25 (10.6) | 0.175 (0.020) |
+| backbone5_hessian5_rbf5 | 0.00159 (0.00152) | 0.00200 (0.00190) | 0.0231 (0.0179) | 0.815 (0.975) |
+| backbone5_hessian5_envelope | 0.00154 (0.00146) | 0.00192 (0.00181) | 0.0145 (0.0138) | 0.850 (0.975) |
+| backbone12_hessian12_envelope | 0.00439 (0.00349) | 0.00583 (0.00462) | 0.280 (0.165) | 0.436 (0.285) |
+| backbone12_hessian5 | 0.0780 (0.0884) | 0.103 (0.117) | 3.79 (3.90) | 0.192 (0.015) |
+| backbone5_hessian12 | 0.0159 (0.0181) | 0.0211 (0.0240) | 0.456 (0.472) | 0.258 (0.088) |
+
+Each model is evaluated with its own training graph. The 12 Å backbone is the main failure; the smooth
+envelope recovers most of it (12/12: 0.131 to 0.0044).
 
 ## Use a 5 Å Hessian graph at inference
 

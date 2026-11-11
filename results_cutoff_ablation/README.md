@@ -127,12 +127,43 @@ Definitions:
 | 5 Å / 5 Å | clean | **0.00163** (0.00155) | **0.00204** (0.00195) | **0.0233** (0.0159) | **0.763** (0.946) |
 | 12 Å / 12 Å | all | 0.181 (0.159) | 0.257 (0.212) | 13.3 (10.2) | 0.174 (0.020) |
 | 12 Å / 12 Å | clean | 0.131 (0.159) | 0.175 (0.212) | 9.25 (10.6) | 0.175 (0.020) |
-| 7 Å / 7 Å | – | training (jobs 7320441→7320443), evaluation queued (7320698) | | | |
-| 5 Å / 5 Å, Hessian Gaussians 0–5 Å (`cutoff_hessian=5`) | – | training (7321863→7321865), evaluation queued (7321875) | | | |
-| 5 Å / 5 Å + smooth envelope | – | training (7321866→7321868), evaluation queued (7321876) | | | |
-| 12 Å / 12 Å + smooth envelope | – | training (7321869→7321871), evaluation queued (7321877) | | | |
-| 12 Å / 5 Å (backbone vs Hessian graph, 2×2) | – | training (7350381→7350383), evaluation queued (7350384) | | | |
-| 5 Å / 12 Å (2×2) | – | training (7350385→7350387), evaluation queued (7350388) | | | |
+| 7 Å / 7 Å | – | training resumed (job 7464011, see note), evaluation 7464012 | | | |
+| 5 Å / 5 Å, Hessian Gaussians 0–5 Å | clean | 0.00159 (0.00152) | 0.00200 (0.00190) | 0.0231 (0.0179) | 0.815 (0.975) |
+| 5 Å / 5 Å + smooth envelope | clean | **0.00154** (0.00146) | **0.00192** (0.00181) | **0.0145** (0.0138) | **0.850** (0.975) |
+| 12 Å / 12 Å + smooth envelope | clean | 0.00439 (0.00349) | 0.00583 (0.00462) | 0.280 (0.165) | 0.436 (0.285) |
+| 12 Å / 5 Å | clean | 0.0780 (0.0884) | 0.103 (0.117) | 3.79 (3.90) | 0.192 (0.015) |
+| 5 Å / 12 Å | clean | 0.0159 (0.0181) | 0.0211 (0.0240) | 0.456 (0.472) | 0.258 (0.088) |
+
+The second-round ablations were each evaluated with their own training graph. Per-molecule CSVs and
+`final-validation.json` files are in `pubchem/ablations2/<name>/`. On T1x validation all five sit in the
+same range as the first three ablations: E MAE 0.029–0.030 eV, F MAE 0.0087–0.0090 eV/Å, Hessian MAE
+0.0193–0.0204 eV/Å².
+
+**Backbone vs Hessian graph (2×2, trained and evaluated with the same graph), clean mean Hessian MAE:**
+
+| | Hessian graph 5 Å | Hessian graph 12 Å |
+|---|---|---|
+| **backbone 5 Å** | 0.00162 | 0.0159 |
+| **backbone 12 Å** | 0.0780 | 0.131 |
+
+- **Without an envelope, the backbone cutoff is the larger factor.**
+  - Going from a 5 to a 12 Å backbone costs 48× at a 5 Å Hessian graph and 8× at 12 Å.
+  - Going from a 5 to a 12 Å Hessian graph costs 10× with a 5 Å backbone and 1.7× with a 12 Å backbone.
+  - These are training-and-inference effects together. The inference sweep showed that a model trained
+    with a large Hessian graph does better at a smaller inference cutoff.
+- **The smooth envelope rescues the 12 Å backbone.**
+  - 12 / 12 drops from 0.131 to 0.0044, 30× better and within 2.7× of 5 / 5.
+  - On 5 / 5 the envelope improves the Hessian MAE only by 5%, but the eigenvalue MAE by 1.6× (0.0233
+    to 0.0145) and |cos v1| from 0.76 to 0.85. It is the best ablation evaluated with its own training
+    graph. hip_v3 evaluated with a 7 Å Hessian graph (0.00125) is still lower.
+  - So a large part of the 12 Å failure is the hard cutoff: edges that appear and disappear abruptly.
+    The number of neighbours alone does not explain it.
+- **Restricting the Hessian distance encoding to 0–5 Å changes little** (0.00159 vs 0.00162).
+- **Training resumption note.** The day-2 jobs of the 7 / 7, rbf5 and envelope runs restarted from epoch
+  0, because `train.py` auto-resume mis-resolves an absolute `ckpt_base_dir`. Those jobs were cancelled,
+  and the day-3 jobs resumed from the day-1 checkpoints via a fix in `scripts/short100_train.py`. The
+  7 / 7 run has its own copy of the wrapper, which was patched only on 2026-11-10, so it is still
+  training.
 
 Raw (unprojected) results, the outlier analysis and plots are in `pubchem/`:
 - `report.md` and `summary.json`
